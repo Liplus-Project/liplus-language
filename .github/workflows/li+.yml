@@ -1,4 +1,4 @@
-name: lai+
+name: li+
 on:
   pull_request:
     types: [opened, synchronize, reopened, edited]

@@ -17,7 +17,7 @@ Most AI-assisted development fails for a simple reason:
 
 > **AI is forced to reason without access to reality.**
 
-Li+ solves this by enforcing a loop where:
+Li+ enforces a loop where:
 
 - assumptions are written explicitly,
 - implementations are executed,
@@ -42,98 +42,53 @@ Li+ solves this by enforcing a loop where:
 
 ---
 
-## Quick Start (5 Minutes)
+## Quick Start
 
-You can adopt Li+ incrementally.
+You can experience Li+ in minutes.
 
-### 1. Add the Constitution
-Place `Li+.md` in your repository.  
-This file defines how AI must reason and what counts as fact.
+👉 **Quick Start with CI (5 minutes)**  
+https://github.com/smileygames/liplus-language/wiki/Quick-Start-with-CI-(5-Minutes)
 
-👉 Start here: **Li+.md**
-
----
-
-### 2. Write an Issue as a Hypothesis
-Describe what you want to change and why.
-
-- It does not need to be perfect.
-- It is a hypothesis, not a command.
+This walkthrough demonstrates a **minimal Li+ execution loop**  
+using CI as an execution-based debugger.
 
 ---
 
-### 3. Let AI Implement
-Ask AI to generate code, tests, or configuration **based on the Issue**.
+## Example
+
+See how Li+ behaves in a complete (hypothetical) project:
+
+👉 **Example: A Hypothetical Li+ Project**  
+https://github.com/smileygames/liplus-language/wiki/Example:-A-Hypothetical-Li+-Project
+
+This is not a best practice — just one possible execution flow.
 
 ---
 
-### 4. Execute
-Run CI or execute the code in a real environment.
+## Learn More (Human-facing)
 
-Execution is mandatory.  
-No execution → no facts.
+The Wiki contains the full human-facing documentation:
 
----
+- Design Philosophy  
+- Execution Loop (Semantics)  
+- Time Semantics (v0.3)  
+- Roles and Responsibilities  
+- Li+ Enabled Repository  
+- Policies & Conventions  
+- FAQ  
+- Examples and Quick Start
 
-### 5. Observe and Decide
-Look at:
-- logs
-- diffs
-- artifacts
-
-Decide whether it is acceptable **as a human**.
-
-That’s Li+.
+👉 Wiki:  
+https://github.com/smileygames/liplus-language/wiki
 
 ---
 
-## Example (Hypothetical)
+## Language Specification (AI-facing)
 
-**Project:** API client library
+- **Li+.md** — AI-facing judgment constitution  
+  Defines how AI must reason, execute, and revise based on evidence.
 
-1. Issue:  
-   “Hypothesis: caching responses will reduce latency.”
-
-2. AI implements caching and tests.
-
-3. CI executes benchmarks.
-
-4. Results show latency improvement but higher memory usage.
-
-5. Human decides:
-   - Accept tradeoff, or
-   - Revise hypothesis.
-
-No speculation.  
-Only executed evidence.
-
----
-
-## Time Semantics (v0.3)
-
-Li+ explicitly distinguishes how future statements are treated:
-
-- **Present**  
-  Executable reality
-- **Near Future**  
-  Predictable execution results
-- **Far Future**  
-  Schedules only — **never design targets**
-
-This prevents AI from treating distant ideas as immediate goals.
-
----
-
-## Learn More
-
-- **Li+.md** — AI-facing language specification  
-- **Wiki** — Human-facing design philosophy and semantics  
-  - Design Philosophy
-  - Execution Loop
-  - Time Semantics
-  - Roles
-  - Repository Requirements
-  - Policies & FAQ
+Start here if you are configuring an AI to follow Li+.
 
 ---
 
@@ -141,9 +96,9 @@ This prevents AI from treating distant ideas as immediate goals.
 
 Li+ separates **execution facts** from **human decisions**.
 
-- Build tags represent executed reality.
-- Versions are human-facing labels.
-- Releases are explicit human decisions.
+- Build tags represent executed reality
+- Versions are human-facing labels
+- Releases are explicit human decisions
 
 ---
 

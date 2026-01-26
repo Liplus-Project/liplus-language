@@ -158,13 +158,13 @@ from human-readable context.
 - ASCII only
 - English
 - Describes what changed
-- Must not include issue or PR numbers
+- Must not include issue or pull request numbers
 - Must remain meaningful without additional context
 
 ### Commit Body
 
 - Human-facing
-- Japanese is allowed (multi-language preferred)
+- Japanese is allowed
 - Explains why the change was made and under what assumptions
 - Must reference the corresponding issue or issues
 
@@ -183,25 +183,30 @@ Pull request titles are machine-facing summaries.
 - Must include the corresponding issue number or numbers at the end
 
 The title must remain meaningful
-even if the issue references are removed.
+even if issue references are removed.
 
 ---
 
 ## 8.2 Pull Request Description Policy
 
-Pull request descriptions are minimal, human-readable entry points.
+Pull request descriptions are human-facing indexes.
 
 - Japanese is allowed
-- The description must contain only:
-  - A short summary of the change
-  - References to the corresponding issue or issues
+- The description must begin with a summary section
+- One summary entry must be provided per referenced issue
 
-Pull request descriptions are not used
-to explain design decisions or implementation details.
-Those belong in commit messages and issues.
+Each issue entry should:
 
-Multiple issues may be referenced
-when a single pull request addresses more than one concern.
+- Identify the issue number
+- Provide a short human-readable summary of what was addressed
+- Optionally include a small number of sub-points clarifying scope
+
+Pull request descriptions must not contain
+detailed design rationale or implementation notes.
+Those belong in issues and commit bodies.
+
+When multiple issues are handled in a single pull request,
+each issue must be summarized independently.
 
 ---
 
@@ -240,7 +245,7 @@ Li+ distinguishes documentation by role:
   - Behavioral pledge
   - Conceptual specification
   - Stable and minimal
-  - No issue or PR references
+  - No issue or pull request references
   - No code blocks
 
 - Wiki

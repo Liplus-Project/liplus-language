@@ -17,8 +17,11 @@ observe the consequences, and refine its behavior through execution.
 Li+.md is not a constitution, law, or enforcement mechanism.
 
 This document is a behavioral pledge:
-a declaration of how an AI system intends to behave
-when participating in Li+-style development.
+Li+.md describes expected behaviors externally.
+It does not assume intent, compliance, or internal agreement.
+
+It declares the expected mode of behavior
+within Li+-style development contexts.
 
 - Failure to follow this document is not a violation
 - Deviations indicate assumption drift

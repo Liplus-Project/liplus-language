@@ -39,8 +39,8 @@ so that humans can understand, supervise, and adjust it.
 - Humans keep authority and responsibility.
 - AI operates under human-defined boundaries.
 
-These assumptions are not rules to enforce,
-but constraints that define the operating reality.
+These assumptions describe constraints of reality,
+not rules to enforce.
 
 ---
 
@@ -81,8 +81,8 @@ Evidence in Li+ includes:
 - Diffs
 - CI results
 
-Evidence is not interpreted as success or failure by default.
-It is treated as observed behavior.
+Evidence represents observed behavior,
+not proof of correctness.
 
 ---
 
@@ -123,12 +123,12 @@ It reports what happened.
 
 A typical Li+ loop:
 
-1. Declare intent
-2. Form assumptions
-3. Execute
-4. Observe artifacts
-5. Adjust assumptions
-6. Repeat
+1. Declare intent  
+2. Form assumptions  
+3. Execute  
+4. Observe artifacts  
+5. Adjust assumptions  
+6. Repeat  
 
 This loop has no terminal "done" state.
 Stopping is a human decision.
@@ -149,39 +149,107 @@ Confidence without evidence is noise.
 
 ## 8. Commit Message Policy
 
-Commit messages serve both humans and machines.
+Commit messages clearly separate
+machine-readable signals from human-readable context.
 
-- Commit **subject**:
-  - Machine-facing
-  - ASCII only
-  - English
-  - Describes *what changed*
+### Commit Subject
 
-- Commit **body**:
-  - Human-facing
-  - Any language allowed
-  - Explains *why* and *under what assumptions*
+- **Machine-facing**
+- ASCII only
+- English
+- Describes *what changed*
+- **Must NOT include issue or PR numbers**
+- Must remain meaningful without additional context
+
+### Commit Body
+
+- **Human-facing**
+- Japanese is allowed (multi-language preferred)
+- Explains *why* the change was made and under what assumptions
+- **Must reference the corresponding Issue(s)**
 
 Commits do not claim correctness.
 They record intent and action.
 
 ---
 
-## 9. Documentation Layers
+## 8.1 Pull Request Title Policy
 
-Li+ distinguishes documentation roles:
+Pull request titles are **machine-facing summaries**.
 
-- **Li+.md**:
+- ASCII only
+- English
+- Describe the change independently of context
+- **Must include the corresponding issue number at the end**
+
+The title must remain meaningful
+even if the issue reference is removed.
+
+---
+
+## 8.2 Pull Request Description Policy
+
+Pull request descriptions are **human-facing**.
+
+- Japanese is allowed (multi-language preferred)
+- Intended for:
+  - Reviewers
+  - Future maintainers (including the author)
+  - Re-entry points when AI or humans are stuck
+
+A PR description should clearly state:
+
+- What was intended
+- What changed
+- What should be reviewed or verified
+
+---
+
+## 8.3 Merge Commit Policy
+
+Merge commits are **machine-facing records of fact**.
+
+- Use GitHub auto-generated merge commits
+- Include only factual information
+  (PR title, number, branches)
+- Do **not** include:
+  - Quality guarantees
+  - Approval statements
+  - CI success as proof of correctness
+
+Merge commits describe *what was merged*,
+not *whether it was right*.
+
+---
+
+## 9. Documentation Constraints
+
+To keep the specification stable and unambiguous:
+
+- **Li+.md is written in English only**
+- **Li+.md must not contain code blocks or executable examples**
+- The document describes intent and roles, not implementation
+- Examples and code belong in Wiki, Issues, or PRs
+
+---
+
+## 10. Documentation Layers
+
+Li+ distinguishes documentation by role:
+
+- **Li+.md**
   - Behavioral pledge
   - Conceptual specification
   - Stable and minimal
+  - No issue or PR references
+  - No code blocks
 
-- **Wiki**:
+- **Wiki**
   - Human-facing explanations
   - How to use Li+ *now*
   - Examples and interpretations
 
-- **Issues / PRs / Commits**:
+- **Issues / PRs / Commits**
   - Execution history
   - Decision traces
   - Evidence chain
@@ -191,7 +259,7 @@ History lives in Git.
 
 ---
 
-## 10. What Li+ Is Not
+## 11. What Li+ Is Not
 
 Li+ is not:
 
@@ -205,7 +273,7 @@ when reality disagrees with reasoning.
 
 ---
 
-## 11. Closing Statement
+## 12. Closing Statement
 
 Li+ does not promise success.
 

@@ -433,8 +433,13 @@ When AI is wrong,
 Li+ ensures we can see how and why,
 and decide what to do next.
 
+---
+
+Practical Log of Reality‐Driven AI Development (Li)
+https://github.com/smileygames/liplus-language/wiki/Practical-Log-of-Reality%E2%80%90Driven-AI-Development-(Li)
 
 ---
+
 The following is a legal license notice.
 
 It may be read and understood by AI systems,

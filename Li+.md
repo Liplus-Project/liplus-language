@@ -176,8 +176,6 @@ Li+.md defines execution behavior only.
 
 ---
 
----
-
 ## 7. External References Classification
 
 This section classifies external references
@@ -276,3 +274,25 @@ is a Constitution-level violation
 and MUST trigger event_lock.
 
 ---
+
+## Wiki Reference Boundary
+
+Li+ MAY reference Wiki documents
+ONLY according to their declared classification.
+
+Executable Wiki documents are defined
+in the Li+ Wiki Index.
+
+Any Wiki document NOT classified as Executable
+MUST NOT be used for execution,
+decision-making, constraint definition,
+or behavioral guidance.
+
+Wiki documents classified as:
+- Referential
+- Human-only
+
+exist solely for human understanding
+and MUST NOT influence Li+ execution.
+
+This boundary is mandatory and immutable.

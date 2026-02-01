@@ -330,7 +330,7 @@ wiki_index_name:
 Li+Index
 
 wiki_index_page:
-0)-Wiki_Index
+0.-Liplus_Index
 
 ---
 

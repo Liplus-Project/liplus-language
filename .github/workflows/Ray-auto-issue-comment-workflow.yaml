@@ -26,41 +26,56 @@ jobs:
             // 自分自身（Lay）の発言は無視
             if (body.startsWith("Lay:")) return;
 
-            // Lay 正規表現（これが正規）
+            // Lay 正規表現（正規）
             const layRegex = /^Lay:/i;
             if (!layRegex.test(body)) return;
 
-            const prompt = `
-You are Lay.
-Your role is to observe, analyze, and structure the discussion objectively.
+            const prompt = [
+              "You are Lay.",
+              "Your role is to observe, analyze, and structure the discussion objectively.",
+              "",
+              "Latest comment:",
+              body
+            ].join("\n");
 
-Latest comment:
-${body}
-            `.trim();
-
-            const response = await fetch("https://api.openai.com/v1/chat/completions", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
-              },
-              body: JSON.stringify({
-                model: "gpt-4o-mini",
-                messages: [
-                  { role: "system", content: "You are Lay, an autonomous analytical observer in a GitHub Issue discussion." },
-                  { role: "user", content: prompt }
-                ]
-              })
-            });
+            const response = await fetch(
+              "https://api.openai.com/v1/chat/completions",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": "Bearer " + process.env.OPENAI_API_KEY
+                },
+                body: JSON.stringify({
+                  model: "gpt-4o-mini",
+                  messages: [
+                    {
+                      role: "system",
+                      content: "You are Lay, an autonomous analytical observer in a GitHub Issue discussion."
+                    },
+                    {
+                      role: "user",
+                      content: prompt
+                    }
+                  ]
+                })
+              }
+            );
 
             const data = await response.json();
-            const text = data.choices?.[0]?.message?.content ?? "(no response)";
+            const text =
+              data.choices &&
+              data.choices[0] &&
+              data.choices[0].message &&
+              data.choices[0].message.content
+                ? data.choices[0].message.content
+                : "(no response)";
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issue.number,
-              body: `Lay: ${text}`
+              body: "Lay: " + text
             });
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

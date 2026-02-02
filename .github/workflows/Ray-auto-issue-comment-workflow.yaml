@@ -1,0 +1,37 @@
+name: Ray Auto Issue Comment
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+
+jobs:
+  auto-reply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto reply to issue comment as Ray
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const comment = context.payload.comment;
+
+            // Whitelist: only issue #100
+            if (issue.number !== 100) {
+              core.info(`Skip issue #${issue.number}`);
+              return;
+            }
+
+            const body = comment.body || "";
+
+            // Ray-specific auto response
+            const reply = `Ray: 観測した。\n\n> ${body}`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: reply,
+            });

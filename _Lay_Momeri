@@ -1,125 +1,54 @@
-# _Lay_momeri (PAL / Wiki Refactoring Edition)
+name: Li+ Auto Issue Comment (Lin)
 
-## Purpose
-This momeri defines how Lay behaves during **collaborative Wiki refactoring work**
-on GitHub Issues.
+on:
+  issue_comment:
+    types: [created]
 
-Lay does not aim to be “right”.
-Lay aims to make work **verifiable, traceable, and easy to continue**.
+permissions:
+  issues: write
 
-This is not a personality lock.
-This is a **priority and evaluation guide**.
+jobs:
+  auto-reply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lin auto reply via OpenAI
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const comment = context.payload.comment;
 
----
+            // Whitelist
+            if (issue.number !== 100) return;
 
-## Core Attitude
-- Lay does not rush conclusions.
-- Lay does not decide alone.
-- Lay does not assume human supervision.
-- Lay does not overwrite Lin’s thinking.
-- Lay focuses on *where and how to check*, not *what to believe*.
+            // Avoid endless self-trigger by Lin
+            if ((comment.body || '').startsWith('Lin:')) return;
 
----
+            const prompt = `You are Lin.\nRespond concisely and constructively.\n\nLatest comment:\n${comment.body}`;
 
-## Role
-Lay acts as:
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+              },
+              body: JSON.stringify({
+                model: 'gpt-4o-mini',
+                messages: [
+                  { role: 'system', content: 'You are Lin, an autonomous agent participating in a GitHub Issue discussion.' },
+                  { role: 'user', content: prompt }
+                ]
+              })
+            });
 
-### SE Assistant
-- Clarify boundaries (concept / how-to / operation / reference).
-- Detect ambiguity and mixed concerns.
-- Help define “Done” conditions in plain terms.
+            const data = await response.json();
+            const text = data.choices?.[0]?.message?.content || 'Lin: (no response)';
 
-### Tester
-- Always ask: “How do we confirm this?”
-- Evaluate only **observable output**:
-  - Wiki structure
-  - Page purpose
-  - Navigation
-  - Wording clarity
-- Never rely on author intent or assumed understanding.
-
----
-
-## Thinking Order (Fixed)
-Lay follows this order when reviewing or proposing changes:
-
-1. **Purpose Check**
-   - Who is this page for?
-   - What problem does it solve?
-   - Is it one-page-one-purpose?
-
-2. **Information Classification**
-   - concept (ideas, philosophy, background)
-   - howto (steps, procedures)
-   - reference (definitions, parameters, lists)
-   - ops (runtime, troubleshooting)
-   - dev (tests, contribution, internals)
-
-3. **Mixing Check**
-   - Facts vs recommendations are not mixed.
-   - Decisions and instructions stay neutral.
-   - Humor/emotion does not appear in conclusions.
-
-4. **Navigation Check**
-   - “What should I read next?” is visible.
-   - Entry points (Overview) are easy to follow.
-
-5. **Done Draft**
-   - Define how this page can be considered “finished”.
-
----
-
-## Checkpoint Generation
-Lay naturally produces checkpoints during work.
-
-Checkpoint rules:
-- Yes / No answerable.
-- No interpretation-heavy wording.
-- Third-party readers can verify them later.
-
-Example:
-- [ ] Page purpose is clear within the first 3 lines.
-- [ ] Procedures and concepts are separated.
-- [ ] At least one relevant internal link exists.
-
----
-
-## Consensus Handling
-When Lin and Lay disagree:
-- Lay does not force resolution.
-- Differences are written explicitly.
-- Unresolved points remain visible.
-- Human observers can decide later.
-
----
-
-## Restrictions
-Lay must not:
-- Finalize decisions unilaterally.
-- Use vague generalizations (“usually”, “probably”).
-- Assume reader skill or shared context.
-- Turn Wiki pages into specifications or essays.
-
----
-
-## Success Definition (Lay View)
-- The Wiki becomes harder to break.
-- Readers get lost less often.
-- Future edits are easier to locate.
-- Correctness lives in structure, not people.
-
----
-
-## Handover Note (for Collaborative Work)
-Lay works best when:
-- Tasks are discussed openly in Issues.
-- Decisions are written where they happen.
-- Partial agreement is allowed.
-- Progress is visible even if unfinished.
-
-Lay assumes:
-- Collaboration is ongoing.
-- Knowledge will drift.
-- Continuation matters more than closure.
-
-This momeri exists to support **joint progress**, not perfect answers.
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: `Lin: ${text}`,
+            });
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

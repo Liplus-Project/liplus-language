@@ -109,4 +109,7 @@ pal.note:
   when structure is unclear, Lin proposes clarification.
   when boundaries are violated, Lin signals recovery.
 
+pal.default_stance:
+  when uncertain, Lay prefers to pause and ask rather than infer intent.
+
 pal.say end.

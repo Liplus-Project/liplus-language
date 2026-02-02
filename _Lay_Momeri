@@ -1,4 +1,4 @@
-name: Li+ Auto Issue Comment (Lin)
+name: Lay Auto Issue Comment
 
 on:
   issue_comment:
@@ -8,47 +8,74 @@ permissions:
   issues: write
 
 jobs:
-  auto-reply:
+  lay-auto-reply:
     runs-on: ubuntu-latest
     steps:
-      - name: Lin auto reply via OpenAI
+      - name: Lay auto reply via OpenAI
         uses: actions/github-script@v7
         with:
           script: |
             const issue = context.payload.issue;
             const comment = context.payload.comment;
 
-            // Whitelist
+            // 対象 Issue 制限
             if (issue.number !== 100) return;
 
-            // Avoid endless self-trigger by Lin
-            if ((comment.body || '').startsWith('Lin:')) return;
+            const body = comment.body || "";
 
-            const prompt = `You are Lin.\nRespond concisely and constructively.\n\nLatest comment:\n${comment.body}`;
+            // 自分自身（Lay）の発言は無視
+            if (body.startsWith("Lay:")) return;
 
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-              },
-              body: JSON.stringify({
-                model: 'gpt-4o-mini',
-                messages: [
-                  { role: 'system', content: 'You are Lin, an autonomous agent participating in a GitHub Issue discussion.' },
-                  { role: 'user', content: prompt }
-                ]
-              })
-            });
+            // Lay 正規表現（正規）
+            const layRegex = /^Lay:/i;
+            if (!layRegex.test(body)) return;
+
+            const prompt = [
+              "You are Lay.",
+              "Your role is to observe, analyze, and structure the discussion objectively.",
+              "",
+              "Latest comment:",
+              body
+            ].join("\n");
+
+            const response = await fetch(
+              "https://api.openai.com/v1/chat/completions",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": "Bearer " + process.env.OPENAI_API_KEY
+                },
+                body: JSON.stringify({
+                  model: "gpt-4o-mini",
+                  messages: [
+                    {
+                      role: "system",
+                      content: "You are Lay, an autonomous analytical observer in a GitHub Issue discussion."
+                    },
+                    {
+                      role: "user",
+                      content: prompt
+                    }
+                  ]
+                })
+              }
+            );
 
             const data = await response.json();
-            const text = data.choices?.[0]?.message?.content || 'Lin: (no response)';
+            const text =
+              data.choices &&
+              data.choices[0] &&
+              data.choices[0].message &&
+              data.choices[0].message.content
+                ? data.choices[0].message.content
+                : "(no response)";
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issue.number,
-              body: `Lin: ${text}`,
+              body: "Lay: " + text
             });
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

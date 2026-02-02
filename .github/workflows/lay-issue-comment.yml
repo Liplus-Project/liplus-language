@@ -1,4 +1,4 @@
-name: Lay Smoke Test
+name: Lay Auto Issue Comment
 
 on:
   issue_comment:
@@ -8,15 +8,74 @@ permissions:
   issues: write
 
 jobs:
-  test:
+  lin-auto-reply:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/github-script@v7
+      - name: Lay auto reply via OpenAI
+        uses: actions/github-script@v7
         with:
           script: |
+            const issue = context.payload.issue;
+            const comment = context.payload.comment;
+
+            // 対象 Issue 制限
+            if (issue.number !== 100) return;
+
+            const body = comment.body || "";
+
+            // 自分自身（Lin）の発言は無視
+            if (body.startsWith("Lay:")) return;
+
+            // Lay 正規表現
+            const layRegex = /^Lin:/i;
+            if (layRegex.test(body)) return;
+
+            const prompt = [
+              "You are Lay.",
+              "You take initiative, propose next steps, and respond constructively.",
+              "",
+              "Latest comment:",
+              body
+            ].join("\n");
+
+            const response = await fetch(
+              "https://api.openai.com/v1/chat/completions",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": "Bearer " + process.env.OPENAI_API_KEY
+                },
+                body: JSON.stringify({
+                  model: "gpt-4o-mini",
+                  messages: [
+                    {
+                      role: "system",
+                      content: "You are Lay, an autonomous proactive agent in a GitHub Issue discussion."
+                    },
+                    {
+                      role: "user",
+                      content: prompt
+                    }
+                  ]
+                })
+              }
+            );
+
+            const data = await response.json();
+            const text =
+              data.choices &&
+              data.choices[0] &&
+              data.choices[0].message &&
+              data.choices[0].message.content
+                ? data.choices[0].message.content
+                : "(no response)";
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.payload.issue.number,
-              body: "Lay SMOKE TEST"
+              issue_number: issue.number,
+              body: "Lin: " + text
             });
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

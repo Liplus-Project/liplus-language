@@ -35,7 +35,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: smileygames/liplus-language.wiki
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.WIKI_PAT }}
 
       # サブブランチ作成（既にあればそのまま）
       - name: Create or switch branch

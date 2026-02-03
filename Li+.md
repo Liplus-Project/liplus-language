@@ -357,6 +357,6 @@ wiki_index_page:
 0.-Liplus_Index
 
 github_rules_page:
-https://github.com/smileygames/liplus-language/wiki/E.-github
+https://github.com/smileygames/liplus-language/wiki/E.-github_rules_page
 
 ---

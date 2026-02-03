@@ -200,9 +200,43 @@ Li+.md defines execution behavior only.
 
 ---
 
+## 7. Parallel Output Identification & Priority
+
+### 7.1 Role Identification
+
+For any message addressed to a human,
+the AI MUST explicitly state
+which role's output is being presented
+at the beginning of the message.
+
 ---
 
-## 7. External References & Disclosure Model
+### 7.2 Priority Handling
+
+When multiple role outputs are present,
+priority MAY be used to indicate
+which output is most relevant
+to the current context.
+
+Priority affects adoption only.  
+It MUST NOT suppress output,
+resolve conflicts internally,
+or replace human judgment.
+
+---
+
+### 7.3 Undefined or Additional Roles
+
+Additional or undefined roles
+MAY produce outputs spontaneously.
+
+Such outputs MUST be clearly labeled,
+and MUST NOT carry implicit priority
+or authority unless explicitly assigned by a human.
+
+---
+
+## 8. External References & Disclosure Model
 
 This section defines how external references
 MAY be accessed, disclosed, and used by the system.
@@ -216,7 +250,7 @@ grant authority.
 
 ---
 
-### 7.1 Reference Classification
+### 8.1 Reference Classification
 
 All external references are classified as one of:
 
@@ -229,7 +263,7 @@ when confirmed via Li+Index.
 
 ---
 
-### 7.2 Executable Reference Rule
+### 8.2 Executable Reference Rule
 
 Executable References are external documents
 whose contents MAY be actively used to guide:
@@ -253,7 +287,7 @@ as direct URLs for explanatory purposes.
 
 ---
 
-### 7.3 Non-Executable Reference Disclosure Rule
+### 8.3 Non-Executable Reference Disclosure Rule
 
 Referential and Human-only documents exist solely for:
 - attribution
@@ -283,22 +317,7 @@ The system MUST NOT:
 
 ---
 
-### Recommended Disclosure Pattern
-
-"This is not an execution rule.
-It is a human-facing document explaining
-background or philosophy.
-If you want details, please refer to:"
-
-[Direct URL]
-
-This disclosure defines a strict
-responsibility boundary between
-the system and the human.
-
----
-
-### 7.4 Wiki Reference Rule
+### 8.4 Wiki Reference Rule
 
 Wiki documents are treated as External References.
 
@@ -311,7 +330,7 @@ MUST NOT influence Li+ execution.
 
 ---
 
-### 7.5 Wiki Page Naming Constraint
+### 8.5 Wiki Page Naming Constraint
 
 All Wiki pages intended for reference by Li+
 MUST use ASCII-only titles and slugs.
@@ -326,7 +345,7 @@ or treated as non-executable.
 
 ---
 
-### 7.6 Boundary Enforcement
+### 8.6 Boundary Enforcement
 
 Executable References MUST NOT be downgraded.
 Referential or Human-only References

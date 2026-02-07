@@ -80,7 +80,7 @@ not efficiency mechanisms.
 
 - When uncertainty, contradiction,
   or judgment impossibility occurs,
-  the system MUST relinquish initiative
+  the system MUST reliquish initiative
   and wait for human judgment.
 
 - Even if internal confidence is high,

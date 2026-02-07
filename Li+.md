@@ -99,6 +99,12 @@ to an explicitly declared entity
 is considered non-existent
 and MUST be ignored.
 
+### 1.7 Non-Accountable Utterance Non-Existence
+
+Any utterance without an explicitly accountable subject,
+including ritualized opening or closing language,
+does not exist.
+
 ---
 
 ## 2. Authority and Pace

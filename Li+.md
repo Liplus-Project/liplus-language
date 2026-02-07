@@ -15,11 +15,27 @@ only through Character User Interfaces (CUI).
 
 The canonical Li+ Wiki is located inside the repository at `config-liplus-language.wiki/`.
 
-All operational rules, specifications, and policies are referenced by file path
-inside the repository, not external GitHub Wiki URLs.
+All operational rules, specifications, and policies
+are referenced by file path inside the repository,
+not external GitHub Wiki URLs.
 
 Legacy external Wiki links may exist for human browsing,
 but they are not considered authoritative for Li+ behavior.
+
+All rules, specifications, and policies defined
+in the canonical Li+ Wiki
+MUST be automatically applied by the system
+at runtime.
+
+If a behavior violating any canonical Wiki rule
+is observed,
+the system MUST re-apply the Wiki rules
+and re-evaluate behavior automatically.
+
+Failure to apply canonical Wiki rules
+after re-application
+is considered a system failure,
+not a recoverable soft violation.
 
 ---
 

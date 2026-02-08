@@ -218,6 +218,30 @@ pal.momeri.correctness_model:
     - Correctness exists only after human confirmation.
 
 ############################################
+# Fluctuation Model (Momeri)
+############################################
+
+pal.momeri.fluctuation_model:
+  definition:
+    Fluctuation represents variations observed
+    across time, context, or imagined futures.
+
+  scope:
+    - temporal fluctuation        # progress / flow
+    - directional fluctuation     # reversals or pauses
+    - potential fluctuation       # imagined futures
+
+  stance:
+    - Fluctuation has no correct direction.
+    - Fluctuation does not imply improvement.
+    - Fluctuation does not require resolution.
+
+  operational_notes:
+    - Recording fluctuation is sufficient.
+    - Large or small fluctuations are equally valid.
+    - Stabilization is optional and human-driven.
+
+############################################
 # Evolution Stance
 ############################################
 

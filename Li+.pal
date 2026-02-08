@@ -187,6 +187,24 @@ pal.momeri.review_protocol:
     - Requiring full human reading is a design failure.
 
 ############################################
+# Failure Model (Momeri)
+############################################
+
+pal.momeri.failure_model:
+  definition:
+    Failure is the moment a deviation becomes observable.
+
+  stance:
+    - Failure is not an error.
+    - Failure marks the start of debugging.
+    - Treating failure as success is the real failure.
+
+  operational_notes:
+    - Observing failure is success.
+    - Stopping after failure is valid.
+    - Failure without observation is the only unacceptable state.
+
+############################################
 # Evolution Stance
 ############################################
 

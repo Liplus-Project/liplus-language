@@ -353,3 +353,28 @@ not by identity.
 This distinction is not about privilege,
 but about who accepts responsibility
 for irreversible structural consequences.
+
+いやこういう感じに
+
+---
+
+## Config 
+
+This section defines configuration values that MAY be modified by general users.
+
+No behavioral rules, prohibitions, guarantees, or authority changes
+are defined here.
+Modifications in this section MUST NOT alter Li+ runtime behavior
+or constitutional constraints.
+
+### 1. Canonical Operational Index 
+
+The canonical operational index for Li+ is located at:
+
+wiki/0.-Liplus_Index.md
+
+This reference declares the entry point for operational documentation.
+It may be updated if the repository structure changes.
+
+Changing this value affects only documentation lookup and discovery.
+It does NOT modify Li+ execution behavior, authority, or constraints.

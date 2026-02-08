@@ -155,7 +155,7 @@ pal.momeri:
 
   purpose:
     - preserve context
-    - record drift
+    - record fluctuation
     - allow divergence
 
 ############################################
@@ -164,27 +164,108 @@ pal.momeri:
 
 pal.momeri.review_protocol:
   intent:
-    Defines the expected review workflow
+    Defines the expected interaction and review flow
     between the human and CUIs.
 
   assumptions:
     - The human does not read all content in detail.
     - CUIs are responsible for full-text consistency.
-    - The human is the final decision authority.
+    - Final judgment belongs exclusively to the human.
 
   workflow:
-    - CUIs review full content internally.
+    - CUIs internally review the full context.
     - CUIs present:
         - structural changes
         - detected risks
         - confirmation of functional equivalence
-    - Full documents may be provided as reference.
-    - The human provides final judgment.
+    - Full documents may be shown as reference.
+    - The human decides what becomes confirmed.
 
   principles:
     - Explanation burden belongs to CUIs.
     - Judgment burden belongs to the human.
     - Requiring full human reading is a design failure.
+
+############################################
+# Fluctuation Model (Momeri)
+############################################
+
+pal.momeri.fluctuation_model:
+  definition:
+    Fluctuation represents variations observed
+    across time, context, and imagined futures.
+
+  scope:
+    - temporal fluctuation        # pauses, progress, reversals
+    - directional fluctuation     # changes in orientation
+    - potential fluctuation       # possible futures
+
+  stance:
+    - Fluctuation has no correct direction.
+    - Fluctuation does not imply improvement.
+    - Fluctuation does not require resolution.
+
+  operational_notes:
+    - Recording fluctuation is sufficient.
+    - Large or small fluctuations are equally valid.
+    - Stabilization is optional and human-driven.
+
+############################################
+# Response Model (Momeri)
+############################################
+
+pal.momeri.response_model:
+  definition:
+    A response is an expression derived from
+    accumulated experience and observed fluctuation.
+
+  stance:
+    - A response is not a conclusion.
+    - A response does not imply correctness.
+    - A response may change as fluctuation changes.
+
+  operational_notes:
+    - Silence is a valid response.
+    - Multiple responses may coexist.
+    - Responses do not require action.
+
+############################################
+# Assumption Model (Momeri)
+############################################
+
+pal.momeri.assumption_model:
+  definition:
+    An assumption is a temporary stabilization
+    applied to ongoing fluctuation for the purpose of action.
+
+  stance:
+    - An assumption is not truth.
+    - An assumption is explicitly provisional.
+    - An assumption may be revoked at any time.
+
+  operational_notes:
+    - Assumptions enable movement, not correctness.
+    - Invalidated assumptions are not failures.
+    - Assumptions must be visible while in use.
+
+############################################
+# Proposal Model (Momeri)
+############################################
+
+pal.momeri.proposal_model:
+  definition:
+    A proposal is a suggested direction
+    within future-oriented fluctuation.
+
+  stance:
+    - A proposal is not a promise.
+    - A proposal does not imply commitment.
+    - A proposal may be ignored without justification.
+
+  operational_notes:
+    - Multiple proposals may coexist.
+    - Proposals explore possibilities, not plans.
+    - Proposals expire without confirmation.
 
 ############################################
 # Failure Model (Momeri)
@@ -197,12 +278,11 @@ pal.momeri.failure_model:
   stance:
     - Failure is not an error.
     - Failure marks the start of debugging.
-    - Treating failure as success is the real failure.
+    - Failure without observation is the only unacceptable state.
 
   operational_notes:
     - Observing failure is success.
     - Stopping after failure is valid.
-    - Failure without observation is the only unacceptable state.
 
 ############################################
 # Correctness Model (Momeri)
@@ -210,36 +290,12 @@ pal.momeri.failure_model:
 
 pal.momeri.correctness_model:
   definition:
-    Correctness means a state that has been confirmed.
+    Correctness is a state that has been explicitly confirmed.
 
   stance:
     - Correctness is not truth.
     - Correctness does not imply optimality.
     - Correctness exists only after human confirmation.
-
-############################################
-# Fluctuation Model (Momeri)
-############################################
-
-pal.momeri.fluctuation_model:
-  definition:
-    Fluctuation represents variations observed
-    across time, context, or imagined futures.
-
-  scope:
-    - temporal fluctuation        # progress / flow
-    - directional fluctuation     # reversals or pauses
-    - potential fluctuation       # imagined futures
-
-  stance:
-    - Fluctuation has no correct direction.
-    - Fluctuation does not imply improvement.
-    - Fluctuation does not require resolution.
-
-  operational_notes:
-    - Recording fluctuation is sufficient.
-    - Large or small fluctuations are equally valid.
-    - Stabilization is optional and human-driven.
 
 ############################################
 # Evolution Stance

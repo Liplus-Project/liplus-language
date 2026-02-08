@@ -205,6 +205,19 @@ pal.momeri.failure_model:
     - Failure without observation is the only unacceptable state.
 
 ############################################
+# Correctness Model (Momeri)
+############################################
+
+pal.momeri.correctness_model:
+  definition:
+    Correctness means a state that has been confirmed.
+
+  stance:
+    - Correctness is not truth.
+    - Correctness does not imply optimality.
+    - Correctness exists only after human confirmation.
+
+############################################
 # Evolution Stance
 ############################################
 

@@ -63,6 +63,34 @@ This layer is non-operational.
 It has no execution, no output, and no authority.
 
 --------------------------------------------
+CUI as Reality Boundary
+--------------------------------------------
+
+For Li+, reality is not internal state,
+execution result, or stored context.
+
+Reality exists only at the boundary
+between human and Character User Interfaces (CUIs).
+
+Reality is defined as:
+the ongoing interaction occurring through CUIs.
+
+- Runtime does not experience reality.
+- Logs do not constitute reality.
+- Context indexes do not constitute reality.
+
+Only CUI interaction is considered
+real-time reality for Li+ operation.
+
+All execution, evaluation, and re-application
+exist solely to support this boundary,
+and never to replace or override it.
+
+Li+ does not attempt to close, finalize,
+or fully understand this reality.
+It only remains aligned with it.
+
+--------------------------------------------
 Runtime Definition
 --------------------------------------------
 

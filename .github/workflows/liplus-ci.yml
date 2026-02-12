@@ -83,3 +83,5 @@ jobs:
             echo "Issue body must contain Japanese."
             exit 1
           fi
+
+          echo "ERROR_REASON=xxx" >> result.json

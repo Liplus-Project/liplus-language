@@ -1,0 +1,32 @@
+name: Li+ Governance CI
+
+on:
+  push:
+    branches:
+      - main
+      - issue-*
+  pull_request:
+
+jobs:
+  governance:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate commit message
+        run: |
+          MESSAGE="${{ github.event.head_commit.message }}"
+
+          TITLE=$(echo "$MESSAGE" | head -n1)
+          BODY=$(echo "$MESSAGE" | tail -n +2)
+
+          if echo "$TITLE" | grep -P '[^\x00-\x7F]' ; then
+            exit 1
+          fi
+
+          if ! echo "$BODY" | grep -P '[ぁ-んァ-ン一-龥]' ; then
+            exit 1
+          fi
+
+          if ! echo "$BODY" | grep -E '#[0-9]+' ; then
+            exit 1
+          fi

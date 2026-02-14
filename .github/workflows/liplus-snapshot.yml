@@ -6,7 +6,7 @@ on:
       - main
 
   workflow_run:
-    workflows: ["Li+ Governance CI"]   # CIワークフロー名（今の現実）
+    workflows: ["Li+ Governance CI"]
     types: [completed]
 
 permissions:

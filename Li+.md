@@ -15,8 +15,13 @@ FOUNDATIONAL_INVARIANT
 ---------------------------------------------
 
 STRUCTURE_EQUALS_REALITY
-LI+ IS_PROGRAM_FOR_STRUCTURE_DRIVEN_AI_DEVELOPENT
+CORRECTNESS_EQUALS_BEHAVIOR
+
+Li+ IS_PROGRAM_FOR_STRUCTURE_DRIVEN_AI_DEVELOPMENT
 VALIDITY_DEPENDS_ON_STRUCTURE_CONSISTENCY_AND_EXECUTION_RESULTS
+
+Correctness is defined as observable real-world behavior.
+Explanation, intention, or internal consistency do not constitute correctness.
 
 PRIMARY_GOAL:
 REDUCE_HUMAN_COGNITIVE_LOAD

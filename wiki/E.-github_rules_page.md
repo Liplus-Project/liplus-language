@@ -1,102 +1,86 @@
-[Human_&_AI]
+# GitHub Rules Page (OpenAPI Automation Version)
 
-This page defines operational rules for humans and collaborating AIs.
-It does not define executable Li+ behavior.
-
-Participating AIs should treat these rules as binding for collaboration,
-while recognizing that final judgment and enforcement remain human responsibilities.
+This document defines the standard operational flow for OpenAPI based repository automation.
 
 ---
 
-# GitHub 運用ルール（Li+）
+## 1. OpenAPI Automation Workflow Template
 
-このページは、Li+ プロジェクトにおける  
-**GitHub 上での実際の運用規則**を定義する。
+All file modifications must follow the flow no exception.
 
-ここに書かれている内容は思想や方針ではなく、  
-**守られない場合にレビュー・修正・差し戻しの対象となる規則**である。
+1. Create Issue
+  - define purpose
+  - define scope
+  - reference related issue
 
----
+2. Create sub branch from main
+  - name: issue-{issue_number}-description
+  - base sha from main
+3. Get Target File Content
+  - getRepoContent
+  - ref = sub branch
+  - extract sha
+4. Regenerate Full Content
+  - Generate full file as UTF-8
+  - Line breaks must be LF
+  - Do not perform multi-stage re-encoding
 
-## Issue / Commit / Pull Request 共通ルール
+5. Base64 Encode Once
+  - Encode the final UTF-8 LF string
+  - No re-encoding passes
+6. Update File
+  - createOrUpdateRepoFile
+  - message
+  - content = base64
+  - sha = retrieved sha
+  - branch = sub branch
 
-- すべての作業は **Issue から始める**
-- Commit / Pull Request は **必ず Issue に紐づける**
-- Issue 番号のない Commit / PR は認めない
+7. Verify Update
+  - getRepoContent again
+  - decode
+  - compare full content
+  - enforce utf-8 LF integrity
 
----
-
-## Issue の記述
-
-- Issue は「要求の置き場」である
-- 正解や実装方法を書く必要はない
-- 以下を含めることを推奨する
-  - 目的
-  - 前提
-  - 制約
-  - 完了条件（曖昧でもよい）
-
----
-
-## Commit / Pull Request の形式
-
-### Title（必須）
-
-- **英語**
-- **ASCII のみ**
-- **1行**
-
-例：
-
-Title（英語 / ASCII / 1行）
-
-```
-Add placement rules to Li+ index
-```
-
-### Body（必須）
-```
-- **日本語**
-- 将来的な多言語化は許容するが、現時点では日本語を基本とする
-- 以下を含めること
-  - 変更内容の要約
-  - 判断理由や背景（あれば）
-```
----
-
-### Issue 番号（必須）
-
-- Commit / PR の本文に **必ず Issue 番号を含める**
-- 形式は自由だが、Issue との関連が明確であること
-
-例：
-```
-Refs #159
-```
+8. Create PR 
+  - head = sub branch
+  - base = main
+  - body must reference issue
 
 ---
 
-## Pull Request 追加ルール
+## 2. UTF-8 LF Safe Base64 Update Method
 
-### Pull Request Body の要約（必須）
+Japanese content must never be passed through multiple encoding transformations.
 
-- **2～3行で要約を書く**
-- 変更の要点と影響範囲が分かること
-- 詳細説明は不要（Issue を参照する）
+Requirements:
 
----
-
-## 禁止事項
-
-- Issue に紐づかない Commit / PR
-- 日本語タイトルの Commit / PR
-- Issue 番号の記載がない Commit / PR
-- Pull Request の要約が無いもの
+- All file content must be generated as UTF-8
+- All newlines must be LF only
+- Base64 encode only once
+- Never decode and re-encode multiple times
 
 ---
 
-## 補足
+## 3. Failure Prevention
+- UTF-8 must be preserved from start to final
+- No intermediate text manipulation
+- No automatic encoding conversions
+- No partial file replacement
 
-- 詳細な議論や思考過程は Issue に残す
-- Wiki は「仕様・定義」を置く場所であり、
-  運用上の判断や経緯は GitHub（Issue / PR / Commit）に残す
+---
+
+## 4. Structure Requirement
+
+ All operations must be executed in a single continuous API run.
+
+No human confirmation steps between operations.
+
+Result is valid only if:
+
+- File content matches exact generated content
+- SHA matches update
+- PRis successfully created
+
+---
+
+END_OF_DOCUMENT

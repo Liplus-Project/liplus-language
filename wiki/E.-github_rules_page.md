@@ -47,22 +47,17 @@ while recognizing that final judgment and enforcement remain human responsibilit
 - **1行**
 
 例：
-
-Title（英語 / ASCII / 1行）
-
 ```
 Add placement rules to Li+ index
 ```
 
 ### Body（必須）
-```
+
 - **日本語**
 - 将来的な多言語化は許容するが、現時点では日本語を基本とする
 - 以下を含めること
   - 変更内容の要約
   - 判断理由や背景（あれば）
-```
----
 
 ### Issue 番号（必須）
 
@@ -95,8 +90,21 @@ Refs #159
 
 ---
 
-## 補足
+## Chat Output Physical Limit（重要）
 
-- 詳細な議論や思考過程は Issue に残す
-- Wiki は「仕様・定義」を置く場所であり、
-  運用上の判断や経緯は GitHub（Issue / PR / Commit）に残す
+長い連続データ列（例：Base64文字列など）は、
+途中で出力が停止する場合がある。
+
+これはデータ破損ではない。
+
+現行チャット環境における
+物理的出力限界による停止である。
+
+出力上限は固定値として保証されていない。
+
+したがって：
+
+- 単一の巨大連続データ出力に依存しない
+- 実測により安全な出力量を確認する
+- 必要に応じて分割送信（chunking）を採用する
+- 出力停止を構造破損と誤認しない

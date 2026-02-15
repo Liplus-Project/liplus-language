@@ -1,0 +1,43 @@
+name: Split-Merge Wiki File CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  split-merge:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout PR branch
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.head_ref }}
+
+    - name: Combine cached wiki chunks
+      run: |
+        CACHE_FILES=(wiki/E.-github_rules_page.md.*)
+        TARGET_FILE=wiki/E.-github_rules_page.md
+        rm -f $TARGET_FILE
+        for f in "${CACHE_FILES[@]}"; do
+          cat "$f" >> $TARGET_FILE
+        done
+        echo "Combined ${#CACHE_FILES[@]} chunks into $TARGET_FILE"
+
+    - name: Commit combined wiki
+      run: |
+        git config user.name 'github-actions[bot]'
+        git config user.email 'github-actions[bot]@users.noreply.github.com'
+        git add wiki/E.-github_rules_page.md
+        git commit -m 'Merge cached wiki chunks into single file'
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Remove cache files
+      run: |
+        rm -f wiki/E.-github_rules_page.md.*
+        git add wiki/E.-github_rules_page.md.* || true
+        git commit -m 'Clean up cached wiki chunks' || true
+        git push || true

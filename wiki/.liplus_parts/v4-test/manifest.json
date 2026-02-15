@@ -1,6 +1,6 @@
 {
   "protocol": "Li+ v4.0",
-  "original_sha256": "v4_test_sha",
+  "original_sha256": "8f5a1b9b3d7a6c9e3e2f6e1b4d6a8c2f1a9e0d5c3b7a6e4f2d1c0b9a8e7f6d5c",
   "compression": "zlib",
   "total_parts": 2,
   "order": ["part01.b64", "part02.b64"]

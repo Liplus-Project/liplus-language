@@ -29,10 +29,10 @@ jobs:
           cat part*.b64 > combined.b64
           base64 -d combined.b64 > compressed.bin
 
-      - name: Verify Integrity
+      - name: Create verify script
         if: steps.detect.outputs.found == 'true'
         run: |
-          python3 - << 'EOF'
+          cat > verify.py <<EOF
 import hashlib, zlib, json
 
 with open("wiki/.liplus_parts/v4-test/manifest.json") as f:
@@ -50,3 +50,7 @@ if sha != manifest["original_sha256"]:
 else:
     print("SHA verified.")
 EOF
+
+      - name: Verify Integrity
+        if: steps.detect.outputs.found == 'true'
+        run: python3 verify.py

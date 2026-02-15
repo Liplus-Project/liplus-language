@@ -1,0 +1,7 @@
+{
+  "protocol": "Li+ v4.0",
+  "original_sha256": "v4_test_sha",
+  "compression": "zlib",
+  "total_parts": 2,
+  "order": ["part01.b64", "part02.b64"]
+}

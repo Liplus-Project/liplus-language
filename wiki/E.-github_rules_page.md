@@ -1,4 +1,3 @@
-```markdown
 [Human_&_AI]
 
 This page defines operational rules for humans and collaborating AIs.
@@ -144,4 +143,3 @@ Refs #159
    - 新規コミットで CI を再実行
 
 この自動化フローにより、**Phase 2 CI の結果がルールに従って PR 上に自動で反映**される。
-```

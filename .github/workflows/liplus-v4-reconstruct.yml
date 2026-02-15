@@ -1,0 +1,52 @@
+name: LiPlus V4 Reconstruct Check
+
+on:
+  push:
+    branches:
+      - issue-267-v4-test
+  pull_request:
+
+jobs:
+  reconstruct:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect manifest
+        id: detect
+        run: |
+          if [ -f wiki/.liplus_parts/v4-test/manifest.json ]; then
+            echo "found=true" >> $GITHUB_OUTPUT
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Reconstruct
+        if: steps.detect.outputs.found == 'true'
+        run: |
+          cd wiki/.liplus_parts/v4-test
+          cat part*.b64 > combined.b64
+          base64 -d combined.b64 > compressed.bin
+
+      - name: Verify Integrity
+        if: steps.detect.outputs.found == 'true'
+        run: |
+          python3 - << 'EOF'
+import hashlib, zlib, json
+
+with open("wiki/.liplus_parts/v4-test/manifest.json") as f:
+    manifest = json.load(f)
+
+with open("wiki/.liplus_parts/v4-test/compressed.bin","rb") as f:
+    compressed = f.read()
+
+decompressed = zlib.decompress(compressed)
+sha = hashlib.sha256(decompressed).hexdigest()
+
+if sha != manifest["original_sha256"]:
+    print("SHA mismatch!")
+    exit(1)
+else:
+    print("SHA verified.")
+EOF

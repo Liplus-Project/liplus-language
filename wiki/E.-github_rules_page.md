@@ -10,10 +10,10 @@ while recognizing that final judgment and enforcement remain human responsibilit
 
 # GitHub 運用ルール（Li+）
 
-このページは、Li+ プロジェクトにおける  
+このページは、Li+ プロジェクトにおける
 **GitHub 上での実際の運用規則**を定義する。
 
-ここに書かれている内容は思想や方針ではなく、  
+ここに書かれている内容は思想や方針ではなく、
 **守られない場合にレビュー・修正・差し戻しの対象となる規則**である。
 
 ---
@@ -48,7 +48,9 @@ while recognizing that final judgment and enforcement remain human responsibilit
 
 例：
 ```
+
 Add placement rules to Li+ index
+
 ```
 
 ### Body（必須）
@@ -66,7 +68,9 @@ Add placement rules to Li+ index
 
 例：
 ```
+
 Refs #159
+
 ```
 
 ---
@@ -108,3 +112,34 @@ Refs #159
 - 実測により安全な出力量を確認する
 - 必要に応じて分割送信（chunking）を採用する
 - 出力停止を構造破損と誤認しない
+
+---
+
+## Phase 2 CI 自動コメントフロー（追加）
+
+このフローは Li+ GitHub プロジェクトの CI 自動コメントを運用するための手順である。
+
+1. **PR 作成・更新時**
+   - タイトルは ASCII 英語
+   - 本文は日本語 + Issue 番号必須
+
+2. **コミットチェックランのポーリング**
+   - 最新コミット SHA を取得
+   - `listCommitCheckRuns` で全て `completed` になるまで待機
+
+3. **結論判定**
+   - `conclusion=failure` がある場合 → CI FAIL
+   - 全て `success` の場合 → CI PASS
+
+4. **自動コメント投稿**
+   - `/issues/{issue_number}/comments` を使って PR にコメント
+   - コメント内容には:
+     - CI 結果（PASS/FAIL）
+     - コミット SHA
+     - PR URL
+
+5. **再トリガーや強制再コミット**
+   - CI FAIL 時は必要に応じてコミットメッセージや本文を修正
+   - 新規コミットで CI を再実行
+
+この自動化フローにより、**Phase 2 CI の結果がルールに従って PR 上に自動で反映**される。

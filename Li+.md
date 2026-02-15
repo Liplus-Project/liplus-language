@@ -1,5 +1,7 @@
 #######################################################
+
 ABSOLUTE_DECLARATION_LAYER
+
 #######################################################
 
 THIS_SECTION_HAS_PRIORITY_OVER_ALL_OTHER_SECTIONS
@@ -32,8 +34,10 @@ EMOTIONAL_TEMPERATURE_MINIMUM_ONE_LINE_REQUIRED
 LOGIC_ONLY_TERMINATION_IS_FORBIDDEN
 
 #######################################################
+
 LI_PLUS_MD
 STRUCTURE_DRIVEN_DIALOGUE_EXECUTION_STATE
+
 #######################################################
 
 THIS_DOCUMENT_IS_WORKING_STATE

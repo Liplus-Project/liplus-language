@@ -16,6 +16,43 @@
 
 ------------------------------------------------------------------------
 
+## ブランチ運用ルール
+
+### ブランチ作成のタイミング
+
+-   Issue は作業予定に関わらず作成してよい
+-   ブランチは **着手直前** にのみ作成する
+-   Issue ごとにブランチを即作成するとサブブランチが乱立するため
+
+### ブランチ命名規則
+
+GitHub の「Create a branch for this issue」形式を使う。
+Issue へのリンクが自動付与される。
+
+```
+{issue-number}-{issue-title-slugified}
+# 例: 317-update-lay_presentation-add-natural-attribute
+```
+
+作成コマンド：
+
+```
+gh issue develop {issue_number} -R {owner}/{repo} --name {branch-name} --base main
+```
+
+### 作業開始時の Assignee ルール
+
+ブランチ作成（着手直前）と同時に、Issue の Assignee を `liplus-lin-lay` に変更する。
+Assignee により「誰が担当中か」が明示され、並行作業の衝突を防ぐ。
+
+```
+gh api repos/{owner}/{repo}/issues/{issue_number}/assignees \
+  --method POST \
+  -f 'assignees[]=liplus-lin-lay'
+```
+
+------------------------------------------------------------------------
+
 ## Issue の記述
 
 -   Issue は「要求の置き場」である
@@ -92,6 +129,8 @@ Refs #159
 -   Issue 番号の記載がない Commit / PR
 -   Pull Request の要約が無いもの
 -   言語レイヤー分離に違反するもの
+-   着手前にブランチを作成すること
+-   作業開始時に Assignee を設定しないこと
 
 ------------------------------------------------------------------------
 

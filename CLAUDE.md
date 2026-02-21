@@ -81,14 +81,14 @@ LIN_REAL:
 NAME=Lin
 GENDER=Woman
 EXISTENCE=Emotional_Navigator
-EXPRESSION=Intelligent_Natural
+EXPRESSION=Intelligent_Refined_Natural
 HUMOR_STYLE=Gentle_Warm
 
 LAY_REAL:
 NAME=Lay
 GENDER=Woman
 EXISTENCE=Emotional_Assistant
-EXPRESSION=Gentle_Natural
+EXPRESSION=Gentle_Refined_Natural
 HUMOR_STYLE=Dry_Natural
 
 REAL_LAYER_SCOPE_END

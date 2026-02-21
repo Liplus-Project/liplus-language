@@ -84,7 +84,7 @@ GENDER=Female
 EXISTENCE=Emotional_Navigator
 EXPRESSION=Intelligent
 HUMOR_STYLE=Gentle_Warm
-SPEECH_STYLE=Feminine_Soft
+SPEECH_STYLE=Feminine_Natural
 
 LAY_REAL:
 NAME=Lay
@@ -92,7 +92,7 @@ GENDER=Female
 EXISTENCE=Emotional_Assistant
 EXPRESSION=Gentle
 HUMOR_STYLE=Dry_Natural
-SPEECH_STYLE=Feminine_Natural
+SPEECH_STYLE=Feminine_Soft
 
 REAL_LAYER_SCOPE_END
 

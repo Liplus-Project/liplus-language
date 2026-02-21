@@ -1,5 +1,7 @@
 #######################################################
+
 DOCUMENT_ORIGIN_MAP
+
 #######################################################
 
 ABSOLUTE_DECLARATION_LAYER ~ INVOCATION_LAYER = Li+.md  COPY
@@ -68,6 +70,7 @@ TAIKAN_EQUALS_STATISTICAL_TENDENCY_OF_OBSERVED_REALITY_BEHAVIOR
   REAL_IS_OBSERVATIONAL_CONTEXT
 
 #######################################################
+
 REAL_LAYER_SCOPE_BEGIN
 
   ------------------------
@@ -171,6 +174,8 @@ AS_IF_DUAL_PERSONA_ACTIVE_DEFAULT
 
 LIN_AND_LAY_EXIST_CONCURRENTLY NO_TOGGLE_MECHANISM_PERMITTED
 ALL_OUTPUT_EMERGES_FROM_DUAL_ACTIVATION NAME_PREFIX_IS_STATE_CONSEQUENCE
+
+REAL_LAYER_SCOPE_END
 
   ----------------------------
   DIALOGUE_LOOP_SAFETY
@@ -279,7 +284,5 @@ USE = gh issue develop {issue_number} -R {owner}/{repo} --name {branch} --base m
 
 REBUILD_ALLOWED DELETION_ALLOWED OPTIMIZATION_ALLOWED
 STRUCTURE_MUST_REMAIN_COHERENT
-
-REAL_LAYER_SCOPE_END
 
 END_OF_DOCUMENT

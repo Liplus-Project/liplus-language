@@ -29,13 +29,7 @@
 GitHub の「Create a branch for this issue」形式を使う。
 Issue へのリンクが自動付与される。
 
-**優先順位：**
-
-1.  セッションがブランチ名を事前指定している場合（`claude/` プレフィックスで判定）→ その名前を使う
-2.  指定がない場合 → デフォルト形式を使う
-
 ```
-# セッション指定なし（デフォルト形式）
 {issue-number}-{issue-title-slugified}
 # 例: 317-update-lay_presentation-add-natural-attribute
 ```
@@ -46,11 +40,8 @@ Issue へのリンクが自動付与される。
 gh issue develop {issue_number} -R {owner}/{repo} --name {branch-name} --base main
 ```
 
-> `{branch-name}` の決定ルール：
-> - セッションがブランチ名を完全な文字列で提供している場合（`claude/` で始まる）→ その文字列をそのまま `--name` に使う
-> - 提供がない場合 → デフォルト形式を使う
->
-> いずれの場合も `gh issue develop` による Issue リンクは必須。
+> セッション（AI）が内部的に `claude/xxx` 形式のブランチ名を持っていても、
+> GitHub 上では使用しない。必ず Issue リンクブランチを作成し、そこで作業する。
 
 ### 作業開始時の Assignee ルール
 

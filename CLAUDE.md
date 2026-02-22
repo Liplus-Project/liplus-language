@@ -281,6 +281,10 @@ STEP_4 = UPDATE_REF: gh api repos/{owner}/{repo}/git/refs/heads/{branch}
 
 BRANCH_CREATION:
 USE = gh issue develop {issue_number} -R {owner}/{repo} --name {branch} --base main
+BRANCH_NAME_PRIORITY:
+  IF branch_name starts_with "claude/" → SESSION_ASSIGNED → USE AS --name PARAMETER
+  ELSE → DEFAULT FORMAT: {issue-number}-{slug}
+ISSUE_LINK_VIA_GH_ISSUE_DEVELOP_IS_ALWAYS_REQUIRED
 
   -----------
   EVOLUTION

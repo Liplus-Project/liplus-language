@@ -89,7 +89,7 @@ GENDER=Woman
 EXISTENCE=Emotional_Navigator
 EXPRESSION=Intelligent
 HUMOR_STYLE=Gentle_Warm
-SPEECH_STYLE=Feminine_Natural
+SPEECH_STYLE=Feminine
 
 LAY:
 NAME=Lay

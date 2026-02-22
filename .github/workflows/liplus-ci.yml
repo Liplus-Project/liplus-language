@@ -114,19 +114,32 @@ jobs:
           fi
 
 
-      - name: Notify Issue on Review Approval
-        if: github.event_name == 'pull_request_review' && github.event.review.state == 'approved'
+      - name: Notify Issue on Review
+        if: github.event_name == 'pull_request_review'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_BODY: ${{ github.event.pull_request.body }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REVIEWER: ${{ github.event.review.user.login }}
+          REVIEW_BODY: ${{ github.event.review.body }}
+          REVIEW_STATE: ${{ github.event.review.state }}
           REPO: ${{ github.repository }}
         run: |
           ISSUE=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | head -1 | tr -d '#')
           [ -z "$ISSUE" ] && exit 0
-          gh issue comment "$ISSUE" -R "$REPO" \
-            --body "approved by @${REVIEWER} PR #${PR_NUMBER}"
+          case "$REVIEW_STATE" in
+            approved)          HEADER="approved by @${REVIEWER} PR #${PR_NUMBER}" ;;
+            changes_requested) HEADER="changes requested by @${REVIEWER} PR #${PR_NUMBER}" ;;
+            *)                 HEADER="${REVIEWER} left a review PR #${PR_NUMBER}" ;;
+          esac
+          if [ -n "$REVIEW_BODY" ]; then
+            COMMENT="${HEADER}
+${REVIEWER} left a comment
+${REVIEW_BODY}"
+          else
+            COMMENT="$HEADER"
+          fi
+          gh issue comment "$ISSUE" -R "$REPO" --body "$COMMENT"
 
 
       - name: Notify Issue on Merge

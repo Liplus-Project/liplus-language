@@ -1,0 +1,59 @@
+name: CD - snapshot tag
+
+on:
+  workflow_run:
+    workflows: ["Liplus Governance CI"]
+    types: [completed]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cd-snapshot-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the exact commit that CI tested
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Create build tag (JST date + sequence)
+        env:
+          TARGET_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+
+          # Ensure tags are available locally
+          git fetch --tags --force
+
+          # JST date
+          DATE="$(TZ=Asia/Tokyo date +%Y-%m-%d)"
+          PREFIX="build-${DATE}."
+
+          echo "Resolving next sequence for ${PREFIX}* (JST)"
+
+          # Find max existing sequence number for today's prefix
+          max_seq="$(
+            git tag -l "${PREFIX}[0-9]*" \
+              | sed -E "s/^${PREFIX}//" \
+              | sort -n \
+              | tail -1
+          )"
+
+          # Default when no tag exists
+          : "${max_seq:=0}"
+
+          next_seq=$((max_seq + 1))
+          TAG="${PREFIX}${next_seq}"
+
+          echo "Tagging ${TAG} at ${TARGET_SHA}"
+          git tag "${TAG}" "${TARGET_SHA}"
+          git push origin "${TAG}"

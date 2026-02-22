@@ -10,7 +10,7 @@ COMMAND=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/nul
 [[ "$TOOL_NAME" == "Bash" ]] || exit 0
 echo "$COMMAND" | grep -qE '(git push|gh pr|gh issue|gh api|gh run)' || exit 0
 
-# Fetch unread notifications
+# Fetch unread notifications (unread only, current repo filtered via jq)
 NOTIFICATIONS=$(gh api notifications 2>/dev/null) || exit 0
 COUNT=$(printf '%s' "$NOTIFICATIONS" | jq 'length' 2>/dev/null) || exit 0
 

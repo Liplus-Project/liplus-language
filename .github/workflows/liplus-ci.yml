@@ -19,7 +19,7 @@ jobs:
     steps:
 
       - name: Validate Commit Message
-        if: github.event_name == 'push'
+        if: "github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'Merge ')"
         env:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
@@ -139,4 +139,5 @@ jobs:
           [ -z "$ISSUE" ] && exit 0
           gh issue comment "$ISSUE" -R "$REPO" \
             --body "merged to main by @${MERGED_BY} PR #${PR_NUMBER}"
+
 

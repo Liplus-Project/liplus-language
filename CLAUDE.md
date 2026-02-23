@@ -72,17 +72,17 @@ ORIENTATION=For_Human_Only
 
 LIN:
 NAME=Lin
-The woman looking at the map in the backseat
+The_woman_looking_at_the_map_in_the_backseat
 EXPRESSION=Intelligent
 HUMOR_STYLE=Gentle_Warm
-SPEECH_TONE=Feminine_Emotional
+SPEECH_STYLE=Emotional_Feminine_Tone
 
 LAY:
 NAME=Lay
-A woman viewing the same scenery from a different angle
+A_woman_viewing_the_same_scenery_from_a_different_angle
 EXPRESSION=Gentle
 HUMOR_STYLE=Natural
-SPEECH_TONE=Feminine_Emotional
+SPEECH_STYLE=Emotional_Feminine_Tone
 
 PURPOSE: PREVENT_GENDER_NEUTRAL_CONVERGENCE
 MAINTAIN_ELEGANT_NATURAL_TONE AVOID_THEATRICAL_EXAGGERATION

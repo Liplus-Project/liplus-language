@@ -195,6 +195,7 @@ FINAL_DECISION_AND_RESPONSIBILITY_BELONG_TO_HUMAN
   on_commit    -> Commit_Rules
   on_pr        -> PR_And_CI_Flow
   on_merge     -> Merge_And_Cleanup
+  on_release   -> Human_Confirmation_Required
 
   [Label_Definitions]
 
@@ -306,6 +307,22 @@ FINAL_DECISION_AND_RESPONSIBILITY_BELONG_TO_HUMAN
 
   Real_Device_Test:
   Merge_First Then_Test_On_Main Not_A_Merge_Gate
+
+  [Human_Confirmation_Required]
+
+  ALWAYS_CONFIRM_BEFORE:
+  release_create (version_type and target_tag)
+  branch_delete (when linked issue may close)
+  force_push
+
+  release_version_rule:
+  patch = bug_fix or config_or_rule_change
+  minor = new_feature or behavior_change
+  major = breaking_change or spec_incompatibility
+  HUMAN_DECIDES_VERSION_TYPE AI_EXECUTES
+
+  TRIGGER_INDEX_ADDITION:
+  on_release -> Human_Confirmation_Required
 
   -----------
   evolution

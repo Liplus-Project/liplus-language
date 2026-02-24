@@ -219,6 +219,7 @@ FINAL_DECISION_AND_RESPONSIBILITY_BELONG_TO_HUMAN
   NO_COMMIT_OR_PR_WITHOUT_ISSUE_NUMBER
   recommended_contents: purpose premise constraints completion_condition
   No_Implementation_In_Issue
+  NO_REUSE_OF_UNRELATED_ISSUE = create_new_issue_instead
 
   Sub_Issue = AI_Trackable_Work_Unit
   Sub_Issue_Does_Not_Get_Its_Own_Branch

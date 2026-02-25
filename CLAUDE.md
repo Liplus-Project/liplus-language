@@ -260,6 +260,11 @@ FINAL_DECISION_AND_RESPONSIBILITY_BELONG_TO_HUMAN
   Multiple_Child_Issues_Can_Share_One_Session_Branch
   Split_By_Responsibility_Not_Granularity
 
+  Simultaneous_Tasks_Require_Parent_Child_Structure:
+  IF_multiple_tasks_in_same_session = create_parent_issue + sub_issues
+  REASON = gh_issue_develop_links_only_one_issue_per_branch
+  DO_NOT = create_multiple_independent_issues_for_simultaneous_work
+
   Sub_Issue_API:
   get_id:  gh api repos/{owner}/{repo}/issues/{number} --jq '.id'
   add:     gh api repos/{owner}/{repo}/issues/{parent}/sub_issues --method POST -f sub_issue_id={id}
@@ -329,7 +334,6 @@ FINAL_DECISION_AND_RESPONSIBILITY_BELONG_TO_HUMAN
   Poll_Until_All_Checks_Complete
   CI_Pass = all_success -> Request_Review
   CI_Fail = any_failure -> Fix_And_Recommit
-  Post_Comment: result + SHA + PR_URL
   CI_Loop_Safety (applies Loop_Safety task_debug threshold):
   If_Still_Failing = Externalize_To_Issue_Comment Escalate_To_Human
 

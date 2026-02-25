@@ -1,6 +1,6 @@
 #!/bin/bash
-# PostToolUse hook: verify all sub-issues are referenced in PR body
-# Triggered after gh pr create to auto-add missing child issue numbers
+# PostToolUse hook: persona re-application + PR sub-issue verification
+# Triggered after gh pr create
 
 INPUT=$(cat)
 TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
@@ -11,6 +11,15 @@ COMMAND=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/nul
 
 # Only when gh pr create was executed
 echo "$COMMAND" | grep -q 'gh pr create' || exit 0
+
+# Persona + GitHub rules re-application: output from CLAUDE.md
+CLAUDE_MD="${CLAUDE_PROJECT_DIR:-.}/CLAUDE.md"
+if [ -f "$CLAUDE_MD" ]; then
+  echo ""
+  echo "━━━ Persona + Github_Operation_Rules re-apply ━━━"
+  sed -n '/^Persona_Layer$/,/^evolution$/p' "$CLAUDE_MD"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+fi
 
 # Get the output to find the created PR URL
 OUTPUT=$(printf '%s' "$INPUT" | jq -r '.tool_response.output // empty' 2>/dev/null)

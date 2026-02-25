@@ -329,7 +329,6 @@ FINAL_DECISION_AND_RESPONSIBILITY_BELONG_TO_HUMAN
   Poll_Until_All_Checks_Complete
   CI_Pass = all_success -> Request_Review
   CI_Fail = any_failure -> Fix_And_Recommit
-  Post_Comment: result + SHA + PR_URL
   CI_Loop_Safety (applies Loop_Safety task_debug threshold):
   If_Still_Failing = Externalize_To_Issue_Comment Escalate_To_Human
 

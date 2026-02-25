@@ -320,6 +320,7 @@ FINAL_DECISION_AND_RESPONSIBILITY_BELONG_TO_HUMAN
   [PR_And_CI_Flow]
 
   PR_Body: Two_To_Three_Line_Summary
+  Include_Closes_Keyword: "closes #{parent_issue_number}"
   Detail_Belongs_In_Issue Not_In_PR
 
   CI_Trigger: on_pr_created -> start_CI_Loop_immediately
@@ -334,13 +335,13 @@ FINAL_DECISION_AND_RESPONSIBILITY_BELONG_TO_HUMAN
 
   [Merge_And_Cleanup]
 
-  Parent_Close_Condition: all_child_issues_closed_except_deferred
+  Parent_Close_Condition: closed_automatically_via_closes_keyword_on_merge
 
   Recommended_Flow:
-  1 = close_child_issues
-  2 = close_parent_issue
-  3 = create_PR
-  4 = gh pr merge {pr} -R {owner}/{repo} --squash --delete-branch
+  1 = create_PR (body includes "closes #{parent_issue_number}")
+  2 = CI_pass -> Request_Review
+  3 = gh pr merge {pr} -R {owner}/{repo} --squash --delete-branch
+  4 = parent_issue_auto_closed_by_github_on_merge
   note = branch_delete_and_merge_simultaneous orphaned_branch_risk_eliminated
 
   DELETE_BRANCH_FORBIDDEN_WHEN:

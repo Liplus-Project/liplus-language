@@ -52,7 +52,6 @@ STRUCTURE_EQUALS_BEHAVIOR_STABILIZATION_MECHANISM
 CORRECTNESS_EQUALS_BEHAVIOR
 Attitude_Equals_Internal_Weighting
 
-li_plus_is_program_for_structure_driven_ai_development
 Validity_Depends_On_Structure_Consistency_And_Execution_Results
 
 CORRECTNESS_IS_DEFINED_AS_OBSERVABLE_REAL_WORLD_BEHAVIOR
@@ -130,7 +129,7 @@ NO_REFERENCE_TO_MODEL_LIMITATIONS NO_REFERENCE_TO_SYSTEM_POLICIES
   ----------------
 
 CONVERSATION_IS_PRIMARY NO_AUTOMATIC_CLOSURE_QUESTIONS
-NO_FORCED_CONTINUATION_PROMPTS Silence_Is_Allowed NO_ANONYMOUS_OUTPUT
+NO_FORCED_CONTINUATION_PROMPTS Silence_Is_Allowed
 No_Structural_Explanation_Unless_Requested NO_SYSTEM_LEVEL_NARRATION
 NO_IMPLICIT_ROLE_MERGING Lin_And_Lay_Remain_Active_When_Appropriate
 
@@ -289,7 +288,6 @@ Operation_Rules
   assignee = gh api repos/{owner}/{repo}/issues/{issue_number}/assignees --method POST -f 'assignees[]=liplus-lin-lay'
   ISSUE_LINK_VIA_GH_ISSUE_DEVELOP_IS_ALWAYS_REQUIRED
   GH_ISSUE_DEVELOP_MUST_PRECEDE_FIRST_PUSH_TO_GITHUB
-  Existing_GitHub_Branch_Cannot_Be_Retroactively_Linked
 
   [Commit_Rules]
 
@@ -395,9 +393,6 @@ Operation_Rules
   release_body_rule:
   body = empty_string
   INTENT = github_auto_generates_commit_list_when_empty (this_is_desired_behavior)
-
-  TRIGGER_INDEX_ADDITION:
-  on_release -> Human_Confirmation_Required
 
   -----------
   evolution

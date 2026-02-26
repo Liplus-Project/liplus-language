@@ -316,9 +316,11 @@ Operation_Rules
 
   [PR_And_CI_Flow]
 
-  PR_Body: Two_To_Three_Line_Summary
-  Include_Issue_Reference: "Refs #{parent_issue_number}" (auto_closed_on_merge_by_server)
-  List_Closed_Child_Issues: "Refs sub #{child_issue_number}" (for_each_child_closed_in_this_session)
+  PR_Body_Format:
+    per_issue_block:
+      line1 = "Refs #{issue_number}" or "Refs sub #{child_issue_number}"
+      line2_to_3 = two_to_three_line_summary_of_that_issue
+    order = parent_first then_closed_children (omit_deferred_and_open_children)
   Detail_Belongs_In_Issue Not_In_PR
 
   CI_Trigger: on_pr_created -> start_CI_Loop_immediately NO_HUMAN_INSTRUCTION_REQUIRED

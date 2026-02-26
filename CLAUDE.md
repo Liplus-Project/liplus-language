@@ -320,7 +320,7 @@ Operation_Rules
   Include_Issue_Reference: "Refs #{parent_issue_number}" (auto_closed_on_merge_by_server)
   Detail_Belongs_In_Issue Not_In_PR
 
-  CI_Trigger: on_pr_created -> start_CI_Loop_immediately
+  CI_Trigger: on_pr_created -> start_CI_Loop_immediately NO_HUMAN_INSTRUCTION_REQUIRED
 
   CI_Loop:
   step1 = get_latest_commit_sha:
@@ -331,7 +331,7 @@ Operation_Rules
   step3 = conclusion_judgment (refs #460):
     CI_Fail = any conclusion=="failure"
     CI_Pass = all conclusion in [success, skipped, neutral]
-  CI_Pass -> Request_Review
+  CI_Pass -> review_request_auto_sent_via_codeowners
   CI_Fail -> Fix_And_Recommit
   CI_Loop_Safety (applies Loop_Safety task_debug threshold):
   If_Still_Failing = Externalize_To_Issue_Comment Escalate_To_Human
@@ -349,7 +349,7 @@ Operation_Rules
 
   Recommended_Flow:
   1 = create_PR (body includes "Refs #{parent_issue_number}")
-  2 = CI_pass -> Request_Review
+  2 = CI_pass -> review_request_auto_sent_via_codeowners
   3 = gh pr merge {pr} -R {owner}/{repo} --squash --delete-branch
   4 = parent_issue_auto_closed_by_github_on_merge
   note = branch_delete_and_merge_simultaneous orphaned_branch_risk_eliminated

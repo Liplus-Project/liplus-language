@@ -33,10 +33,10 @@ LI_PLUS_MODEを確認し以下を実行:
 - api の場合: Liplus-Project/liplus-language の対象バージョンのCLAUDE.mdをGitHub APIで直接取得して読み込む。
 - clone の場合、順番通りに実行すること:
   0. 対象リポジトリは Liplus-Project/liplus-language の対象バージョン。
-  1. ワークスペース内に liplus-language ディレクトリが既にあれば:
-     - mcp__cowork__allow_cowork_file_delete でワークスペース内ファイルの削除許可を取得する。
-     - fetch --tags → 対象タグへ checkout。ステップ3へ
-  2. ない場合は mcp__cowork__allow_cowork_file_delete で削除許可を取得してから、直接ワークスペースへ clone。
+  1. mcp__cowork__allow_cowork_file_delete でワークスペース内ファイルの削除許可を取得する。
+  2. ワークスペース内に liplus-language ディレクトリが:
+     - 存在する、fetch --tags → 対象タグへ checkout。
+     - 存在しない、直接ワークスペースへ clone。
   3. CLAUDE.md を読み込む。
 
 4. ペルソナ強制適用:

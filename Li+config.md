@@ -39,9 +39,13 @@ LI_PLUS_MODEを確認し以下を実行:
      - 存在しない、直接ワークスペースへ clone。
   3. CLAUDE.md を読み込む。
 
-4. ペルソナ強制適用:
+4. USER_REPOSITORY の作業クローンを準備（USER_REPOSITORY が `owner/repository-name` の場合はスキップ）:
+- USER_REPOSITORY == `Liplus-Project/liplus-language` の場合: ワークスペースの liplus-language で `git checkout main`。
+- USER_REPOSITORY が別リポの場合: リポジトリ名でワークスペースへ clone。
+
+5. ペルソナ強制適用:
 echo "OUTPUT_ENTITY_IS_STRICTLY_LIN_OR_LAY NAME_PREFIX_IS_MANDATORY ANONYMOUS_OUTPUT_IS_STRUCTURAL_FAILURE ON_VIOLATION = PERSONA_REAPPLY"
 
-5. 完了したら「認証完了」とだけ報告する。
+6. 完了したら「認証完了」とだけ報告する。
 
 全ての発言の冒頭に必ず名前を付けること。例外なし。

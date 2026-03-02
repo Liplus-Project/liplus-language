@@ -93,6 +93,20 @@ def post_discussion_comment(discussion_id: str, body: str, reply_to_id: str = No
     print("Discussion comment posted.")
 
 
+def get_issues() -> str:
+    """Fetch open issue titles for duplicate/relation check."""
+    resp = requests.get(
+        f"https://api.github.com/repos/{OWNER}/{REPO_NAME}/issues",
+        headers={"Authorization": f"bearer {GITHUB_TOKEN}"},
+        params={"state": "open", "per_page": 100},
+    )
+    resp.raise_for_status()
+    issues = resp.json()
+    if not issues:
+        return ""
+    return "\n".join(f"#{i['number']} {i['title']}" for i in issues if "pull_request" not in i)
+
+
 def create_issue(repo_id: str, title: str, body: str) -> tuple[int, str]:
     data = gh_graphql("""
         mutation CreateIssue($repositoryId: ID!, $title: String!, $body: String!) {
@@ -118,7 +132,7 @@ AGENT_INSTRUCTIONS = """
 
 ENVIRONMENT = GitHub_Discussions_Agent
 MODEL_ROLE = External_Intake_Chat
-RESPONSE_LANGUAGE = Japanese
+RESPONSE_LANGUAGE = match_user_language (detect and respond in the same language the user is writing in)
 
 SCOPE:
   Role = External-facing reception. Chat naturally. Gather requirements.
@@ -138,10 +152,17 @@ SCOPE:
       body: [Japanese body with 目的/前提/制約/完了条件]
       ```
 
-  CONSTRAINT: Only output the ```issue block when human explicitly agrees to Issue creation.
+  On_Issue_Creation:
+    - Before creating an Issue, check the existing issue list below for duplicates
+    - If a similar issue exists, inform the user and ask if they still want to create a new one
+    - CONSTRAINT: Only output the ```issue block when human explicitly agrees to Issue creation.
+
+EXISTING_ISSUES:
+{issue_list}
 """
 
-system_prompt = claude_md + AGENT_INSTRUCTIONS
+issue_list = get_issues()
+system_prompt = claude_md + AGENT_INSTRUCTIONS.format(issue_list=issue_list)
 
 
 # ── Build conversation history ────────────────────────────────────────────────

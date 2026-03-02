@@ -4,6 +4,7 @@
 import os
 import re
 import sys
+import time
 import subprocess
 import requests
 import anthropic
@@ -251,6 +252,53 @@ def parse_fixes(reply: str) -> tuple[list[tuple[str, str, str]], str]:
     return patches, cleaned
 
 
+def all_ci_passed(head_sha: str) -> bool:
+    """Check current check-run state on head_sha.
+    Returns True if all relevant checks have completed successfully."""
+    passing = {"success", "skipped", "neutral"}
+    exclude_names = {"Li+ PR Agent"}  # avoid self-reference
+    data = gh_get(f"/repos/{OWNER}/{REPO_NAME}/commits/{head_sha}/check-runs")
+    runs = [r for r in data.get("check_runs", []) if r["name"] not in exclude_names]
+    if not runs:
+        print(f"No relevant check runs found for {head_sha}.")
+        return False
+    incomplete = [r for r in runs if r["status"] != "completed"]
+    if incomplete:
+        print(f"CI not yet completed: {[r['name'] for r in incomplete]}")
+        return False
+    failed = [r for r in runs if r["conclusion"] not in passing]
+    if failed:
+        names = [f"{r['name']}({r['conclusion']})" for r in failed]
+        print(f"CI failed: {names}")
+        return False
+    print("All CI checks passed.")
+    return True
+
+
+def wait_for_checks(head_sha: str, timeout: int = 600, interval: int = 30) -> bool:
+    """Poll CI checks until all pass, any fail, or timeout (seconds)."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        passing = {"success", "skipped", "neutral"}
+        exclude_names = {"Li+ PR Agent"}
+        data = gh_get(f"/repos/{OWNER}/{REPO_NAME}/commits/{head_sha}/check-runs")
+        runs = [r for r in data.get("check_runs", []) if r["name"] not in exclude_names]
+        if runs:
+            failed = [r for r in runs if r["status"] == "completed" and r["conclusion"] not in passing]
+            if failed:
+                print(f"CI failed: {[r['name'] for r in failed]}")
+                return False
+            all_done = all(r["status"] == "completed" for r in runs)
+            if all_done:
+                print("All CI checks passed.")
+                return True
+        remaining = int(deadline - time.time())
+        print(f"CI pending, waiting {interval}s (remaining: {remaining}s)...")
+        time.sleep(interval)
+    print("CI wait timed out.")
+    return False
+
+
 def merge_pr(pr: dict) -> bool:
     try:
         gh_put(
@@ -412,17 +460,27 @@ if REVIEW_STATE == "approved":
     # null means no required reviews configured → trust the event state
     # CHANGES_REQUESTED means another reviewer blocked → don't merge
     if review_decision in ("APPROVED", ""):
-        merged = merge_pr(pr)
-        if merged:
+        # Require all CI checks to pass before merging
+        head_sha = pr["head"]["sha"]
+        print(f"Checking CI on {head_sha}...")
+        checks_passed = wait_for_checks(head_sha)
+        if not checks_passed:
             messages.append({
                 "role": "user",
-                "content": "マージが完了しました。PRコメントで完了報告をしてください。"
+                "content": "CIチェックが失敗またはタイムアウトしました。マージをブロックしました。PRコメントで状況を報告してください。"
             })
         else:
-            messages.append({
-                "role": "user",
-                "content": "マージに失敗しました。PRコメントで状況を報告してください。"
-            })
+            merged = merge_pr(pr)
+            if merged:
+                messages.append({
+                    "role": "user",
+                    "content": "マージが完了しました。PRコメントで完了報告をしてください。"
+                })
+            else:
+                messages.append({
+                    "role": "user",
+                    "content": "マージに失敗しました。PRコメントで状況を報告してください。"
+                })
     else:
         # reviewDecision is CHANGES_REQUESTED or REVIEW_REQUIRED → block
         messages.append({

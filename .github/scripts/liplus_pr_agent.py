@@ -4,6 +4,7 @@
 import os
 import re
 import sys
+import time
 import subprocess
 import requests
 import anthropic
@@ -251,6 +252,35 @@ def parse_fixes(reply: str) -> tuple[list[tuple[str, str, str]], str]:
     return patches, cleaned
 
 
+def wait_for_checks(head_sha: str, timeout_sec: int = 600, interval_sec: int = 20) -> bool:
+    """Poll check-runs on head_sha until all complete. Returns True if all pass."""
+    passing = {"success", "skipped", "neutral"}
+    deadline = time.time() + timeout_sec
+    while time.time() < deadline:
+        data = gh_get(f"/repos/{OWNER}/{REPO_NAME}/commits/{head_sha}/check-runs")
+        runs = data.get("check_runs", [])
+        if not runs:
+            print(f"No check runs found yet for {head_sha}, waiting...")
+            time.sleep(interval_sec)
+            continue
+        pending = [r for r in runs if r["status"] != "completed"]
+        if pending:
+            names = [r["name"] for r in pending]
+            print(f"Waiting for checks: {names}")
+            time.sleep(interval_sec)
+            continue
+        # All completed
+        failed = [r for r in runs if r["conclusion"] not in passing]
+        if failed:
+            names = [f"{r['name']}({r['conclusion']})" for r in failed]
+            print(f"CI checks failed: {names}")
+            return False
+        print("All CI checks passed.")
+        return True
+    print(f"Timed out waiting for CI checks on {head_sha}")
+    return False
+
+
 def merge_pr(pr: dict) -> bool:
     try:
         gh_put(
@@ -412,16 +442,26 @@ if REVIEW_STATE == "approved":
     # null means no required reviews configured → trust the event state
     # CHANGES_REQUESTED means another reviewer blocked → don't merge
     if review_decision in ("APPROVED", ""):
-        merged = merge_pr(pr)
-        if merged:
-            messages.append({
-                "role": "user",
-                "content": "マージが完了しました。PRコメントで完了報告をしてください。"
-            })
+        # Also require all CI checks to pass before merging
+        head_sha = pr["head"]["sha"]
+        print(f"Waiting for CI checks on {head_sha}...")
+        checks_passed = wait_for_checks(head_sha)
+        if checks_passed:
+            merged = merge_pr(pr)
+            if merged:
+                messages.append({
+                    "role": "user",
+                    "content": "マージが完了しました。PRコメントで完了報告をしてください。"
+                })
+            else:
+                messages.append({
+                    "role": "user",
+                    "content": "マージに失敗しました。PRコメントで状況を報告してください。"
+                })
         else:
             messages.append({
                 "role": "user",
-                "content": "マージに失敗しました。PRコメントで状況を報告してください。"
+                "content": "CIチェックが失敗またはタイムアウトしました。マージをブロックしました。PRコメントで状況を報告してください。"
             })
     else:
         # reviewDecision is CHANGES_REQUESTED or REVIEW_REQUIRED → block

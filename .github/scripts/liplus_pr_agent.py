@@ -418,7 +418,7 @@ reply = response.content[0].text
 
 fixes, cleaned_reply = parse_fixes(reply)
 if fixes:
-    file_list = "\n".join(f"- `{path}`" for path, _ in fixes)
+    file_list = "\n".join(f"- `{path}`" for path, *_ in fixes)
     commit_msg = f"fix: apply review feedback on PR #{PR_NUMBER}\n\nレビュー指摘に基づきエージェントが自動修正。\n\nRefs #{PR_NUMBER}"
     pushed = apply_fixes_and_push(fixes, commit_msg)
     if pushed:

@@ -19,6 +19,8 @@ BOT_LOGINS = {"github-actions[bot]", "liplus-lin-lay"}
 
 # ── Determine PR number and trigger context ───────────────────────────────────
 
+WORKFLOW_HEAD_SHA = os.environ.get("WORKFLOW_HEAD_SHA", "")
+
 if EVENT_NAME == "pull_request_review":
     PR_NUMBER = int(os.environ.get("PR_NUMBER_REVIEW", "0"))
     REVIEW_STATE = os.environ.get("REVIEW_STATE", "").lower()
@@ -26,6 +28,13 @@ if EVENT_NAME == "pull_request_review":
     ACTOR = os.environ.get("REVIEWER", "")
     TRIGGER_BODY = REVIEW_BODY
     PR_HEAD_REF = os.environ.get("PR_HEAD_REF", "")
+elif EVENT_NAME == "workflow_run":
+    # CI completed: resolve PR number from head SHA later (after helpers are defined)
+    PR_NUMBER = 0
+    REVIEW_STATE = ""
+    ACTOR = ""
+    TRIGGER_BODY = ""
+    PR_HEAD_REF = os.environ.get("WORKFLOW_HEAD_BRANCH", "")
 else:
     PR_NUMBER = int(os.environ.get("PR_NUMBER_COMMENT", "0"))
     REVIEW_STATE = ""
@@ -33,13 +42,13 @@ else:
     TRIGGER_BODY = os.environ.get("COMMENT_BODY", "") or ""
     PR_HEAD_REF = ""
 
-if not PR_NUMBER:
-    print("No PR number found, skipping.")
-    sys.exit(0)
-
-if ACTOR in BOT_LOGINS:
-    print(f"Skipping: triggered by bot ({ACTOR})")
-    sys.exit(0)
+if EVENT_NAME != "workflow_run":
+    if not PR_NUMBER:
+        print("No PR number found, skipping.")
+        sys.exit(0)
+    if ACTOR in BOT_LOGINS:
+        print(f"Skipping: triggered by bot ({ACTOR})")
+        sys.exit(0)
 
 
 # ── REST API helpers ──────────────────────────────────────────────────────────
@@ -122,6 +131,15 @@ def gh_delete(path: str) -> None:
 
 
 # ── PR operations ─────────────────────────────────────────────────────────────
+
+def find_pr_by_sha(sha: str) -> int:
+    """Return the open PR number whose head SHA matches, or 0 if not found."""
+    prs = gh_get(f"/repos/{OWNER}/{REPO_NAME}/pulls?state=open&per_page=100")
+    for p in prs:
+        if p.get("head", {}).get("sha") == sha:
+            return p["number"]
+    return 0
+
 
 def get_pr() -> dict:
     return gh_get(f"/repos/{OWNER}/{REPO_NAME}/pulls/{PR_NUMBER}")
@@ -251,6 +269,14 @@ def parse_fixes(reply: str) -> tuple[list[tuple[str, str, str]], str]:
     return patches, cleaned
 
 
+def all_ci_passed(head_sha: str) -> bool:
+    """Returns True if all CI checks (excluding this agent) passed."""
+    passing = {"success", "skipped", "neutral"}
+    runs = [r for r in gh_get(f"/repos/{OWNER}/{REPO_NAME}/commits/{head_sha}/check-runs").get("check_runs", [])
+            if r["name"] != "pr-agent"]
+    return bool(runs) and all(r["status"] == "completed" and r["conclusion"] in passing for r in runs)
+
+
 def merge_pr(pr: dict) -> bool:
     try:
         gh_put(
@@ -329,6 +355,30 @@ CONSTRAINT:
 """
 
 system_prompt = claude_md + AGENT_INSTRUCTIONS
+
+
+# ── workflow_run: resolve PR and check both conditions ────────────────────────
+
+if EVENT_NAME == "workflow_run":
+    PR_NUMBER = find_pr_by_sha(WORKFLOW_HEAD_SHA)
+    if not PR_NUMBER:
+        print(f"No open PR found for SHA {WORKFLOW_HEAD_SHA}, skipping.")
+        sys.exit(0)
+    pr = get_pr()
+    review_decision = get_pr_review_decision()
+    print(f"workflow_run: PR #{PR_NUMBER}, reviewDecision={review_decision}")
+    if review_decision not in ("APPROVED", ""):
+        print("Review not approved, skipping merge.")
+        sys.exit(0)
+    if not all_ci_passed(WORKFLOW_HEAD_SHA):
+        print("CI not fully passed, skipping merge.")
+        sys.exit(0)
+    merged = merge_pr(pr)
+    if merged:
+        post_pr_comment("CI・レビューともに通過しました。マージしました 🎉")
+    else:
+        post_pr_comment("マージに失敗しました。手動での確認をお願いします。")
+    sys.exit(0)
 
 
 # ── Build conversation context ────────────────────────────────────────────────
@@ -412,17 +462,25 @@ if REVIEW_STATE == "approved":
     # null means no required reviews configured → trust the event state
     # CHANGES_REQUESTED means another reviewer blocked → don't merge
     if review_decision in ("APPROVED", ""):
-        merged = merge_pr(pr)
-        if merged:
+        head_sha = pr["head"]["sha"]
+        print(f"Checking CI on {head_sha}...")
+        if not all_ci_passed(head_sha):
             messages.append({
                 "role": "user",
-                "content": "マージが完了しました。PRコメントで完了報告をしてください。"
+                "content": "CIチェックが未完了または失敗しています。マージをブロックしました。PRコメントで状況を報告してください。"
             })
         else:
-            messages.append({
-                "role": "user",
-                "content": "マージに失敗しました。PRコメントで状況を報告してください。"
-            })
+            merged = merge_pr(pr)
+            if merged:
+                messages.append({
+                    "role": "user",
+                    "content": "マージが完了しました。PRコメントで完了報告をしてください。"
+                })
+            else:
+                messages.append({
+                    "role": "user",
+                    "content": "マージに失敗しました。PRコメントで状況を報告してください。"
+                })
     else:
         # reviewDecision is CHANGES_REQUESTED or REVIEW_REQUIRED → block
         messages.append({

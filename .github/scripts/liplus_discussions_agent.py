@@ -12,6 +12,8 @@ GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 REPO = os.environ["GITHUB_REPOSITORY"]
 OWNER, REPO_NAME = REPO.split("/")
 DISCUSSION_NUMBER = int(os.environ["DISCUSSION_NUMBER"])
+COMMENT_NODE_ID = os.environ.get("COMMENT_NODE_ID", "")
+EVENT_NAME = os.environ.get("EVENT_NAME", "discussion")
 ACTOR = os.environ.get("ACTOR", "")
 CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-haiku-4-5-20251001")
 
@@ -50,11 +52,13 @@ def get_discussion() -> dict:
               body
               comments(first: 100) {
                 nodes {
+                  id
                   body
                   isMinimized
                   author { login }
                   replies(first: 50) {
                     nodes {
+                      id
                       body
                       isMinimized
                       author { login }
@@ -69,14 +73,23 @@ def get_discussion() -> dict:
     return data["repository"]
 
 
-def post_discussion_comment(discussion_id: str, body: str):
-    gh_graphql("""
-        mutation PostComment($discussionId: ID!, $body: String!) {
-          addDiscussionComment(input: {discussionId: $discussionId, body: $body}) {
-            comment { id }
-          }
-        }
-    """, {"discussionId": discussion_id, "body": body})
+def post_discussion_comment(discussion_id: str, body: str, reply_to_id: str = None):
+    if reply_to_id:
+        gh_graphql("""
+            mutation PostReply($discussionId: ID!, $body: String!, $replyToId: ID!) {
+              addDiscussionComment(input: {discussionId: $discussionId, body: $body, replyToId: $replyToId}) {
+                comment { id }
+              }
+            }
+        """, {"discussionId": discussion_id, "body": body, "replyToId": reply_to_id})
+    else:
+        gh_graphql("""
+            mutation PostComment($discussionId: ID!, $body: String!) {
+              addDiscussionComment(input: {discussionId: $discussionId, body: $body}) {
+                comment { id }
+              }
+            }
+        """, {"discussionId": discussion_id, "body": body})
     print("Discussion comment posted.")
 
 
@@ -140,6 +153,8 @@ discussion_id = discussion["id"]
 
 raw = [("user", f"Discussion: {discussion['title']}\n\n{discussion.get('body') or ''}")]
 
+# Detect parent comment for reply-in-thread posting
+reply_to_id = None
 for comment in discussion["comments"]["nodes"]:
     if comment.get("isMinimized"):
         continue
@@ -153,6 +168,9 @@ for comment in discussion["comments"]["nodes"]:
         reply_login = (reply.get("author") or {}).get("login", "")
         reply_role = "assistant" if reply_login in BOT_LOGINS else "user"
         raw.append((reply_role, reply["body"]))
+        # If this reply triggered the event, reply back in the same thread
+        if COMMENT_NODE_ID and reply.get("id") == COMMENT_NODE_ID:
+            reply_to_id = comment["id"]
 
 merged = []
 for role, content in raw:
@@ -190,4 +208,4 @@ if issue_match:
         + reply[issue_match.end():]
     )
 
-post_discussion_comment(discussion_id, reply)
+post_discussion_comment(discussion_id, reply, reply_to_id)

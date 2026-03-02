@@ -4,7 +4,6 @@
 import os
 import re
 import sys
-import time
 import subprocess
 import requests
 import anthropic
@@ -275,30 +274,6 @@ def all_ci_passed(head_sha: str) -> bool:
     return True
 
 
-def wait_for_checks(head_sha: str, timeout: int = 600, interval: int = 30) -> bool:
-    """Poll CI checks until all pass, any fail, or timeout (seconds)."""
-    deadline = time.time() + timeout
-    while time.time() < deadline:
-        passing = {"success", "skipped", "neutral"}
-        exclude_names = {"Li+ PR Agent"}
-        data = gh_get(f"/repos/{OWNER}/{REPO_NAME}/commits/{head_sha}/check-runs")
-        runs = [r for r in data.get("check_runs", []) if r["name"] not in exclude_names]
-        if runs:
-            failed = [r for r in runs if r["status"] == "completed" and r["conclusion"] not in passing]
-            if failed:
-                print(f"CI failed: {[r['name'] for r in failed]}")
-                return False
-            all_done = all(r["status"] == "completed" for r in runs)
-            if all_done:
-                print("All CI checks passed.")
-                return True
-        remaining = int(deadline - time.time())
-        print(f"CI pending, waiting {interval}s (remaining: {remaining}s)...")
-        time.sleep(interval)
-    print("CI wait timed out.")
-    return False
-
-
 def merge_pr(pr: dict) -> bool:
     try:
         gh_put(
@@ -463,7 +438,7 @@ if REVIEW_STATE == "approved":
         # Require all CI checks to pass before merging
         head_sha = pr["head"]["sha"]
         print(f"Checking CI on {head_sha}...")
-        checks_passed = wait_for_checks(head_sha)
+        checks_passed = all_ci_passed(head_sha)
         if not checks_passed:
             messages.append({
                 "role": "user",

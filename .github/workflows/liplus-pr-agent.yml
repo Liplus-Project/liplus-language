@@ -21,20 +21,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GH_TOKEN }}
 
-      - name: Checkout PR branch
+      - name: Configure git and checkout PR branch
         env:
           PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
-        run: |
-          if [ -n "$PR_HEAD_REF" ]; then
-            git checkout "$PR_HEAD_REF"
-          fi
-
-      - name: Configure git
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          if [ -n "$PR_HEAD_REF" ]; then
+            git checkout "$PR_HEAD_REF"
+          fi
 
       - uses: actions/setup-python@v5
         with:
@@ -46,7 +44,7 @@ jobs:
       - name: Run PR agent
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           EVENT_NAME: ${{ github.event_name }}
           # pull_request_review

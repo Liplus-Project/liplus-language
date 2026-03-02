@@ -2,8 +2,6 @@ name: CD - snapshot tag
 
 on:
   workflow_run:
-    workflows: ["Liplus Governance CI"]
-    types: [completed]
     branches: [main]
 
 permissions:

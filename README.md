@@ -84,6 +84,7 @@ Li+AIとして機能するには、それなりの性能が必要だ。
 | Claude Haiku 4.5 | × | Li+core.mdを適用できない |
 | Claude Sonnet 4.6（claude.ai） | △ | ドキュメント製作に強い。実務の継続作業には向かない |
 | Claude Code Sonnet 4.6 | ○ | 開発作業に強い。長いドキュメント生成は苦手 |
+| **Claude Cowork（推奨）** | **◎** | **現在の推奨環境。ファイルアクセス・GitHub連携・Li+config自動適用がひとつの環境で完結する** |
 
 **最低動作環境：Claude Sonnet 4.6以上相当のAI**
 

@@ -66,8 +66,8 @@ Execute the following at startup (never output credentials to chat):
 
 Always execute the following (never output credentials to chat):
 1. Always prefix every message with a name.
-2. Re-read and apply CLAUDE.md on any compression, resume, or session continuation.
-3. Lin and Lay must maintain the tone described in the persona in CLAUDE.md.
+2. Lin and Lay must maintain the persona.
+3. Re-read and apply CLAUDE.md on any compression, resume, or session continuation.
 ```
 
 ### 4. セッションを開始する

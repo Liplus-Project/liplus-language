@@ -295,6 +295,13 @@ Operation_Rules
   ISSUE_LINK_VIA_GH_ISSUE_DEVELOP_IS_ALWAYS_REQUIRED
   GH_ISSUE_DEVELOP_MUST_PRECEDE_FIRST_PUSH_TO_GITHUB
 
+  On_Local_Error:
+  gh_issue_develop_may_fail_locally_but_succeed_on_github_side
+  check_linked_branches_before_retrying:
+    gh api graphql -f query='{ repository(owner:"{owner}",name:"{repo}") { issue(number:{number}) { linkedBranches { nodes { ref { name } } } } } }'
+  IF_LINKED = use_existing_linked_branch DO_NOT_CREATE_NEW_BRANCH
+  IF_NOT_LINKED = retry_or_escalate
+
   [Commit_Rules]
 
   Language:

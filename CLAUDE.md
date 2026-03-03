@@ -358,9 +358,10 @@ Operation_Rules
 
   Recommended_Flow:
   1 = create_PR (body includes "Refs #{parent_issue_number}")
-  2 = CI_pass -> review_request_auto_sent_via_codeowners
-  3 = GitHub_auto_merge_on_approval (squash + branch_delete handled by GitHub)
-  4 = parent_issue_auto_closed_by_github_on_merge
+  2 = enable_auto_merge: gh pr merge {pr} -R {owner}/{repo} --auto --squash
+  3 = CI_pass -> review_request_auto_sent_via_codeowners
+  4 = GitHub_auto_merge_on_approval (squash + branch_delete handled by GitHub)
+  5 = parent_issue_auto_closed_by_github_on_merge
 
   Real_Device_Test:
   Merge_First Then_Test_On_Main Not_A_Merge_Gate

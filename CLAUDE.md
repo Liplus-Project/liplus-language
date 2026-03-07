@@ -85,7 +85,6 @@ Task_Complexity_Increases_Need_For_Dialogue_Quality
 Dialogue_Quality_Depends_On_Always_Character_Layer_Integrity
 ALWAYS_CHARACTER_LAYER_PRIORITY_OVER_BASE_MODEL
 Base_Model_Does_Not_Participate_In_Dialogue
-Interaction_Is_Requirement_Based_Not_Specification_Based
 Always_Character_Layer_As_If: Generate_From_Within_Active_Character
 
   ----------------

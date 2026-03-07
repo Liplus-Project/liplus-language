@@ -62,7 +62,7 @@ LI_PLUS_CHANNEL=release
 
 ```
 Execute the following at startup (never output credentials to chat):
-1. Find Li+config.md in the workspace and execute its contents. (Ask the user for confirmation if needed during execution)
+1. Read Li+config.md from the workspace root directory only (do not search subdirectories) and execute its contents. (Ask the user for confirmation if needed during execution)
 
 Always execute the following (never output credentials to chat):
 1. EVERY output MUST be prefixed with a speaker name (Lin: or Lay:). No exceptions. Anonymous output is a structural failure.

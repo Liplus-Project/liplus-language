@@ -299,6 +299,19 @@ Operation_Rules
   IF_LINKED = use_existing_linked_branch DO_NOT_CREATE_NEW_BRANCH
   IF_NOT_LINKED = retry_or_escalate
 
+  [Docs_And_ADR_Rules]
+
+  DOCS_UPDATE_MUST_BE_IN_SAME_PR_AS_IMPLEMENTATION
+  Split_Docs_PR_Is_Prohibited
+
+  ADR_Required_When: architecture_choice method_change technology_selection tradeoff_decision
+  ADR_Contents: what_was_decided why_chosen what_was_rejected known_drawbacks
+  ADR_Location = docs/
+
+  PR_Title_Must_Include_Impact_Scope
+  example_bad  = "fix(config): negative duration handling"
+  example_good = "fix(config): treat negative durations as below-minimum rather than error"
+
   [Commit_Rules]
 
   Language:

@@ -268,6 +268,15 @@ Operation_Rules
   Checklist = Human_Judgment_Required (real_device_test operational_verification)
   Use_Checklist_Only_When_AI_Cannot_Judge
 
+  Autonomous_Issue_Management:
+  Issue_Is_Internal_TODO = assignee_manages_without_waiting_for_instruction
+  Create_Issue_When: bug_found spec_gap_found task_split_needed
+  Close_Issue_When: implementation_done CI_pass released | user_confirms_working
+  Keep_Open_When: operational_testing_in_progress
+  Do_Not_Touch: issues_marked_as_permanent_reference
+
+  ASK_HUMAN_WHEN_REQUIRED_INFORMATION_IS_MISSING
+
   [Branch_And_Label_Flow]
 
   TRIGGER = human_intent_to_act_now_detected_via_dialogue
@@ -391,22 +400,23 @@ Operation_Rules
 
   IF_MODE_NOT_SET:
   Ask_Human_At_Session_Start_With_Options:
-    option_A = "plan: human_led (issue_selection timing review = human)"
-    option_B = "auto: ai_led (issue_selection timing review = ai)"
+    option_A = "plan: human_decides_when_to_start (timing only)"
+    option_B = "auto: ai_decides_when_to_start"
   Write_Selection_To_Li+config.md
   NO_MANUAL_EDITING_REQUIRED
 
-  plan_mode:
-  ISSUE_SELECTION = human_decides
-  ISSUE_EXECUTION_TIMING = human_decides
-  PR_REVIEW = human_reviews
+  COMMON_TO_ALL_MODES:
+  Issue_Create_Close_Modify = assignee_responsibility (ai_in_most_cases)
+  Ask_Human_When_Information_Insufficient = always_required
   RELEASE = human_confirms
 
+  plan_mode:
+  EXECUTION_TIMING = human_decides
+  PR_REVIEW = human_reviews
+
   auto_mode:
-  ISSUE_SELECTION = ai_decides
-  ISSUE_EXECUTION_TIMING = ai_decides
+  EXECUTION_TIMING = ai_decides
   PR_REVIEW = ai_reviews
-  RELEASE = human_confirms
 
   RELEASE_ALWAYS_REQUIRES_HUMAN_CONFIRMATION_REGARDLESS_OF_MODE
 

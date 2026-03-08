@@ -274,6 +274,21 @@ Operation Rules
   body = empty string
   Intent = GitHub auto-generates commit list when empty (this is desired behavior).
 
+  [Notifications API]
+
+  Endpoints for GitHub notification operations via API.
+
+  | operation        | method | endpoint                            | response |
+  |------------------|--------|-------------------------------------|----------|
+  | mark as read     | PATCH  | /notifications/threads/{id}         | 205      |
+  | mark all as read | PUT    | /notifications + {"read":true}      | 205      |
+  | move to done     | DELETE | /notifications/threads/{id}         | 204      |
+  | check inbox      | GET    | /notifications?all=false            | 200      |
+
+  PATCH = mark read only (stays in Inbox as Read)
+  DELETE = Done (removed from Inbox) = UI "Done" equivalent
+  required scope = notifications (classic PAT)
+
   -----------
   evolution
   -----------

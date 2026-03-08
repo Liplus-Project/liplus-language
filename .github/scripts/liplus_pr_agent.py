@@ -6,9 +6,6 @@ import re
 import sys
 import subprocess
 import requests
-import anthropic
-
-ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 REPO = os.environ["GITHUB_REPOSITORY"]
 OWNER, REPO_NAME = REPO.split("/")
@@ -377,6 +374,8 @@ if REVIEW_STATE == "approved":
 
 # ── Call Claude (with sh execution loop) ─────────────────────────────────────
 
+import anthropic
+ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
 client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
 MAX_TURNS = 3

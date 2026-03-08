@@ -313,48 +313,69 @@ pr_diff = get_pr_diff()
 
 messages = []
 
-context_parts = [f"PR #{PR_NUMBER}: {pr_title}\n\n{pr_body}\n\n## Changed Files (Diff)\n{pr_diff}"]
-
-for review in reviews:
-    login = (review.get("user") or {}).get("login", "")
-    state = review.get("state", "")
-    body = review.get("body") or ""
-    if body.strip():
-        context_parts.append(f"[Review by {login} ({state})]\n{body}")
-
+# Initial context: PR info + diff + inline comments
+inline_text = ""
 if inline_comments:
-    inline_summary = "[Inline review comments]\n"
+    inline_text = "\n\n[Inline review comments]\n"
     for ic in inline_comments:
-        login = (ic.get("user") or {}).get("login", "")
-        path = ic.get("path", "")
-        line = ic.get("line") or ic.get("original_line") or ""
-        body = ic.get("body") or ""
-        inline_summary += f"- {path}:{line} ({login}): {body}\n"
-    context_parts.append(inline_summary)
+        ic_login = (ic.get("user") or {}).get("login", "")
+        ic_path = ic.get("path", "")
+        ic_line = ic.get("line") or ic.get("original_line") or ""
+        ic_body = ic.get("body") or ""
+        inline_text += f"- {ic_path}:{ic_line} ({ic_login}): {ic_body}\n"
 
-messages.append({"role": "user", "content": "\n\n---\n\n".join(context_parts)})
+messages.append({"role": "user", "content": f"PR #{PR_NUMBER}: {pr_title}\n\n{pr_body}\n\n## Changed Files (Diff)\n{pr_diff}{inline_text}"})
+
+# Build unified chronological event list (reviews + PR comments)
+events = []
 
 for comment in timeline_comments:
-    login = (comment.get("user") or {}).get("login", "")
-    body = comment.get("body") or ""
-    role = "assistant" if login in BOT_LOGINS else "user"
+    events.append({
+        "timestamp": comment.get("created_at", ""),
+        "login": (comment.get("user") or {}).get("login", ""),
+        "body": comment.get("body") or "",
+    })
+
+for review in reviews:
+    r_login = (review.get("user") or {}).get("login", "")
+    r_state = review.get("state", "")
+    r_body = review.get("body") or ""
+    if r_state in ("APPROVED", "DISMISSED"):
+        continue
+    label = f"[Review: {r_state}]"
+    content = f"{label}\n{r_body}".strip() if r_body.strip() else label
+    events.append({
+        "timestamp": review.get("submitted_at", ""),
+        "login": r_login,
+        "body": content,
+    })
+
+events.sort(key=lambda e: e["timestamp"])
+
+def _append_msg(role: str, body: str) -> None:
     if messages and messages[-1]["role"] == role:
         messages[-1]["content"] += f"\n\n---\n\n{body}"
     else:
         messages.append({"role": role, "content": body})
 
-if TRIGGER_BODY.strip():
-    trigger_prefix = ""
-    if EVENT_NAME == "pull_request_review":
-        trigger_prefix = f"[{ACTOR}がレビューを提出しました: {REVIEW_STATE.upper()}]\n"
-    else:
-        trigger_prefix = f"[{ACTOR}のコメント]\n"
+for event in events:
+    body = event["body"]
+    if not body.strip():
+        continue
+    role = "assistant" if event["login"] in BOT_LOGINS else "user"
+    _append_msg(role, body)
 
-    final_msg = trigger_prefix + TRIGGER_BODY
-    if messages and messages[-1]["role"] == "user":
-        messages[-1]["content"] += f"\n\n---\n\n{final_msg}"
-    else:
-        messages.append({"role": "user", "content": final_msg})
+# Add current trigger
+if EVENT_NAME == "pull_request_review":
+    # Review is already in events; add notice only if body was empty
+    if not TRIGGER_BODY.strip():
+        _append_msg("user", f"[{ACTOR}がレビューを提出しました: {REVIEW_STATE.upper()}]")
+elif TRIGGER_BODY.strip():
+    # issue_comment: add in case it's not in timeline yet (API timing)
+    trigger_msg = f"[{ACTOR}のコメント]\n{TRIGGER_BODY}"
+    # Avoid duplication if already last user message
+    if not (messages and messages[-1]["role"] == "user" and TRIGGER_BODY in messages[-1]["content"]):
+        _append_msg("user", trigger_msg)
 
 if messages and messages[-1]["role"] == "assistant":
     messages.append({"role": "user", "content": "（最新の状況に対応してください）"})

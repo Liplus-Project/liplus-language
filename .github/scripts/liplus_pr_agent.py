@@ -369,13 +369,9 @@ if REVIEW_STATE == "approved":
     review_decision = get_pr_review_decision()
     print(f"reviewDecision: {review_decision}")
     if review_decision in ("APPROVED", ""):
-        merged = merge_pr()
-        if merged:
-            post_pr_comment("Lin: マージしました。")
-        else:
-            post_pr_comment("Lin: マージに失敗しました。手動での確認をお願いします。")
+        merge_pr()
     else:
-        post_pr_comment(f"Lin: reviewDecisionが{review_decision}のためマージをスキップしました。")
+        print(f"reviewDecisionが{review_decision}のためマージをスキップ。")
     sys.exit(0)
 
 

@@ -368,10 +368,10 @@ if messages and messages[-1]["role"] == "assistant":
 if REVIEW_STATE == "approved":
     review_decision = get_pr_review_decision()
     print(f"reviewDecision: {review_decision}")
-    if review_decision in ("APPROVED", ""):
+    if review_decision == "APPROVED":
         merge_pr()
     else:
-        print(f"reviewDecisionが{review_decision}のためマージをスキップ。")
+        print(f"reviewDecisionが{review_decision!r}のためマージをスキップ。")
     sys.exit(0)
 
 

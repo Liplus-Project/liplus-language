@@ -6,23 +6,6 @@
 
 ## フックスクリプト
 
-### session-start.sh
-
-**トリガー:** `PreToolUse` — セッション開始時（最初のツール呼び出し前）に一度実行
-
-**目的:** リモート実行環境で `gh` CLI が利用可能な状態を確保する。
-
-**動作:**
-- リモート Claude Code 環境でない場合（`CLAUDE_CODE_REMOTE != "true"`）は即時終了
-- `~/.local/bin/gh` が存在しない場合: 最新の gh CLI tarball をダウンロードし `~/.local/bin/gh` に展開
-- sudo および システムパッケージマネージャは使用しない
-- `/tmp` は使用禁止（並行セッション間の権限競合を避けるため）。専用の一時ディレクトリを使用
-- 成功時: インストール済みバージョンを出力
-
-**依存:** `curl`、`tar`、`~/.local/bin/` ディレクトリ
-
----
-
 ### stop.sh
 
 **トリガー:** `Stop` — Claude Code がレスポンスを終了するとき
@@ -64,7 +47,6 @@
 
 | 変数 | 使用スクリプト | 用途 |
 |---|---|---|
-| `CLAUDE_CODE_REMOTE` | session-start.sh | ローカル環境での gh インストールをスキップ |
 | `CLAUDE_PROJECT_DIR` | stop.sh、post-tool-use.sh | Li+ ソースファイルの探索起点 |
 | `GH_TOKEN` | post-tool-use.sh | GitHub API 認証 |
 
@@ -74,7 +56,6 @@
 liplus-language/
 └── .claude/
     └── hooks/
-        ├── session-start.sh   # PreToolUse
         ├── stop.sh            # Stop
         └── post-tool-use.sh   # PostToolUse
 ```

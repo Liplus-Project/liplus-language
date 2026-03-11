@@ -183,6 +183,7 @@ Operation Rules
   Detail belongs in issue, not in PR.
 
   CI trigger: on PR created -> start CI loop immediately, no human instruction required.
+  PR task is not complete until CI loop concludes.
 
   CI loop:
   step1 = get latest commit sha:

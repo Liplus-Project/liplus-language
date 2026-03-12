@@ -44,15 +44,16 @@ Operation Rules
   in-progress = work started, implementation ongoing
   backlog     = accepted, not yet scheduled
   deferred    = not doing this time, revisit later
-  done        = completed and merged
 
   Type:
   bug         = something not working
   enhancement = new feature or request
   spec        = language or system specification affecting Li+ behavior
+  docs        = documentation change (no behavior impact)
 
   Description required on creation.
   Label evolves over time. Label is for AI readability.
+  Full label policy and retired labels: see Li+Operations.md
 
   [Issue Flow]
 

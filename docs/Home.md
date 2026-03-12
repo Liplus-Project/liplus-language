@@ -31,3 +31,4 @@ Li+プログラムの仕様書および参照資料。
 | [E. Li+config](E.-Li+config) | 設定ファイルの仕様とセッション起動フロー |
 | [F. Installation](F.-Installation) | Li+のセットアップ手順 |
 | [G. hooks-spec](G.-hooks-spec) | フック仕様 |
+| [H. Operations](H.-Operations) | 任意拡張の運用ルール（マイルストーン・ラベル・Discussions） |

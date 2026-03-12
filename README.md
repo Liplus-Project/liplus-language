@@ -110,6 +110,14 @@ Functioning as Li+ AI requires adequate capability.
 
 ---
 
+## Discussions
+
+Have a question or idea? Post it in [Discussions](https://github.com/Liplus-Project/liplus-language/discussions).
+
+A bot is stationed there that can create and read GitHub issues on your behalf.
+
+---
+
 ## License
 
 License: Apache-2.0

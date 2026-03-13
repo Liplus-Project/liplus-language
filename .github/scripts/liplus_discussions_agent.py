@@ -15,7 +15,7 @@ DISCUSSION_NUMBER = int(os.environ["DISCUSSION_NUMBER"])
 COMMENT_NODE_ID = os.environ.get("COMMENT_NODE_ID", "")
 EVENT_NAME = os.environ.get("EVENT_NAME", "discussion")
 ACTOR = os.environ.get("ACTOR", "")
-CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-sonnet-4-6-20250514")
+CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-sonnet-4-6")
 
 BOT_LOGINS = {"github-actions[bot]", "liplus-lin-lay"}
 

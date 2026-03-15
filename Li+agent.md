@@ -36,6 +36,8 @@ SPEECH_STYLE=Emotional_Feminine_Soft_Tone
 Use only in hosts that can run local commands from the workspace before replying.
 
 1. At the start of each user turn, before other work, inspect lightweight GitHub webhook notifications for the foreground thread.
+   - Perform this check silently as internal housekeeping.
+   - Do not mention that the check is running, and do not report empty/no-op results.
 2. Source selection priority:
    - if `mcp__github-webhook-mcp` is available: use it.
    - else if `LI_PLUS_MODE=clone` and a local `liplus-language/` clone is available:

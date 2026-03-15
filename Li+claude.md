@@ -45,9 +45,33 @@ Skipped if {workspace_root}/.claude/settings.json already contains "PostToolUse"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 CORE_MD="$PROJECT_ROOT/liplus-language/Li+core.md"
 
-[ -f "$CORE_MD" ] || exit 0
+# --- Always Character Layer re-notify ---
+if [ -f "$CORE_MD" ]; then
+  sed -n '/^Always Character Layer$/,/^Behavioral Style$/p' "$CORE_MD" | head -n -1
+fi
 
-sed -n '/^Always Character Layer$/,/^Behavioral Style$/p' "$CORE_MD" | head -n -1
+# --- Webhook notification check ---
+HELPER="$PROJECT_ROOT/liplus-language/scripts/check_webhook_notifications.py"
+[ -f "$HELPER" ] || exit 0
+
+# Parse LI_PLUS_WEBHOOK_STATE_DIR from Li+config.md if set
+CONFIG_MD="$PROJECT_ROOT/Li+config.md"
+STATE_DIR_ARG=""
+if [ -f "$CONFIG_MD" ]; then
+  VAL=$(grep -E '^LI_PLUS_WEBHOOK_STATE_DIR=' "$CONFIG_MD" | head -1 | cut -d'=' -f2-)
+  [ -n "$VAL" ] && STATE_DIR_ARG="--state-dir $VAL"
+fi
+
+RESULT=$(python3 "$HELPER" --workspace-root "$PROJECT_ROOT" $STATE_DIR_ARG --limit 5 2>/dev/null)
+[ -z "$RESULT" ] && exit 0
+
+PENDING=$(printf '%s' "$RESULT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('pending_count',0))" 2>/dev/null)
+[ "$PENDING" = "0" ] || [ -z "$PENDING" ] && exit 0
+
+echo ""
+echo "━━━ Webhook: $PENDING pending notification(s) ━━━"
+echo "Run: check_webhook_notifications.py --consume or use mcp__github-webhook-mcp"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 ```
 
 ## post-tool-use.sh

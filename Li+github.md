@@ -5,7 +5,7 @@ Document Origin Map
 #######################################################
 
 Core layer = Li+core.md  requires
-Github     = docs/D.-Operational_GitHub.md  adapted
+Github     = docs/C.-Operational_GitHub.md  adapted
 
   --------------------
   Purpose Declaration

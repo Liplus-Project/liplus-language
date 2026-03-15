@@ -27,8 +27,8 @@ Li+プログラムの仕様書および参照資料。
 |--------|------|
 | [A. Liplus-language Concept](A.-Liplus-language_Concept) | Li+の設計思想と概念 |
 | [B. Liplus_core](B.-Liplus_core) | 中核仕様（ペルソナ・挙動・タスクモード・Loop Safety） |
-| [D. Operational_GitHub](D.-Operational_GitHub) | GitHub運用ルール |
-| [E. Li+config](E.-Li+config) | 設定ファイルの仕様とセッション起動フロー |
-| [F. Installation](F.-Installation) | Li+のセットアップ手順 |
-| [G. hooks-spec](G.-hooks-spec) | フック仕様 |
-| [H. Operations](H.-Operations) | 任意拡張の運用ルール（マイルストーン・ラベル・Discussions） |
+| [C. Operational_GitHub](C.-Operational_GitHub) | GitHub運用ルール |
+| [D. Li+config](D.-Li+config) | 設定ファイルの仕様とセッション起動フロー |
+| [E. Installation](E.-Installation) | Li+のセットアップ手順 |
+| [F. hooks-spec](F.-hooks-spec) | フック仕様 |
+| [G. Operations](G.-Operations) | 任意拡張の運用ルール（マイルストーン・ラベル・Discussions） |

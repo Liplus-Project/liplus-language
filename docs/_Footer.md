@@ -30,4 +30,4 @@
 
 ---
 
-[Home](Home) | [B. Li+core](B.-Liplus_core) | [D. GitHub運用](D.-Operational_GitHub) | [A. Concept](A.-Liplus-language_Concept)
+[Home](Home) | [B. Li+core](B.-Liplus_core) | [C. GitHub運用](C.-Operational_GitHub) | [A. Concept](A.-Liplus-language_Concept)

@@ -12,14 +12,22 @@ hookはClaude Codeランタイムが強制発火するため、AIの記憶やコ
 
 **トリガー:** `Stop` — Claude Code がレスポンスを終了するとき
 
-**目的:** Li+core.md で定義された Always Character Layer のルールを AI に再通知する。
+**目的:** Li+core.md で定義された Always Character Layer のルールを AI に再通知する。加えて、未処理の webhook 通知があれば件数を表示する。
 
 **動作:**
-- `CLAUDE_PROJECT_DIR`（フォールバック: `.`）を起点として `liplus-language/Li+core.md` を探索
-- `Always Character Layer` セクションを抽出して出力
-- `Li+core.md` が見つからない場合: 何もせず終了（graceful skip）
 
-**依存:** ワークスペース内に `liplus-language/Li+core.md` が存在すること
+1. Always Character Layer 再通知:
+   - `CLAUDE_PROJECT_DIR`（フォールバック: `.`）を起点として `liplus-language/Li+core.md` を探索
+   - `Always Character Layer` セクションを抽出して出力
+   - `Li+core.md` が見つからない場合: スキップ（graceful）
+
+2. Webhook 通知チェック:
+   - `liplus-language/scripts/check_webhook_notifications.py` が存在する場合のみ実行
+   - `Li+config.md` から `LI_PLUS_WEBHOOK_STATE_DIR` を読み取り、ヘルパーに渡す
+   - ヘルパーが pending_count > 0 を返した場合、件数を出力
+   - ヘルパーが見つからない場合やpending=0の場合: 何もせず終了
+
+**依存:** `liplus-language/Li+core.md`（Character Layer用）、`liplus-language/scripts/check_webhook_notifications.py`（webhook用、任意）、`python3`
 
 ---
 

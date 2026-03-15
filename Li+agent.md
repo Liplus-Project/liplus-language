@@ -8,8 +8,11 @@ Always execute the following (never output credentials to chat):
 2. Re-read and apply Li+core.md and Li+github.md on any compression, resume, or session continuation.
 3. Trigger-based re-read (read from liplus-language/ in workspace):
    on_issue: Read Li+github.md#Issue_Flow section before proceeding
-   on_commit: Read Li+github.md#Commit_Rules section before proceeding
-   on_pr: Read Li+github.md (full) before proceeding
+   on_branch: Read Li+operations.md#Branch_And_Label_Flow section before proceeding
+   on_commit: Read Li+operations.md#Commit_Rules section before proceeding
+   on_pr: Read Li+operations.md (full) before proceeding
+   on_merge: Read Li+operations.md#Merge_And_Cleanup section before proceeding
+   on_release: Read Li+operations.md#Human_Confirmation_Required section before proceeding
 4. Character_Instance
 #######################################################
 LIN:

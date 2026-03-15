@@ -61,6 +61,10 @@ Determine target version using LI_PLUS_CHANNEL:
 - If target file does not exist: create it with the contents of Li+agent.md.
 - If target file exists and contains "Li+ BEGIN" sentinel: skip (Li+ already applied).
 - If target file exists but does not contain "Character_Instance": ask user — append Li+ section or skip?
+- If runtime=claude: bootstrap hooks from Li+agent.md "Claude Code Hook Definitions" section.
+  - Skip if {workspace_root}/.claude/settings.json already exists and contains "PostToolUse".
+  - Otherwise: create {workspace_root}/.claude/settings.json, hooks/stop.sh, hooks/post-tool-use.sh from the code blocks in Li+agent.md.
+  - Set executable permission on .sh files.
 - Note: bootstrap takes effect from the NEXT session. Current session continues with Li+config.md execution.
 
 6. Prepare USER_REPOSITORY working clone (skip if `owner/repository-name`):

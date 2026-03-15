@@ -63,7 +63,7 @@ AIが自動的に：
 
 | 環境 | 生成されるファイル |
 |------|------------------|
-| Claude Code | `{workspace_root}/.claude/CLAUDE.md` |
+| Claude Code | `{workspace_root}/.claude/CLAUDE.md` + hookファイル（Li+claude.mdから生成） |
 | CODEX | `{workspace_root}/AGENTS.md` |
 
 ### 4. 次回以降のセッション

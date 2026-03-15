@@ -150,7 +150,7 @@ Operation Rules
   If linked = use existing linked branch, do not create new branch.
   If not linked = retry or escalate.
 
-  [Docs And ADR Rules]
+  [Docs And Requirement Ownership]
 
   docs/ is source of truth.
   Wiki is mirror, not source.
@@ -166,9 +166,9 @@ Operation Rules
     update requirements spec first
     then update code and tests to implement and verify that spec delta
 
-  ADR required when: architecture choice, method change, technology selection, tradeoff decision.
-  ADR contents: what was decided, why chosen, what was rejected, known drawbacks.
-  ADR location = docs/
+  Li+ behavior and governance decisions belong in numbered requirements plus the corresponding operational docs.
+  Standalone memo or experiment log may exist, but it is not source of truth.
+  Keep requirements in 0.-Requirements.md until splitting improves readability.
 
   PR title must include impact scope.
   example bad  = "fix(config): negative duration handling"

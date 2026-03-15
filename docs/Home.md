@@ -26,8 +26,7 @@ Li+プログラムの仕様書および参照資料。
 | ページ | 内容 |
 |--------|------|
 | [A. Liplus-language Concept](A.-Liplus-language_Concept) | Li+の設計思想と概念 |
-| [B. Liplus_core](B.-Liplus_core) | 中核仕様（ペルソナ・挙動・タスクモード） |
-| [C. Loop_Safety](C.-Loop_Safety) | 繰り返し失敗ループへの対処 |
+| [B. Liplus_core](B.-Liplus_core) | 中核仕様（ペルソナ・挙動・タスクモード・Loop Safety） |
 | [D. Operational_GitHub](D.-Operational_GitHub) | GitHub運用ルール |
 | [E. Li+config](E.-Li+config) | 設定ファイルの仕様とセッション起動フロー |
 | [F. Installation](F.-Installation) | Li+のセットアップ手順 |

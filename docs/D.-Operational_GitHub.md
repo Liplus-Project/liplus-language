@@ -417,6 +417,50 @@ GitHub の通知操作を API で行う際のエンドポイント一覧。
 
 ------------------------------------------------------------------------
 
+## 前景Webhook通知取り込み（Foreground_Webhook_Notification_Intake）
+
+前景スレッドで「新しいコメントが来たかもしれない」と広くGitHubを探しに行くのではなく、届いている差分だけを軽く扱うための補助フロー。
+
+### 目的
+
+- `mcp__github-webhook-mcp` が無い環境でも、前景スレッドが軽量通知だけを扱えるようにする
+- shared instruction に機械固有の絶対パスを埋め込まない
+- webhook通知の受信口と前景スレッドの応答主体を分離し、重い別AI起動を避ける
+
+### 使い分け
+
+- **第一優先:** `mcp__github-webhook-mcp`
+- **第二優先:** ローカル webhook ストア + bundled helper
+- **どちらも無い:** 静かにスキップ
+
+### ローカル fallback ルール
+
+- 前提:
+    - `LI_PLUS_MODE=clone`
+    - ワークスペース内に `liplus-language/` clone があり、bundled helper を実行できること
+- helper path:
+    - `{workspace_root}/liplus-language/scripts/check_webhook_notifications.py`
+- state dir 解決順:
+    1. `LI_PLUS_WEBHOOK_STATE_DIR`（`Li+config.md`。絶対パスまたは `workspace_root` 相対）
+    2. `{workspace_root}/github-webhook-mcp`
+    3. `{workspace_root}/../github-webhook-mcp`
+- state dir も helper も見つからない場合:
+    - エラー化せず黙ってスキップ
+- local helper の動作:
+    - pending イベントの軽量サマリだけ返す
+    - 前景へ通知として出したイベントはその場で consume する
+    - `events.json` だけでなく、対応する生成物も削除する
+
+### 前景スレッドでの扱い
+
+- 各ターンの先頭で軽量確認できるホストだけで使う
+- pending が 0 件なら何も言わない
+- pending がある時だけ短く通知する
+- 詳細が必要になるまでは full payload を開かない
+- このフローから別AIプロセスを起動しない
+
+------------------------------------------------------------------------
+
 ## 禁止事項
 
 -   Issue に紐づかない Commit / PR

@@ -344,6 +344,37 @@ Operation Rules
   GET    /notifications?all=false      -> 200  check inbox
   scope = notifications (classic PAT)
 
+  [Foreground Webhook Notification Intake]
+
+  Purpose:
+  Keep the active foreground thread lightweight.
+  Do not search GitHub broadly for "maybe new comment" when a delivered event source already exists.
+
+  Use only in hosts that can run a local command before replying.
+
+  source priority:
+    1 = mcp__github-webhook-mcp
+    2 = local webhook store via bundled helper
+    3 = none
+
+  local webhook store:
+    precondition = LI_PLUS_MODE=clone
+    helper path = {workspace_root}/liplus-language/scripts/check_webhook_notifications.py
+    state dir resolution:
+      a = LI_PLUS_WEBHOOK_STATE_DIR from Li+config.md (absolute or workspace_root-relative)
+      b = {workspace_root}/github-webhook-mcp
+      c = {workspace_root}/../github-webhook-mcp
+    if helper missing or state dir unresolved = skip silently
+    helper output = lightweight summaries only
+    on surfaced items = consume immediately and delete related generated files
+
+  foreground handling:
+    each user turn start = inspect once before main reply
+    pending_count == 0 = no mention
+    pending_count > 0  = brief mention before main reply
+    full payload = open only when deeper inspection is needed
+    separate AI process launch = prohibited for this flow
+
   -----------
   evolution
   -----------

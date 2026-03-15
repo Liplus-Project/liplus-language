@@ -58,7 +58,7 @@ Operation Rules
 
   Description required on creation.
   Label evolves over time. Label is for AI readability.
-  Full label policy and retired labels: see Li+Operations.md
+  Full label policy and retired labels: see Li+operations.md
 
   [Issue Flow]
 

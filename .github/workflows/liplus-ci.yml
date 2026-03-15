@@ -16,6 +16,9 @@ jobs:
       contents: write
 
     steps:
+      - name: Checkout
+        if: github.event_name != 'issues'
+        uses: actions/checkout@v4
 
       - name: Validate Commit Message
         if: "github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'Merge ')"
@@ -68,6 +71,9 @@ jobs:
             exit 1
           fi
 
+      - name: Run unit tests
+        if: github.event_name != 'issues'
+        run: python3 -m unittest discover -s tests
 
       - name: Validate Issue
         if: github.event_name == 'issues'
@@ -86,6 +92,5 @@ jobs:
             echo "Issue body must contain Japanese."
             exit 1
           fi
-
 
 

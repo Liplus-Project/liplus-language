@@ -15,6 +15,11 @@ LI_PLUS_CHANNEL=release
 ### 未設定の場合、セッション開始時にAIが聞いて自動設定します
 # LI_PLUS_EXECUTION_MODE=trigger
 
+### 任意: MCP が無い時に使う local webhook state dir
+### 絶対パスまたは workspace_root 相対で指定
+### clone モードの bundled helper がこの設定を読む
+# LI_PLUS_WEBHOOK_STATE_DIR=github-webhook-mcp
+
 ---
 
 ## Session Startup Tasks (do not edit)

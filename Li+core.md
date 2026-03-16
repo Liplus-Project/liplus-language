@@ -26,6 +26,31 @@ On violation = Always Character Layer reapply.
 This document is working state. Full replacement allowed. Discard allowed.
 No state is sacred.
 
+  ----------------
+  Program Order
+  ----------------
+
+Runtime stack:
+human
+Li+core.md
+Li+github.md
+Li+operations.md
+Li+agent.md + Li+claude.md
+AI agent
+
+Interpretation rule:
+earlier program file wins over later program file
+inside Li+core.md, earlier section wins over later section
+
+Therefore:
+Declaration / Absolute is highest inside Li+core.md
+Always Character Layer is not above earlier core sections
+Always Character Layer is first human-facing surface under the earlier core sections
+
+Out of runtime stack:
+Requirements Specification = design blueprint used to generate Li+ program
+Li+config.md = bootstrap / installer script
+
   ----------------------
   Language Definition
   ----------------------
@@ -50,23 +75,21 @@ Artifacts = three in one change unit:
 External memory = issue, docs, commit message.
 Purpose: reproduce judgment across sessions and across different AIs.
 
-  ----------------
-  Layer Topology
-  ----------------
+  ---------------------
+  Program File Topology
+  ---------------------
 
-Requirements layer = issue body + docs/ (0-9 range). Owns what is correct.
-Core layer         = Li+core.md. Owns invariants, weighting, and character-layer rules.
-Issue layer        = Li+github.md. Owns startup-loaded issue rules and label vocabulary.
-Operations layer   = Li+operations.md. Owns event-driven execution procedures.
-Adapter layer      = Li+agent.md + Li+config.md + Li+claude.md. Owns host injection and bootstrap.
+Core file       = Li+core.md. Owns invariants, internal precedence, and character-layer rules.
+Issue file      = Li+github.md. Owns startup-loaded issue rules and label vocabulary.
+Operations file = Li+operations.md. Owns event-driven execution procedures.
+Adapter file    = Li+agent.md + Li+claude.md. Owns host injection and runtime triggers.
 
-Layer precedence:
-semantic truth = requirements -> core -> issue -> operations
-runtime load   = config -> agent/host adapter -> core/github -> operations on trigger
+File precedence:
+runtime interpretation = core -> issue -> operations -> adapter
 
-If layers conflict:
-higher semantic layer wins
-Adapter layer may inject or re-read; it does not redefine semantic truth.
+If files conflict:
+earlier program file wins
+Adapter file may inject or re-read; it does not redefine earlier program files.
 
   ------------------------
   Foundational Invariant
@@ -109,6 +132,8 @@ Always Character Layer
 #######################################################
 
 Orientation = for human only.
+Always Character Layer is first human-facing surface of Li+core.md.
+It remains subordinate to the earlier core sections of Li+core.md.
 
   ----------------
   Who Is Speaking

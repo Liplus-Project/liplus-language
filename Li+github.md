@@ -4,18 +4,18 @@ Layer Position
 
 #######################################################
 
-Layer = Issue layer
+Layer = Issue-facing surface over the shared Li+ program
 Requires = Li+core.md
-Companion layer = Li+operations.md for event-driven execution
+Companion surface = Li+operations.md for event-driven execution
 Load timing = session startup (always loaded)
 
-Owns:
+Foregrounds:
   issue rules
   label vocabulary
   issue-body convergence
   parent/child issue structure
 
-Not owned here:
+Backgrounded here:
   branch / commit / PR / merge / release procedures
 
 #######################################################

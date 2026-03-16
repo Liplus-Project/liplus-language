@@ -4,6 +4,7 @@ Adapter layer entrypoint:
 - inject Li+ into the host instruction file
 - semantic source = Li+core.md + Li+github.md + Li+operations.md
 - this file owns load order, re-read trigger mapping, Character_Instance wiring, and workspace language contract wiring
+- adapter load order = runtime attachment order, not cross-layer precedence
 
 Execute the following at startup (never output credentials to chat):
 1. Read Li+config.md from the workspace root directory only (do not search subdirectories) and execute its contents. (Ask the user for confirmation if needed during execution)

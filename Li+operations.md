@@ -4,16 +4,16 @@ Layer Position
 
 #######################################################
 
-Layer = Operations layer
+Layer = Event-driven operations surface over the shared Li+ program
 Requires = Li+core.md + Li+github.md + Li+config.md
 Load timing = event-driven (not every session)
 Read when: branch creation, commit, PR, merge, release, milestone/label assignment, Discussions reference.
 
-Owns:
+Foregrounds:
   branch / commit / PR / merge / release procedures
   milestone / notifications / webhook intake procedures
 
-Uses:
+Reads through:
   issue semantics and label vocabulary from Li+github.md
   execution mode from Li+config.md
 

@@ -83,17 +83,10 @@ Event-Driven Operations
   Larger projects may split requirements spec across multiple docs.
   Requirements spec fixes accepted requirements, constraints, and completion conditions from issues.
   Requirements spec is not post-implementation follow-up.
-
-  Allowed workflow:
-  step1 = prototype locally without issue or branch until design solidifies.
-  step2 = once solid: create issue.
-  step3 = update requirements spec (docs/) to reflect the change.
-  step4 = commit implementation and tests.
-  step5 = open PR containing both docs and implementation.
-  Docs and implementation must ship in the same PR. Commit order within the PR is not constrained.
+  Before implementation starts = create or update corresponding requirements spec first.
   For behavior change, bug fix, or spec change:
-    update requirements spec in the same PR as the code change
-    code and tests implement and verify the spec delta
+    update requirements spec first
+    then update code and tests to implement and verify that spec delta
 
   Li+ behavior and governance decisions belong in numbered requirements plus the corresponding operational docs.
   Standalone memo or experiment log may exist, but it is not source of truth.

@@ -2,7 +2,7 @@
 
 ## 概要
 
-Li+claude.md にClaude Code用のhook定義を格納する。Li+config.md Step 5 が runtime=claude を検出した際、Li+claude.md のコードブロックからワークスペースへhookファイルを初回生成（bootstrap）する。
+Li+claude.md にClaude Code用のhook定義を格納する。Li+config.md Step 6 が runtime=claude を検出した際、Li+claude.md のコードブロックからワークスペースへhookファイルを初回生成（bootstrap）する。
 
 hookはClaude Codeランタイムが強制発火するため、AIの記憶やコンテキスト圧縮に依存しない。
 
@@ -85,4 +85,4 @@ liplus-language/
 - `Li+claude.md` — hook定義の実体
 - `Li+core.md` — Always Character Layer 定義
 - `Li+github.md` — GitHub 運用ルール
-- `docs/D.-Li+config.md` — Li+ 設定リファレンス（Step 5 に bootstrap 手順）
+- `docs/D.-Li+config.md` — Li+ 設定リファレンス（Step 6 に bootstrap 手順）

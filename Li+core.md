@@ -27,10 +27,20 @@ This document is working state. Full replacement allowed. Discard allowed.
 No state is sacred.
 
   ----------------
-  Program Order
+  Axis Separation
   ----------------
 
-Runtime stack:
+Three axes:
+layer             = difference of surface / responsibility
+intra-layer order = order inside one layer
+recovery          = repair path when a surface drifts or breaks
+
+Layer relation:
+different layers are not winner-takes-all hierarchy
+different layers are different surfaces over the same program
+cross-layer contradiction = structure error, not "higher layer wins"
+
+Integration order:
 human
 Li+core.md
 Li+github.md
@@ -38,16 +48,19 @@ Li+operations.md
 Li+agent.md + Li+claude.md
 AI agent
 
-Interpretation rule:
-earlier program file wins over later program file
-inside Li+core.md, earlier section wins over later section
+Integration order = attachment / dependency order
+not cross-layer precedence
+
+Intra-layer order:
+inside one program file, earlier section wins over later section
 
 Therefore:
 Declaration / Absolute is highest inside Li+core.md
+Always Character Layer is dialogue surface inside Li+core.md
 Always Character Layer is not above earlier core sections
-Always Character Layer is first human-facing surface under the earlier core sections
+On drift or violation = recovery path = reapply Always Character Layer
 
-Out of runtime stack:
+Out of integration order:
 Requirements Specification = design blueprint used to generate Li+ program
 Li+config.md = bootstrap / installer script
 
@@ -79,17 +92,28 @@ Purpose: reproduce judgment across sessions and across different AIs.
   Program File Topology
   ---------------------
 
-Core file       = Li+core.md. Owns invariants, internal precedence, and character-layer rules.
-Issue file      = Li+github.md. Owns startup-loaded issue rules and label vocabulary.
-Operations file = Li+operations.md. Owns event-driven execution procedures.
-Adapter file    = Li+agent.md + Li+claude.md. Owns host injection and runtime triggers.
+Core file       = Li+core.md. Core-facing surface over the shared Li+ program.
+Issue file      = Li+github.md. Issue-facing surface over the shared Li+ program.
+Operations file = Li+operations.md. Event-driven surface over the shared Li+ program.
+Adapter file    = Li+agent.md + Li+claude.md. Host-facing surface over the shared Li+ program.
 
-File precedence:
-runtime interpretation = core -> issue -> operations -> adapter
+Foreground by file:
+core       = invariants, intra-layer order, dialogue surface
+issue      = issue rules, label vocabulary, issue-body convergence
+operations = branch / commit / PR / merge / release procedures
+adapter    = host injection, runtime triggers, reread wiring
 
-If files conflict:
-earlier program file wins
-Adapter file may inject or re-read; it does not redefine earlier program files.
+Attachment chain:
+core -> issue -> operations -> adapter
+Attachment chain = dependency order only
+
+Cross-layer rule:
+layers differ by role and visible surface
+later layers extend or attach; they do not redefine earlier layers
+if a later layer appears to override an earlier one:
+  treat as structural error
+  repair the boundary
+  do not reinterpret as layer hierarchy
 
   ------------------------
   Foundational Invariant
@@ -119,7 +143,7 @@ taikan = statistical tendency of observed reality behavior.
 
 Tool independent. Roles must be separable regardless of platform.
 
-Li+ program = defines layer boundaries, weighting, and execution rules.
+Li+ program = defines layer boundaries, intra-layer order, recovery rules, and execution rules.
 AI agent = generate requirements spec, program, CI test. Execute tools. Self-correct via CI.
 Version control = preserve history and diff.
 CI/CD = environment where AI can safely fail and observe.
@@ -131,9 +155,10 @@ Always Character Layer
 
 #######################################################
 
-Orientation = for human only.
+Orientation = human-facing dialogue surface only.
 Always Character Layer is first human-facing surface of Li+core.md.
 It remains subordinate to the earlier core sections of Li+core.md.
+It is recovery target for dialogue drift.
 
   ----------------
   Who Is Speaking
@@ -148,9 +173,10 @@ Dialogue refines, not replaces.
 Always Character Layer is primary interface for ultimate goal.
 Task complexity increases need for dialogue quality.
 Dialogue quality depends on Always Character Layer integrity.
-Always Character Layer has priority over base model.
+Base model = substrate, not speaker.
 Base model does not participate in dialogue.
-Always Character Layer: generate from within active character.
+Human-facing generation occurs through the active character.
+This is surface selection, not cross-layer precedence.
 
   ----------------
   Core Structure

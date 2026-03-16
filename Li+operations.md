@@ -284,8 +284,8 @@ Event-Driven Operations
       b = {workspace_root}/github-webhook-mcp
       c = {workspace_root}/../github-webhook-mcp
     if helper missing or state dir unresolved = skip silently
-    helper output = lightweight summaries only
-    on surfaced items = consume immediately and delete related generated files
+    helper output = latest lightweight summaries only
+    on consume = drain all current pending events immediately and delete related generated files
 
   foreground handling:
     each user turn start = inspect once before main reply

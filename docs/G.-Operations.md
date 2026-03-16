@@ -424,8 +424,8 @@ GitHub の通知操作を API で行う際のエンドポイント一覧。
 - state dir も helper も見つからない場合:
     - エラー化せず黙ってスキップ
 - local helper の動作:
-    - pending イベントの軽量サマリだけ返す
-    - 前景へ通知として出したイベントはその場で consume する
+    - pending イベントのうち最新 `limit` 件の軽量サマリだけ返す
+    - `--consume` 時は、前景へ出す件数に関係なく、その時点の pending を一度で drain する
     - `events.json` だけでなく、対応する生成物も削除する
 
 ### 前景スレッドでの扱い

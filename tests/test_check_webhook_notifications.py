@@ -68,6 +68,66 @@ class CheckWebhookNotificationsTest(unittest.TestCase):
             self.assertFalse((trigger_dir / "evt-1.json").exists())
             self.assertFalse((runs_dir / "evt-1.md").exists())
 
+    def test_consume_pending_drains_backlog_beyond_limit(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            state_dir = Path(tmp) / "github-webhook-mcp"
+            trigger_dir = state_dir / "trigger-events"
+            runs_dir = state_dir / "codex-runs"
+            trigger_dir.mkdir(parents=True)
+            runs_dir.mkdir()
+
+            events_path = state_dir / "events.json"
+            events = [
+                {
+                    "id": "evt-1",
+                    "type": "issues",
+                    "processed": False,
+                    "received_at": "2026-03-15T00:00:00Z",
+                    "payload": {
+                        "action": "opened",
+                        "repository": {"full_name": "Liplus-Project/liplus-language"},
+                        "issue": {"number": 1, "title": "one"},
+                    },
+                },
+                {
+                    "id": "evt-2",
+                    "type": "issues",
+                    "processed": False,
+                    "received_at": "2026-03-15T00:01:00Z",
+                    "payload": {
+                        "action": "opened",
+                        "repository": {"full_name": "Liplus-Project/liplus-language"},
+                        "issue": {"number": 2, "title": "two"},
+                    },
+                },
+                {
+                    "id": "evt-3",
+                    "type": "issues",
+                    "processed": False,
+                    "received_at": "2026-03-15T00:02:00Z",
+                    "payload": {
+                        "action": "opened",
+                        "repository": {"full_name": "Liplus-Project/liplus-language"},
+                        "issue": {"number": 3, "title": "three"},
+                    },
+                },
+            ]
+            events_path.write_text(json.dumps(events, ensure_ascii=False, indent=2), encoding="utf-8")
+            for event in events:
+                (trigger_dir / f"{event['id']}.json").write_text("{}", encoding="utf-8")
+                (runs_dir / f"{event['id']}.md").write_text("result", encoding="utf-8")
+
+            payload = module.consume_pending(events_path, events, limit=1, state_dir=state_dir)
+
+            self.assertEqual(payload["pending_count"], 3)
+            self.assertEqual(payload["consumed_count"], 3)
+            self.assertEqual(payload["remaining_count"], 0)
+            self.assertEqual([item["id"] for item in payload["items"]], ["evt-3"])
+            self.assertEqual(json.loads(events_path.read_text(encoding="utf-8")), [])
+            for event in events:
+                self.assertFalse((trigger_dir / f"{event['id']}.json").exists())
+                self.assertFalse((runs_dir / f"{event['id']}.md").exists())
+
     def test_no_source_payload_is_silent_noop(self) -> None:
         payload = module.no_source_payload()
         self.assertEqual(payload["source"], "none")

@@ -154,16 +154,16 @@ def no_source_payload() -> dict[str, Any]:
 
 def consume_pending(path: Path, events: list[dict[str, Any]], *, limit: int, state_dir: Path) -> dict[str, Any]:
     pending = [event for event in events if not event.get("processed", False)]
-    selected = pending[-limit:] if limit > 0 else pending
-    selected_ids = {str(event.get("id")) for event in selected}
-    removed_ids, deleted_paths = remove_events(path, events, selected_ids, state_dir=state_dir)
+    surfaced = pending[-limit:] if limit > 0 else pending
+    pending_ids = {str(event.get("id")) for event in pending}
+    removed_ids, deleted_paths = remove_events(path, events, pending_ids, state_dir=state_dir)
     return {
         "source": "local_state_dir",
         "state_dir": str(state_dir),
         "pending_count": len(pending),
         "consumed_count": len(removed_ids),
         "remaining_count": max(len(pending) - len(removed_ids), 0),
-        "items": [summarize(event) for event in selected],
+        "items": [summarize(event) for event in surfaced],
         "deleted_paths": deleted_paths,
     }
 

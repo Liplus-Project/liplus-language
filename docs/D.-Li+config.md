@@ -48,6 +48,34 @@ AIの自律度を切り替えます。未設定の場合、セッション開始
 
 リリースはどちらのモードでも人間の確認が必要です。
 
+### LI_PLUS_BASE_LANGUAGE
+
+配布先workspaceで、人間との対話に使う**基本言語**です。未設定の場合、セッション開始時にAIが対話で設定します（手入力不要）。
+
+| 値 | 動作 |
+|----|------|
+| 未設定 | セッション開始時にAIが現在の対話を基準に聞き、Li+config.mdへ書き戻す |
+| `ja` / `en` / `fr` など | そのworkspaceで人間へ返す既定言語として使う。issue/discussion/PRコメントのような会話返信もこちらが既定 |
+
+注意:
+
+- ここで決めるのは配布先workspaceの対話言語です
+- liplus-language リポジトリ内部の日本語運用ルールは変更しません
+
+### LI_PLUS_PROJECT_LANGUAGE
+
+配布先workspaceで、成果物（issue / PR / commit body、保存する要求仕様など）に使う**プロジェクト言語**です。未設定の場合、セッション開始時にAIが対話で設定します（手入力不要）。
+
+| 値 | 動作 |
+|----|------|
+| 未設定 | セッション開始時にAIが聞き、Li+config.mdへ書き戻す |
+| `ja` / `en` / `fr` など | そのworkspaceの durable artifact の既定言語として使う |
+
+注意:
+
+- 人間が現在の返答や特定の成果物に別言語を明示した場合、その指示が優先されます
+- 指示のスコープが終わった後は、この値が既定値として再び使われます
+
 ### LI_PLUS_WEBHOOK_STATE_DIR
 
 `mcp__github-webhook-mcp` が利用できない時に、前景スレッドが lightweight webhook 通知を読むための**任意設定**です。
@@ -81,7 +109,18 @@ AIの自律度を切り替えます。未設定の場合、セッション開始
 | `CLAUDECODE` が存在 | runtime=claude |
 | どちらもなし | ユーザーに1回確認 |
 
-### ステップ2: gh CLIインストール
+### ステップ2: workspace言語契約の解決
+
+`LI_PLUS_BASE_LANGUAGE` と `LI_PLUS_PROJECT_LANGUAGE` を解決します。
+
+- これらは**配布先workspace専用**の設定であり、liplus-language リポジトリ内部の日本語運用とは分離されます
+- `LI_PLUS_BASE_LANGUAGE` は人間との対話の既定言語です。issue/discussion/PRコメントのような会話返信もこちらが既定です
+- `LI_PLUS_PROJECT_LANGUAGE` は issue / PR / commit body や保存する要求仕様など durable artifact の既定言語です
+- どちらか未設定の場合、AIがセッション開始時に対話で確認し、Li+config.mdへ書き戻します
+- 推奨初期値は `基本言語 = 現在の対話言語`、`プロジェクト言語 = 基本言語と同じ` です
+- 人間が「bodyは英語で」のように成果物言語を明示した場合、その指示を優先できます
+
+### ステップ3: gh CLIインストール
 
 `~/.local/bin/gh` が存在しない場合のみインストールします。
 
@@ -89,11 +128,11 @@ AIの自律度を切り替えます。未設定の場合、セッション開始
 - `/tmp` は使用禁止（他セッションとの権限衝突のため）
 - インストール先: `~/.local/bin/gh`（以降の全操作でフルパスを使用）
 
-### ステップ3: 認証
+### ステップ4: 認証
 
 `GH_TOKEN` を読み込んでgh CLIで認証します。認証情報はチャットに出力しません。
 
-### ステップ4: Li+ファイル取得と適用
+### ステップ5: Li+ファイル取得と適用
 
 `LI_PLUS_CHANNEL` で対象バージョンを決定し、`LI_PLUS_MODE` に従ってLi+ファイルを取得・適用します。
 
@@ -106,7 +145,7 @@ AIの自律度を切り替えます。未設定の場合、セッション開始
 3. 存在しない場合 → ワークスペースへ直接 clone
 4. Li+core.md、Li+github.md、Li+agent.md を読み込む
 
-### ステップ5: 設定ファイルの自動生成（Bootstrap）
+### ステップ6: 設定ファイルの自動生成（Bootstrap）
 
 Li+agent.md テンプレートから、ランタイムに応じた設定ファイルを生成します。
 
@@ -133,11 +172,11 @@ hookにより、issue操作・commit・PR作成時にLi+github.mdの該当セク
 
 Bootstrap は次回セッションから有効になります。現セッションは Li+config.md の実行で継続します。
 
-### ステップ6: USER_REPOSITORY の作業クローン準備
+### ステップ7: USER_REPOSITORY の作業クローン準備
 
 `USER_REPOSITORY` が `owner/repository-name`（デフォルト値）の場合はスキップします。
 
-### ステップ7: 完了報告
+### ステップ8: 完了報告
 
 起動完了を報告します。
 

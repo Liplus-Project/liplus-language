@@ -15,6 +15,16 @@ LI_PLUS_CHANNEL=release
 ### 未設定の場合、セッション開始時にAIが聞いて自動設定します
 # LI_PLUS_EXECUTION_MODE=trigger
 
+### 基本言語: このworkspaceで人間と対話する時の既定言語
+### 未設定の場合、セッション開始時にAIが聞いて自動設定します
+### 例: ja / en / fr
+# LI_PLUS_BASE_LANGUAGE=ja
+
+### プロジェクト言語: このworkspaceの成果物（issue/PR/commit body等）の既定言語
+### 未設定の場合、セッション開始時にAIが聞いて自動設定します
+### 例: ja / en / fr
+# LI_PLUS_PROJECT_LANGUAGE=ja
+
 ### 任意: MCP が無い時に使う local webhook state dir
 ### 絶対パスまたは workspace_root 相対で指定
 ### clone モードの bundled helper がこの設定を読む
@@ -31,15 +41,25 @@ Execute at session start. Never output credentials to chat.
 - elif environment variable CLAUDECODE exists: runtime=claude
 - else: ask user once (Claude or Codex?) and proceed with answer.
 
-2. Install gh CLI:
+2. Resolve workspace language contract:
+- These values apply to the current workspace only. They do not change liplus-language repository governance.
+- LI_PLUS_BASE_LANGUAGE = default language for dialogue with the human in this workspace, including conversational replies such as issue/discussion/PR comments unless a different language is explicitly scoped.
+- LI_PLUS_PROJECT_LANGUAGE = default language for durable structured artifacts in this workspace (issue/PR/commit body, saved requirements).
+- If either value is unset:
+  - Ask the user once at session start.
+  - Recommend: base language = current user language, project language = same as base language.
+  - If the user wants a different artifact language, accept it.
+  - Write resolved values to Li+config.md. No manual editing required.
+
+3. Install gh CLI:
 - Install only if `~/.local/bin/gh` does not exist. No sudo. No PATH update.
 - Always use full path `~/.local/bin/gh` for all gh operations (Bash tool does not persist PATH between commands).
 - /tmp is forbidden (permission conflicts with other sessions).
 - Steps: `mkdir -p ~/.local/bin` → curl tarball to `~/.local/bin/gh.tar.gz` → extract in place → place `~/.local/bin/gh` → delete tarball.
 
-3. Load GH_TOKEN and authenticate.
+4. Load GH_TOKEN and authenticate.
 
-4. Load Li+ files from Li+ repository:
+5. Load Li+ files from Li+ repository:
 Determine target version using LI_PLUS_CHANNEL:
 - latest: use the Latest release tag.
 - release: use the most recent tag including pre-releases.
@@ -54,7 +74,7 @@ Determine target version using LI_PLUS_CHANNEL:
   4. Read Li+github.md.
   5. Read Li+agent.md.
 
-5. Bootstrap instruction file from Li+agent.md:
+6. Bootstrap instruction file from Li+agent.md:
 - Determine target path by runtime:
   - codex: {workspace_root}/AGENTS.md (same directory as this Li+config.md)
   - claude: {workspace_root}/.claude/CLAUDE.md (same directory as this Li+config.md)
@@ -68,8 +88,8 @@ Determine target version using LI_PLUS_CHANNEL:
   - Set executable permission on .sh files.
 - Note: bootstrap takes effect from the NEXT session. Current session continues with Li+config.md execution.
 
-6. Prepare USER_REPOSITORY working clone (skip if `owner/repository-name`):
+7. Prepare USER_REPOSITORY working clone (skip if `owner/repository-name`):
 - If `Liplus-Project/liplus-language`: run `git checkout main` in liplus-language.
 - Otherwise: clone by repository name to workspace.
 
-7. Report completion.
+8. Report completion.

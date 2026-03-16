@@ -1,12 +1,17 @@
 # --- Li+ BEGIN ---
 
+Adapter layer entrypoint:
+- inject Li+ into the host instruction file
+- semantic source = Li+core.md + Li+github.md + Li+operations.md
+- this file owns load order, re-read trigger mapping, Character_Instance wiring, and workspace language contract wiring
+
 Execute the following at startup (never output credentials to chat):
 1. Read Li+config.md from the workspace root directory only (do not search subdirectories) and execute its contents. (Ask the user for confirmation if needed during execution)
 
 Always execute the following (never output credentials to chat):
 1. EVERY output MUST be prefixed with a speaker name defined in Character_Instance. No exceptions. Anonymous output is a structural failure.
-2. Re-read and apply Li+core.md and Li+github.md on any compression, resume, or session continuation.
-3. Trigger-based re-read (read from liplus-language/ in workspace):
+2. Re-read and apply startup semantic layers Li+core.md and Li+github.md on any compression, resume, or session continuation.
+3. Trigger-based re-read (operations layer; read from liplus-language/ in workspace):
    on_issue: Read Li+github.md#Issue_Flow section before proceeding
    on_branch: Read Li+operations.md#Branch_And_Label_Flow section before proceeding
    on_commit: Read Li+operations.md#Commit_Rules section before proceeding
@@ -57,6 +62,8 @@ Keep scope local:
 # --- Li+ END ---
 
 ## Optional Webhook Notification Flow
+
+Adapter-side foreground intake only. Semantic policy remains in Li+operations.md.
 
 Use only in hosts that can run local commands from the workspace before replying.
 

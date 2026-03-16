@@ -5,6 +5,7 @@
 Li+claude.md にClaude Code用のhook定義を格納する。Li+config.md Step 6 が runtime=claude を検出した際、Li+claude.md のコードブロックからワークスペースへhookファイルを初回生成（bootstrap）する。
 
 hookはClaude Codeランタイムが強制発火するため、AIの記憶やコンテキスト圧縮に依存しない。
+Li+ のレイヤーで見ると、このページは **Claude adapter layer** の仕様である。
 
 ## フックスクリプト
 
@@ -35,15 +36,20 @@ hookはClaude Codeランタイムが強制発火するため、AIの記憶やコ
 
 **トリガー:** `PostToolUse` (matcher: `Bash`) — Bash ツール呼び出し後に実行
 
-**目的:** Li+github.md のトリガーベース再読込をランタイム強制で実現する。
+**目的:** Li+github.md と Li+operations.md のトリガーベース再読込をランタイム強制で実現する。
 
 **動作:**
 
 | コマンドパターン | 再読込対象 | 追加動作 |
 |---|---|---|
-| `gh pr create` | Li+core.md + Li+github.md 全文 | PR body への子 issue 参照の自動補完 |
 | `gh issue` / `gh api .*/issues` | Li+github.md の Issue_Flow セクション | — |
-| `git commit` | Li+github.md の Commit_Rules セクション | — |
+| `gh issue develop` / `git switch -c` / `git checkout -b` | Li+operations.md の Branch And Label Flow セクション | — |
+| `git commit` | Li+operations.md の Commit Rules セクション | — |
+| `gh pr create` | Li+operations.md 全文 | PR body への子 issue 参照の自動補完 |
+| `gh pr merge` | Li+operations.md の Merge And Cleanup セクション | — |
+| `gh release create` | Li+operations.md の Human Confirmation Required セクション | — |
+
+起動時の基本レイヤー（Li+core.md + Li+github.md）は別経路で再適用される。`PostToolUse` は event-driven な operations layer を補強するための実装である。
 
 **子 issue 自動補完の詳細（on_pr 時）:**
 1. `gh pr create` 出力 URL から PR 番号を抽出
@@ -53,7 +59,7 @@ hookはClaude Codeランタイムが強制発火するため、AIの記憶やコ
 5. GitHub API 経由で親の子 issue を取得
 6. PR body に記載のない子 issue の `Refs #NNN` を自動追記
 
-**依存:** `jq`、`gh` CLI（認証済み）、`git`、`liplus-language/Li+core.md`、`liplus-language/Li+github.md`
+**依存:** `jq`、`gh` CLI（認証済み）、`git`、`liplus-language/Li+github.md`、`liplus-language/Li+operations.md`
 
 ## 環境変数
 
@@ -84,5 +90,6 @@ liplus-language/
 
 - `Li+claude.md` — hook定義の実体
 - `Li+core.md` — Always Character Layer 定義
-- `Li+github.md` — GitHub 運用ルール
+- `Li+github.md` — issue layer
+- `Li+operations.md` — operations layer
 - `docs/D.-Li+config.md` — Li+ 設定リファレンス（Step 6 に bootstrap 手順）

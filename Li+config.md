@@ -1,5 +1,9 @@
 # Li+ Config
 
+Bootstrap / distribution adapter for Li+.
+Human edits this file. AI executes it at session start.
+Semantic truth remains in Li+core.md / Li+github.md / Li+operations.md.
+
 ## ユーザー設定（ここを編集してください）
 
 GH_TOKEN=github_pat_XXXX
@@ -59,7 +63,7 @@ Execute at session start. Never output credentials to chat.
 
 4. Load GH_TOKEN and authenticate.
 
-5. Load Li+ files from Li+ repository:
+5. Load Li+ layers from Li+ repository:
 Determine target version using LI_PLUS_CHANNEL:
 - latest: use the Latest release tag.
 - release: use the most recent tag including pre-releases.
@@ -70,11 +74,12 @@ Determine target version using LI_PLUS_CHANNEL:
   2. Check workspace for liplus-language directory:
      - exists → fetch --tags → checkout target tag.
      - not exists → clone directly to workspace.
-  3. Read Li+core.md.
-  4. Read Li+github.md.
-  5. Read Li+agent.md.
+  3. Read Li+core.md (core layer).
+  4. Read Li+github.md (issue layer).
+  5. Read Li+agent.md (adapter layer).
+  6. Keep Li+operations.md available for event-driven reads later.
 
-6. Bootstrap instruction file from Li+agent.md:
+6. Bootstrap host adapter from Li+agent.md:
 - Determine target path by runtime:
   - codex: {workspace_root}/AGENTS.md (same directory as this Li+config.md)
   - claude: {workspace_root}/.claude/CLAUDE.md (same directory as this Li+config.md)

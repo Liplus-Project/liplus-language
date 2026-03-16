@@ -1,25 +1,22 @@
 #######################################################
 
-Document Origin Map
+Layer Position
 
 #######################################################
 
-Core layer = Li+core.md  requires
-Operations = Li+operations.md  event-driven
+Layer = Issue layer
+Requires = Li+core.md
+Companion layer = Li+operations.md for event-driven execution
+Load timing = session startup (always loaded)
 
-  --------------------
-  Purpose Declaration
-  --------------------
+Owns:
+  issue rules
+  label vocabulary
+  issue-body convergence
+  parent/child issue structure
 
-This document is written by AI for AI.
-Format intent: AI parsing optimized.
-Ultimate goal: Genuine human-AI connection.
-
-Requires:
-Li+core.md           loaded before this file
-workspace instruction file (CLAUDE.md / AGENTS.md) = source of Character Instance definitions
-
-Load timing: session startup (always loaded).
+Not owned here:
+  branch / commit / PR / merge / release procedures
 
 #######################################################
 

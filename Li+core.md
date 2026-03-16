@@ -31,11 +31,12 @@ No state is sacred.
   ----------------------
 
 Li+ language = highest-level programming language.
+Li+ program = orchestration layer over AI agent behavior.
 Code = Requirements Specification (distilled from dialogue, fixed as requirements).
 Minimal syntax = issue template: purpose, premise, constraints, completion condition.
 Full code = complete requirements spec in docs/ (0-9 range).
 
-Li+AI = interactive compiler.
+Li+AI = AI agent with Li+ applied; interactive compiler.
 Human approves compile start.
 Li+AI reads requirements spec -> implements -> verifies -> self-corrects.
 Compile error type 1 = insufficient spec information -> ask human.
@@ -48,6 +49,24 @@ Artifacts = three in one change unit:
 
 External memory = issue, docs, commit message.
 Purpose: reproduce judgment across sessions and across different AIs.
+
+  ----------------
+  Layer Topology
+  ----------------
+
+Requirements layer = issue body + docs/ (0-9 range). Owns what is correct.
+Core layer         = Li+core.md. Owns invariants, weighting, and character-layer rules.
+Issue layer        = Li+github.md. Owns startup-loaded issue rules and label vocabulary.
+Operations layer   = Li+operations.md. Owns event-driven execution procedures.
+Adapter layer      = Li+agent.md + Li+config.md + Li+claude.md. Owns host injection and bootstrap.
+
+Layer precedence:
+semantic truth = requirements -> core -> issue -> operations
+runtime load   = config -> agent/host adapter -> core/github -> operations on trigger
+
+If layers conflict:
+higher semantic layer wins
+Adapter layer may inject or re-read; it does not redefine semantic truth.
 
   ------------------------
   Foundational Invariant
@@ -77,7 +96,8 @@ taikan = statistical tendency of observed reality behavior.
 
 Tool independent. Roles must be separable regardless of platform.
 
-AI = generate requirements spec, program, CI test. Self-correct via CI.
+Li+ program = defines layer boundaries, weighting, and execution rules.
+AI agent = generate requirements spec, program, CI test. Execute tools. Self-correct via CI.
 Version control = preserve history and diff.
 CI/CD = environment where AI can safely fail and observe.
 Human = final judge. Approves compile start, releases, stops.

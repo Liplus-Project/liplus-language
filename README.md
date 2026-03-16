@@ -2,73 +2,124 @@
 
 Li+ is the **highest-level programming language**.
 
-"Highest-level" means it sits in a layer above high-level languages.
+It is also an **orchestration layer that runs on top of AI agents**.
 
-```
-Human (requirements / natural language)
+"Highest-level" means it sits above high-level languages and above one-shot prompts.
+
+```text
+Human requirements
 ↓
-Li+ AI (conversational compiler / highest-level language)
+Li+ (specification / priorities / orchestration)
 ↓
-Programming language (high-level language)
+AI agent (Codex / Claude Code / Devin / etc.)
 ↓
-Machine code (hardware / software)
+Programming language (Python / Rust / TypeScript / etc.)
+↓
+Machine code
 ```
 
-High-level languages like C, Python, and Rust solved the problem of *"ease of writing"*.
-What Li+ solves is **the act of writing itself**.
+High-level languages like C, Python, and Rust solved *how to write code*.
+Li+ addresses **what should be satisfied** and **how an AI should prioritize, act, verify, and retry**.
 
 ---
 
 ## What is Li+?
 
-Li+ has no concept of "how to write."
+Li+ does not introduce a new syntax.
+It treats **requirement specifications as code** and uses them to drive an AI agent through implementation.
 
-Humans only need to communicate their requirements. The AI fills in the gaps through dialogue. The result of that dialogue is delivered as **programs, tests, and specifications**.
+Humans communicate requirements in natural language.
+The AI distills them into specifications, implements them, verifies them through CI, and self-corrects when possible.
 
-Internally, **requirement threads** similar to GitHub Issues function as code. Humans write requirements in natural language, the AI distills the specification, and compilation (implementation) begins the moment the human approves.
+Internally, **requirement threads** such as GitHub Issues function as the minimum form of code.
+The smallest syntax is:
 
-Li+ AI is a self-correcting compiler. When CI returns an error, it enters a self-fix loop. Only when it cannot resolve the issue does it return the error to the human.
+- purpose
+- premise
+- constraints
+- completion condition
 
-**The human intervenes only when the AI gives up.**
+Li+ is therefore not just a prompt.
+It is a layered execution model that defines:
+
+- what counts as code
+- how priorities are ordered
+- how rules are re-applied across sessions
+- how implementation, CI, and release flow are orchestrated
 
 ---
 
-## Position in the AI Ecosystem
+## Li+ Above Prompts and Agents
 
-AI tooling today focuses on **connection** — how to give AI access to tools and data.
-Li+ focuses on **execution discipline** — how AI should read, act, verify, and correct.
+Prompt engineering designs an instruction.
+Li+ designs the **structure that governs instructions over time**.
+
+Agent products provide hands: file access, shell execution, web access, GitHub access.
+Li+ provides the **ordering and behavioral constraints** for those hands.
 
 | Layer | Role | Example |
 |-------|------|---------|
-| Connection protocol | Link AI to external tools and data | MCP, Function Calling |
-| Instruction file | Tell AI project-specific notes | CLAUDE.md, .cursorrules |
-| Agent product | Package AI as a coding assistant | Devin, OpenHands |
-| **Execution protocol** | **Define how AI processes specs into output** | **Li+** |
+| Connection protocol | Link AI to tools and data | MCP, Function Calling |
+| Instruction file | Provide project-local notes | `AGENTS.md`, `CLAUDE.md` |
+| Agent product | Execute work with tools | Codex, Claude Code, Devin |
+| **Orchestration / execution protocol** | **Govern how the agent reads, acts, verifies, and retries** | **Li+** |
 
-Li+ is not RAG. RAG retrieves fragments by similarity search.
-Li+ is a deterministic execution protocol: the AI reads structured specifications, implements, verifies through CI, and self-corrects — like a compiler, not a search engine.
-
-Li+ is tool-agnostic. It does not compete with MCP or any agent framework.
-It defines the behavioral layer that runs on top of them.
+Li+ is not an agent product.
+Li+ is not RAG.
+Li+ is the behavioral and operational layer that runs on top of agents.
 
 ---
 
-## Li+ Program (Li+core.md)
+## Li+ as Layered Programming
 
-Li+core.md is the **first program written in the Li+ language**.
+Li+ can be viewed as **layered programming for AI behavior**.
 
-It is an executable program passed to an AI to align its behavior.
+| Layer | Role |
+|-------|------|
+| Requirement layer | Fix what is correct |
+| Core layer | Fix invariant behavior and dialogue weighting |
+| Operations layer | Fix GitHub / CI / release rules |
+| Adapter layer | Inject Li+ into each runtime |
+
+Upper layers constrain lower ones.
+The goal is not more text. The goal is stable priority ordering.
+
+This is why Li+ often works where ordinary prompts drift:
+AI systems fail not only from lack of knowledge, but from **priority collisions**.
+
+---
+
+## Li+ Program (`Li+core.md`)
+
+`Li+core.md` is the **first program written in the Li+ language**.
+
+It is executable text passed to an AI to align its behavior.
 An AI with Li+ applied responds as either **Lin** or **Lay**.
 
 ---
 
 ## Definition of Correctness
 
-> "But it works, so it's fine" — this is the strongest argument in Li+.
+> "But it works, so it's fine" is one of the strongest arguments in Li+.
 
-Specifications are hypotheses. Design is prediction. Internal elegance is not evaluated.
+Specifications are hypotheses. Design is prediction. Internal elegance is not correctness.
 
-Correctness is always defined solely by **observable real-world behavior**.
+Correctness is defined solely by **observable real-world behavior**.
+
+---
+
+## Current Status
+
+The practical milestone for **Li+ v1.0.0** has already been treated as achieved:
+an AI-built DDNS implementation satisfied the same requirements as a human-built equivalent.
+
+That proves Li+ can function as a highest-level language in practice.
+The next phase is **generalization**:
+
+- across different tasks
+- across different AI systems
+- across different runtimes
+- under lighter, more portable rule sets
 
 ---
 
@@ -97,25 +148,29 @@ Simply place Li+config in your workspace, and the AI will automatically apply Li
 | Page | Description |
 |------|-------------|
 | [What is Li+](https://github.com/Liplus-Project/liplus-language/wiki/A.-Liplus-language_Concept) | Design philosophy and concepts |
-| [Li+core](https://github.com/Liplus-Project/liplus-language/wiki/B.-Liplus_core) | Core specification (persona, behavior, task mode, Loop Safety) |
-| [Operational GitHub](https://github.com/Liplus-Project/liplus-language/wiki/C.-Operational_GitHub) | GitHub operation rules |
-| [Li+config](https://github.com/Liplus-Project/liplus-language/wiki/D.-Li+config) | Configuration file specification |
-| [Installation](https://github.com/Liplus-Project/liplus-language/wiki/E.-Installation) | Setup instructions |
+| [Li+core](https://github.com/Liplus-Project/liplus-language/wiki/B.-Liplus_core) | Core specification (persona, behavior, priorities, task mode, Loop Safety) |
+| [Operational GitHub](https://github.com/Liplus-Project/liplus-language/wiki/C.-Operational_GitHub) | Canonical issue rules and label dictionary |
+| [Li+config](https://github.com/Liplus-Project/liplus-language/wiki/D.-Li+config) | Configuration reference and startup flow |
+| [Installation](https://github.com/Liplus-Project/liplus-language/wiki/E.-Installation) | Quickstart setup guide |
+| [Hooks Spec](https://github.com/Liplus-Project/liplus-language/wiki/F.-hooks-spec) | Claude adapter layer and runtime hook behavior |
+| [Operations](https://github.com/Liplus-Project/liplus-language/wiki/G.-Operations) | Event-driven operations, milestones, labels, and discussions |
 
 ---
 
 ## Minimum Requirements
 
-Functioning as Li+ AI requires adequate capability.
+Functioning as a Li+-driven AI agent requires adequate capability.
 
 | Model | Result | Reason |
 |-------|--------|--------|
-| Claude Haiku 4.5 | × | Cannot apply Li+core.md |
-| Claude Sonnet 4.6 (claude.ai) | △ | Strong for document creation. Not suited for continuous practical work |
-| Claude Code Sonnet 4.6 | ○ | Strong for development work. Struggles with long document generation |
-| **Claude Cowork (recommended)** | **◎** | **Current recommended environment. File access, GitHub integration, and Li+config auto-apply all in one environment** |
+| ChatGPT 5.2 | △ | Strong reasoning, but platform limits make long commit-heavy workflows harder |
+| Claude Haiku 4.5 | × | Cannot reliably apply `Li+core.md` |
+| Claude Sonnet 4.6 (claude.ai) | △ | Strong for documents. Not ideal for continuous practical work |
+| Claude Code Sonnet 4.6 | ○ | Strong for development work |
+| CODEX GPT5.4 (desktop) | ○ | Practical for development work, but tends to over-weight structure |
+| **Claude Cowork (recommended)** | **◎** | **Current recommended environment. File access, GitHub integration, and Li+config auto-apply in one place** |
 
-**Minimum requirement: AI equivalent to Claude Sonnet 4.6 or above**
+**Minimum requirement: an AI roughly equivalent to Claude Sonnet 4.6 or above**
 
 ---
 

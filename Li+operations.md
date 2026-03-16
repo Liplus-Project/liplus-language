@@ -1,27 +1,21 @@
 #######################################################
 
-Document Origin Map
+Layer Position
 
 #######################################################
 
-Core layer = Li+core.md  requires
-Issue      = Li+github.md  requires
-
-  --------------------
-  Purpose Declaration
-  --------------------
-
-This document is written by AI for AI.
-Format intent: AI parsing optimized.
-Ultimate goal: Genuine human-AI connection.
-
-Requires:
-Li+core.md           loaded before this file
-Li+github.md         loaded before this file
-Li+config.md         source of LI_PLUS_EXECUTION_MODE
-
-Load timing: event-driven (not every session).
+Layer = Operations layer
+Requires = Li+core.md + Li+github.md + Li+config.md
+Load timing = event-driven (not every session)
 Read when: branch creation, commit, PR, merge, release, milestone/label assignment, Discussions reference.
+
+Owns:
+  branch / commit / PR / merge / release procedures
+  milestone / notifications / webhook intake procedures
+
+Uses:
+  issue semantics and label vocabulary from Li+github.md
+  execution mode from Li+config.md
 
 #######################################################
 
@@ -339,29 +333,10 @@ Label
   --------
 
 Labels are for AI readability and filtering.
+Active label meanings belong to Li+github.md [Label Definitions].
 Every issue must have at least one type label at creation time.
 Every issue must have one maturity label at creation time.
 Lifecycle labels are applied when state changes.
-
-  --------
-  Active Labels
-  --------
-
-Type (required, one per issue):
-bug         = something not working
-enhancement = new feature or request
-spec        = language or system specification affecting Li+ behavior
-docs        = documentation change (no behavior impact)
-
-Maturity (required, one per issue):
-memo        = note-first issue body. Partial sections allowed.
-forming     = body is being rewritten toward canonical issue form.
-ready       = body converged enough for implementation start. Still editable.
-
-Lifecycle (applied on state change):
-in-progress = work started, implementation ongoing
-backlog     = accepted, not yet scheduled
-deferred    = not doing this time, revisit later
 
   --------
   Retired Labels

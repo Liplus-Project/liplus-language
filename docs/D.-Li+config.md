@@ -1,6 +1,7 @@
 ## 概要
 
 **Li+config.md** は、Li+をセッションで動作させるための設定ファイルです。
+このページは **設定リファレンス** であり、Quickstart は [E. Installation](E.-Installation) を参照します。
 
 ワークスペース直下に配置し、ユーザーが直接編集します。セッション開始時にAIがこのファイルを読み込み、環境検出・認証・バージョン取得・設定ファイル生成を自動的に実行します。
 
@@ -168,7 +169,7 @@ Li+claude.md からClaude Code用のhookファイルを生成します。
 - 存在しない場合 → Li+claude.md 内のコードブロックから settings.json、hooks/stop.sh、hooks/post-tool-use.sh を生成
 - .sh ファイルには実行権限を付与
 
-hookにより、issue操作・commit・PR作成時にLi+github.mdの該当セクションが自動再読込されます（AIの記憶に依存しないランタイム強制）。
+hookにより、issue操作では Li+github.md の Issue Flow、branch / commit / PR / merge / release では Li+operations.md の該当セクションまたは全文が自動再読込されます（AIの記憶に依存しないランタイム強制）。
 
 Bootstrap は次回セッションから有効になります。現セッションは Li+config.md の実行で継続します。
 

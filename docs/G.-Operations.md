@@ -272,11 +272,20 @@ gh pr merge {pr_number} -R {owner}/{repo} --auto --squash
 - Latest安定版のみを基準にしてはならない
 - 例：Latest=v0.15.9、プレリリース=v0.16.0 の状態でパッチリリースを作る場合 → `v0.16.1`
 
-### リリースタグルール
+### リリースタグ・タイトルルール
 
--   **CD が作成したスナップショットタグ（`build-YYYY-MM-DD.N`）を使う**
--   新規タグを作成してリリースを作ってはならない
--   コマンド例：`gh release create build-2026-02-25.14 --title "Li+ v0.13.1" --prerelease --generate-notes`
+タグ形式とリリースタイトルは **プロジェクト固有の規約に従う**。
+
+| プロジェクト種別 | タグ形式 | タイトル形式 |
+|----------------|---------|------------|
+| デフォルト（Li+ language） | `build-YYYY-MM-DD.N`（CD作成タグ） | `Li+ {version}` |
+| npm パッケージ | `v{semver}`（npm version 作成タグ） | `v{semver}` |
+
+-   プロジェクトに CD ワークフローがある場合：CD 作成タグを使い、新規タグを作成しない
+-   プロジェクトが npm version を使う場合：npm version コマンドがタグを作成する
+-   リリース前に project の docs/ や CI/CD 設定で規約を確認すること
+-   コマンド例（Li+）：`gh release create build-2026-02-25.14 --title "Li+ v0.13.1" --prerelease --generate-notes`
+-   コマンド例（npm）：`gh release create v0.2.1 --title "v0.2.1" --prerelease --generate-notes`
 
 ### AIが作成するリリースは必ずプレリリース
 

@@ -246,10 +246,13 @@ Event-Driven Operations
   Not latest stable only.
   Use: gh release list --limit 1 (includes prereleases)
 
-  Release tag rule:
-  Use existing CD-created tag = gh release create {cd_tag} --title "Li+ {version}" --prerelease --generate-notes
-  Do not create new tag = new tag creation is prohibited.
-  cd_tag_format = build-YYYY-MM-DD.N (latest after target commit)
+  Release tag and title rule:
+  Tag format and release title follow project convention.
+  Default (Li+ language): cd_tag = build-YYYY-MM-DD.N, title = "Li+ {version}"
+  npm package projects: tag = v{semver}, title = "v{semver}"
+  If project has CD workflow that creates tags: use existing CD-created tag, do not create new tag.
+  If project uses npm version: tag is created by npm version command.
+  Check project docs/ or CI/CD config for convention before creating release.
   AI-created release is always prerelease.
   Latest promotion requires human judgment.
 

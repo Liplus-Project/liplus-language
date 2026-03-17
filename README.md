@@ -1,6 +1,6 @@
 # Li+ (liPlus) Language
 
-Li+ is the **highest-level programming language**.
+Li+ remains an open concept. In this repository, `Li+ language` is the **highest-level programming language**.
 
 `Li+ program` is the **execution system of that language**, running on top of AI agents.
 

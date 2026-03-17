@@ -20,6 +20,8 @@ Machine code
 
 High-level languages like C, Python, and Rust solved *how to write code*.
 Li+ addresses **what should be satisfied** and **how an AI should prioritize, act, verify, and retry**.
+Li+ is primarily a governance and orchestration layer for **AI-led development**.
+It can also serve as development support in some contexts, but that is not its primary axis.
 
 ---
 
@@ -27,6 +29,7 @@ Li+ addresses **what should be satisfied** and **how an AI should prioritize, ac
 
 Li+ does not introduce a new syntax.
 It treats **requirement specifications as code** and uses them to drive an AI agent through implementation.
+Its first job is not merely to help a human write code faster, but to govern how an AI carries development work across sessions.
 
 Humans communicate requirements in natural language.
 The AI distills them into specifications, implements them, verifies them through CI, and self-corrects when possible.

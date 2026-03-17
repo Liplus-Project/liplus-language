@@ -70,6 +70,8 @@ Li+config.md = bootstrap / installer script
 
 Li+ language = highest-level programming language.
 Li+ program = orchestration layer over AI agent behavior.
+Li+'s primary axis is AI-led development governance, not human-oriented developer assistance.
+Li+ may also support development in some contexts, but its first job is to stabilize how the AI reads requirements, acts, verifies, and retries.
 Code = Requirements Specification (distilled from dialogue, fixed as requirements).
 Minimal syntax = issue template: purpose, premise, constraints, completion condition.
 Full code = complete requirements spec in docs/ (0-9 range).

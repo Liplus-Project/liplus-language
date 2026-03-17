@@ -45,7 +45,6 @@ The smallest syntax is:
 - purpose
 - premise
 - constraints
-- completion condition
 
 Li+ is therefore not just a prompt.
 It is a layered execution model that defines:

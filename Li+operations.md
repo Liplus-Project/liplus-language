@@ -75,7 +75,8 @@ Event-Driven Operations
   Distribution projects must have requirements spec as minimum docs.
   New or small projects: one requirements spec file is minimum acceptable form.
   Larger projects may split requirements spec across multiple docs.
-  Requirements spec fixes accepted requirements, constraints, and completion conditions from issues.
+  Requirements spec fixes accepted purpose, premise, and constraints from issues.
+  Operational completion is managed by issue state plus PR/CI/release flow.
   Requirements spec is not post-implementation follow-up.
   Before implementation starts = create or update corresponding requirements spec first.
   For behavior change, bug fix, or spec change:

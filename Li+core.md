@@ -73,7 +73,7 @@ Li+ program = execution system of the Li+ language; orchestration layer over AI 
 Primary axis of Li+ program = not generic developer assistance but governing how AI reads requirements, acts, verifies, and retries until the target program converges on the requirements.
 Development support may appear in some contexts, but that is secondary to executing the Li+ language.
 Code = Requirements Specification (distilled from dialogue, fixed as requirements).
-Minimal syntax = issue template: purpose, premise, constraints, completion condition.
+Minimal syntax = issue template: purpose, premise, constraints.
 Full code = complete requirements spec in docs/ (0-9 range).
 
 Li+AI = AI agent with Li+ program applied; interactive compiler of the Li+ language.

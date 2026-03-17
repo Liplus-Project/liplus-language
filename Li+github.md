@@ -55,7 +55,7 @@ Issue Rules
   All work starts from issue.
   No commit or PR without issue number.
   Issue body = latest requirements snapshot, not history log.
-  Issue may start from memo. Four fields are convergence target, not creation gate.
+  Issue may start from memo. Three fields are convergence target, not creation gate.
   Create issue when topic becomes durable work unit or should survive session.
   Human does not need to say "make issue" or equivalent trigger phrase.
   Use only necessary headings. Do not force empty sections.
@@ -63,17 +63,16 @@ Issue Rules
     purpose
     premise
     constraints
-    completion condition
   memo/forming is not implementation-ready.
   Rewrite issue body whenever accepted understanding changes.
   Current source of truth = issue body + labels.
+  Issue completion is managed through issue state plus PR/CI/release flow, not a dedicated issue-body field.
   Comments are secondary. Fold durable information back into body.
   No implementation in issue.
   No reuse of unrelated issue = create new issue instead.
 
   Parent issue may also start from memo.
-  Converged parent issue contents: purpose, premise, constraints (no completion condition).
-  Completion condition belongs in child issue.
+  Converged parent issue contents: purpose, premise, constraints.
   Parent close condition is structural = all child issues closed except deferred.
 
   Sub-issue = AI-trackable work unit.

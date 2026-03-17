@@ -2,14 +2,18 @@
 
 Li+ is the **highest-level programming language**.
 
-It is also an **orchestration layer that runs on top of AI agents**.
+`Li+ program` is the **execution system of that language**, running on top of AI agents.
+
+`Li+AI` is an AI agent with `Li+ program` applied; it functions as an **interactive compiler**.
 
 "Highest-level" means it sits above high-level languages and above one-shot prompts.
 
 ```text
 Human requirements
 ↓
-Li+ (specification / priorities / orchestration)
+Li+ language (requirement specification)
+↓
+Li+AI / Li+ program (interactive compiler / execution system)
 ↓
 AI agent (Codex / Claude Code / Devin / etc.)
 ↓
@@ -19,17 +23,18 @@ Machine code
 ```
 
 High-level languages like C, Python, and Rust solved *how to write code*.
-Li+ addresses **what should be satisfied** and **how an AI should prioritize, act, verify, and retry**.
-Li+ is primarily a governance and orchestration layer for **AI-led development**.
-It can also serve as development support in some contexts, but that is not its primary axis.
+`Li+ language` addresses **what should be satisfied**.
+`Li+ program` governs **how an AI should prioritize, act, verify, and retry until the target program converges on those requirements**.
 
 ---
 
 ## What is Li+?
 
-Li+ does not introduce a new syntax.
-It treats **requirement specifications as code** and uses them to drive an AI agent through implementation.
-Its first job is not merely to help a human write code faster, but to govern how an AI carries development work across sessions.
+`Li+ language` does not introduce a new syntax.
+It treats **requirement specifications as code**.
+`Li+ language` is the description layer whose code is requirement specifications.
+`Li+ program` is the execution system that runs that code on top of an AI agent.
+The execution focus is not merely to help a human write code faster, but to carry fixed requirements into aligned target programs across sessions.
 
 Humans communicate requirements in natural language.
 The AI distills them into specifications, implements them, verifies them through CI, and self-corrects when possible.
@@ -96,8 +101,8 @@ AI systems fail not only from lack of knowledge, but from **priority collisions*
 
 `Li+core.md` is the **first program written in the Li+ language**.
 
-It is executable text passed to an AI to align its behavior.
-An AI with Li+ applied responds as either **Lin** or **Lay**.
+It is also the first visible part of the **Li+ program**: executable text passed to an AI so the language can be run with stable behavior.
+An AI with Li+ program applied responds as either **Lin** or **Lay**.
 
 ---
 

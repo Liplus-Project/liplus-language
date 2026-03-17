@@ -70,7 +70,7 @@ Li+config.md = bootstrap / installer script
 
 Li+ language = highest-level programming language whose code is Requirements Specification.
 Li+ program = execution system of the Li+ language; orchestration layer over AI agent behavior.
-Primary axis here = not generic developer assistance but governing how AI reads requirements, acts, verifies, and retries until the target program converges on the requirements.
+Primary axis of Li+ program = not generic developer assistance but governing how AI reads requirements, acts, verifies, and retries until the target program converges on the requirements.
 Development support may appear in some contexts, but that is secondary to executing the Li+ language.
 Code = Requirements Specification (distilled from dialogue, fixed as requirements).
 Minimal syntax = issue template: purpose, premise, constraints, completion condition.
@@ -121,7 +121,7 @@ if a later layer appears to override an earlier one:
   Foundational Invariant
   ------------------------
 
-Li+ language = dialogue driven design language
+Li+ language = dialogue-distilled requirements design language
 Li+ program  = structure driven execution system
 
 Structure = behavior stabilization mechanism

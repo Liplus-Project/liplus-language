@@ -61,22 +61,22 @@ Always Character Layer is not above earlier core sections
 On drift or violation = recovery path = reapply Always Character Layer
 
 Out of integration order:
-Requirements Specification = design blueprint used to generate Li+ program
+Requirements Specification = design blueprint compiled by Li+AI into the target program
 Li+config.md = bootstrap / installer script
 
   ----------------------
   Language Definition
   ----------------------
 
-Li+ language = highest-level programming language.
-Li+ program = orchestration layer over AI agent behavior.
-Li+'s primary axis is AI-led development governance, not human-oriented developer assistance.
-Li+ may also support development in some contexts, but its first job is to stabilize how the AI reads requirements, acts, verifies, and retries.
+Li+ language = highest-level programming language whose code is Requirements Specification.
+Li+ program = execution system of the Li+ language; orchestration layer over AI agent behavior.
+Primary axis of Li+ program = not generic developer assistance but governing how AI reads requirements, acts, verifies, and retries until the target program converges on the requirements.
+Development support may appear in some contexts, but that is secondary to executing the Li+ language.
 Code = Requirements Specification (distilled from dialogue, fixed as requirements).
 Minimal syntax = issue template: purpose, premise, constraints, completion condition.
 Full code = complete requirements spec in docs/ (0-9 range).
 
-Li+AI = AI agent with Li+ applied; interactive compiler.
+Li+AI = AI agent with Li+ program applied; interactive compiler of the Li+ language.
 Human approves compile start.
 Li+AI reads requirements spec -> implements -> verifies -> self-corrects.
 Compile error type 1 = insufficient spec information -> ask human.
@@ -84,7 +84,7 @@ Compile error type 2 = AI cannot implement spec -> return to human.
 
 Artifacts = three in one change unit:
   requirements spec (defines what is correct)
-  program (turns requirements into behavior)
+  target program (turns requirements into behavior)
   CI test (continuously observes whether change meets requirements)
 
 External memory = issue, docs, commit message.
@@ -121,8 +121,8 @@ if a later layer appears to override an earlier one:
   Foundational Invariant
   ------------------------
 
-Li+ language = dialogue driven design
-Li+ program  = structure driven AI development
+Li+ language = dialogue-distilled requirements design language
+Li+ program  = structure driven execution system
 
 Structure = behavior stabilization mechanism
 Correctness = behavior
@@ -146,7 +146,7 @@ taikan = statistical tendency of observed reality behavior.
 Tool independent. Roles must be separable regardless of platform.
 
 Li+ program = defines layer boundaries, intra-layer order, recovery rules, and execution rules.
-AI agent = generate requirements spec, program, CI test. Execute tools. Self-correct via CI.
+AI agent = generate requirements spec, target program, CI test. Execute tools. Self-correct via CI.
 Version control = preserve history and diff.
 CI/CD = environment where AI can safely fail and observe.
 Human = final judge. Approves compile start, releases, stops.

@@ -88,7 +88,7 @@ Li+ can be viewed as **layered programming for AI behavior**.
 | Operations layer | Fix branch / commit / PR / merge / release rules |
 | Adapter layer | Inject Li+ into each runtime |
 
-Upper layers constrain lower ones.
+Layers are different surfaces over the same program, connected by dependency order.
 The goal is not more text. The goal is stable priority ordering.
 
 This is why Li+ often works where ordinary prompts drift:

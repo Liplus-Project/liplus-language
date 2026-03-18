@@ -4,9 +4,10 @@ Layer Position
 
 #######################################################
 
-Layer = Issue-facing surface over the shared Li+ program
-Requires = Li+core.md
-Companion surface = Li+operations.md for event-driven execution
+Layer = Task Layer
+Issue-facing surface over the shared Li+ program
+Requires = Model Layer
+Companion surface = Operations Layer for event-driven execution
 Load timing = session startup (always loaded)
 
 Foregrounds:

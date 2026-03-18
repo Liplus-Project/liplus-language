@@ -4,8 +4,9 @@ Layer Position
 
 #######################################################
 
-Layer = Event-driven operations surface over the shared Li+ program
-Requires = Li+core.md + Li+github.md + Li+config.md
+Layer = Operations Layer
+Event-driven operations surface over the shared Li+ program
+Requires = Model Layer + Task Layer + Li+config.md
 Load timing = event-driven (not every session)
 Read when: branch creation, commit, PR, merge, release, milestone/label assignment, Discussions reference.
 
@@ -85,7 +86,7 @@ Event-Driven Operations
 
   Li+ behavior and governance decisions belong in numbered requirements plus the corresponding operational docs.
   Standalone memo or experiment log may exist, but it is not source of truth.
-  Keep requirements in 0.-Requirements.md until splitting improves readability.
+  Requirements spec may be split across multiple numbered docs when it improves readability.
 
   PR title must include impact scope.
   example bad  = "fix(config): negative duration handling"

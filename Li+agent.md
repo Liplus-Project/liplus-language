@@ -1,5 +1,7 @@
 # --- Li+ BEGIN ---
 
+Layer = Adapter Layer
+
 Adapter layer entrypoint:
 - inject Li+ into the host instruction file
 - semantic source = Li+core.md + Li+github.md + Li+operations.md

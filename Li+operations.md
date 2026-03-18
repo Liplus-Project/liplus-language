@@ -47,6 +47,12 @@ Event-Driven Operations
   Maturity labels  = how converged the issue body is.
   Do not use lifecycle labels as substitute for memo/forming/ready.
 
+  Repo-first execution surface:
+  Protected shared branches (example: main) = high-caution surface.
+  Personal issue-linked branch = normal implementation surface.
+  Do not treat the whole repository as untouchable.
+  Local validation may happen before or after push; it does not replace the branch as continuity surface.
+
   Branch existence check (before creation):
   local:  git branch --list {branch-name}
   remote: gh api repos/{owner}/{repo}/branches/{branch-name} (404=not_exists)
@@ -66,6 +72,11 @@ Event-Driven Operations
     gh api graphql -f query='{ repository(owner:"{owner}",name:"{repo}") { issue(number:{number}) { linkedBranches { nodes { ref { name } } } } } }'
   If linked = use existing linked branch, do not create new branch.
   If not linked = retry or escalate.
+
+  Handoff continuity:
+  If token/session/model boundary may interrupt work = push useful intermediate state to the linked personal branch.
+  Handoff source of truth = issue body + linked branch + commits/PR.
+  Do not leave meaningful progress only in local workspace or chat memory.
 
   [Docs And Requirement Ownership]
 
@@ -156,6 +167,9 @@ Event-Driven Operations
   If still failing = externalize to issue comment, escalate to human.
 
   Review approval check:
+    repository-state-first:
+      review basis = issue body + linked branch + PR diff + CI result
+      local-only success does not close review
     if mcp__github-webhook-mcp available:
       poll get_pending_status every 60 seconds
       on pull_request_review pending: list_pending_events -> get_event for this PR -> check state -> mark_processed
@@ -202,7 +216,7 @@ Event-Driven Operations
   Execution timing = human decides.
   Issue create/update = allowed before execution trigger.
   Branch prepare/create = allowed before execution trigger.
-  Implementation start = wait for human timing.
+  Implementation start = wait for human timing, then work from linked personal branch as primary surface.
   PR review = human reviews.
 
   auto mode:

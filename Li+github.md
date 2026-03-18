@@ -80,6 +80,8 @@ Issue Rules
   Sub-issue does not get its own branch.
   Session branch links to parent issue.
   Multiple child issues can share one session branch.
+  Session branch = branch-side external memory and handoff surface.
+  Another AI may continue from parent issue + linked branch without relying on prior chat memory.
   Split by responsibility, not granularity.
 
   Simultaneous tasks require parent-child structure:

@@ -86,7 +86,7 @@ Event-Driven Operations
 
   Li+ behavior and governance decisions belong in numbered requirements plus the corresponding operational docs.
   Standalone memo or experiment log may exist, but it is not source of truth.
-  Keep requirements in 0.-Requirements.md until splitting improves readability.
+  Requirements spec may be split across multiple numbered docs when it improves readability.
 
   PR title must include impact scope.
   example bad  = "fix(config): negative duration handling"

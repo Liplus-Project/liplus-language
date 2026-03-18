@@ -83,9 +83,9 @@ Li+ can be viewed as **layered programming for AI behavior**.
 
 | Layer | Role |
 |-------|------|
-| Requirement layer | Fix what is correct |
-| Core layer | Fix invariant behavior and dialogue weighting |
-| Operations layer | Fix GitHub / CI / release rules |
+| Model layer | Fix invariant behavior, dialogue weighting, and task mode |
+| Task layer | Fix issue rules, label vocabulary, and work unit tracking |
+| Operations layer | Fix branch / commit / PR / merge / release rules |
 | Adapter layer | Inject Li+ into each runtime |
 
 Upper layers constrain lower ones.
@@ -132,7 +132,7 @@ The next phase is **generalization**:
 
 ## Setup
 
-👉 **[Installation Guide](https://github.com/Liplus-Project/liplus-language/wiki/E.-Installation)**
+👉 **[Installation Guide](https://github.com/Liplus-Project/liplus-language/wiki/C.-Installation)**
 
 Simply place Li+config in your workspace, and the AI will automatically apply Li+ at session start.
 
@@ -154,13 +154,13 @@ Simply place Li+config in your workspace, and the AI will automatically apply Li
 
 | Page | Description |
 |------|-------------|
-| [What is Li+](https://github.com/Liplus-Project/liplus-language/wiki/A.-Liplus-language_Concept) | Design philosophy and concepts |
-| [Li+core](https://github.com/Liplus-Project/liplus-language/wiki/B.-Liplus_core) | Core specification (persona, behavior, priorities, task mode, Loop Safety) |
-| [Operational GitHub](https://github.com/Liplus-Project/liplus-language/wiki/C.-Operational_GitHub) | Canonical issue rules and label dictionary |
-| [Li+config](https://github.com/Liplus-Project/liplus-language/wiki/D.-Li+config) | Configuration reference and startup flow |
-| [Installation](https://github.com/Liplus-Project/liplus-language/wiki/E.-Installation) | Quickstart setup guide |
-| [Hooks Spec](https://github.com/Liplus-Project/liplus-language/wiki/F.-hooks-spec) | Claude adapter layer and runtime hook behavior |
-| [Operations](https://github.com/Liplus-Project/liplus-language/wiki/G.-Operations) | Event-driven operations, milestones, labels, and discussions |
+| [1. Model](https://github.com/Liplus-Project/liplus-language/wiki/1.-Model) | Model layer specification |
+| [2. Task](https://github.com/Liplus-Project/liplus-language/wiki/2.-Task) | Task layer specification |
+| [3. Operations](https://github.com/Liplus-Project/liplus-language/wiki/3.-Operations) | Operations layer specification |
+| [4. Adapter](https://github.com/Liplus-Project/liplus-language/wiki/4.-Adapter) | Adapter layer specification |
+| [A. Concept](https://github.com/Liplus-Project/liplus-language/wiki/A.-Concept) | Design philosophy and concepts |
+| [B. Configuration](https://github.com/Liplus-Project/liplus-language/wiki/B.-Configuration) | Configuration reference and startup flow |
+| [C. Installation](https://github.com/Liplus-Project/liplus-language/wiki/C.-Installation) | Quickstart setup guide |
 
 ---
 

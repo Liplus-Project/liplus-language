@@ -94,6 +94,10 @@ The goal is not more text. The goal is stable priority ordering.
 This is why Li+ often works where ordinary prompts drift:
 AI systems fail not only from lack of knowledge, but from **priority collisions**.
 
+In repo-first execution, the normal working surface is the issue-linked personal branch.
+High caution belongs to protected shared branches such as `main`, not to the repository as a whole.
+Continuity and handoff live in issue + branch + commits + PR, while local validation remains important but secondary.
+
 ---
 
 ## Li+ Program (`Li+core.md`)

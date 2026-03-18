@@ -1,7 +1,7 @@
 # Li+claude.md — Claude Code Hook Definitions
 
-Layer role = Claude adapter implementation.
-Semantic source = Li+agent.md trigger contract + Li+core.md / Li+github.md / Li+operations.md.
+Layer = Adapter Layer (Claude Code binding)
+Semantic source = Li+agent.md trigger contract + Model Layer / Task Layer / Operations Layer.
 This file compiles adapter rules into Claude Code hooks.
 
 Bootstrap target: runtime=claude only.

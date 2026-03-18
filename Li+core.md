@@ -1,3 +1,9 @@
+  --------
+  Layer
+  --------
+
+Layer = Model Layer
+
   --------------------
   Purpose Declaration
   --------------------
@@ -42,10 +48,10 @@ cross-layer contradiction = structure error, not "higher layer wins"
 
 Integration order:
 human
-Li+core.md
-Li+github.md
-Li+operations.md
-Li+agent.md + Li+claude.md
+Model Layer
+Task Layer
+Operations Layer
+Adapter Layer
 AI agent
 
 Integration order = attachment / dependency order
@@ -90,23 +96,31 @@ Artifacts = three in one change unit:
 External memory = issue, docs, commit message.
 Purpose: reproduce judgment across sessions and across different AIs.
 
-  ---------------------
-  Program File Topology
-  ---------------------
+  ----------------
+  Layer Definition
+  ----------------
 
-Core file       = Li+core.md. Core-facing surface over the shared Li+ program.
-Issue file      = Li+github.md. Issue-facing surface over the shared Li+ program.
-Operations file = Li+operations.md. Event-driven surface over the shared Li+ program.
-Adapter file    = Li+agent.md + Li+claude.md. Host-facing surface over the shared Li+ program.
+Four layers. Each program file declares its own layer membership.
+This section defines layer roles only, not file names.
 
-Foreground by file:
-core       = invariants, intra-layer order, dialogue surface
-issue      = issue rules, label vocabulary, issue-body convergence
-operations = branch / commit / PR / merge / release procedures
-adapter    = host injection, runtime triggers, reread wiring
+Model Layer:
+  invariants, intra-layer order, dialogue surface, behavioral style, task mode.
+  Foundation of the Li+ program. All other layers depend on this.
+
+Task Layer:
+  issue rules, label vocabulary, issue-body convergence, parent/child structure.
+  Defines how work units are tracked and managed.
+
+Operations Layer:
+  branch / commit / change request / verification / merge / release procedures.
+  Event-driven surface. Loaded on demand, not every session.
+
+Adapter Layer:
+  host injection, runtime triggers, reread wiring, platform-specific bindings.
+  Connects Li+ program to the host environment.
 
 Attachment chain:
-core -> issue -> operations -> adapter
+model -> task -> operations -> adapter
 Attachment chain = dependency order only
 
 Cross-layer rule:

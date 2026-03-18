@@ -4,8 +4,9 @@ Layer Position
 
 #######################################################
 
-Layer = Event-driven operations surface over the shared Li+ program
-Requires = Li+core.md + Li+github.md + Li+config.md
+Layer = Operations Layer
+Event-driven operations surface over the shared Li+ program
+Requires = Model Layer + Task Layer + Li+config.md
 Load timing = event-driven (not every session)
 Read when: branch creation, commit, PR, merge, release, milestone/label assignment, Discussions reference.
 

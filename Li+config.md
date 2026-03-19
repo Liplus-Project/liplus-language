@@ -74,12 +74,9 @@ Determine target version using LI_PLUS_CHANNEL:
   2. Check workspace for liplus-language directory:
      - not exists → clone target tag directly to workspace. Proceed to step 3.
      - exists → fetch --tags, then:
-       a. Determine the current checked-out tag.
-       b. Determine the target tag (per LI_PLUS_CHANNEL).
-       c. If current tag == target tag → proceed to step 3 (no confirmation needed).
-       d. If current tag != target tag → ask the user whether to update.
-          - Yes → checkout target tag, proceed to step 3.
-          - No → stay on current tag, proceed to step 3.
+       a. Compare the current checked-out tag with the target tag.
+       b. If different → ask the user whether to update.
+       c. Checkout the target tag only if the user agrees.
   3. Read Li+core.md (core layer).
   4. Read Li+github.md (issue layer).
   5. Read Li+agent.md (adapter layer).

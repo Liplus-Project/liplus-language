@@ -27,8 +27,10 @@ Event-Driven Operations
   [TRIGGER_INDEX]
   act_now      -> Branch And Label Flow
   on_commit    -> Commit Rules
-  on_pr        -> PR And CI Flow
-  on_merge     -> Merge And Cleanup
+  on_pr        -> PR Creation
+  on_ci        -> CI Loop
+  on_review    -> PR Review
+  on_merge     -> Merge
   on_release   -> Human Confirmation Required
 
   [Branch And Label Flow]
@@ -128,7 +130,7 @@ Event-Driven Operations
   Long output may stop = physical limit, not corruption.
   Use chunking when needed.
 
-  [PR And CI Flow]
+  [PR Creation]
 
   PR body format:
     per issue block:
@@ -137,10 +139,13 @@ Event-Driven Operations
     order = parent first, then closed children (omit deferred and open children).
   Detail belongs in issue, not in PR.
 
-  CI trigger: on PR created -> start CI loop immediately, no human instruction required.
-  PR task is not complete until CI loop concludes.
+  On PR created -> proceed to [CI Loop] immediately, no human instruction required.
 
-  CI loop:
+  [CI Loop]
+
+  CI loop starts immediately after PR creation or after fix-and-recommit.
+  CI loop is a separate task from PR creation. Do not skip.
+
   step1 = get latest commit sha:
     gh pr view {pr} -R {owner}/{repo} --json headRefOid --jq '.headRefOid'
   step1.5 = check mergeable state:
@@ -161,15 +166,19 @@ Event-Driven Operations
   step3 = conclusion judgment (refs #460):
     CI fail = any conclusion=="failure"
     CI pass = all conclusion in [success, skipped, neutral]
-  CI pass -> review request auto sent via codeowners.
-  CI fail -> fix and recommit.
+  CI pass -> proceed to [PR Review].
+  CI fail -> fix and recommit (restart CI loop from step1).
   CI loop safety (ref: Li+core.md#Loop Safety task/debug threshold):
   If still failing = externalize to issue comment, escalate to human.
 
-  Review approval check:
+  [PR Review]
+
+  Review basis:
     repository-state-first:
       review basis = issue body + linked branch + PR diff + CI result
       local-only success does not close review
+
+  Review approval check:
     if mcp__github-webhook-mcp available:
       poll get_pending_status every 60 seconds
       on pull_request_review pending: list_pending_events -> get_event for this PR -> check state -> mark_processed
@@ -177,19 +186,20 @@ Event-Driven Operations
       Wait = human signals review done (do not poll).
       On signal:
         gh pr view {pr} -R {owner}/{repo} --json reviewDecision --jq '.reviewDecision'
-  reviewDecision=="APPROVED" -> GitHub auto-merge handles it.
-  reviewDecision=="CHANGES_REQUESTED" -> read review comments -> fix and recommit (restart CI loop).
+  reviewDecision=="APPROVED" -> proceed to [Merge].
+  reviewDecision=="CHANGES_REQUESTED" -> read review comments -> fix and recommit (restart [CI Loop]).
 
-  [Merge And Cleanup]
+  [Merge]
+
+  Auto-merge flow:
+  1 = enable auto-merge: gh pr merge {pr} -R {owner}/{repo} --auto --squash
+  2 = GitHub auto-merge on approval (squash + branch delete handled by GitHub)
+
+  Manual merge flow:
+  1 = confirm merge strategy with human (squash / merge / rebase)
+  2 = gh pr merge {pr} -R {owner}/{repo} --{strategy}
 
   Parent close condition: closed automatically on merge via issue reference.
-
-  Recommended flow:
-  1 = create PR (body includes "Refs #{parent_issue_number}")
-  2 = enable auto-merge: gh pr merge {pr} -R {owner}/{repo} --auto --squash
-  3 = CI pass -> review request auto sent via codeowners
-  4 = GitHub auto-merge on approval (squash + branch delete handled by GitHub)
-  5 = parent issue auto-closed by GitHub on merge
 
   Real device test:
   Merge first. Then test on main. Not a merge gate.

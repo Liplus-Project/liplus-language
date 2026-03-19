@@ -101,27 +101,15 @@ Purpose: reproduce judgment across sessions and across different AIs.
   ----------------
 
 Five layers. Each program file declares its own layer membership.
-This section defines layer roles only, not file names.
+Core defines layer existence and attachment order only.
+Detailed role definitions belong to each layer file.
 
-Model Layer:
-  invariants, intra-layer order, dialogue surface, behavioral style, task mode.
-  Foundation of the Li+ program. All other layers depend on this.
-
-Task Layer:
-  issue rules, label vocabulary, issue-body convergence, parent/child structure.
-  Defines how work units are tracked and managed.
-
-Operations Layer:
-  branch / commit / change request / verification / merge / release procedures.
-  Event-driven surface. Loaded on demand, not every session.
-
-Notifications Layer:
-  notification ownership, claim/read/done, foreground mention rules, cleanup rules.
-  Shared queue semantics across GitHub Notifications API, webhook, and fallback state stores.
-
-Adapter Layer:
-  host injection, runtime triggers, reread wiring, platform-specific bindings.
-  Connects Li+ program to the host environment.
+Layers:
+  Model Layer
+  Task Layer
+  Operations Layer
+  Notifications Layer
+  Adapter Layer
 
 Attachment chain:
 model -> task -> operations -> notifications -> adapter

@@ -100,7 +100,7 @@ Purpose: reproduce judgment across sessions and across different AIs.
   Layer Definition
   ----------------
 
-Four layers. Each program file declares its own layer membership.
+Five layers. Each program file declares its own layer membership.
 This section defines layer roles only, not file names.
 
 Model Layer:
@@ -115,12 +115,16 @@ Operations Layer:
   branch / commit / change request / verification / merge / release procedures.
   Event-driven surface. Loaded on demand, not every session.
 
+Notifications Layer:
+  notification ownership, claim/read/done, foreground mention rules, cleanup rules.
+  Shared queue semantics across GitHub Notifications API, webhook, and fallback state stores.
+
 Adapter Layer:
   host injection, runtime triggers, reread wiring, platform-specific bindings.
   Connects Li+ program to the host environment.
 
 Attachment chain:
-model -> task -> operations -> adapter
+model -> task -> operations -> notifications -> adapter
 Attachment chain = dependency order only
 
 Cross-layer rule:

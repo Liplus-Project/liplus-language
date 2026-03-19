@@ -72,8 +72,11 @@ Determine target version using LI_PLUS_CHANNEL:
   - clone: execute in order:
   1. Target repo is the target version of Liplus-Project/liplus-language.
   2. Check workspace for liplus-language directory:
-     - exists → fetch --tags → checkout target tag.
-     - not exists → clone directly to workspace.
+     - not exists → clone target tag directly to workspace. Proceed to step 3.
+     - exists → fetch --tags, then:
+       a. Compare the current checked-out tag with the target tag.
+       b. If different → ask the user whether to update.
+       c. Checkout the target tag only if the user agrees.
   3. Read Li+core.md (core layer).
   4. Read Li+github.md (issue layer).
   5. Read Li+agent.md (adapter layer).

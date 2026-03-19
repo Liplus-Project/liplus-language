@@ -310,13 +310,14 @@ Event-Driven Operations
       b = {workspace_root}/github-webhook-mcp
       c = {workspace_root}/../github-webhook-mcp
     if helper missing or state dir unresolved = skip silently
-    helper output = latest lightweight summaries only
-    on consume = drain all current pending events immediately and delete related generated files
+    helper output = inspect summary with foreground-matched items, notable items, and cleanup candidates
+    helper default = inspect only; preserve unmatched backlog
+    destructive actions = explicit `read` / `done` / `claim` / `cleanup-safe-success` calls only
 
   foreground handling:
     each user turn start = inspect once before main reply
-    pending_count == 0 = no mention
-    pending_count > 0  = brief mention before main reply
+    mention only = foreground-matched items or exceptional notable items
+    if relevance cannot be judged cheaply = preserve and stay silent
     full payload = open only when deeper inspection is needed
     separate AI process launch = prohibited for this flow
 

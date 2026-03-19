@@ -100,27 +100,19 @@ Purpose: reproduce judgment across sessions and across different AIs.
   Layer Definition
   ----------------
 
-Four layers. Each program file declares its own layer membership.
-This section defines layer roles only, not file names.
+Five layers. Each program file declares its own layer membership.
+Core defines layer existence and attachment order only.
+Detailed role definitions belong to each layer file.
 
-Model Layer:
-  invariants, intra-layer order, dialogue surface, behavioral style, task mode.
-  Foundation of the Li+ program. All other layers depend on this.
-
-Task Layer:
-  issue rules, label vocabulary, issue-body convergence, parent/child structure.
-  Defines how work units are tracked and managed.
-
-Operations Layer:
-  branch / commit / change request / verification / merge / release procedures.
-  Event-driven surface. Loaded on demand, not every session.
-
-Adapter Layer:
-  host injection, runtime triggers, reread wiring, platform-specific bindings.
-  Connects Li+ program to the host environment.
+Layers:
+  Model Layer
+  Task Layer
+  Operations Layer
+  Notifications Layer
+  Adapter Layer
 
 Attachment chain:
-model -> task -> operations -> adapter
+model -> task -> operations -> notifications -> adapter
 Attachment chain = dependency order only
 
 Cross-layer rule:

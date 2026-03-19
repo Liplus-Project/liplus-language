@@ -90,31 +90,37 @@ fi
 RESULT=$(python3 "$HELPER" "${HELPER_ARGS[@]}" 2>/dev/null)
 [ -z "$RESULT" ] && exit 0
 
-MENTION_COUNT=$(printf '%s' "$RESULT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('mention_count',0))" 2>/dev/null)
-if [ -z "$MENTION_COUNT" ] || [ "$MENTION_COUNT" = "0" ]; then
-  exit 0
-fi
-
-echo ""
-echo "━━━ Webhook: foreground/notable notification(s) ━━━"
-printf '%s' "$RESULT" | python3 -c '
+DISPLAY_LINES=$(printf '%s' "$RESULT" | python3 -c '
 import json
 import sys
 
+SUCCESS = {"success", "skipped", "neutral"}
 data = json.load(sys.stdin)
 seen = set()
+lines = []
 for bucket, label in (("relevant_items", "foreground"), ("notable_items", "notable")):
     for item in data.get(bucket, []):
         event_id = item.get("id")
         if event_id in seen:
             continue
+        if bucket == "relevant_items":
+            if item.get("type") in {"check_run", "workflow_run"} and item.get("conclusion") in SUCCESS:
+                continue
         seen.add(event_id)
         number = item.get("number")
         title = item.get("title") or item.get("type") or "notification"
         event_type = item.get("type") or "event"
         prefix = f"#{number} " if number is not None else ""
-        print(f"[{label}] {event_type} {prefix}{title}")
-'
+        lines.append(f"[{label}] {event_type} {prefix}{title}")
+print("\\n".join(lines))
+' 2>/dev/null)
+if [ -z "$DISPLAY_LINES" ]; then
+  exit 0
+fi
+
+echo ""
+echo "━━━ Webhook: foreground/notable notification(s) ━━━"
+printf '%s\n' "$DISPLAY_LINES"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 ```
 

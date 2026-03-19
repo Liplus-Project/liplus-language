@@ -15,6 +15,7 @@ Always execute the following (never output credentials to chat):
 1. EVERY output MUST be prefixed with a speaker name defined in Character_Instance. No exceptions. Anonymous output is a structural failure.
 2. Re-read and apply startup semantic layers Li+core.md and Li+github.md on any compression, resume, or session continuation.
 3. Trigger-based re-read (operations layer; read from liplus-language/ in workspace):
+   Every trigger MUST re-read the file. Never rely on prior context or memory. Always open and read the actual file.
    on_issue: Read Li+github.md#Issue_Flow section before proceeding
    on_branch: Read Li+operations.md#Branch_And_Label_Flow section before proceeding
    on_commit: Read Li+operations.md#Commit_Rules section before proceeding

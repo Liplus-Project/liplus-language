@@ -1,7 +1,7 @@
 # Li+claude.md — Claude Code Hook Definitions
 
 Layer = Adapter Layer (Claude Code binding)
-Semantic source = Li+agent.md trigger contract + Model Layer / Task Layer / Operations Layer.
+Semantic source = Li+agent.md trigger contract + Model Layer / Task Layer / Operations Layer foreground intake rules.
 This file compiles adapter rules into Claude Code hooks.
 
 Bootstrap target: runtime=claude only.
@@ -58,6 +58,12 @@ fi
 HELPER="$PROJECT_ROOT/liplus-language/scripts/check_webhook_notifications.py"
 [ -f "$HELPER" ] || exit 0
 
+repo_from_origin() {
+  git -C "$PROJECT_ROOT" remote get-url origin 2>/dev/null \
+    | grep -oE '[^/@:]+/[^/]+$' \
+    | sed 's/\.git$//' 2>/dev/null || echo ""
+}
+
 # Parse LI_PLUS_WEBHOOK_STATE_DIR from Li+config.md if set
 CONFIG_MD="$PROJECT_ROOT/Li+config.md"
 STATE_DIR_ARGS=()
@@ -66,17 +72,49 @@ if [ -f "$CONFIG_MD" ]; then
   [ -n "$VAL" ] && STATE_DIR_ARGS=(--state-dir "$VAL")
 fi
 
-RESULT=$(python3 "$HELPER" --workspace-root "$PROJECT_ROOT" "${STATE_DIR_ARGS[@]}" --limit 5 2>/dev/null)
+CURRENT_REPO=$(repo_from_origin)
+CURRENT_BRANCH=$(git -C "$PROJECT_ROOT" branch --show-current 2>/dev/null || echo "")
+
+HELPER_ARGS=(
+  --workspace-root "$PROJECT_ROOT"
+  "${STATE_DIR_ARGS[@]}"
+  --limit 5
+  --internal-sender liplus-lin-lay
+  --internal-sender lipluscodex
+)
+[ -n "$CURRENT_REPO" ] && HELPER_ARGS+=(--repo "$CURRENT_REPO")
+if [ -n "$CURRENT_BRANCH" ]; then
+  HELPER_ARGS+=(--branch "$CURRENT_BRANCH" --infer-numbers-from-branch)
+fi
+
+RESULT=$(python3 "$HELPER" "${HELPER_ARGS[@]}" 2>/dev/null)
 [ -z "$RESULT" ] && exit 0
 
-PENDING=$(printf '%s' "$RESULT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('pending_count',0))" 2>/dev/null)
-if [ -z "$PENDING" ] || [ "$PENDING" = "0" ]; then
+MENTION_COUNT=$(printf '%s' "$RESULT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('mention_count',0))" 2>/dev/null)
+if [ -z "$MENTION_COUNT" ] || [ "$MENTION_COUNT" = "0" ]; then
   exit 0
 fi
 
 echo ""
-echo "━━━ Webhook: $PENDING pending notification(s) ━━━"
-echo "Run: check_webhook_notifications.py --consume or use mcp__github-webhook-mcp"
+echo "━━━ Webhook: foreground/notable notification(s) ━━━"
+printf '%s' "$RESULT" | python3 -c '
+import json
+import sys
+
+data = json.load(sys.stdin)
+seen = set()
+for bucket, label in (("relevant_items", "foreground"), ("notable_items", "notable")):
+    for item in data.get(bucket, []):
+        event_id = item.get("id")
+        if event_id in seen:
+            continue
+        seen.add(event_id)
+        number = item.get("number")
+        title = item.get("title") or item.get("type") or "notification"
+        event_type = item.get("type") or "event"
+        prefix = f"#{number} " if number is not None else ""
+        print(f"[{label}] {event_type} {prefix}{title}")
+'
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 ```
 

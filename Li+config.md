@@ -77,8 +77,8 @@ Determine target version using LI_PLUS_CHANNEL:
        a. Determine the current checked-out tag.
        b. Determine the target tag (per LI_PLUS_CHANNEL).
        c. If current tag == target tag → proceed to step 3 (no confirmation needed).
-       d. If current tag != target tag → ask the user:
-          "Li+ <target tag> が利用可能です（現在: <current tag>）。アップデートしますか？"
+       d. If current tag != target tag → ask the user (in LI_PLUS_BASE_LANGUAGE):
+          Li+ <target tag> is available (current: <current tag>). Update?
           - Yes → checkout target tag, proceed to step 3.
           - No → stay on current tag, proceed to step 3.
   3. Read Li+core.md (core layer).

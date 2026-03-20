@@ -263,16 +263,16 @@ if echo "$COMMAND" | grep -q 'git commit'; then
     "on_commit: Commit_Rules re-read" \
     "$OPERATIONS_MD" \
     "Commit Rules" \
-    "PR And CI Flow"
+    "PR Creation"
   exit 0
 fi
 
 # on_merge: gh pr merge → Li+operations.md Merge_And_Cleanup section re-read
 if echo "$COMMAND" | grep -q 'gh pr merge'; then
   announce_section \
-    "on_merge: Merge_And_Cleanup re-read" \
+    "on_merge: Merge re-read" \
     "$OPERATIONS_MD" \
-    "Merge And Cleanup" \
+    "Merge" \
     "Execution Mode"
   exit 0
 fi

@@ -20,7 +20,7 @@ Skipped if {workspace_root}/.claude/settings.json already contains "UserPromptSu
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/on-user-prompt.sh"
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/on-user-prompt.sh\""
           }
         ]
       }
@@ -31,7 +31,7 @@ Skipped if {workspace_root}/.claude/settings.json already contains "UserPromptSu
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post-tool-use.sh"
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/post-tool-use.sh\""
           }
         ]
       }
@@ -46,6 +46,7 @@ Skipped if {workspace_root}/.claude/settings.json already contains "UserPromptSu
 
 ```bash
 #!/bin/bash
+export PATH="$HOME/.local/bin:$PATH"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 CLAUDE_MD="$PROJECT_ROOT/.claude/CLAUDE.md"
 
@@ -130,6 +131,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 
 ```bash
 #!/bin/bash
+export PATH="$HOME/.local/bin:$PATH"
 INPUT=$(cat)
 TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
 COMMAND=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null)
@@ -261,16 +263,16 @@ if echo "$COMMAND" | grep -q 'git commit'; then
     "on_commit: Commit_Rules re-read" \
     "$OPERATIONS_MD" \
     "Commit Rules" \
-    "PR And CI Flow"
+    "PR Creation"
   exit 0
 fi
 
 # on_merge: gh pr merge → Li+operations.md Merge_And_Cleanup section re-read
 if echo "$COMMAND" | grep -q 'gh pr merge'; then
   announce_section \
-    "on_merge: Merge_And_Cleanup re-read" \
+    "on_merge: Merge re-read" \
     "$OPERATIONS_MD" \
-    "Merge And Cleanup" \
+    "Merge" \
     "Execution Mode"
   exit 0
 fi

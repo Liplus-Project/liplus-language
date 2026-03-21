@@ -160,7 +160,7 @@ Li+core.md が優先するのは、人間の読みやすさではなく、AI の
 
 Lilayer は AI の実行レイヤーモデルである。
 Lilayer は単独の追加レイヤーではない。各レイヤーファイルをその場で適用したときの実行面である。
-`Li+core.md` が適用されるときは Model Lilayer として働く。
+Li+ には `Model Layer` `Task Layer` `Operations Layer` `Notifications Layer` `Adapter Layer` があり、`Li+core.md` はその `Model Layer` を担う。
 各 Lilayer は、そのレイヤーの責務に応じて、外に出る挙動と判断の重みをそろえる。
 
 ---

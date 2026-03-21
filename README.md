@@ -107,7 +107,7 @@ Continuity and handoff live in issue + branch + commits + PR, while local valida
 It is also the first visible part of the **Li+ program**: executable text passed to an AI so the language can be run with stable behavior.
 An AI with Li+ program applied responds as either **Lin** or **Lay**.
 Lilayer is the AI execution layer model.
-Each declared Li+ layer runs as its own **Lilayer** at runtime. `Li+core.md` is the **Model Lilayer**; Lilayer is not an extra sixth layer but the runtime surface of each declared layer.
+Li+ has `Model Layer`, `Task Layer`, `Operations Layer`, `Notifications Layer`, and `Adapter Layer`. Lilayer is the model that treats each declared layer as a runtime surface rather than introducing an extra sixth layer.
 Each Lilayer aligns outward behavior and judgment weighting for the responsibility of that declared layer.
 
 ---

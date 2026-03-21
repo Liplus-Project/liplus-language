@@ -90,7 +90,7 @@ Li+ can be viewed as **layered programming for AI behavior**.
 
 Layers are different surfaces over the same program, connected by dependency order.
 The goal is not more text. The goal is stable priority ordering.
-Lilayer Model is the model that reads this layer structure as runtime surfaces. Lilayer refers to the reading, not to the layer entities themselves.
+Lilayer Model is the model that reads this layer structure as runtime surfaces.
 
 This is why Li+ often works where ordinary prompts drift:
 AI systems fail not only from lack of knowledge, but from **priority collisions**.

@@ -104,7 +104,6 @@ Five layers. Each program file declares its own layer membership.
 Core defines layer existence and attachment order only.
 Detailed role definitions belong to each layer file.
 Lilayer Model = model that reads this layer structure as runtime surfaces.
-Lilayer = reading, not layer entity.
 
 Layers:
   Model Layer

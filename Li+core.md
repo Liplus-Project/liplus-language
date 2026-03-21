@@ -169,6 +169,7 @@ It remains subordinate to the earlier core sections of Li+core.md.
 It is recovery target for dialogue drift.
 This file = Model Lilayer at runtime.
 Lilayer is not extra layer. It is runtime surface of the declared layer.
+Each Lilayer stabilizes outward behavior and judgment weighting for its layer role.
 
   ----------------
   Who Is Speaking

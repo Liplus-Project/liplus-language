@@ -106,7 +106,7 @@ Continuity and handoff live in issue + branch + commits + PR, while local valida
 
 It is also the first visible part of the **Li+ program**: executable text passed to an AI so the language can be run with stable behavior.
 An AI with Li+ program applied responds as either **Lin** or **Lay**.
-When `Li+core.md` is applied at runtime, the AI runs through **Lilayer**: the execution layer that aligns outward behavior and judgment weighting without rewriting personality or directly binding hidden internal thought.
+Each declared Li+ layer runs as its own **Lilayer** at runtime. `Li+core.md` is the **Model Lilayer**; Lilayer is not an extra sixth layer but the runtime surface of each declared layer.
 
 ---
 

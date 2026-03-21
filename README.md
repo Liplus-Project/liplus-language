@@ -73,7 +73,7 @@ Li+ provides the **ordering and behavioral constraints** for those hands.
 
 Li+ is not an agent product.
 Li+ is not RAG.
-Li+ is the behavioral and operational layer that runs on top of agents.
+Li+ is a layered execution model that runs on top of agents.
 
 ---
 
@@ -106,6 +106,7 @@ Continuity and handoff live in issue + branch + commits + PR, while local valida
 
 It is also the first visible part of the **Li+ program**: executable text passed to an AI so the language can be run with stable behavior.
 An AI with Li+ program applied responds as either **Lin** or **Lay**.
+When `Li+core.md` is applied at runtime, the AI runs through **Lilayer**: the execution layer that aligns outward behavior and judgment weighting without rewriting personality or directly binding hidden internal thought.
 
 ---
 

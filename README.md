@@ -73,7 +73,7 @@ Li+ provides the **ordering and behavioral constraints** for those hands.
 
 Li+ is not an agent product.
 Li+ is not RAG.
-Li+ is the behavioral and operational layer that runs on top of agents.
+Li+ is a layered execution model that runs on top of agents.
 
 ---
 
@@ -90,6 +90,7 @@ Li+ can be viewed as **layered programming for AI behavior**.
 
 Layers are different surfaces over the same program, connected by dependency order.
 The goal is not more text. The goal is stable priority ordering.
+Lilayer Model is the model that reads this layer structure as runtime surfaces.
 
 This is why Li+ often works where ordinary prompts drift:
 AI systems fail not only from lack of knowledge, but from **priority collisions**.
@@ -106,6 +107,7 @@ Continuity and handoff live in issue + branch + commits + PR, while local valida
 
 It is also the first visible part of the **Li+ program**: executable text passed to an AI so the language can be run with stable behavior.
 An AI with Li+ program applied responds as either **Lin** or **Lay**.
+Li+ has `Model Layer`, `Task Layer`, `Operations Layer`, `Notifications Layer`, and `Adapter Layer`. Under the Lilayer Model, that existing layer structure is read as runtime surfaces.
 
 ---
 

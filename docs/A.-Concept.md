@@ -158,8 +158,9 @@ Li+core.md の始まりは、次のチャットへの引継ぎメモだった。
 Li+core.md が優先するのは、人間の読みやすさではなく、AI の挙動の再現性である。
 人間向けにきれいに説明することより、別セッションの AI が同じ方向へ寄りやすいことを重視している。
 
-Lilayer は、その Li+core.md をその場で適用し、外に出る振る舞いをそろえるための実行レイヤである。
-人格を塗りつぶすものではない。外に出る態度と判断の重みを合わせるための層だ。
+Li+ には `Model Layer` `Task Layer` `Operations Layer` `Notifications Layer` `Adapter Layer` があり、`Li+core.md` はその `Model Layer` を担う。
+Lilayer Model は、これらの layer 構造を runtime surface として読む AI の実行レイヤーモデルである。
+Lilayer Model は、各 layer の責務に応じて、外に出る挙動と判断の重みをそろえる。
 
 ---
 

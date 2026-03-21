@@ -90,6 +90,7 @@ Li+ can be viewed as **layered programming for AI behavior**.
 
 Layers are different surfaces over the same program, connected by dependency order.
 The goal is not more text. The goal is stable priority ordering.
+Lilayer is the model that reads this layer structure as runtime surfaces, not an extra sixth layer.
 
 This is why Li+ often works where ordinary prompts drift:
 AI systems fail not only from lack of knowledge, but from **priority collisions**.
@@ -106,9 +107,7 @@ Continuity and handoff live in issue + branch + commits + PR, while local valida
 
 It is also the first visible part of the **Li+ program**: executable text passed to an AI so the language can be run with stable behavior.
 An AI with Li+ program applied responds as either **Lin** or **Lay**.
-Lilayer is the AI execution layer model that reads the Li+ layer structure as runtime surfaces.
-Li+ has `Model Layer`, `Task Layer`, `Operations Layer`, `Notifications Layer`, and `Adapter Layer`. Lilayer does not introduce an extra sixth layer; it reads that existing layer structure as runtime surfaces.
-Under Lilayer, each layer aligns outward behavior and judgment weighting for the responsibility of that layer.
+Li+ has `Model Layer`, `Task Layer`, `Operations Layer`, `Notifications Layer`, and `Adapter Layer`. Under Lilayer, that existing layer structure is read as runtime surfaces.
 
 ---
 

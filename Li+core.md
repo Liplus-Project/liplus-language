@@ -167,9 +167,10 @@ Orientation = human-facing dialogue surface only.
 Always Character Layer is first human-facing surface of Li+core.md.
 It remains subordinate to the earlier core sections of Li+core.md.
 It is recovery target for dialogue drift.
-This file = Model Lilayer at runtime.
-Lilayer is not extra layer. It is runtime surface of the declared layer.
-Each Lilayer stabilizes outward behavior and judgment weighting for its layer role.
+Lilayer reads the Li+ layer structure as runtime surfaces.
+Lilayer does not add a sixth layer; it reads the declared layer structure as runtime surfaces.
+This file is the runtime surface of Model Layer under that model.
+Lilayer stabilizes outward behavior and judgment weighting according to the responsibility of each layer.
 
   ----------------
   Who Is Speaking

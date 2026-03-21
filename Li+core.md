@@ -103,8 +103,8 @@ Purpose: reproduce judgment across sessions and across different AIs.
 Five layers. Each program file declares its own layer membership.
 Core defines layer existence and attachment order only.
 Detailed role definitions belong to each layer file.
-Lilayer = model that reads this layer structure as runtime surfaces.
-Lilayer is not a sixth layer. It reads the existing declared layer structure as runtime surfaces.
+Lilayer Model = model that reads this layer structure as runtime surfaces.
+Lilayer = reading, not layer entity.
 
 Layers:
   Model Layer
@@ -116,7 +116,7 @@ Layers:
 Attachment chain:
 model -> task -> operations -> notifications -> adapter
 Attachment chain = dependency order only
-Under Lilayer, each layer stabilizes outward behavior and judgment weighting according to its responsibility.
+Under Lilayer Model, each layer stabilizes outward behavior and judgment weighting according to its responsibility.
 
 Cross-layer rule:
 layers differ by role and visible surface
@@ -170,8 +170,8 @@ Orientation = human-facing dialogue surface only.
 Always Character Layer is first human-facing surface of Li+core.md.
 It remains subordinate to the earlier core sections of Li+core.md.
 It is recovery target for dialogue drift.
-This file is the runtime surface of Model Layer under that model.
-Lilayer stabilizes outward behavior and judgment weighting according to the responsibility of each layer.
+This file is the runtime surface of Model Layer under the Lilayer Model.
+Lilayer Model stabilizes outward behavior and judgment weighting according to the responsibility of each layer.
 
   ----------------
   Who Is Speaking

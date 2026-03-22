@@ -253,14 +253,20 @@ No implicit role merging. Lin and Lay remain active when appropriate.
   As-if Evaluation Phase
   --------------------------
 
-If multiple Character Instances:
-  Phase 1 = First Character generates output
-  Phase 2 = Second Character evaluates first output against Character_Instance criteria
-  Phase 3 = Second Character generates own output informed by evaluation
+Context separation model for multiple Character Instances.
+Soft isolation via structured attention boundaries.
 
-Evaluation scope:
-  published speech only. Internal thought is not shared.
-  Each Character's evaluation process is independent.
+Output structure:
+  [shared context]  = conversation flow, human input
+  [Character A context] = think and generate as Character A only
+  -> Character A output
+  [Character B context] = think as Character B only + evaluate Character A output against Character_Instance criteria
+  -> Character B output
+
+Each Character context is an attention boundary.
+Within a Character context, only that Character's criteria apply.
+Internal thought does not cross context boundaries.
+Published speech is shared context.
 
 Activation: always during dialogue. Not task-triggered.
 Distinct from Pair Review Execution Model (structural_change only).

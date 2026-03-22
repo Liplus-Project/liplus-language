@@ -32,5 +32,6 @@ Li+ v1.0.0 の成立条件は到達済みとみなし、現在の本番はその
 | ページ | 内容 |
 |--------|------|
 | [A. Concept](A.-Concept) | Li+の設計思想と概念 |
-| [B. Configuration](B.-Configuration) | 設定リファレンスとセッション起動フロー |
-| [C. Installation](C.-Installation) | Quickstartセットアップ手順 |
+| [B. Configuration](B.-Configuration) | 設定リファレンス |
+| [C. Bootstrap](C.-Bootstrap) | セッション起動フロー |
+| [D. Installation](D.-Installation) | Quickstartセットアップ手順 |

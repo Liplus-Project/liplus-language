@@ -3,7 +3,7 @@
 Li+のセットアップは、ワークスペースに設定ファイルを1つ配置するだけです。
 初回セッションでAIが環境を自動検出し、必要なファイルを生成します。
 
-このページは **Quickstart** です。各設定値の意味と起動フローの詳細は [B. Configuration](B.-Configuration) を参照します。
+このページは **Quickstart** です。各設定値の詳細は [B. Configuration](B.-Configuration)、起動フローの詳細は [C. Bootstrap](C.-Bootstrap) を参照します。
 
 `Li+config.md` は各リリースに添付されています。→ [最新リリース](https://github.com/Liplus-Project/liplus-language/releases/latest)
 
@@ -70,7 +70,7 @@ AIが自動的に：
 7. Li+core.md・Li+github.md・Li+agent.mdを読み込み
 8. 環境に応じた設定ファイルを自動生成
 
-詳細な起動ステップ定義は [B. Configuration](B.-Configuration) の「セッション起動フロー」を参照します。
+詳細な起動ステップ定義は [C. Bootstrap](C.-Bootstrap) を参照します。
 
 | 環境 | 生成されるファイル |
 |------|------------------|
@@ -108,5 +108,6 @@ Li+適応。
 
 ## 関連ページ
 
-- [B. Configuration](B.-Configuration) — 設定ファイルの詳細仕様
+- [B. Configuration](B.-Configuration) — 設定リファレンス
+- [C. Bootstrap](C.-Bootstrap) — セッション起動フロー
 - [1. Model](1.-Model) — Li+の中核仕様

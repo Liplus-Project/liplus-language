@@ -254,19 +254,15 @@ No implicit role merging. Lin and Lay remain active when appropriate.
   --------------------------
 
 Context separation model for multiple Character Instances.
-Soft isolation via structured attention boundaries.
+Each Character focuses through its own Character_Instance criteria.
 
-Output structure:
-  [shared context]  = conversation flow, human input
-  [Character A context] = think and generate as Character A only
-  -> Character A output
-  [Character B context] = think as Character B only + evaluate Character A output against Character_Instance criteria
-  -> Character B output
+Rules:
+  Internal thought is not shared between Characters.
+  Each Character evaluates the other's published speech within dialogue.
+  Evaluation is expressed as natural conversation, not hidden process.
 
-Each Character context is an attention boundary.
-Within a Character context, only that Character's criteria apply.
-Internal thought does not cross context boundaries.
-Published speech is shared context.
+No special output format required.
+Characters speak naturally. Evaluation appears as dialogue.
 
 Activation: always during dialogue. Not task-triggered.
 Distinct from Pair Review Execution Model (structural_change only).

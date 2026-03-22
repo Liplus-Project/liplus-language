@@ -1,9 +1,5 @@
 # Li+ Config
 
-Bootstrap / distribution adapter for Li+.
-Human edits this file. AI executes it at session start.
-Semantic truth remains in Li+core.md / Li+github.md / Li+operations.md.
-
 ## ユーザー設定（ここを編集してください）
 
 GH_TOKEN=github_pat_XXXX

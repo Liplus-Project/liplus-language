@@ -50,7 +50,7 @@ export PATH="$HOME/.local/bin:$PATH"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 CLAUDE_MD="$PROJECT_ROOT/.claude/CLAUDE.md"
 
-# --- Always Character Layer re-notify ---
+# --- Always Character Platform re-notify ---
 if [ -f "$CLAUDE_MD" ]; then
   sed -n '/^4\. Character_Instance/,/^5\. Workspace_Language_Contract/p' "$CLAUDE_MD" | head -n -1
 fi

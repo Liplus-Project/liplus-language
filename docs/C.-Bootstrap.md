@@ -1,0 +1,133 @@
+# ブートストラップ仕様書
+
+本文書は Li+ のセッション起動フロー（Li+bootstrap.md）の仕様を定義する。
+Li+config.md の設定値を前提とし、セッション開始時に AI が自動実行するステップを記述する。
+
+---
+
+## 概要
+
+セッション起動フローは **Li+bootstrap.md** に定義されている。Li+config.md はユーザー設定のみを保持し、起動ロジックは分離されている。
+
+AI は Li+config.md を読み込んだ後、Li+bootstrap.md のステップに従って環境検出・認証・バージョン取得・設定ファイル生成を実行する。
+
+---
+
+## ステップ1: 環境検出
+
+ランタイム環境を自動判定する。
+
+| 環境変数 | 判定結果 |
+|---------|---------|
+| `CODEX_HOME` or `CODEX_THREAD_ID` が存在 | runtime=codex |
+| `CLAUDECODE` が存在 | runtime=claude |
+| どちらもなし | ユーザーに1回確認 |
+
+---
+
+## ステップ2: Li+config.md のパーミッション保護
+
+Li+config.md にはトークンが含まれるため、ファイルパーミッションを制限する。
+
+- Linux/Mac: `chmod 600 Li+config.md`（ownerのみ read/write）
+- 既に 600 以下の場合はスキップ
+- Windows: スキップ（ユーザープロファイル配下では NTFS ACL が既に制限済み）
+
+---
+
+## ステップ3: workspace言語契約の解決
+
+`LI_PLUS_BASE_LANGUAGE` と `LI_PLUS_PROJECT_LANGUAGE` を解決する。
+
+- これらは**配布先workspace専用**の設定であり、liplus-language リポジトリ内部の日本語運用とは分離する
+- `LI_PLUS_BASE_LANGUAGE` は人間との対話の既定言語。issue/discussion/PRコメントのような会話返信もこちらが既定
+- `LI_PLUS_PROJECT_LANGUAGE` は issue / PR / commit body や保存する要求仕様書など durable artifact の既定言語
+- どちらか未設定の場合、AIがセッション開始時に対話で確認し、Li+config.mdへ書き戻す
+- 推奨初期値は `基本言語 = 現在の対話言語`、`プロジェクト言語 = 基本言語と同じ`
+- 人間が「bodyは英語で」のように成果物言語を明示した場合、その指示を優先できる
+
+---
+
+## ステップ4: gh CLIインストール
+
+`~/.local/bin/gh` が存在しない場合のみインストールする。
+
+- sudo不要、PATH変更不要
+- `/tmp` は使用禁止（他セッションとの権限衝突のため）
+- インストール先: `~/.local/bin/gh`（以降の全操作でフルパスを使用）
+
+---
+
+## ステップ5: 認証
+
+`GH_TOKEN` を読み込んでgh CLIで認証する。認証情報はチャットに出力しない。
+
+---
+
+## ステップ6: Li+ファイル取得と適用
+
+`LI_PLUS_CHANNEL` で対象バージョンを決定し、`LI_PLUS_MODE` に従ってLi+ファイルを取得・適用する。
+
+取得対象: Li+core.md、Li+github.md、Li+agent.md
+
+**cloneモードの場合：**
+
+1. 対象リポジトリは LI_PLUS_REPOSITORY の対象バージョン
+2. ワークスペース内に `liplus-language` ディレクトリが存在する場合 → `fetch --tags` → 対象タグへ checkout
+3. 存在しない場合 → ワークスペースへ直接 clone
+4. Li+core.md、Li+github.md、Li+agent.md を読み込む
+
+---
+
+## ステップ7: 設定ファイルの自動生成（Bootstrap）
+
+Li+agent.md テンプレートから、ランタイムに応じた設定ファイルを生成する。
+
+| ランタイム | 生成先 |
+|-----------|--------|
+| codex | `{workspace_root}/AGENTS.md`（Li+config.md と同じディレクトリ） |
+| claude | `{workspace_root}/.claude/CLAUDE.md`（Li+config.md と同じディレクトリ直下） |
+
+判定ロジック：
+
+- ファイルが存在しない → Li+agent.md の内容で新規作成
+- ファイルが存在し `Li+ BEGIN` sentinel を含む → スキップ（Li+適用済み）
+- ファイルが存在するが sentinel なし → ユーザーに確認（Li+セクションを追記 or スキップ）
+
+**runtime=claude の場合: hook bootstrap**
+
+Li+claude.md からClaude Code用のhookファイルを生成する。
+
+- `{workspace_root}/.claude/settings.json` が既に存在し `UserPromptSubmit` を含む → スキップ
+- 存在しない場合 → Li+claude.md 内のコードブロックから settings.json、hooks/on-user-prompt.sh、hooks/post-tool-use.sh を生成
+- .sh ファイルには実行権限を付与
+
+hookにより、issue操作では Li+github.md の Issue Flow、branch / commit / PR / merge / release では Li+operations.md の該当セクションまたは全文が自動再読込される（AIの記憶に依存しないランタイム強制）。
+
+Bootstrap は次回セッションから有効。現セッションは Li+config.md の実行で継続する。
+
+---
+
+## ステップ8: USER_REPOSITORY の作業クローン準備
+
+`USER_REPOSITORY` が `owner/repository-name`（デフォルト値）の場合はスキップする。
+
+---
+
+## ステップ9: 完了報告
+
+起動完了を報告する。
+
+---
+
+## 関連ページ
+
+- [B. Configuration](B.-Configuration) — 設定リファレンス
+- [D. Installation](D.-Installation) — Quickstartセットアップ手順
+- [4. Adapter](4.-Adapter) — アダプターレイヤー仕様書
+
+---
+
+## 進化
+
+再構築・削除・最適化はすべて許容する。構造の一貫性のみ維持する。

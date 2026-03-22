@@ -53,6 +53,11 @@ Issue Rules
 
   [Issue Flow]
 
+  Issue title language:
+  Title = ASCII English only.
+  Body  = LI_PLUS_PROJECT_LANGUAGE.
+  Consistent with Commit Rules and PR title convention.
+
   All work starts from issue.
   No commit or PR without issue number.
   Issue body = latest requirements snapshot, not history log.

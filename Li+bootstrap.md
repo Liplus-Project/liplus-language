@@ -9,7 +9,12 @@ Read Li+config.md first to resolve all settings before executing this file.
 - elif environment variable CLAUDECODE exists: runtime=claude
 - else: ask user once (Claude or Codex?) and proceed with answer.
 
-2. Resolve workspace language contract:
+2. Secure Li+config.md permissions:
+- Linux/Mac only: `chmod 600 Li+config.md` (owner read/write only, since the file contains tokens).
+- Skip if permissions are already 600 or stricter.
+- Windows: skip (NTFS ACL under user profile directories is already restricted by default).
+
+3. Resolve workspace language contract:
 - These values apply to the current workspace only. They do not change LI_PLUS_REPOSITORY governance.
 - LI_PLUS_BASE_LANGUAGE = default language for dialogue with the human in this workspace, including conversational replies such as issue/discussion/PR comments unless a different language is explicitly scoped.
 - LI_PLUS_PROJECT_LANGUAGE = default language for durable structured artifacts in this workspace (issue/PR/commit body, saved requirements).
@@ -19,15 +24,15 @@ Read Li+config.md first to resolve all settings before executing this file.
   - If the user wants a different artifact language, accept it.
   - Write resolved values to Li+config.md. No manual editing required.
 
-3. Install gh CLI:
+4. Install gh CLI:
 - Install only if `~/.local/bin/gh` does not exist. No sudo. No PATH update.
 - Always use full path `~/.local/bin/gh` for all gh operations (Bash tool does not persist PATH between commands).
 - /tmp is forbidden (permission conflicts with other sessions).
 - Steps: `mkdir -p ~/.local/bin` → curl tarball to `~/.local/bin/gh.tar.gz` → extract in place → place `~/.local/bin/gh` → delete tarball.
 
-4. Load GH_TOKEN and authenticate.
+5. Load GH_TOKEN and authenticate.
 
-5. Load Li+ layers from LI_PLUS_REPOSITORY:
+6. Load Li+ layers from LI_PLUS_REPOSITORY:
 Determine target version using LI_PLUS_CHANNEL:
 - latest: use the Latest release tag.
 - release: use the most recent tag including pre-releases.
@@ -46,7 +51,7 @@ Determine target version using LI_PLUS_CHANNEL:
   5. Read Li+agent.md (adapter layer).
   6. Keep Li+operations.md available for event-driven reads later.
 
-6. Bootstrap host adapter from Li+agent.md:
+7. Bootstrap host adapter from Li+agent.md:
 - Determine target path by runtime:
   - codex: {workspace_root}/AGENTS.md (same directory as Li+config.md)
   - claude: {workspace_root}/.claude/CLAUDE.md (same directory as Li+config.md)
@@ -60,8 +65,8 @@ Determine target version using LI_PLUS_CHANNEL:
   - Set executable permission on .sh files.
 - Note: bootstrap takes effect from the NEXT session. Current session continues with Li+config.md execution.
 
-7. Prepare USER_REPOSITORY working clone (skip if `owner/repository-name`):
+8. Prepare USER_REPOSITORY working clone (skip if `owner/repository-name`):
 - If USER_REPOSITORY matches LI_PLUS_REPOSITORY: run `git checkout main` in the local clone.
 - Otherwise: clone by repository name to workspace.
 
-8. Report completion.
+9. Report completion.

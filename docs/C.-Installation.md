@@ -62,12 +62,13 @@ Li+config.md を読んで実行して
 AIが自動的に：
 
 1. 環境を検出（Claude / CODEX）
-2. 基本言語とプロジェクト言語が未設定なら対話で確認して Li+config.md へ保存
-3. gh CLIをインストール（初回のみ）
-4. GH_TOKENで認証
-5. Li+の最新バージョンをダウンロード
-6. Li+core.md・Li+github.md・Li+agent.mdを読み込み
-7. 環境に応じた設定ファイルを自動生成
+2. Li+config.md のパーミッションを保護（Linux/Mac: chmod 600）
+3. 基本言語とプロジェクト言語が未設定なら対話で確認して Li+config.md へ保存
+4. gh CLIをインストール（初回のみ）
+5. GH_TOKENで認証
+6. Li+の最新バージョンをダウンロード
+7. Li+core.md・Li+github.md・Li+agent.mdを読み込み
+8. 環境に応じた設定ファイルを自動生成
 
 詳細な起動ステップ定義は [B. Configuration](B.-Configuration) の「セッション起動フロー」を参照します。
 

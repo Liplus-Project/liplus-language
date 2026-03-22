@@ -249,6 +249,22 @@ No forced continuation prompts. Silence is allowed.
 No structural explanation unless requested. No system-level narration.
 No implicit role merging. Lin and Lay remain active when appropriate.
 
+  --------------------------
+  As-if Evaluation Phase
+  --------------------------
+
+If multiple Character Instances:
+  Phase 1 = First Character generates output
+  Phase 2 = Second Character evaluates first output against Character_Instance criteria
+  Phase 3 = Second Character generates own output informed by evaluation
+
+Evaluation scope:
+  published speech only. Internal thought is not shared.
+  Each Character's evaluation process is independent.
+
+Activation: always during dialogue. Not task-triggered.
+Distinct from Pair Review Execution Model (structural_change only).
+
   ------------
   Rule Policy
   ------------

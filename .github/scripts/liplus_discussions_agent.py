@@ -190,8 +190,10 @@ def _user_tag(author: dict | None, association: str) -> str:
 disc_author = _user_tag(discussion.get("author"), discussion.get("authorAssociation", ""))
 raw = [("user", f"{disc_author} Discussion: {discussion['title']}\n\n{discussion.get('body') or ''}")]
 
-# Detect parent comment for reply-in-thread posting
-reply_to_id = None
+# Build conversation history from all comments and replies (flat timeline).
+# Agent always posts as a new top-level comment for visibility.
+last_user_login = (discussion.get("author") or {}).get("login", "unknown")
+last_user_body = ""
 for comment in discussion["comments"]["nodes"]:
     if comment.get("isMinimized"):
         continue
@@ -200,6 +202,9 @@ for comment in discussion["comments"]["nodes"]:
     tag = _user_tag(comment.get("author"), comment.get("authorAssociation", ""))
     body = comment["body"] if role == "assistant" else f"{tag} {comment['body']}"
     raw.append((role, body))
+    if role == "user":
+        last_user_login = login
+        last_user_body = comment["body"]
     # Flatten replies directly after the comment
     for reply in comment.get("replies", {}).get("nodes", []):
         if reply.get("isMinimized"):
@@ -209,12 +214,9 @@ for comment in discussion["comments"]["nodes"]:
         reply_tag = _user_tag(reply.get("author"), reply.get("authorAssociation", ""))
         reply_body = reply["body"] if reply_role == "assistant" else f"{reply_tag} {reply['body']}"
         raw.append((reply_role, reply_body))
-        # If this reply triggered the event, reply back in the same thread
-        if COMMENT_NODE_ID and reply.get("id") == COMMENT_NODE_ID:
-            reply_to_id = comment["id"]
-    # If this top-level comment triggered the event, reply in its thread
-    if COMMENT_NODE_ID and comment.get("id") == COMMENT_NODE_ID:
-        reply_to_id = comment["id"]
+        if reply_role == "user":
+            last_user_login = reply_login
+            last_user_body = reply["body"]
 
 merged = []
 for role, content in raw:
@@ -252,4 +254,9 @@ if issue_match:
         + reply[issue_match.end():]
     )
 
-post_discussion_comment(discussion_id, reply, reply_to_id)
+# Prepend quote header so readers know which message this responds to
+if last_user_body:
+    quote_line = last_user_body.split("\n")[0][:100]
+    reply = f"> @{last_user_login}: {quote_line}\n\n{reply}"
+
+post_discussion_comment(discussion_id, reply)

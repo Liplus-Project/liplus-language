@@ -56,6 +56,7 @@ if [ -f "$CLAUDE_MD" ]; then
 fi
 
 # --- Webhook notification check ---
+PYTHON=$(command -v python3 2>/dev/null || command -v python 2>/dev/null || echo python3)
 HELPER="$PROJECT_ROOT/liplus-language/scripts/check_webhook_notifications.py"
 [ -f "$HELPER" ] || exit 0
 
@@ -88,10 +89,10 @@ if [ -n "$CURRENT_BRANCH" ]; then
   HELPER_ARGS+=(--branch "$CURRENT_BRANCH" --infer-numbers-from-branch)
 fi
 
-RESULT=$(python3 "$HELPER" "${HELPER_ARGS[@]}" 2>/dev/null)
+RESULT=$("$PYTHON" "$HELPER" "${HELPER_ARGS[@]}" 2>/dev/null)
 [ -z "$RESULT" ] && exit 0
 
-DISPLAY_LINES=$(printf '%s' "$RESULT" | python3 -c '
+DISPLAY_LINES=$(printf '%s' "$RESULT" | "$PYTHON" -c '
 import json
 import sys
 

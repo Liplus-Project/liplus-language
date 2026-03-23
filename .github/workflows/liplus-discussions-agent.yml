@@ -10,7 +10,11 @@ jobs:
   agent:
     if: |
       github.actor != 'github-actions[bot]' &&
-      github.actor != 'liplus-lin-lay'
+      github.actor != 'liplus-lin-lay' &&
+      (
+        github.event.discussion.category.slug == 'ai-request' ||
+        github.event.discussion.category.slug == 'q-a'
+      )
     runs-on: ubuntu-latest
     permissions:
       discussions: write

@@ -330,10 +330,31 @@ def foreground_reasons(summary: dict[str, Any], context: InspectContext) -> list
 def notable_reason(summary: dict[str, Any], context: InspectContext) -> str | None:
     if not context.repo or summary.get("repo") != context.repo:
         return None
-    if is_internal_sender(summary.get("sender"), context.internal_senders):
+
+    internal = is_internal_sender(summary.get("sender"), context.internal_senders)
+    event_type = summary.get("type") or ""
+
+    # Internal-sender CI failures are always notable
+    if internal and event_type in {"check_run", "workflow_run"}:
+        conclusion = summary.get("conclusion") or ""
+        if conclusion not in SUCCESS_CONCLUSIONS:
+            return "internal_ci_failure"
         return None
 
-    event_type = summary.get("type") or ""
+    # Internal-sender review/comment events are always notable
+    if internal and event_type in COMMENT_EVENT_TYPES:
+        if event_type == "pull_request_review":
+            return "internal_review"
+        if event_type == "pull_request_review_comment":
+            return "internal_review_comment"
+        if event_type in {"issue_comment"}:
+            return "internal_comment"
+        return None
+
+    # Other internal-sender events are not notable
+    if internal:
+        return None
+
     if event_type not in COMMENT_EVENT_TYPES:
         return None
     if event_type == "pull_request_review":

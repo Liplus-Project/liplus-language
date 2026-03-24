@@ -158,10 +158,12 @@ Event-Driven Operations
       if rebase fails: git rebase --abort -> comment on issue -> escalate to human
     if BLOCKED or UNKNOWN: wait and recheck (GitHub may still be computing)
   step2 = wait for all check-runs to complete:
+    Prefer webhook over polling.
     if mcp__github-webhook-mcp available:
       poll get_pending_status every 60 seconds
       on check_run pending: list_pending_events -> get_event for check_run events -> verify sha match -> mark_processed
       collect conclusions until no in-flight check-runs remain
+      mark_processed is mandatory for every consumed event. Omission causes backlog accumulation.
     else:
       gh api repos/{owner}/{repo}/commits/{sha}/check-runs --jq '.check_runs[] | {name,status,conclusion}'
       repeat with sleep until: all status=="completed"
@@ -181,9 +183,11 @@ Event-Driven Operations
       local-only success does not close review
 
   Review approval check:
+    Prefer webhook over polling.
     if mcp__github-webhook-mcp available:
       poll get_pending_status every 60 seconds
       on pull_request_review pending: list_pending_events -> get_event for this PR -> check state -> mark_processed
+      mark_processed is mandatory for every consumed event. Omission causes backlog accumulation.
     else:
       Wait = human signals review done (do not poll).
       On signal:

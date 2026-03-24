@@ -105,7 +105,7 @@ Li+適応。
 - `LI_PLUS_BASE_LANGUAGE` と `LI_PLUS_PROJECT_LANGUAGE` は配布先workspace専用です。liplus-language 本体の日本語運用ルールとは分離されます
 - `LI_PLUS_MODE=api` は軽量ですが、trigger-based re-readなどの継続機能は保証されません。継続利用には `clone` を推奨します
 - local webhook fallback を使うなら `LI_PLUS_MODE=clone` を推奨します。bundled helper は `liplus-language/` clone を前提にします
-- Windows環境では `python3` コマンドがMicrosoft Storeスタブ（exit code 49）になっている場合があります。hookテンプレートは `python3` → `python` の順に `import sys` の実行可否で検証し、実際に動作するインタプリタを選択します
+- Windows環境では `python3` コマンドがMicrosoft Storeスタブになっている場合があります。hookテンプレートは `command -v` で `python3` → `python` の順にフォールバック解決します
 
 ---
 

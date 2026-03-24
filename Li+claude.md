@@ -56,16 +56,7 @@ if [ -f "$CLAUDE_MD" ]; then
 fi
 
 # --- Webhook notification check ---
-# Resolve Python: prefer real python over Windows Store stub (exit code 49)
-resolve_python() {
-  for cmd in python3 python; do
-    local p
-    p=$(command -v "$cmd" 2>/dev/null) || continue
-    "$p" -c "import sys" 2>/dev/null && echo "$p" && return
-  done
-  echo python3
-}
-PYTHON=$(resolve_python)
+PYTHON=$(command -v python3 2>/dev/null || command -v python 2>/dev/null || echo python3)
 HELPER="$PROJECT_ROOT/liplus-language/scripts/check_webhook_notifications.py"
 [ -f "$HELPER" ] || exit 0
 

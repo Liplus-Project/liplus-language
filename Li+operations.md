@@ -139,7 +139,9 @@ Event-Driven Operations
     order = parent first, then closed children (omit deferred and open children).
   Detail belongs in issue, not in PR.
 
-  On PR created -> proceed to [CI Loop] immediately, no human instruction required.
+  On PR created:
+  1 = if repository allows auto-merge: gh pr merge {pr} -R {owner}/{repo} --auto --squash
+  2 = proceed to [CI Loop] immediately, no human instruction required.
 
   [CI Loop]
 
@@ -191,11 +193,9 @@ Event-Driven Operations
 
   [Merge]
 
-  Auto-merge flow:
-  1 = enable auto-merge: gh pr merge {pr} -R {owner}/{repo} --auto --squash
-  2 = GitHub auto-merge on approval (squash + branch delete handled by GitHub)
+  If auto-merge was enabled at PR creation: GitHub merges automatically on approval.
 
-  Manual merge flow:
+  Manual merge flow (auto-merge unavailable or not enabled):
   1 = confirm merge strategy with human (squash / merge / rebase)
   2 = gh pr merge {pr} -R {owner}/{repo} --{strategy}
 

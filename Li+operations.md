@@ -158,7 +158,7 @@ Event-Driven Operations
       if rebase fails: git rebase --abort -> comment on issue -> escalate to human
     if BLOCKED or UNKNOWN: wait and recheck (GitHub may still be computing)
   step2 = wait for all check-runs to complete:
-    Prefer webhook over polling. Use gh api fallback only when webhook source is unavailable.
+    Prefer webhook over polling.
     if mcp__github-webhook-mcp available:
       poll get_pending_status every 60 seconds
       on check_run pending: list_pending_events -> get_event for check_run events -> verify sha match -> mark_processed
@@ -183,7 +183,7 @@ Event-Driven Operations
       local-only success does not close review
 
   Review approval check:
-    Prefer webhook over polling. Use signal-based fallback only when webhook source is unavailable.
+    Prefer webhook over polling.
     if mcp__github-webhook-mcp available:
       poll get_pending_status every 60 seconds
       on pull_request_review pending: list_pending_events -> get_event for this PR -> check state -> mark_processed

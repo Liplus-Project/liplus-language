@@ -66,23 +66,24 @@ repo_from_origin() {
     | sed 's/\.git$//' 2>/dev/null || echo ""
 }
 
-# Parse LI_PLUS_WEBHOOK_STATE_DIR from Li+config.md if set
+# Parse config values from Li+config.md
 CONFIG_MD="$PROJECT_ROOT/Li+config.md"
 STATE_DIR_ARGS=()
+CONFIG_REPO=""
 if [ -f "$CONFIG_MD" ]; then
   VAL=$(grep -E '^LI_PLUS_WEBHOOK_STATE_DIR=' "$CONFIG_MD" | head -1 | cut -d'=' -f2-)
   [ -n "$VAL" ] && STATE_DIR_ARGS=(--state-dir "$VAL")
+  CONFIG_REPO=$(grep -E '^LI_PLUS_REPOSITORY=' "$CONFIG_MD" | head -1 | cut -d'=' -f2-)
 fi
 
 CURRENT_REPO=$(repo_from_origin)
+[ -z "$CURRENT_REPO" ] && CURRENT_REPO="$CONFIG_REPO"
 CURRENT_BRANCH=$(git -C "$PROJECT_ROOT" branch --show-current 2>/dev/null || echo "")
 
 HELPER_ARGS=(
   --workspace-root "$PROJECT_ROOT"
   "${STATE_DIR_ARGS[@]}"
   --limit 5
-  --internal-sender liplus-lin-lay
-  --internal-sender lipluscodex
 )
 [ -n "$CURRENT_REPO" ] && HELPER_ARGS+=(--repo "$CURRENT_REPO")
 if [ -n "$CURRENT_BRANCH" ]; then

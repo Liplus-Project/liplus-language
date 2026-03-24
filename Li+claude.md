@@ -154,7 +154,7 @@ print_section() {
   sed -n "/\\[$start\\]/,/\\[$end\\]/p" "$file" | head -n -1
 }
 
-announce_section() {
+get_section() {
   local banner="$1"
   local file="$2"
   local start="$3"
@@ -164,22 +164,27 @@ announce_section() {
   body=$(print_section "$file" "$start" "$end") || return 1
   [ -n "$body" ] || return 1
 
-  echo ""
-  echo "━━━ $banner ━━━"
-  printf '%s\n' "$body"
-  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  printf '━━━ %s ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$banner" "$body"
 }
 
-show_full_file() {
+get_full_file() {
   local banner="$1"
   local file="$2"
 
   [ -f "$file" ] || return 1
 
-  echo ""
-  echo "━━━ $banner ━━━"
-  cat "$file"
-  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  printf '━━━ %s ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$banner" "$(cat "$file")"
+}
+
+emit_context() {
+  local context="$1"
+  [ -n "$context" ] || exit 0
+  jq -n --arg ctx "$context" '{
+    "hookSpecificOutput": {
+      "hookEventName": "PostToolUse",
+      "additionalContext": $ctx
+    }
+  }'
 }
 
 repo_from_origin() {
@@ -190,101 +195,113 @@ repo_from_origin() {
 
 # on_branch: linked branch / local branch create → Li+operations.md Branch_And_Label_Flow re-read
 if echo "$COMMAND" | grep -qE 'gh issue develop|git switch -c|git checkout -b'; then
-  announce_section \
+  CONTEXT=$(get_section \
     "on_branch: Branch_And_Label_Flow re-read" \
     "$OPERATIONS_MD" \
     "Branch And Label Flow" \
-    "Docs And Requirement Ownership"
+    "Docs And Requirement Ownership")
+  emit_context "$CONTEXT"
   exit 0
 fi
 
 # on_pr: gh pr create → full Li+operations.md re-read + sub-issue auto-append
 if echo "$COMMAND" | grep -q 'gh pr create'; then
-  show_full_file "on_pr: Operations layer re-read" "$OPERATIONS_MD"
+  CONTEXT=$(get_full_file "on_pr: Operations layer re-read" "$OPERATIONS_MD")
 
   OUTPUT=$(printf '%s' "$INPUT" | jq -r '.tool_response.output // empty' 2>/dev/null)
   PR_NUMBER=$(echo "$OUTPUT" | grep -oE '/pull/[0-9]+' | grep -oE '[0-9]+' | head -1)
-  [ -z "$PR_NUMBER" ] && exit 0
 
-  REPO=$(repo_from_origin)
-  [ -z "$REPO" ] && exit 0
+  if [ -n "$PR_NUMBER" ]; then
+    REPO=$(repo_from_origin)
+    if [ -n "$REPO" ]; then
+      PR_BODY=$(gh api "repos/$REPO/pulls/$PR_NUMBER" --jq '.body' 2>/dev/null || echo "")
+      if [ -n "$PR_BODY" ]; then
+        PARENT_ISSUE=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | head -1 | tr -d '#')
+        if [ -n "$PARENT_ISSUE" ]; then
+          SUB_ISSUE_NUMBERS=$(gh api "repos/$REPO/issues/$PARENT_ISSUE/sub_issues" \
+            --jq '.[].number' 2>/dev/null || echo "")
+          if [ -n "$SUB_ISSUE_NUMBERS" ]; then
+            MISSING=()
+            while IFS= read -r issue_num; do
+              [ -z "$issue_num" ] && continue
+              if ! echo "$PR_BODY" | grep -qE "#${issue_num}([^0-9]|$)"; then
+                MISSING+=("$issue_num")
+              fi
+            done <<< "$SUB_ISSUE_NUMBERS"
 
-  PR_BODY=$(gh api "repos/$REPO/pulls/$PR_NUMBER" --jq '.body' 2>/dev/null || echo "")
-  [ -z "$PR_BODY" ] && exit 0
-
-  PARENT_ISSUE=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | head -1 | tr -d '#')
-  [ -z "$PARENT_ISSUE" ] && exit 0
-
-  SUB_ISSUE_NUMBERS=$(gh api "repos/$REPO/issues/$PARENT_ISSUE/sub_issues" \
-    --jq '.[].number' 2>/dev/null || echo "")
-  [ -z "$SUB_ISSUE_NUMBERS" ] && exit 0
-
-  MISSING=()
-  while IFS= read -r issue_num; do
-    [ -z "$issue_num" ] && continue
-    if ! echo "$PR_BODY" | grep -qE "#${issue_num}([^0-9]|$)"; then
-      MISSING+=("$issue_num")
-    fi
-  done <<< "$SUB_ISSUE_NUMBERS"
-
-  [ ${#MISSING[@]} -eq 0 ] && exit 0
-
-  ADDITIONS=""
-  for num in "${MISSING[@]}"; do
-    ADDITIONS="${ADDITIONS}
+            if [ ${#MISSING[@]} -gt 0 ]; then
+              ADDITIONS=""
+              for num in "${MISSING[@]}"; do
+                ADDITIONS="${ADDITIONS}
 Refs #${num}"
-  done
+              done
 
-  NEW_BODY="${PR_BODY}${ADDITIONS}"
-  gh api "repos/$REPO/pulls/$PR_NUMBER" \
-    --method PATCH -f body="$NEW_BODY" > /dev/null 2>&1
+              NEW_BODY="${PR_BODY}${ADDITIONS}"
+              gh api "repos/$REPO/pulls/$PR_NUMBER" \
+                --method PATCH -f body="$NEW_BODY" > /dev/null 2>&1
 
-  echo ""
-  echo "━━━ PR #${PR_NUMBER}: sub-issue refs auto-appended ━━━"
-  for num in "${MISSING[@]}"; do
-    echo "  + Refs #${num}"
-  done
-  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+              APPEND_MSG="━━━ PR #${PR_NUMBER}: sub-issue refs auto-appended ━━━"
+              for num in "${MISSING[@]}"; do
+                APPEND_MSG="${APPEND_MSG}
+  + Refs #${num}"
+              done
+              APPEND_MSG="${APPEND_MSG}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+              CONTEXT="${CONTEXT}
+
+${APPEND_MSG}"
+            fi
+          fi
+        fi
+      fi
+    fi
+  fi
+
+  emit_context "$CONTEXT"
   exit 0
 fi
 
 # on_issue: gh issue → Li+github.md Issue_Flow section re-read
 if echo "$COMMAND" | grep -qE 'gh (issue|api .*/issues)'; then
-  announce_section \
+  CONTEXT=$(get_section \
     "on_issue: Issue_Flow re-read" \
     "$GITHUB_MD" \
     "Issue Flow" \
-    "evolution"
+    "evolution")
+  emit_context "$CONTEXT"
   exit 0
 fi
 
 # on_commit: git commit → Li+operations.md Commit_Rules section re-read
 if echo "$COMMAND" | grep -q 'git commit'; then
-  announce_section \
+  CONTEXT=$(get_section \
     "on_commit: Commit_Rules re-read" \
     "$OPERATIONS_MD" \
     "Commit Rules" \
-    "PR Creation"
+    "PR Creation")
+  emit_context "$CONTEXT"
   exit 0
 fi
 
 # on_merge: gh pr merge → Li+operations.md Merge_And_Cleanup section re-read
 if echo "$COMMAND" | grep -q 'gh pr merge'; then
-  announce_section \
+  CONTEXT=$(get_section \
     "on_merge: Merge re-read" \
     "$OPERATIONS_MD" \
     "Merge" \
-    "Execution Mode"
+    "Execution Mode")
+  emit_context "$CONTEXT"
   exit 0
 fi
 
 # on_release: gh release create → Li+operations.md Human_Confirmation_Required section re-read
 if echo "$COMMAND" | grep -q 'gh release create'; then
-  announce_section \
+  CONTEXT=$(get_section \
     "on_release: Human_Confirmation_Required re-read" \
     "$OPERATIONS_MD" \
     "Human Confirmation Required" \
-    "Notifications API"
+    "Notifications API")
+  emit_context "$CONTEXT"
   exit 0
 fi
 ```

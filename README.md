@@ -141,6 +141,7 @@ The next phase is **generalization**:
 👉 **[Installation Guide](https://github.com/Liplus-Project/liplus-language/wiki/C.-Installation)**
 
 Simply place Li+config in your workspace, and the AI will automatically apply Li+ at session start.
+In `clone` mode, startup compares the current local tag with the target tag from `LI_PLUS_CHANNEL` and asks the human before switching when they differ.
 
 ---
 

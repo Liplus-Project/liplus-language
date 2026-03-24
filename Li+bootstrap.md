@@ -36,6 +36,8 @@ Read Li+config.md first to resolve all settings before executing this file.
 Determine target version using LI_PLUS_CHANNEL:
 - latest: use the Latest release tag.
 - release: use the most recent tag including pre-releases.
+Version check is mandatory on every startup before reading Li+core.md / Li+github.md / Li+agent.md.
+Silent continuation on a stale local clone is prohibited.
 - Check LI_PLUS_MODE:
   - api: fetch Li+core.md, Li+github.md, Li+agent.md for the target version via GitHub API from LI_PLUS_REPOSITORY.
   - clone: execute in order:
@@ -43,9 +45,15 @@ Determine target version using LI_PLUS_CHANNEL:
   2. Check workspace for repository directory (derived from LI_PLUS_REPOSITORY name):
      - not exists → clone target tag directly to workspace. Proceed to step 3.
      - exists → fetch --tags, then:
-       a. Compare the current checked-out tag with the target tag.
-       b. If different → ask the user whether to update.
-       c. Checkout the target tag only if the user agrees.
+       a. Resolve and report both values: current checked-out tag and target tag from LI_PLUS_CHANNEL.
+       b. If same → continue.
+       c. If different → ask the user how to proceed before reading Li+ layers.
+          Do not report bootstrap completion before this choice is resolved.
+          Minimum choices:
+          - update now to the target tag
+          - stay on the current tag for this session
+       d. Checkout the target tag only if the user agrees.
+       e. If the user chooses to stay, continue on the current tag only after explicitly naming both tags.
   3. Read Li+core.md (core layer).
   4. Read Li+github.md (issue layer).
   5. Read Li+agent.md (adapter layer).

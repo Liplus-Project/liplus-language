@@ -66,9 +66,10 @@ AIが自動的に：
 3. 基本言語とプロジェクト言語が未設定なら対話で確認して Li+config.md へ保存
 4. gh CLIをインストール（初回のみ）
 5. GH_TOKENで認証
-6. Li+の最新バージョンをダウンロード
-7. Li+core.md・Li+github.md・Li+agent.mdを読み込み
-8. 環境に応じた設定ファイルを自動生成
+6. `LI_PLUS_CHANNEL` に対応する対象バージョンを確認
+7. 既存 clone と対象バージョンがずれていれば、人間に更新するか確認
+8. Li+core.md・Li+github.md・Li+agent.mdを読み込み
+9. 環境に応じた設定ファイルを自動生成
 
 詳細な起動ステップ定義は [C. Bootstrap](C.-Bootstrap) を参照します。
 
@@ -98,6 +99,7 @@ Li+適応。
 
 - `GH_TOKEN` はチャットに表示されません（セキュリティ上の設計）
 - `LI_PLUS_MODE=clone` の初回セッションはリポジトリのcloneのため数秒かかります
+- `LI_PLUS_MODE=clone` の次回以降のセッションでは、AI が起動時に対象タグとの差分を確認し、更新があれば人間に確認します
 - 作業リポジトリを持たない場合は `USER_REPOSITORY` をデフォルト値のままにしてください
 - 設定ファイルの自動生成は初回のみ実行され、既存ファイルを上書きしません
 - `LI_PLUS_BASE_LANGUAGE` と `LI_PLUS_PROJECT_LANGUAGE` は配布先workspace専用です。liplus-language 本体の日本語運用ルールとは分離されます

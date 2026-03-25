@@ -141,6 +141,8 @@ Event-Driven Operations
       line1 = "Refs #{issue_number}" or "Refs sub #{child_issue_number}"
       line2_to_3 = two to three line summary of that issue
     order = parent first, then closed children (omit deferred and open children).
+    parent issue reference: use "Part of #{parent_number}" instead of "Refs".
+    "Refs" triggers GitHub auto-close on merge. Parent issues must not be auto-closed by sub-issue PRs.
   Detail belongs in issue, not in PR.
 
   On PR created:

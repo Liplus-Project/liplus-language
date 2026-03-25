@@ -118,6 +118,10 @@ Event-Driven Operations
   Minimum one Japanese sentence required.
   Body is not optional.
 
+  Docs check on commit:
+  If this commit changes spec (Li+*.md) or behavior code = verify docs/ has corresponding update.
+  If not yet updated = add docs update before push. Do not defer to a separate PR.
+
   Git push:
   primary          = git push origin {session-branch}:{target-branch}
   fallback_single  = gh api repos/{owner}/{repo}/contents/{path} (put base64 sha)

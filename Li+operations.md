@@ -280,7 +280,7 @@ Event-Driven Operations
 
   Release tag and title rule:
   Tag format and release title follow project convention.
-  Default (Li+ language): cd_tag = build-YYYY-MM-DD.N, title = "Li+ {version}"
+  Default (Li+ language): cd_tag = build-YYYY-MM-DD.N, title = "{version}" (e.g. "v1.9.0")
   npm package projects: tag = v{semver}, title = "v{semver}"
   If project has CD workflow that creates tags: use existing CD-created tag, do not create new tag.
   If project uses npm version: tag is created by npm version command.

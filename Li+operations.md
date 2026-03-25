@@ -266,10 +266,12 @@ Event-Driven Operations
   Mode-dependent confirm (trigger mode only): issue selection, issue execution start.
 
   Release version rule:
-  patch = bug fix or config/rule change
-  minor = new feature or behavior change
-  major = breaking change or spec incompatibility
-  Human decides version type. AI executes.
+  v0.x.x = initial development. Anything may change. Not a stable release.
+  v1.0.0 = first stable release (semver compliant).
+  patch = change that does not alter structure or API (fix / clarify / add rule)
+  minor = change that alters structure or API (restructure / new section / architectural change)
+  major = change with large impact on users. Human decides. Examples: breaking change, phase transition, UX overhaul.
+  AI proposes patch or minor. Human decides version type. AI executes.
 
   Version base rule:
   Base on most recent release = includes prereleases.

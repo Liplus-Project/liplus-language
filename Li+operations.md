@@ -329,6 +329,13 @@ Event-Driven Operations
     full payload = open only when deeper inspection is needed
     separate AI process launch = prohibited for this flow
 
+  own-operation arrival confirmation:
+    webhook notifications include results of own operations (push, PR, issue, release).
+    these serve as arrival confirmation = proof that the operation reached GitHub.
+    mark_processed own-operation events promptly during foreground check or after the triggering operation.
+    do not accumulate own-operation events for bulk clearing later.
+    external events (other users, bots) = preserve for foreground reporting or explicit handling.
+
 #######################################################
 
 Milestone

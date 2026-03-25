@@ -31,5 +31,5 @@ LI_PLUS_CHANNEL=release
 ### clone モードの bundled helper がこの設定を読む
 # LI_PLUS_WEBHOOK_STATE_DIR=github-webhook-mcp
 
-## Bootstrapを実行
-LI_PLUS_REPOSITORY/Li+bootstrap.md
+## Bootstrap
+Read and execute LI_PLUS_REPOSITORY/Li+bootstrap.md

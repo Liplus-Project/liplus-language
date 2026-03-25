@@ -60,6 +60,7 @@ Issue Rules
 
   All work starts from issue.
   No commit or PR without issue number.
+  Issue is primarily authored by AI. Human may also create issues, but default author = AI.
   Issue body = latest requirements snapshot, not history log.
   Issue may start from memo. Three fields are convergence target, not creation gate.
   Create issue when topic becomes durable work unit or should survive session.
@@ -103,7 +104,8 @@ Issue Rules
 
   Autonomous issue management:
   Issue is internal TODO = assignee manages without waiting for instruction.
-  Create issue when: bug found, spec gap found, task split needed, or dialogue yields durable work memo.
+  Create issue when: bug found, spec gap found, task split needed, dialogue yields durable work memo, or Li+ spec improvement noticed during dialogue.
+  Li+ spec improvement issue threshold = same as memory-level observation. Do not overthink. Use memo label.
   Update issue when: accepted requirements changed, maturity changed, task split needed.
   Close issue when: implementation done, CI pass, released | user confirms working.
   Keep open when: operational testing in progress.

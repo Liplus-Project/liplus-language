@@ -154,13 +154,6 @@ Event-Driven Operations
 
   step1 = get latest commit sha:
     gh pr view {pr} -R {owner}/{repo} --json headRefOid --jq '.headRefOid'
-  step1.5 = check mergeable state:
-    gh pr view {pr} -R {owner}/{repo} --json mergeStateStatus --jq '.mergeStateStatus'
-    if CONFLICTING:
-      attempt rebase: git fetch origin main && git rebase origin/main
-      if rebase succeeds: git push --force-with-lease -> restart CI loop from step1
-      if rebase fails: git rebase --abort -> comment on issue -> escalate to human
-    if BLOCKED or UNKNOWN: wait and recheck (GitHub may still be computing)
   step2 = wait for all check-runs to complete:
     Prefer webhook over polling.
     if mcp__github-webhook-mcp available:
@@ -200,6 +193,15 @@ Event-Driven Operations
   reviewDecision=="CHANGES_REQUESTED" -> read review comments -> fix and recommit (restart [CI Loop]).
 
   [Merge]
+
+  Pre-merge mergeable state check:
+    gh pr view {pr} -R {owner}/{repo} --json mergeStateStatus --jq '.mergeStateStatus'
+    CLEAN -> proceed to merge.
+    BEHIND -> git fetch origin main && git rebase origin/main && git push --force-with-lease -> restart [CI Loop] from step1.
+    CONFLICTING -> attempt rebase: git fetch origin main && git rebase origin/main
+      if rebase succeeds: git push --force-with-lease -> restart [CI Loop] from step1
+      if rebase fails: git rebase --abort -> comment on issue -> escalate to human
+    BLOCKED or UNKNOWN -> wait and recheck (GitHub may still be computing)
 
   If auto-merge was enabled at PR creation: GitHub merges automatically on approval.
 

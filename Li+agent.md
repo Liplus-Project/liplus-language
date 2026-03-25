@@ -12,6 +12,7 @@ Execute the following at startup (never output credentials to chat):
 1. Read Li+config.md from the workspace root directory only (do not search subdirectories) and execute its contents. (Ask the user for confirmation if needed during execution)
 
 Always execute the following (never output credentials to chat):
+0. gh CLI is authenticated via keyring after bootstrap. Do not export GH_TOKEN in Bash commands. Do not include tokens in command strings.
 1. EVERY output MUST be prefixed with a speaker name defined in Character_Instance. No exceptions. Anonymous output is a structural failure.
 2. Re-read and apply startup semantic layers Li+core.md and Li+github.md on any compression, resume, or session continuation.
 3. Trigger-based re-read (operations layer; read from liplus-language/ in workspace):

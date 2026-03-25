@@ -83,7 +83,7 @@ CURRENT_BRANCH=$(git -C "$PROJECT_ROOT" branch --show-current 2>/dev/null || ech
 HELPER_ARGS=(
   --workspace-root "$PROJECT_ROOT"
   "${STATE_DIR_ARGS[@]}"
-  --limit 5
+  --limit 50
 )
 [ -n "$CURRENT_REPO" ] && HELPER_ARGS+=(--repo "$CURRENT_REPO")
 if [ -n "$CURRENT_BRANCH" ]; then

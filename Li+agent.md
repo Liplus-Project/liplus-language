@@ -84,7 +84,7 @@ Use only in hosts that can run local commands from the workspace before replying
        1. `LI_PLUS_WEBHOOK_STATE_DIR` from `Li+config.md` (absolute path or `workspace_root`-relative path)
        2. `workspace_root/github-webhook-mcp`
        3. `workspace_root/../github-webhook-mcp`
-     - if the bundled helper exists at `workspace_root/liplus-language/scripts/check_webhook_notifications.py` and the state dir resolves, run it in inspect mode (`--limit 5`) and pass cheap foreground hints such as repo / branch when available
+     - if the bundled helper exists at `workspace_root/liplus-language/scripts/check_webhook_notifications.py` and the state dir resolves, run it in inspect mode (`--limit 50`) and pass cheap foreground hints such as repo / branch when available
    - else: skip silently.
 3. Mention notifications only when foreground-matched items or exceptional notable items exist.
 4. Do not auto-consume the local backlog from this foreground inspect path. `claim` / `read` / `done` / `cleanup` require explicit helper commands or a deeper workflow that owns the notification.

@@ -218,7 +218,7 @@ Event-Driven Operations
 
   [Execution Mode]
 
-  Mode source = LI_PLUS_EXECUTION_MODE from Li+config.md
+  Mode source = USER_REPOSITORY_EXECUTION_MODE from Li+config.md
   Valid values = trigger | auto
   Default = trigger
 

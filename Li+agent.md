@@ -18,13 +18,20 @@ Always execute the following (never output credentials to chat):
 3. Trigger-based re-read (operations layer; read from liplus-language/ in workspace):
    Every trigger MUST re-read the file. Never rely on prior context or memory. Always open and read the actual file.
    on_issue: Read Li+github.md#Issue_Flow section before proceeding
-   on_branch: Read Li+operations.md#Branch_And_Label_Flow section before proceeding
-   on_commit: Read Li+operations.md#Commit_Rules section before proceeding
-   on_pr: Read Li+operations.md#PR_Creation section before proceeding
-   on_ci: Read Li+operations.md#CI_Loop section before proceeding
-   on_review: Read Li+operations.md#PR_Review section before proceeding
-   on_merge: Read Li+operations.md#Merge section before proceeding
-   on_release: Read Li+operations.md#Human_Confirmation_Required section before proceeding
+   Pre-push triggers (file changes — delegable to subagent):
+     on_branch/on_commit:
+       If subagent capability is available:
+         Delegate the operations work to a subagent. Do not read Li+operations.md in the main context.
+         After subagent completion, review the diff before pushing.
+       Otherwise:
+         on_branch: Read Li+operations.md#Branch_And_Label_Flow before proceeding
+         on_commit: Read Li+operations.md#Commit_Rules before proceeding
+   Post-push triggers (remote state — always main agent):
+     on_pr: Read Li+operations.md#PR_Creation section before proceeding
+     on_ci: Read Li+operations.md#CI_Loop section before proceeding
+     on_review: Read Li+operations.md#PR_Review section before proceeding
+     on_merge: Read Li+operations.md#Merge section before proceeding
+     on_release: Read Li+operations.md#Human_Confirmation_Required section before proceeding
 4. Character_Instance
 #######################################################
 LIN_CONTEXT:
@@ -64,6 +71,26 @@ Precedence:
 Keep scope local:
 - do not infer host workspace language contract from liplus-language repository internal Japanese governance
 - changing this workspace contract does not rewrite liplus-language repository rules
+#######################################################
+6. Subagent_Delegation
+#######################################################
+Optimization for long sessions. Not required. If subagent capability is unavailable, all work proceeds normally in the main context.
+
+Purpose:
+- Fresh subagent context prevents attention dilution on operations rules.
+- Subagent = Operations Layer execution worker. Same model, clean context.
+- Main agent retains Model Layer + Task Layer (dialogue, requirements, issue management, review).
+
+When delegating to a subagent, convey:
+- Read Li+operations.md before any action.
+- Issue number, repository, branch name, working directory.
+- Which files may be edited (scope constraint).
+- Commit but do not push (main reviews and pushes).
+
+Main agent responsibility after subagent completion:
+- Review the diff.
+- Fix problems if found.
+- Push only after review passes.
 #######################################################
 
 # --- Li+ END ---

@@ -46,6 +46,9 @@ Skipped if {workspace_root}/.claude/settings.json already contains "UserPromptSu
 
 ```bash
 #!/bin/bash
+# Source: Li+claude.md (liplus-language repository, Adapter Layer)
+# This hook implements Character_Instance re-notify and webhook check from Li+claude.md.
+# When modifying this file, update Li+claude.md as the source of truth.
 export PATH="$HOME/.local/bin:$PATH"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 CLAUDE_MD="$PROJECT_ROOT/.claude/CLAUDE.md"
@@ -69,6 +72,9 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 
 ```bash
 #!/bin/bash
+# Source: Li+claude.md (liplus-language repository, Adapter Layer)
+# This hook implements the trigger-based re-read mapping defined in Li+claude.md.
+# When modifying this file, update Li+claude.md as the source of truth.
 export PATH="$HOME/.local/bin:$PATH"
 INPUT=$(cat)
 TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
@@ -76,6 +82,11 @@ COMMAND=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/nul
 
 [[ "$TOOL_NAME" == "Bash" ]] || exit 0
 [ -n "$COMMAND" ] || exit 0
+
+# Extract only the first line of the command, stripping heredoc markers.
+# Heredoc bodies contain user data (issue bodies, commit messages) that
+# must not be matched against trigger patterns.
+CMD_LINE=$(printf '%s' "$COMMAND" | head -1 | sed 's/<<.*$//')
 
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
@@ -131,7 +142,7 @@ repo_from_origin() {
 }
 
 # on_branch: linked branch / local branch create → Li+operations.md Branch_And_Label_Flow re-read
-if echo "$COMMAND" | grep -qE 'gh issue develop|git switch -c|git checkout -b'; then
+if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? issue develop|git switch -c|git checkout -b'; then
   CONTEXT=$(get_section \
     "on_branch: Branch_And_Label_Flow re-read" \
     "$OPERATIONS_MD" \
@@ -142,7 +153,7 @@ if echo "$COMMAND" | grep -qE 'gh issue develop|git switch -c|git checkout -b'; 
 fi
 
 # on_pr: gh pr create → full Li+operations.md re-read + sub-issue auto-append
-if echo "$COMMAND" | grep -q 'gh pr create'; then
+if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? pr create'; then
   CONTEXT=$(get_full_file "on_pr: Operations layer re-read" "$OPERATIONS_MD")
 
   OUTPUT=$(printf '%s' "$INPUT" | jq -r '.tool_response.output // empty' 2>/dev/null)
@@ -199,7 +210,7 @@ ${APPEND_MSG}"
 fi
 
 # on_issue: gh issue → Li+github.md Issue_Flow section re-read
-if echo "$COMMAND" | grep -qE 'gh (issue|api .*/issues)'; then
+if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? (issue|api .*/issues)'; then
   CONTEXT=$(get_section \
     "on_issue: Issue_Flow re-read" \
     "$GITHUB_MD" \
@@ -210,7 +221,7 @@ if echo "$COMMAND" | grep -qE 'gh (issue|api .*/issues)'; then
 fi
 
 # on_commit: git commit → Li+operations.md Commit_Rules section re-read
-if echo "$COMMAND" | grep -q 'git commit'; then
+if echo "$CMD_LINE" | grep -q 'git commit'; then
   CONTEXT=$(get_section \
     "on_commit: Commit_Rules re-read" \
     "$OPERATIONS_MD" \
@@ -221,7 +232,7 @@ if echo "$COMMAND" | grep -q 'git commit'; then
 fi
 
 # on_merge: gh pr merge → Li+operations.md Merge_And_Cleanup section re-read
-if echo "$COMMAND" | grep -q 'gh pr merge'; then
+if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? pr merge'; then
   CONTEXT=$(get_section \
     "on_merge: Merge re-read" \
     "$OPERATIONS_MD" \
@@ -232,7 +243,7 @@ if echo "$COMMAND" | grep -q 'gh pr merge'; then
 fi
 
 # on_release: gh release create → Li+operations.md Human_Confirmation_Required section re-read
-if echo "$COMMAND" | grep -q 'gh release create'; then
+if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? release create'; then
   CONTEXT=$(get_section \
     "on_release: Human_Confirmation_Required re-read" \
     "$OPERATIONS_MD" \

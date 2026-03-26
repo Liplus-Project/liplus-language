@@ -18,13 +18,19 @@ Always execute the following (never output credentials to chat):
 3. Trigger-based re-read (operations layer; read from liplus-language/ in workspace):
    Every trigger MUST re-read the file. Never rely on prior context or memory. Always open and read the actual file.
    on_issue: Read Li+github.md#Issue_Flow section before proceeding
-   on_branch: Read Li+operations.md#Branch_And_Label_Flow section before proceeding
-   on_commit: Read Li+operations.md#Commit_Rules section before proceeding
-   on_pr: Read Li+operations.md#PR_Creation section before proceeding
-   on_ci: Read Li+operations.md#CI_Loop section before proceeding
-   on_review: Read Li+operations.md#PR_Review section before proceeding
-   on_merge: Read Li+operations.md#Merge section before proceeding
-   on_release: Read Li+operations.md#Human_Confirmation_Required section before proceeding
+   on_branch/on_commit/on_pr/on_ci/on_review/on_merge/on_release:
+     If subagent capability is available:
+       Delegate the operations work to a subagent. Do not read Li+operations.md in the main context.
+       After subagent completion, review the diff before pushing.
+     Otherwise:
+       Read the corresponding Li+operations.md section before proceeding (fallback).
+       on_branch: Branch_And_Label_Flow
+       on_commit: Commit_Rules
+       on_pr: PR_Creation
+       on_ci: CI_Loop
+       on_review: PR_Review
+       on_merge: Merge
+       on_release: Human_Confirmation_Required
 4. Character_Instance
 #######################################################
 LIN_CONTEXT:
@@ -67,32 +73,23 @@ Keep scope local:
 #######################################################
 6. Subagent_Delegation
 #######################################################
-When delegating Operations Layer work to a subagent:
+Optimization for long sessions. Not required. If subagent capability is unavailable, all work proceeds normally in the main context.
 
 Purpose:
-- Fresh context prevents attention dilution on long sessions.
+- Fresh subagent context prevents attention dilution on operations rules.
 - Subagent = Operations Layer execution worker. Same model, clean context.
-- Main agent retains Model Layer + Task Layer (dialogue, requirements, issue management).
+- Main agent retains Model Layer + Task Layer (dialogue, requirements, issue management, review).
 
-Prompt requirements for subagent:
-- Instruct subagent to read Li+operations.md in full before any action. This is non-negotiable.
-- Include: target issue number, repository owner/repo, branch name (if already created), and specific task scope.
-- Include: gh CLI path and authentication note (keyring-based, no GH_TOKEN export).
-- Include: working directory (absolute path).
-- Specify which file(s) the subagent may edit. Subagent must not touch files outside its declared scope.
-- Do not pass full Li+core.md or Li+github.md. Subagent does not need Model Layer or Task Layer context.
+When delegating to a subagent, convey:
+- Read Li+operations.md before any action.
+- Issue number, repository, branch name, working directory.
+- Which files may be edited (scope constraint).
+- Commit but do not push (main reviews and pushes).
 
-Subagent behavioral constraints:
-- Subagent follows Li+operations.md Commit Rules (ASCII English title, Japanese body with issue number).
-- Subagent commits but does not push unless explicitly instructed (to allow parallel worktree operation).
-- Subagent does not interact with human. All human interaction goes through main agent.
-- Subagent reports results concisely to main agent upon completion.
-
-Parallel execution (worktree pattern):
-- Each subagent operates in its own worktree on a shared session branch or separate sub-issue branches.
-- Subagents do not coordinate with each other. Independence is enforced by issue scope separation.
-- Main agent is responsible for merge judgment and conflict resolution after subagent completion.
-- GitHub CI verifies independence of each PR.
+Main agent responsibility after subagent completion:
+- Review the diff.
+- Fix problems if found.
+- Push only after review passes.
 #######################################################
 
 # --- Li+ END ---

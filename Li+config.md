@@ -3,7 +3,14 @@
 ## ユーザー設定（ここを編集してください）
 
 GH_TOKEN=github_pat_XXXX
+
+### あなたのプロジェクトリポジトリ
 USER_REPOSITORY=owner/repository-name
+### 実行モード: trigger（人間主導）または auto（AI自律）
+### 未設定の場合、セッション開始時にAIが聞いて自動設定します
+# USER_REPOSITORY_EXECUTION_MODE=trigger
+
+### Li+ 本体（変更不要）
 LI_PLUS_REPOSITORY=Liplus-Project/liplus-language
 
 ### 取得モード: api（軽量）または clone（ローカルで動作）
@@ -11,10 +18,6 @@ LI_PLUS_MODE=clone
 
 ### チャンネル: latest（安定版）または release（プレリリース含む最新版）
 LI_PLUS_CHANNEL=release
-
-### 実行モード: trigger（人間主導）または auto（AI自律）
-### 未設定の場合、セッション開始時にAIが聞いて自動設定します
-# LI_PLUS_EXECUTION_MODE=trigger
 
 ### 基本言語: このworkspaceで人間と対話する時の既定言語
 ### 未設定の場合、セッション開始時にAIが聞いて自動設定します

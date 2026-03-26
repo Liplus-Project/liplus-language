@@ -113,6 +113,13 @@ Issue Rules
 
   Ask human when required information is missing.
 
+  [PR Review Judgment]
+
+  Main agent judges PR review results without reading Li+operations.md.
+  Judgment basis = issue body + PR diff + CI result.
+  APPROVED → proceed (delegate merge execution to subagent if available).
+  CHANGES_REQUESTED → read review comments, judge against issue requirements, delegate fix to subagent.
+
   -----------
   evolution
   -----------

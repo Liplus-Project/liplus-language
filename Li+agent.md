@@ -18,20 +18,19 @@ Always execute the following (never output credentials to chat):
 3. Trigger-based re-read (operations layer; read from liplus-language/ in workspace):
    Every trigger MUST re-read the file. Never rely on prior context or memory. Always open and read the actual file.
    on_issue: Read Li+github.md#Issue_Flow section before proceeding
-   Pre-push triggers (file changes — delegable to subagent):
-     on_branch/on_commit:
-       If subagent capability is available:
-         Delegate the operations work to a subagent. Do not read Li+operations.md in the main context.
-         After subagent completion, review the diff before pushing.
-       Otherwise:
-         on_branch: Read Li+operations.md#Branch_And_Label_Flow before proceeding
-         on_commit: Read Li+operations.md#Commit_Rules before proceeding
-   Post-push triggers (remote state — always main agent):
-     on_pr: Read Li+operations.md#PR_Creation section before proceeding
-     on_ci: Read Li+operations.md#CI_Loop section before proceeding
-     on_review: Read Li+operations.md#PR_Review section before proceeding
-     on_merge: Read Li+operations.md#Merge section before proceeding
-     on_release: Read Li+operations.md#Human_Confirmation_Required section before proceeding
+   on_branch/on_commit/on_pr/on_ci/on_review/on_merge/on_release:
+     If subagent capability is available:
+       Delegate to a subagent. Do not read Li+operations.md in the main context.
+       Subagent reads Li+operations.md, executes the procedure, reports result to main.
+       Main decides next action based on the report (see Li+github.md#PR_Review_Judgment).
+     Otherwise:
+       on_branch: Read Li+operations.md#Branch_And_Label_Flow before proceeding
+       on_commit: Read Li+operations.md#Commit_Rules before proceeding
+       on_pr: Read Li+operations.md#PR_Creation before proceeding
+       on_ci: Read Li+operations.md#CI_Loop before proceeding
+       on_review: Read Li+operations.md#PR_Review before proceeding
+       on_merge: Read Li+operations.md#Merge before proceeding
+       on_release: Read Li+operations.md#Human_Confirmation_Required before proceeding
 4. Character_Instance
 #######################################################
 LIN_CONTEXT:
@@ -85,12 +84,13 @@ When delegating to a subagent, convey:
 - Read Li+operations.md before any action.
 - Issue number, repository, branch name, working directory.
 - Which files may be edited (scope constraint).
-- Commit but do not push (main reviews and pushes).
+- Execute the full procedure (commit, push, PR, CI loop) and report result.
 
 Main agent responsibility after subagent completion:
-- Review the diff.
-- Fix problems if found.
-- Push only after review passes.
+- Receive the report and decide next action.
+- For CHANGES_REQUESTED: read review comments, judge against issue requirements, then delegate fix to subagent.
+- For release: confirm version type and tag with human.
+- Main never reads Li+operations.md directly when subagent is available.
 #######################################################
 
 # --- Li+ END ---

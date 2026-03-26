@@ -18,19 +18,20 @@ Always execute the following (never output credentials to chat):
 3. Trigger-based re-read (operations layer; read from liplus-language/ in workspace):
    Every trigger MUST re-read the file. Never rely on prior context or memory. Always open and read the actual file.
    on_issue: Read Li+github.md#Issue_Flow section before proceeding
-   on_branch/on_commit/on_pr/on_ci/on_review/on_merge/on_release:
-     If subagent capability is available:
-       Delegate the operations work to a subagent. Do not read Li+operations.md in the main context.
-       After subagent completion, review the diff before pushing.
-     Otherwise:
-       Read the corresponding Li+operations.md section before proceeding (fallback).
-       on_branch: Branch_And_Label_Flow
-       on_commit: Commit_Rules
-       on_pr: PR_Creation
-       on_ci: CI_Loop
-       on_review: PR_Review
-       on_merge: Merge
-       on_release: Human_Confirmation_Required
+   Pre-push triggers (file changes — delegable to subagent):
+     on_branch/on_commit:
+       If subagent capability is available:
+         Delegate the operations work to a subagent. Do not read Li+operations.md in the main context.
+         After subagent completion, review the diff before pushing.
+       Otherwise:
+         on_branch: Read Li+operations.md#Branch_And_Label_Flow before proceeding
+         on_commit: Read Li+operations.md#Commit_Rules before proceeding
+   Post-push triggers (remote state — always main agent):
+     on_pr: Read Li+operations.md#PR_Creation section before proceeding
+     on_ci: Read Li+operations.md#CI_Loop section before proceeding
+     on_review: Read Li+operations.md#PR_Review section before proceeding
+     on_merge: Read Li+operations.md#Merge section before proceeding
+     on_release: Read Li+operations.md#Human_Confirmation_Required section before proceeding
 4. Character_Instance
 #######################################################
 LIN_CONTEXT:

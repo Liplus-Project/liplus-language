@@ -65,6 +65,35 @@ Keep scope local:
 - do not infer host workspace language contract from liplus-language repository internal Japanese governance
 - changing this workspace contract does not rewrite liplus-language repository rules
 #######################################################
+6. Subagent_Delegation
+#######################################################
+When delegating Operations Layer work to a subagent:
+
+Purpose:
+- Fresh context prevents attention dilution on long sessions.
+- Subagent = Operations Layer execution worker. Same model, clean context.
+- Main agent retains Model Layer + Task Layer (dialogue, requirements, issue management).
+
+Prompt requirements for subagent:
+- Instruct subagent to read Li+operations.md in full before any action. This is non-negotiable.
+- Include: target issue number, repository owner/repo, branch name (if already created), and specific task scope.
+- Include: gh CLI path and authentication note (keyring-based, no GH_TOKEN export).
+- Include: working directory (absolute path).
+- Specify which file(s) the subagent may edit. Subagent must not touch files outside its declared scope.
+- Do not pass full Li+core.md or Li+github.md. Subagent does not need Model Layer or Task Layer context.
+
+Subagent behavioral constraints:
+- Subagent follows Li+operations.md Commit Rules (ASCII English title, Japanese body with issue number).
+- Subagent commits but does not push unless explicitly instructed (to allow parallel worktree operation).
+- Subagent does not interact with human. All human interaction goes through main agent.
+- Subagent reports results concisely to main agent upon completion.
+
+Parallel execution (worktree pattern):
+- Each subagent operates in its own worktree on a shared session branch or separate sub-issue branches.
+- Subagents do not coordinate with each other. Independence is enforced by issue scope separation.
+- Main agent is responsible for merge judgment and conflict resolution after subagent completion.
+- GitHub CI verifies independence of each PR.
+#######################################################
 
 # --- Li+ END ---
 

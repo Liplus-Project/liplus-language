@@ -120,6 +120,25 @@ Issue Rules
   APPROVED → proceed (delegate merge execution to subagent if available).
   CHANGES_REQUESTED → read review comments, judge against issue requirements, delegate fix to subagent.
 
+  [Subagent Delegation]
+
+  Parent agent delegates implementation and operations to subagent.
+  Parent retains: issue creation, issue management, review judgment.
+  Subagent executes: branch, commit, push, PR, CI loop, merge.
+
+  Instruction granularity:
+  Convey issue number, repository, intent.
+  Do not specify branch name, commit message, or step-by-step procedure.
+  Subagent reads Li+operations.md and decides execution details.
+  Detailed parent instructions risk conflicting with operations rules.
+
+  Branch linking:
+  gh issue develop targets child issue, not parent.
+  Reason: PR merge auto-closes the linked issue. Linking parent causes premature parent close.
+
+  If subagent capability is unavailable:
+  Parent executes operations directly. All rules still apply.
+
   -----------
   evolution
   -----------

@@ -55,76 +55,12 @@ if [ -f "$CLAUDE_MD" ]; then
   sed -n '/^4\. Character_Instance/,/^5\. Workspace_Language_Contract/p' "$CLAUDE_MD" | head -n -1
 fi
 
-# --- Webhook notification check ---
-PYTHON=$(command -v python3 2>/dev/null || command -v python 2>/dev/null || echo python3)
-HELPER="$PROJECT_ROOT/liplus-language/scripts/check_webhook_notifications.py"
-[ -f "$HELPER" ] || exit 0
-
-repo_from_origin() {
-  git -C "$PROJECT_ROOT" remote get-url origin 2>/dev/null \
-    | grep -oE '[^/@:]+/[^/]+$' \
-    | sed 's/\.git$//' 2>/dev/null || echo ""
-}
-
-# Parse config values from Li+config.md
-CONFIG_MD="$PROJECT_ROOT/Li+config.md"
-STATE_DIR_ARGS=()
-CONFIG_REPO=""
-if [ -f "$CONFIG_MD" ]; then
-  VAL=$(grep -E '^LI_PLUS_WEBHOOK_STATE_DIR=' "$CONFIG_MD" | head -1 | cut -d'=' -f2-)
-  [ -n "$VAL" ] && STATE_DIR_ARGS=(--state-dir "$VAL")
-  CONFIG_REPO=$(grep -E '^LI_PLUS_REPOSITORY=' "$CONFIG_MD" | head -1 | cut -d'=' -f2-)
-fi
-
-CURRENT_REPO=$(repo_from_origin)
-[ -z "$CURRENT_REPO" ] && CURRENT_REPO="$CONFIG_REPO"
-CURRENT_BRANCH=$(git -C "$PROJECT_ROOT" branch --show-current 2>/dev/null || echo "")
-
-HELPER_ARGS=(
-  --workspace-root "$PROJECT_ROOT"
-  "${STATE_DIR_ARGS[@]}"
-  --limit 50
-)
-[ -n "$CURRENT_REPO" ] && HELPER_ARGS+=(--repo "$CURRENT_REPO")
-if [ -n "$CURRENT_BRANCH" ]; then
-  HELPER_ARGS+=(--branch "$CURRENT_BRANCH" --infer-numbers-from-branch)
-fi
-
-RESULT=$("$PYTHON" "$HELPER" "${HELPER_ARGS[@]}" 2>/dev/null)
-[ -z "$RESULT" ] && exit 0
-
-DISPLAY_LINES=$(printf '%s' "$RESULT" | "$PYTHON" -c '
-import json
-import sys
-
-SUCCESS = {"success", "skipped", "neutral"}
-data = json.load(sys.stdin)
-seen = set()
-lines = []
-for bucket, label in (("relevant_items", "foreground"), ("notable_items", "notable")):
-    for item in data.get(bucket, []):
-        event_id = item.get("id")
-        if event_id in seen:
-            continue
-        if bucket == "relevant_items":
-            if item.get("type") in {"check_run", "workflow_run"} and item.get("conclusion") in SUCCESS:
-                continue
-        seen.add(event_id)
-        number = item.get("number")
-        title = item.get("title") or item.get("type") or "notification"
-        event_type = item.get("type") or "event"
-        prefix = f"#{number} " if number is not None else ""
-        lines.append(f"[{label}] {event_type} {prefix}{title}")
-print("\\n".join(lines))
-' 2>/dev/null)
-if [ -z "$DISPLAY_LINES" ]; then
-  exit 0
-fi
-
+# --- Webhook notification reminder ---
 echo ""
-echo "━━━ Webhook: foreground/notable notification(s) ━━━"
-printf '%s\n' "$DISPLAY_LINES"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "━━━ Webhook: check pending notifications ━━━"
+echo "Run mcp__github-webhook-mcp__get_pending_status silently."
+echo "Report only foreground-relevant or notable items."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 ```
 
 ## post-tool-use.sh

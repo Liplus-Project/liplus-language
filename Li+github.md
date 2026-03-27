@@ -86,16 +86,11 @@ Issue Rules
   Parent close condition is structural = all child issues closed except deferred.
 
   Sub-issue = AI-trackable work unit.
-  Sub-issue does not get its own branch.
-  Session branch links to parent issue.
-  Multiple child issues can share one session branch.
-  Session branch = branch-side external memory and handoff surface.
-  Another AI may continue from parent issue + linked branch without relying on prior chat memory.
   Split by responsibility, not granularity.
+  Branch rules for sub-issues: see Li+operations.md Branch_And_Label_Flow.
 
   Simultaneous tasks require parent-child structure:
   If multiple tasks in same session = create parent issue + sub-issues.
-  Reason: gh issue develop links only one issue per branch.
   Do not create multiple independent issues for simultaneous work.
 
   Sub-issue API:
@@ -130,9 +125,14 @@ Issue Rules
   Subagent executes: branch, implementation, commit, push, PR, CI loop, merge.
 
   Convey to subagent:
-  Li+core.md path, Li+operations.md path, issue number, repository, intent.
-  Do not convey: Li+github.md, step-by-step procedure, branch name, commit message.
-  Subagent reads Li+core.md and Li+operations.md, then decides execution details.
+  Li+core.md path, issue URL.
+  Do not convey: Li+github.md, Li+operations.md path, step-by-step procedure, branch name, commit message, intent.
+  Intent is already in issue body.
+  Subagent reads Li+core.md, then hook chain drives the rest:
+    self-assign → on_issue fires → Li+github.md loaded
+    branch create → on_branch fires → Li+operations.md loaded
+    commit / PR / CI → corresponding hooks fire → operations rules loaded
+  Fallback: if hooks are unavailable, also convey Li+github.md path and Li+operations.md path.
   Detailed parent instructions risk conflicting with operations rules.
 
   Issue body update:
@@ -142,9 +142,7 @@ Issue Rules
   Failure reporting:
   On failure, subagent writes failure report as issue comment. Format is not specified.
 
-  Branch linking:
-  gh issue develop targets child issue, not parent.
-  Reason: PR merge auto-closes the linked issue. Linking parent causes premature parent close.
+  Branch linking: see Li+operations.md Branch_And_Label_Flow.
 
   If subagent capability is unavailable:
   Parent executes operations directly. All rules still apply.

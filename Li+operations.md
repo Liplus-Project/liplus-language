@@ -136,6 +136,11 @@ Event-Driven Operations
 
   [PR Creation]
 
+  Language:
+  Title = ASCII English only, single line.
+  Body  = Japanese.
+  Consistent with Commit Rules.
+
   PR body format:
     per issue block:
       line1 = "Refs #{issue_number}" or "Refs sub #{child_issue_number}"

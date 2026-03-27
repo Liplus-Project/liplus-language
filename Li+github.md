@@ -70,6 +70,9 @@ Issue Rules
     purpose
     premise
     constraints
+    target files (recommended at ready stage)
+  Target files = list of files expected to change, with dependency notes (e.g. source⇔docs).
+  Target files are optional during memo/forming. Recommended once issue reaches ready.
   memo/forming is not implementation-ready.
   Rewrite issue body whenever accepted understanding changes.
   Current source of truth = issue body + labels.

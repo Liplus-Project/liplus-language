@@ -82,10 +82,10 @@ Purpose:
 
 When delegating to a subagent, convey:
 - Li+core.md path and Li+operations.md path (subagent reads both before any action).
-- Issue number, repository, working directory, intent.
+- Li+github.md path, issue number, repository, working directory, intent.
 - Execute the full cycle (branch, implementation, commit, push, PR, CI loop) and report result.
-Do not convey: Li+github.md, branch name, commit message, step-by-step procedure, file scope constraint.
-Subagent reads the issue and operations rules, then decides execution details autonomously.
+Do not convey: branch name, commit message, step-by-step procedure, file scope constraint.
+Subagent reads the issue, Li+github.md, and operations rules, then decides execution details autonomously.
 
 Subagent issue management:
 - Subagent may update issue body when premise or constraints change during implementation.

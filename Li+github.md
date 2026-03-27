@@ -130,9 +130,9 @@ Issue Rules
   Subagent executes: branch, implementation, commit, push, PR, CI loop, merge.
 
   Convey to subagent:
-  Li+core.md path, Li+operations.md path, issue number, repository, intent.
-  Do not convey: Li+github.md, step-by-step procedure, branch name, commit message.
-  Subagent reads Li+core.md and Li+operations.md, then decides execution details.
+  Li+core.md path, Li+github.md path, Li+operations.md path, issue number, repository, intent.
+  Do not convey: step-by-step procedure, branch name, commit message.
+  Subagent reads Li+core.md, Li+github.md, and Li+operations.md, then decides execution details.
   Detailed parent instructions risk conflicting with operations rules.
 
   Issue body update:

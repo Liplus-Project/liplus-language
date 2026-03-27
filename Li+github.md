@@ -142,9 +142,7 @@ Issue Rules
   Failure reporting:
   On failure, subagent writes failure report as issue comment. Format is not specified.
 
-  Branch linking:
-  gh issue develop targets child issue, not parent.
-  Reason: PR merge auto-closes the linked issue. Linking parent causes premature parent close.
+  Branch linking: see Li+operations.md Branch_And_Label_Flow.
 
   If subagent capability is unavailable:
   Parent executes operations directly. All rules still apply.

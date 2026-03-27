@@ -209,6 +209,17 @@ ${APPEND_MSG}"
   exit 0
 fi
 
+# on_branch (assignees): assign = act now = start of branch work → Li+operations.md Branch_And_Label_Flow
+if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? (issue assign|api .*/issues/.*/assignees)'; then
+  CONTEXT=$(get_section \
+    "on_branch: Branch_And_Label_Flow re-read (assignees)" \
+    "$OPERATIONS_MD" \
+    "Branch And Label Flow" \
+    "Docs And Requirement Ownership")
+  emit_context "$CONTEXT"
+  exit 0
+fi
+
 # on_issue: gh issue → Li+github.md Issue_Flow section re-read
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? (issue|api .*/issues)'; then
   CONTEXT=$(get_section \

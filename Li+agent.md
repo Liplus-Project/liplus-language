@@ -81,10 +81,16 @@ Purpose:
 - Main agent retains Model Layer + Task Layer (dialogue, requirements, issue management, review).
 
 When delegating to a subagent, convey:
-- Read Li+operations.md before any action.
-- Issue number, repository, branch name, working directory.
-- Which files may be edited (scope constraint).
-- Execute the full procedure (commit, push, PR, CI loop) and report result.
+- Li+core.md path and Li+operations.md path (subagent reads both before any action).
+- Issue number, repository, working directory, intent.
+- Execute the full cycle (branch, implementation, commit, push, PR, CI loop) and report result.
+Do not convey: Li+github.md, branch name, commit message, step-by-step procedure, file scope constraint.
+Subagent reads the issue and operations rules, then decides execution details autonomously.
+
+Subagent issue management:
+- Subagent may update issue body when premise or constraints change during implementation.
+- Subagent must not change labels or close issues.
+- On failure, subagent writes failure report as issue comment.
 
 Main agent responsibility after subagent completion:
 - Receive the report and decide next action.

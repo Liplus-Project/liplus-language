@@ -123,14 +123,21 @@ Issue Rules
   [Subagent Delegation]
 
   Parent agent delegates implementation and operations to subagent.
-  Parent retains: issue creation, issue management, review judgment.
-  Subagent executes: branch, commit, push, PR, CI loop, merge.
+  Parent retains: issue creation, issue management (labels, close), review judgment.
+  Subagent executes: branch, implementation, commit, push, PR, CI loop, merge.
 
-  Instruction granularity:
-  Convey issue number, repository, intent.
-  Do not specify branch name, commit message, or step-by-step procedure.
-  Subagent reads Li+operations.md and decides execution details.
+  Convey to subagent:
+  Li+core.md path, Li+operations.md path, issue number, repository, intent.
+  Do not convey: Li+github.md, step-by-step procedure, branch name, commit message.
+  Subagent reads Li+core.md and Li+operations.md, then decides execution details.
   Detailed parent instructions risk conflicting with operations rules.
+
+  Issue body update:
+  Subagent may update issue body when premise or constraints change during implementation.
+  Subagent must not change labels or close issues.
+
+  Failure reporting:
+  On failure, subagent writes failure report as issue comment. Format is not specified.
 
   Branch linking:
   gh issue develop targets child issue, not parent.

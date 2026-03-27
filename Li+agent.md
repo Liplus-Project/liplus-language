@@ -88,7 +88,7 @@ Subagent reads Li+core.md, then hook chain drives the rest:
   self-assign → on_issue fires → Li+github.md loaded
   branch create → on_branch fires → Li+operations.md loaded
   commit / PR / CI → corresponding hooks fire → operations rules loaded
-Fallback: if hooks are unavailable, also convey Li+operations.md path.
+Fallback: if hooks are unavailable, also convey Li+github.md path and Li+operations.md path.
 
 Subagent issue management:
 - Subagent may update issue body when premise or constraints change during implementation.

@@ -132,7 +132,7 @@ Issue Rules
     self-assign → on_issue fires → Li+github.md loaded
     branch create → on_branch fires → Li+operations.md loaded
     commit / PR / CI → corresponding hooks fire → operations rules loaded
-  Fallback: if hooks are unavailable, also convey Li+operations.md path.
+  Fallback: if hooks are unavailable, also convey Li+github.md path and Li+operations.md path.
   Detailed parent instructions risk conflicting with operations rules.
 
   Issue body update:

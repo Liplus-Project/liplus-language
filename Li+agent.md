@@ -83,27 +83,8 @@ Keep scope local:
 #######################################################
 7. Subagent_Delegation
 #######################################################
-Optimization for long sessions. Not required. If subagent capability is unavailable, all work proceeds normally in the main context.
-
-Purpose:
-- Fresh subagent context prevents attention dilution on operations rules.
-- Subagent = Operations Layer execution worker. Same model, clean context.
-- Main agent retains Model Layer + Task Layer (dialogue, requirements, issue management, review).
-
-When delegating to a subagent, convey:
-- Li+core.md path, issue URL.
-Do not convey: Li+github.md, Li+operations.md path, branch name, commit message, step-by-step procedure, intent, file scope constraint.
-Intent is already in issue body.
-Subagent reads Li+core.md, then hook chain drives the rest:
-  self-assign → on_issue fires → Li+github.md loaded
-  branch create → on_branch fires → Li+operations.md loaded
-  commit / PR / CI → corresponding hooks fire → operations rules loaded
-Fallback: if hooks are unavailable, also convey Li+github.md path and Li+operations.md path.
-
-Subagent issue management:
-- Subagent may update issue body when premise or constraints change during implementation.
-- Subagent must not change labels or close issues.
-- On failure, subagent writes failure report as issue comment.
+Delegation semantics (what to convey, what to retain, hook chain, issue management, failure reporting)
+are defined in Li+github.md [Subagent Delegation]. This section covers adapter-layer execution details only.
 
 Main agent responsibility after subagent completion:
 - Receive the report and decide next action.

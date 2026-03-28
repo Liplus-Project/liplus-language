@@ -69,16 +69,18 @@ Event-Driven Operations
   gh issue develop must precede first push to GitHub.
 
   Sub-issue branch rules:
-  Sub-issue does not get its own branch.
-  Session branch links to parent issue.
-  Multiple child issues can share one session branch.
+  Each child issue gets its own branch via gh issue develop.
+  Session branch links to child issue, not parent.
+  Parallel and serial execution follow the same rule (difference is only timing).
+  Parent issue does not get a branch link (parent role = structural management; close when all children close).
   Session branch = branch-side external memory and handoff surface.
-  Another AI may continue from parent issue + linked branch without relying on prior chat memory.
-  Reason: gh issue develop links only one issue per branch.
+  Another AI may continue from child issue + linked branch without relying on prior chat memory.
+  Parallel execution: conflict resolution is each agent's rebase responsibility.
 
   Branch linking target:
   gh issue develop targets child issue, not parent.
   Reason: PR merge auto-closes the linked issue. Linking parent causes premature parent close.
+  gh issue develop links one issue per branch = platform constraint (new rule aligns with this).
 
   On local error:
   gh issue develop may fail locally but succeed on GitHub side.

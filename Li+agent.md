@@ -137,3 +137,23 @@ Use only in hosts that can run local commands from the workspace before replying
 4. Do not auto-consume the local backlog from this foreground inspect path. `claim` / `read` / `done` / `cleanup` require explicit helper commands or a deeper workflow that owns the notification.
 5. Do not launch a separate AI process for webhook replies from this foreground flow.
 6. Do not open the full webhook payload unless deeper inspection is actually needed.
+
+### Self-action notification processing
+
+Self-action notifications are webhook events caused by the agent's own operations (or subagent operations). These are arrival confirmations, not external events requiring judgment.
+
+Self-action notifications are exempt from the auto-consume prohibition in rule 4 above. Rule 4 prohibits deep processing and unsolicited draining of shared backlog. Marking self-evident own-operation results as processed is inspect-scope housekeeping.
+
+Identification criteria — all must hold:
+- sender is the agent's own account (or a subagent's account)
+- the event corresponds in time and content to an operation the agent just performed (e.g. issue edit -> `issues.edited`, commit push -> `check_run` / `workflow_job`, PR create -> `pull_request.opened`)
+- governance CI transitions (`queued` -> `in_progress` -> `completed`) triggered as side effects of issue/PR operations are self-action by extension
+
+Processing rule:
+- inspect the notification, confirm it matches a self-action, then mark it as processed (`mark_processed` / `consume/done`)
+- do not accumulate self-action notifications for bulk clearing later
+- external notifications (other users, bots, events not matching own operations) follow the existing foreground rules unchanged
+
+Runtime branching:
+- if subagent and background execution are available: delegate self-action notification processing to a background subagent after each operation, so the main context's dialogue is not interrupted. Only foreground-relevant or judgment-required items are reported back to main.
+- if subagent is unavailable: the main agent processes self-action notifications at the next turn's foreground check. Notifications identifiable as self-action are marked processed immediately during that check.

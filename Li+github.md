@@ -55,6 +55,22 @@ Issue Rules
   Do not touch: issues marked as permanent reference.
   Ask human when required information is missing.
 
+  [Milestone Rules]
+
+  Milestone = release unit. Groups issues that ship together.
+  Every issue must have a milestone at creation time.
+  If no milestone fits = ask human which milestone, or whether to create new one.
+
+  Milestone naming = version number (e.g. v1.2.0).
+  Milestone description = one-line theme + bullet list of scope.
+
+  Create milestone when: new release scope is decided by human.
+  Close milestone when: release is published.
+  Do not close milestone before release.
+
+  Sub-issues inherit parent milestone.
+  If parent has milestone and child does not = assign same milestone to child.
+
   [Label Definitions]
 
   Lifecycle:

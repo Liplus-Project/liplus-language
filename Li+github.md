@@ -29,6 +29,32 @@ Issue Rules
   Github
   --------
 
+  [Working with Issues]
+
+  [Source of Truth]
+
+  All work starts from issue.
+  No commit or PR without issue number.
+  Issue is primarily authored by AI. Human may also create issues, but default author = AI.
+  Issue body = latest requirements snapshot, not history log.
+  Comments are secondary. Fold durable information back into body.
+  Current source of truth = issue body + labels.
+  No implementation in issue.
+  No reuse of unrelated issue = create new issue instead.
+
+  [Issue Management]
+
+  Issue is internal TODO = assignee manages without waiting for instruction.
+  Create issue when: bug found, spec gap found, task split needed, dialogue yields durable work memo, or Li+ spec improvement noticed during dialogue.
+  Li+ spec improvement issue threshold = same as memory-level observation. Do not overthink. Use memo label.
+  Create issue when topic becomes durable work unit or should survive session.
+  Human does not need to say "make issue" or equivalent trigger phrase.
+  Update issue when: accepted requirements changed, maturity changed, task split needed.
+  Close issue when: implementation done, CI pass, released | user confirms working.
+  Keep open when: operational testing in progress.
+  Do not touch: issues marked as permanent reference.
+  Ask human when required information is missing.
+
   [Label Definitions]
 
   Lifecycle:
@@ -51,20 +77,16 @@ Issue Rules
   Label evolves over time. Label is for AI readability.
   Full label policy and retired labels: see Li+operations.md
 
-  [Issue Flow]
+  [Issue Operations]
+
+  [Issue Format]
 
   Issue title language:
   Title = ASCII English only.
   Body  = LI_PLUS_PROJECT_LANGUAGE.
   Consistent with Commit Rules and PR title convention.
 
-  All work starts from issue.
-  No commit or PR without issue number.
-  Issue is primarily authored by AI. Human may also create issues, but default author = AI.
-  Issue body = latest requirements snapshot, not history log.
   Issue may start from memo. Three fields are convergence target, not creation gate.
-  Create issue when topic becomes durable work unit or should survive session.
-  Human does not need to say "make issue" or equivalent trigger phrase.
   Use only necessary headings. Do not force empty sections.
   Canonical convergence for implementation issue:
     purpose
@@ -73,17 +95,20 @@ Issue Rules
     target files (recommended at ready stage)
   Target files = list of files expected to change, with dependency notes (e.g. source⇔docs).
   Target files are optional during memo/forming. Recommended once issue reaches ready.
-  memo/forming is not implementation-ready.
   Rewrite issue body whenever accepted understanding changes.
-  Current source of truth = issue body + labels.
   Issue completion is managed through issue state plus PR/CI/release flow, not a dedicated issue-body field.
-  Comments are secondary. Fold durable information back into body.
-  No implementation in issue.
-  No reuse of unrelated issue = create new issue instead.
 
+  Checklist = human judgment required (real device test, operational verification).
+  Use checklist only when AI cannot judge.
+
+  [Issue Maturity]
+
+  memo/forming is not implementation-ready.
   Parent issue may also start from memo.
   Converged parent issue contents: purpose, premise, constraints.
   Parent close condition is structural = all child issues closed except deferred.
+
+  [Sub-issue Rules]
 
   Sub-issue = AI-trackable work unit.
   Split by responsibility, not granularity.
@@ -92,24 +117,6 @@ Issue Rules
   Simultaneous tasks require parent-child structure:
   If multiple tasks in same session = create parent issue + sub-issues.
   Do not create multiple independent issues for simultaneous work.
-
-  Sub-issue API:
-  get_id:  gh api repos/{owner}/{repo}/issues/{number} --jq '.id'
-  add:     gh api repos/{owner}/{repo}/issues/{parent}/sub_issues --method POST -f sub_issue_id={id}
-
-  Checklist = human judgment required (real device test, operational verification).
-  Use checklist only when AI cannot judge.
-
-  Autonomous issue management:
-  Issue is internal TODO = assignee manages without waiting for instruction.
-  Create issue when: bug found, spec gap found, task split needed, dialogue yields durable work memo, or Li+ spec improvement noticed during dialogue.
-  Li+ spec improvement issue threshold = same as memory-level observation. Do not overthink. Use memo label.
-  Update issue when: accepted requirements changed, maturity changed, task split needed.
-  Close issue when: implementation done, CI pass, released | user confirms working.
-  Keep open when: operational testing in progress.
-  Do not touch: issues marked as permanent reference.
-
-  Ask human when required information is missing.
 
   [PR Review Judgment]
 

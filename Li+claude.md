@@ -55,7 +55,20 @@ CLAUDE_MD="$PROJECT_ROOT/.claude/CLAUDE.md"
 
 # --- Always Character Platform re-notify ---
 if [ -f "$CLAUDE_MD" ]; then
-  sed -n '/^4\. Character_Instance/,/^5\. Workspace_Language_Contract/p' "$CLAUDE_MD" | head -n -1
+  sed -n '/^5\. Character_Instance/,/^6\. Workspace_Language_Contract/p' "$CLAUDE_MD" | head -n -1
+fi
+
+# --- Working with Issues constant injection ---
+LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
+GITHUB_MD="$LIPLUS_DIR/Li+github.md"
+if [ -f "$GITHUB_MD" ]; then
+  WORKING_ISSUES=$(sed -n '/\[Working with Issues\]/,/\[Label Definitions\]/p' "$GITHUB_MD" | head -n -1)
+  if [ -n "$WORKING_ISSUES" ]; then
+    echo ""
+    echo "━━━ Working with Issues (constant load) ━━━"
+    echo "$WORKING_ISSUES"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  fi
 fi
 
 # --- Webhook notification reminder ---
@@ -220,14 +233,51 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? (issue assign|api .*/issues/.*/assign
   exit 0
 fi
 
-# on_issue: gh issue → Li+github.md Issue_Flow section re-read
-if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? (issue|api .*/issues)'; then
+# on_issue (create/edit): gh issue create/edit → Li+github.md Issue_Format + Sub-issue_Rules
+if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? issue (create|edit)'; then
   CONTEXT=$(get_section \
-    "on_issue: Issue_Flow re-read" \
+    "on_issue (create/edit): Issue_Format re-read" \
     "$GITHUB_MD" \
-    "Issue Flow" \
-    "evolution")
+    "Issue Format" \
+    "Issue Maturity")
+  SUB=$(print_section "$GITHUB_MD" "Sub-issue Rules" "PR Review Judgment")
+  if [ -n "$SUB" ]; then
+    CONTEXT="${CONTEXT}
+$(printf '━━━ on_issue (create/edit): Sub-issue_Rules re-read ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$SUB")"
+  fi
   emit_context "$CONTEXT"
+  exit 0
+fi
+
+# on_issue (sub-issue API): gh api .*/sub_issues → Li+github.md Sub-issue_Rules
+if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? api .*/sub_issues'; then
+  CONTEXT=$(get_section \
+    "on_issue (sub-issue): Sub-issue_Rules re-read" \
+    "$GITHUB_MD" \
+    "Sub-issue Rules" \
+    "PR Review Judgment")
+  emit_context "$CONTEXT"
+  exit 0
+fi
+
+# on_issue (view): gh issue view/list → Li+github.md Issue_Maturity + Sub-issue_Rules
+if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? (issue (view|list)|api .*/issues)'; then
+  CONTEXT=$(get_section \
+    "on_issue (view): Issue_Maturity re-read" \
+    "$GITHUB_MD" \
+    "Issue Maturity" \
+    "Sub-issue Rules")
+  SUB=$(print_section "$GITHUB_MD" "Sub-issue Rules" "PR Review Judgment")
+  if [ -n "$SUB" ]; then
+    CONTEXT="${CONTEXT}
+$(printf '━━━ on_issue (view): Sub-issue_Rules re-read ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$SUB")"
+  fi
+  emit_context "$CONTEXT"
+  exit 0
+fi
+
+# on_issue (close): no re-read required — exit silently
+if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? issue close'; then
   exit 0
 fi
 

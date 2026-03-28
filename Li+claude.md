@@ -25,6 +25,17 @@ Skipped if {workspace_root}/.claude/settings.json already contains "UserPromptSu
         ]
       }
     ],
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/on-session-start.sh\""
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Bash",
@@ -77,6 +88,27 @@ echo "━━━ Webhook: check pending notifications ━━━"
 echo "Run mcp__github-webhook-mcp__get_pending_status silently."
 echo "Report only foreground-relevant or notable items."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+```
+
+## on-session-start.sh
+
+{workspace_root}/.claude/hooks/on-session-start.sh:
+
+```bash
+#!/bin/bash
+# Source: Li+claude.md (liplus-language repository, Adapter Layer)
+# This hook re-injects Li+core.md into context after compact.
+# When modifying this file, update Li+claude.md as the source of truth.
+PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
+LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
+CORE_MD="$LIPLUS_DIR/Li+core.md"
+
+if [ -f "$CORE_MD" ]; then
+  echo "━━━ SessionStart(compact): Li+core.md re-injection ━━━"
+  cat "$CORE_MD"
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+fi
 ```
 
 ## post-tool-use.sh

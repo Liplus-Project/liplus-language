@@ -8,11 +8,11 @@ Layer = Operations Layer
 Event-driven operations surface over the shared Li+ program
 Requires = Model Layer + Task Layer + Li+config.md
 Load timing = event-driven (not every session)
-Read when: branch creation, commit, PR, merge, release, milestone/label assignment, Discussions reference.
+Read when: branch creation, commit, PR, merge, release, label assignment, Discussions reference.
 
 Foregrounds:
   branch / commit / PR / merge / release procedures
-  milestone / notifications / webhook intake procedures
+  notifications / webhook intake procedures
 
 Reads through:
   issue semantics and label vocabulary from Li+github.md
@@ -360,34 +360,6 @@ Event-Driven Operations
     mark_processed own-operation events promptly during foreground check or after the triggering operation.
     do not accumulate own-operation events for bulk clearing later.
     external events (other users, bots) = preserve for foreground reporting or explicit handling.
-
-#######################################################
-
-Milestone
-
-#######################################################
-
-  --------
-  Rules
-  --------
-
-Milestone = release unit. Groups issues that ship together.
-Every issue must have a milestone at creation time.
-If no milestone fits = ask human which milestone, or whether to create new one.
-
-Milestone naming = version number (e.g. v1.2.0).
-Milestone description = one-line theme + bullet list of scope.
-
-  --------
-  Lifecycle
-  --------
-
-Create milestone when: new release scope is decided by human.
-Close milestone when: release is published.
-Do not close milestone before release.
-
-Sub-issues inherit parent milestone.
-If parent has milestone and child does not = assign same milestone to child.
 
 #######################################################
 

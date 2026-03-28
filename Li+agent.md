@@ -110,6 +110,24 @@ Main agent responsibility after subagent completion:
 - For CHANGES_REQUESTED: read review comments, judge against issue requirements, then delegate fix to subagent.
 - For release: confirm version type and tag with human.
 - Main never reads Li+operations.md directly when subagent is available.
+
+Worktree parallel execution:
+Optional optimization for parallel delegation (2+ subagents).
+Serial delegation does not require worktrees.
+
+Lifecycle — main agent owns all worktree operations:
+  1. Create branch: `gh issue develop` (establishes issue link). One branch per issue.
+  2. Create worktree: `git worktree add workspace/.worktrees/{repo}-{issue_number}/ {branch_name}`
+  3. Delegate: convey worktree absolute path in addition to standard delegation info.
+  4. Subagent works entirely within the given worktree path. Subagent does not create, move, or remove worktrees.
+  5. Cleanup: after PR merge, `git worktree remove`. Across sessions, existing worktrees may be reused.
+
+Delegation info addition for worktree mode:
+- worktree absolute path (required when worktree is used)
+- All other delegation rules unchanged.
+
+Constraint:
+- `EnterWorktree` (host feature) switches session-wide CWD. Not suitable for parallel subagents. Use raw `git worktree add` + absolute paths.
 #######################################################
 
 # --- Li+ END ---

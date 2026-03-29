@@ -66,7 +66,7 @@ CLAUDE_MD="$PROJECT_ROOT/.claude/CLAUDE.md"
 
 # --- Always Character Platform re-notify ---
 if [ -f "$CLAUDE_MD" ]; then
-  sed -n '/^5\. Character_Instance/,/^6\. Workspace_Language_Contract/p' "$CLAUDE_MD" | head -n -1
+  sed -n '/^1\. Character_Instance/,/^2\. EVERY output/p' "$CLAUDE_MD" | head -n -1
 fi
 
 # --- Working with Issues constant injection ---

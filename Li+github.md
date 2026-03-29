@@ -134,6 +134,13 @@ Issue Rules
   If multiple tasks in same session = create parent issue + sub-issues.
   Do not create multiple independent issues for simultaneous work.
 
+  Parallel conflict analysis:
+  When multiple ready issues exist = analyze target files for overlap before execution.
+  No overlap = parallel-safe. Propose parallel sub-issue structure to human.
+  Partial overlap = propose splitting shared-file changes into a separate integration sub-issue.
+  Integration sub-issue executes after parallel sub-issues complete (serialized dependency).
+  Analysis basis = target files field in issue body. If absent, infer from issue purpose and premise.
+
   [PR Review Judgment]
 
   Main agent judges PR review results without reading Li+operations.md.

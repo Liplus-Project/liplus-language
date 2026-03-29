@@ -128,7 +128,9 @@ Issue Rules
 
   Sub-issue = AI-trackable work unit.
   Split by responsibility, not granularity.
-  Branch rules for sub-issues: see Li+operations.md Branch_And_Label_Flow.
+
+  Branch-to-issue tree mapping: see Li+operations.md Branch_And_Label_Flow.
+  1 parent issue = 1 branch. Sub-issues commit on parent branch. No sub-issue branches.
 
   Simultaneous tasks require parent-child structure:
   If multiple tasks in same session = create parent issue + sub-issues.

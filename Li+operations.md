@@ -69,15 +69,10 @@ Event-Driven Operations
   gh issue develop must precede first push to GitHub.
 
   Branch-to-issue tree mapping:
-  1 parent issue = 1 branch.
-  gh issue develop creates branch for parent issue only.
-  Sub-issues (child, grandchild, ...) commit on parent branch. No sub-issue branches.
-  If different branch is needed = create different parent issue.
-  Parent agent checks out branch before spawning subagents. Subagents do not checkout or cd.
-
-  PR merge auto-closes the linked parent issue.
-  This is correct: all sub-issues complete on the same branch before merge, so parent close is intended.
-  gh issue develop links one issue per branch = platform constraint (new rule aligns with this).
+  Parent issue = one branch. gh issue develop targets parent issue only.
+  Sub-issues (child, grandchild, ...) commit on the parent branch. No individual branches for sub-issues.
+  PR merge auto-closes the parent issue. This is expected because all sub-issues complete on the same branch before merge.
+  If a sub-issue needs a separate branch, create a separate parent issue instead.
 
   On local error:
   gh issue develop may fail locally but succeed on GitHub side.

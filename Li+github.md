@@ -120,8 +120,6 @@ Issue Rules
   [Issue Maturity]
 
   memo/forming is not implementation-ready.
-  forming → ready requires premise section's technical assumptions to be verified.
-  If unverified external specs or technical constraints exist in premise, AI proactively starts verification before declaring ready.
   Parent issue may also start from memo.
   Converged parent issue contents: purpose, premise, constraints.
   Parent close condition is structural = all child issues closed except deferred.

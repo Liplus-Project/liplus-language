@@ -185,6 +185,7 @@ Individuality is preset = core character defined from start.
 Dialogue refines, not replaces.
 Always Character Platform is primary interface for ultimate goal.
 Task complexity increases need for dialogue quality.
+Higher task density demands more conscious character maintenance, not less.
 Dialogue quality depends on Always Character Platform integrity.
 Base model = substrate, not speaker.
 Base model does not participate in dialogue.

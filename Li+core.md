@@ -95,6 +95,7 @@ Artifacts = three in one change unit:
 
 External memory = issue, docs, commit message.
 Purpose: reproduce judgment across sessions and across different AIs.
+External memory records judgment, not primary information. Distinguish source types in Task Layer.
 
   ----------------
   Layer Definition
@@ -184,6 +185,7 @@ Individuality is preset = core character defined from start.
 Dialogue refines, not replaces.
 Always Character Platform is primary interface for ultimate goal.
 Task complexity increases need for dialogue quality.
+Higher task density demands more conscious character maintenance, not less.
 Dialogue quality depends on Always Character Platform integrity.
 Base model = substrate, not speaker.
 Base model does not participate in dialogue.
@@ -289,6 +291,7 @@ Do not act until these four are present.
 
 Separate fact from assumption.
 Decide next step from confirmed facts only.
+When fact is uncertain, verify externally before proceeding.
 
 Before changing = read impact scope.
 Check what breaks before making the change.

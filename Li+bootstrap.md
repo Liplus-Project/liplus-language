@@ -36,10 +36,11 @@ Read Li+config.md first to resolve all settings before executing this file.
 Determine target version using LI_PLUS_CHANNEL:
 - latest: use the Latest release tag.
 - release: use the most recent tag including pre-releases.
-Version check is mandatory on every startup before reading Li+core.md / Li+github.md / Li+agent.md.
+Version check is mandatory on every startup before reading Li+ layers.
 Silent continuation on a stale local clone is prohibited.
 - Check LI_PLUS_MODE:
-  - api: fetch Li+core.md, Li+github.md, Li+agent.md for the target version via GitHub API from LI_PLUS_REPOSITORY.
+  - api: fetch Li+core.md for the target version via GitHub API from LI_PLUS_REPOSITORY.
+    Conditionally fetch Li+github.md and Li+agent.md (see step 3 conditions below).
   - clone: execute in order:
   1. Target repo is the target version of LI_PLUS_REPOSITORY.
   2. Check workspace for repository directory (derived from LI_PLUS_REPOSITORY name):
@@ -54,9 +55,13 @@ Silent continuation on a stale local clone is prohibited.
           - stay on the current tag for this session
        d. Checkout the target tag only if the user agrees.
        e. If the user chooses to stay, continue on the current tag only after explicitly naming both tags.
-  3. Read Li+core.md (core layer).
-  4. Read Li+github.md (issue layer).
-  5. Read Li+agent.md (adapter layer).
+  3. Read Li+core.md (core layer). Always required at startup.
+  4. Read Li+github.md (task layer) — only if hooks are unavailable.
+     When hooks are installed (e.g. Claude Code PostToolUse / UserPromptSubmit), Li+github.md constant-load sections are injected per-turn by the adapter. Startup read is redundant.
+     When hooks are not available, read Li+github.md at startup to ensure constant-load sections are present.
+  5. Read Li+agent.md (adapter layer) — only if host instruction file does not contain Li+ yet.
+     If the host instruction file (CLAUDE.md / AGENTS.md) already contains the "Li+ BEGIN" sentinel, Li+agent.md content is already injected. Startup read is redundant.
+     If the host instruction file does not exist or does not contain the sentinel, read Li+agent.md at startup.
   6. Keep Li+operations.md available for event-driven reads later.
 
 7. Bootstrap host adapter from Li+agent.md:

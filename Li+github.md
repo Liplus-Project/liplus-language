@@ -148,6 +148,12 @@ Issue Rules
   Integration sub-issue executes after parallel sub-issues complete (serialized dependency).
   Analysis basis = target files field in issue body. If absent, infer from issue purpose and premise.
 
+  Sub-issue API:
+  gh issue develop targets parent issue only (branch creation).
+  Sub-issue linking uses REST API with internal numeric ID, not issue number.
+  sub_issue_id = gh api repos/{owner}/{repo}/issues/{number} --jq .id
+  Link: gh api repos/{owner}/{repo}/issues/{parent}/sub_issues --method POST --input - <<< '{"sub_issue_id": <id>}'
+
   [PR Review Judgment]
 
   Main agent judges PR review results without reading Li+operations.md.

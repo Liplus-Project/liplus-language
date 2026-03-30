@@ -24,8 +24,8 @@ Li+ addresses **what should be satisfied** — and governs how an AI prioritizes
 ## Quick Start
 
 1. Download `Li+config.md` from the [latest release](https://github.com/Liplus-Project/liplus-language/releases/latest)
-2. Place it in your workspace root
-3. Start a session — the AI bootstraps Li+ automatically
+2. Place it in your workspace root and edit the settings
+3. Start a session and tell the AI: "Execute the workspace Li+config.md" (first time requires security approval)
 
 See the [Installation Guide](https://github.com/Liplus-Project/liplus-language/wiki/C.-Installation) for details.
 

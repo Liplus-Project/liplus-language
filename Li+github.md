@@ -106,7 +106,8 @@ Issue Rules
 
   Context preservation:
     Choose retrieval path that preserves main working context.
-    Delegation to subagent is one option; direct search is another.
+    When subagent is available, prefer delegating research to subagent.
+    When subagent is unavailable, search directly.
     Strategy is environment-independent; execution means vary.
 
   [Issue Operations]

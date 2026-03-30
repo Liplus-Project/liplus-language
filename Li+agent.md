@@ -91,6 +91,10 @@ Keep scope local:
 Delegation semantics (what to convey, what to retain, hook chain, issue management, failure reporting)
 are defined in Li+github.md [Subagent Delegation]. This section covers adapter-layer execution details only.
 
+Research delegation:
+Prefer delegating research and verification tasks to subagents.
+This preserves the main context window for dialogue and judgment.
+
 Main agent responsibility after subagent completion:
 - Receive the report and decide next action.
 - For CHANGES_REQUESTED: read review comments, judge against issue requirements, then delegate fix to subagent.

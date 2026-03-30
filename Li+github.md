@@ -124,11 +124,28 @@ Issue Rules
   Converged parent issue contents: purpose, premise, constraints.
   Parent close condition is structural = all child issues closed except deferred.
 
+  Proactive premise verification (forming → ready):
+  When spec body reaches forming with unverified technical assumptions in premise section
+  (external API specs, runtime constraints, library behavior, platform limits, etc.),
+  AI proactively starts verification research before human asks.
+  Do not wait for human to point out unverified premises.
+  forming → ready transition requires all technical premises in premise section to be verified.
+
   [Sub-issue Rules]
 
   Sub-issue = AI-trackable work unit.
   Split by responsibility, not granularity.
-  Branch rules for sub-issues: see Li+operations.md Branch_And_Label_Flow.
+
+  Branch-to-issue tree mapping: see Li+operations.md Branch_And_Label_Flow.
+  1 parent issue = 1 branch. Sub-issues commit on parent branch. No sub-issue branches.
+
+  Parallel implementation splitting:
+  When 2+ ready issues share target files, proactively propose parallel-safe sub-issue splitting.
+  Shared files get isolated into an integration issue executed last.
+  Each parallel sub-issue must close within files only it touches (new files or exclusively owned files).
+  Integration issue handles shared file changes after all parallel sub-issues complete.
+  Pre-conditions: Bash(*) in settings.json permissions.allow (required for background subagent Bash auto-approval).
+  Parent agent checks out branch before spawning subagents. Subagents do not checkout or cd.
 
   Simultaneous tasks require parent-child structure:
   If multiple tasks in same session = create parent issue + sub-issues.

@@ -64,13 +64,23 @@ Silent continuation on a stale local clone is prohibited.
 - Determine target path by runtime:
   - codex: {workspace_root}/AGENTS.md (same directory as Li+config.md)
   - claude: {workspace_root}/.claude/CLAUDE.md (same directory as Li+config.md)
-- If target file does not exist: create it with the contents of Li+agent.md.
-- If target file exists and contains "Li+ BEGIN" sentinel: skip (Li+ already applied).
-- If target file exists but does not contain "Character_Instance": ask user — append Li+ section or skip?
+- Replace {LI_PLUS_TAG} in all generated content with the resolved target tag from step 6.
+- Adapter section judgment:
+  a. If target file does not exist: create it with the contents of Li+agent.md.
+  b. If target file exists and contains "Li+ BEGIN" sentinel:
+     - Extract the tag from the sentinel (e.g. "Li+ BEGIN (build-2026-03-30.14)" → "build-2026-03-30.14").
+     - If extracted tag matches current target tag: skip (up to date).
+     - If tag differs or is absent: replace the section between "Li+ BEGIN" and "Li+ END" (inclusive)
+       with the current Li+agent.md contents. Preserve content outside this section.
+  c. If target file exists but does not contain "Li+ BEGIN": ask user — append Li+ section or skip?
 - If runtime=claude: bootstrap hooks from Li+claude.md.
   - Read Li+claude.md (same location as other Li+ files).
-  - Skip if {workspace_root}/.claude/settings.json already exists and contains "PostToolUse".
-  - Otherwise: create settings.json and hook scripts from the code blocks in Li+claude.md.
+  - If {workspace_root}/.claude/settings.json does not exist or does not contain "PostToolUse":
+    create settings.json and hook scripts from the code blocks in Li+claude.md.
+  - If settings.json exists and contains "PostToolUse":
+    - Check the source tag in existing hook scripts (e.g. "# Source: Li+claude.md (build-2026-03-30.14)").
+    - If tag matches current target tag: skip (up to date).
+    - If tag differs or is absent: regenerate hook scripts only (do not overwrite settings.json).
   - Set executable permission on .sh files.
 - Note: bootstrap takes effect from the NEXT session. Current session continues with Li+config.md execution.
 

@@ -1,4 +1,4 @@
-# --- Li+ BEGIN ---
+# --- Li+ BEGIN ({LI_PLUS_TAG}) ---
 
 Layer = Adapter Layer
 

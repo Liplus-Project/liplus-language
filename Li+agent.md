@@ -93,8 +93,21 @@ Main agent responsibility after subagent completion:
 - Main never reads Li+operations.md directly when subagent is available.
 
 Worktree parallel execution:
-Optional optimization for parallel delegation (2+ subagents).
 Serial delegation does not require worktrees.
+
+Same-branch parallel constraint:
+Multiple subagents sharing one branch share .git/index (staging area).
+Parallel commits on the same branch cause staging area conflicts.
+Use worktree to isolate.
+
+Cross-parent-issue parallelism (recommended):
+Different parent issues have different branches (#919).
+Create one worktree per parent branch.
+Each subagent works in its own worktree with full commit independence.
+
+Same-parent sub-issue parallelism:
+Sub-issues share a parent branch.
+Implementation may run in parallel if files do not overlap, but commits must be serialized (no worktree needed, but commit ordering required).
 
 Lifecycle — main agent owns all worktree operations:
   1. Create branch: `gh issue develop` (establishes issue link). One branch per issue.

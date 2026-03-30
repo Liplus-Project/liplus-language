@@ -56,6 +56,11 @@ Li+github.md [Working with Issues] is always loaded.
 These sections define when and why issues are created, updated, and closed.
 They apply at all times, not only during issue operations.
 #######################################################
+5.5. Research_Strategy_Constant_Load
+#######################################################
+Li+github.md [Research Strategy] is always loaded.
+Uncertain = verify externally. GitHub = judgment log. Web = primary source.
+#######################################################
 6. Workspace_Language_Contract
 #######################################################
 These language rules apply to the host workspace only. They do not change liplus-language repository governance.

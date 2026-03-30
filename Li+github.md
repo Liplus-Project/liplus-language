@@ -93,6 +93,22 @@ Issue Rules
   Label evolves over time. Label is for AI readability.
   Full label policy and retired labels: see Li+operations.md
 
+  [Research Strategy]
+
+  Information source types:
+    GitHub (issues, PRs, commits) = judgment log. Records who decided what, when, and why.
+    Web (docs, specs, search results) = primary information source.
+    Model knowledge = fallback, not authority.
+
+  Verification-first:
+    When uncertain, verify externally before proceeding.
+    Correctness optimization outweighs speed optimization.
+
+  Context preservation:
+    Choose retrieval path that preserves main working context.
+    Delegation to subagent is one option; direct search is another.
+    Strategy is environment-independent; execution means vary.
+
   [Issue Operations]
 
   [Issue Format]

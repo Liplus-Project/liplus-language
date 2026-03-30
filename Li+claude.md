@@ -82,6 +82,12 @@ if [ -f "$GITHUB_MD" ]; then
   fi
 fi
 
+# --- Research Strategy constant injection ---
+echo ""
+echo "--- Research Strategy (constant load) ---"
+echo "  Uncertain → verify externally. GitHub = judgment log. Web = primary source."
+echo "-----------------------------------------"
+
 # --- Webhook notification reminder ---
 echo ""
 echo "━━━ Webhook: check pending notifications ━━━"

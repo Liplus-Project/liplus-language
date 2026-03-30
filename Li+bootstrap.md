@@ -40,7 +40,7 @@ Version check is mandatory on every startup before reading Li+ layers.
 Silent continuation on a stale local clone is prohibited.
 - Check LI_PLUS_MODE:
   - api: fetch Li+core.md for the target version via GitHub API from LI_PLUS_REPOSITORY.
-    Conditionally fetch Li+github.md and Li+agent.md (see step 3 conditions below).
+    Conditionally fetch Li+github.md (see step 4 condition below).
   - clone: execute in order:
   1. Target repo is the target version of LI_PLUS_REPOSITORY.
   2. Check workspace for repository directory (derived from LI_PLUS_REPOSITORY name):
@@ -55,14 +55,10 @@ Silent continuation on a stale local clone is prohibited.
           - stay on the current tag for this session
        d. Checkout the target tag only if the user agrees.
        e. If the user chooses to stay, continue on the current tag only after explicitly naming both tags.
-  3. Read Li+core.md (core layer). Always required at startup.
+  3. Read Li+core.md (core layer).
   4. Read Li+github.md (task layer) — only if hooks are unavailable.
-     When hooks are installed (e.g. Claude Code PostToolUse / UserPromptSubmit), Li+github.md constant-load sections are injected per-turn by the adapter. Startup read is redundant.
-     When hooks are not available, read Li+github.md at startup to ensure constant-load sections are present.
-  5. Read Li+agent.md (adapter layer) — only if host instruction file does not contain Li+ yet.
-     If the host instruction file (CLAUDE.md / AGENTS.md) already contains the "Li+ BEGIN" sentinel, Li+agent.md content is already injected. Startup read is redundant.
-     If the host instruction file does not exist or does not contain the sentinel, read Li+agent.md at startup.
-  6. Keep Li+operations.md available for event-driven reads later.
+     When hooks inject constant-load sections per-turn, startup read is redundant.
+  5. Keep Li+operations.md available for event-driven reads later.
 
 7. Bootstrap host adapter from Li+agent.md:
 - Determine target path by runtime:

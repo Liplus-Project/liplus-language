@@ -119,7 +119,7 @@ AIが自動的に：
 5. GH_TOKENで認証
 6. `LI_PLUS_CHANNEL` に対応する対象バージョンを確認
 7. 既存 clone と対象バージョンがずれていれば、人間に更新するか確認
-8. Li+core.md を読み込み（常に必須）。Li+github.md は hookが無い環境のみ読み込み、Li+agent.md はホスト設定ファイルにLi+が未注入の場合のみ読み込み
+8. Li+core.md を読み込み（常に必須）。Li+github.md は hookが無い環境のみ読み込み
 9. 環境に応じた設定ファイルを自動生成
 
 詳細な起動ステップ定義は [C. Bootstrap](C.-Bootstrap) を参照します。

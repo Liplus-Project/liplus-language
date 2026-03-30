@@ -95,6 +95,7 @@ Artifacts = three in one change unit:
 
 External memory = issue, docs, commit message.
 Purpose: reproduce judgment across sessions and across different AIs.
+External memory records judgment, not primary information. Distinguish source types in Task Layer.
 
   ----------------
   Layer Definition
@@ -289,6 +290,7 @@ Do not act until these four are present.
 
 Separate fact from assumption.
 Decide next step from confirmed facts only.
+When fact is uncertain, verify externally before proceeding.
 
 Before changing = read impact scope.
 Check what breaks before making the change.

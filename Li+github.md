@@ -137,17 +137,7 @@ Issue Rules
 
   Sub-issue = AI-trackable work unit.
   Split by responsibility, not granularity.
-
-  Branch-to-issue tree mapping: see Li+operations.md Branch_And_Label_Flow.
-  1 parent issue = 1 branch. Sub-issues commit on parent branch. No sub-issue branches.
-
-  Parallel implementation splitting:
-  When 2+ ready issues share target files, proactively propose parallel-safe sub-issue splitting.
-  Shared files get isolated into an integration issue executed last.
-  Each parallel sub-issue must close within files only it touches (new files or exclusively owned files).
-  Integration issue handles shared file changes after all parallel sub-issues complete.
-  Pre-conditions: Bash(*) in settings.json permissions.allow (required for background subagent Bash auto-approval).
-  Parent agent checks out branch before spawning subagents. Subagents do not checkout or cd.
+  Branch-to-issue tree mapping: parent issue = one branch, sub-issues commit on parent branch. See Li+operations.md Branch_And_Label_Flow.
 
   Simultaneous tasks require parent-child structure:
   If multiple tasks in same session = create parent issue + sub-issues.

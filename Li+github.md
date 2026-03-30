@@ -151,8 +151,6 @@ Issue Rules
   Sub-issue API:
   gh issue develop targets parent issue only (branch creation).
   Sub-issue linking uses REST API with internal numeric ID, not issue number.
-  sub_issue_id = gh api repos/{owner}/{repo}/issues/{number} --jq .id
-  Link: gh api repos/{owner}/{repo}/issues/{parent}/sub_issues --method POST --input - <<< '{"sub_issue_id": <id>}'
 
   [PR Review Judgment]
 

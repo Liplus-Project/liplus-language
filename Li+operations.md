@@ -263,14 +263,17 @@ Event-Driven Operations
   Stop immediately when:
   human says wait or stop or matte.
 
-  CD check before release:
+  Release checks:
+  1. CD check:
     if mcp__github-webhook-mcp available:
       poll get_pending_status every 60 seconds
       on workflow_run pending: list_pending_events -> get_event -> check conclusion -> mark_processed
     else:
       Poll gh api until all CD checks complete.
-  CD pass = proceed to release create.
-  CD fail = escalate to human (do not release).
+    CD pass = proceed. CD fail = escalate to human (do not release).
+  2. Milestone check (if milestone exists for this release version):
+    Verify all issues in the milestone are closed.
+    Report milestone contents to human before proceeding.
 
   Always confirm before:
   release create (version type and target tag) (after CD check passes)

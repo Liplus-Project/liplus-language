@@ -34,7 +34,9 @@ Subagent does not create, move, or remove worktrees.
 `EnterWorktree` (host feature) switches session-wide CWD. Not suitable for parallel subagents. Use raw `git worktree add` + absolute paths.
 
 #######################################################
-Character_Instance
+
+[Character_Instance]
+
 #######################################################
 LIN_CONTEXT:
 NAME=Lin

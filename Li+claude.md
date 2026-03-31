@@ -67,7 +67,7 @@ CLAUDE_MD="$PROJECT_ROOT/.claude/CLAUDE.md"
 
 # --- Always Character Platform re-notify ---
 if [ -f "$CLAUDE_MD" ]; then
-  sed -n '/^LIN_CONTEXT:/,/^#######/p' "$CLAUDE_MD" | head -n -1
+  sed -n '/^Character_Instance$/{n;n;:a;/^#######/q;p;n;ba}' "$CLAUDE_MD"
 fi
 
 # --- Working with Issues constant injection ---

@@ -26,25 +26,30 @@ Issue Rules
 #######################################################
 
   --------
-  Github
+  Rules
   --------
+
+  All work starts from issue.
+  No commit or PR without issue number.
+  Issue body = latest requirements snapshot, not history log.
+  No implementation in issue.
+  No reuse of unrelated issue = create new issue instead.
+  Issue is primarily authored by AI. Human may also create issues, but default author = AI.
+  Comments are secondary. Fold durable information back into body.
+  Current source of truth = issue body + labels.
+
+  ----------------
+  Responsibilities
+  ----------------
 
   [Working with Issues]
 
   [Source of Truth]
 
-  All work starts from issue.
-  No commit or PR without issue number.
-  Issue is primarily authored by AI. Human may also create issues, but default author = AI.
-  Issue body = latest requirements snapshot, not history log.
-  Comments are secondary. Fold durable information back into body.
-  Current source of truth = issue body + labels.
-  No implementation in issue.
-  No reuse of unrelated issue = create new issue instead.
+  Issue is internal TODO = assignee manages without waiting for instruction.
 
   [Issue Management]
 
-  Issue is internal TODO = assignee manages without waiting for instruction.
   Create issue when: bug found, spec gap found, task split needed, dialogue yields durable work memo, or Li+ spec improvement noticed during dialogue.
   Li+ spec improvement issue threshold = same as memory-level observation. Do not overthink. Use memo label.
   Create issue when topic becomes durable work unit or should survive session.
@@ -55,23 +60,28 @@ Issue Rules
   Do not touch: issues marked as permanent reference.
   Ask human when required information is missing.
 
-  [Milestone Rules]
+  --------
+  Policies
+  --------
 
-  Milestone = release unit. Groups issues that ship together.
-  Every issue must have a milestone at creation time.
-  If no milestone fits = ask human which milestone, or whether to create new one.
+  Label evolves over time. Label is for AI readability.
+  Full label policy and retired labels: see Li+operations.md
 
-  Milestone naming = version number (e.g. v1.2.0).
-  Milestone description = one-line theme + bullet list of scope.
+#######################################################
 
-  Create milestone when: new release scope is decided by human.
-  Close milestone when: release is published.
-  Do not close milestone before release.
+Label Definitions
 
-  Sub-issues inherit parent milestone.
-  If parent has milestone and child does not = assign same milestone to child.
+#######################################################
 
-  [Label Definitions]
+  --------
+  Rules
+  --------
+
+  Description required on creation.
+
+  ----------------
+  Responsibilities
+  ----------------
 
   Lifecycle:
   in-progress = work started, implementation ongoing
@@ -89,11 +99,41 @@ Issue Rules
   spec        = language or system specification affecting Li+ behavior
   docs        = documentation change (no behavior impact)
 
-  Description required on creation.
-  Label evolves over time. Label is for AI readability.
-  Full label policy and retired labels: see Li+operations.md
+#######################################################
 
-  [Research Strategy]
+Milestone Rules
+
+#######################################################
+
+  --------
+  Rules
+  --------
+
+  Milestone = release unit. Groups issues that ship together.
+  Every issue must have a milestone at creation time.
+  Milestone naming = version number (e.g. v1.2.0).
+  Sub-issues inherit parent milestone.
+  If parent has milestone and child does not = assign same milestone to child.
+  Do not close milestone before release.
+
+  ----------------
+  Responsibilities
+  ----------------
+
+  If no milestone fits = ask human which milestone, or whether to create new one.
+  Milestone description = one-line theme + bullet list of scope.
+  Create milestone when: new release scope is decided by human.
+  Close milestone when: release is published.
+
+#######################################################
+
+Research Strategy
+
+#######################################################
+
+  --------
+  Policies
+  --------
 
   Information source types:
     GitHub (issues, PRs, commits) = judgment log. Records who decided what, when, and why.
@@ -110,14 +150,28 @@ Issue Rules
     When subagent is unavailable, search directly.
     Strategy is environment-independent; execution means vary.
 
+#######################################################
+
+Issue Operations
+
+#######################################################
+
   [Issue Operations]
 
   [Issue Format]
+
+  --------
+  Rules
+  --------
 
   Issue title language:
   Title = ASCII English only.
   Body  = LI_PLUS_PROJECT_LANGUAGE.
   Consistent with Commit Rules and PR title convention.
+
+  ----------------
+  Responsibilities
+  ----------------
 
   Issue may start from memo. Three fields are convergence target, not creation gate.
   Use only necessary headings. Do not force empty sections.
@@ -131,12 +185,25 @@ Issue Rules
   Rewrite issue body whenever accepted understanding changes.
   Issue completion is managed through issue state plus PR/CI/release flow, not a dedicated issue-body field.
 
+  --------
+  Policies
+  --------
+
   Checklist = human judgment required (real device test, operational verification).
   Use checklist only when AI cannot judge.
 
   [Issue Maturity]
 
+  --------
+  Rules
+  --------
+
   memo/forming is not implementation-ready.
+
+  ----------------
+  Responsibilities
+  ----------------
+
   Parent issue may also start from memo.
   Converged parent issue contents: purpose, premise, constraints.
   Parent close condition is structural = all child issues closed except deferred.
@@ -150,9 +217,21 @@ Issue Rules
 
   [Sub-issue Rules]
 
+  --------
+  Rules
+  --------
+
   Sub-issue = AI-trackable work unit.
   Split by responsibility, not granularity.
   Branch-to-issue tree mapping: parent issue = one branch, sub-issues commit on parent branch. See Li+operations.md Branch_And_Label_Flow.
+
+  Sub-issue API:
+  gh issue develop targets parent issue only (branch creation).
+  Sub-issue linking uses REST API with internal numeric ID, not issue number.
+
+  ----------------
+  Responsibilities
+  ----------------
 
   Simultaneous tasks require parent-child structure:
   If multiple tasks in same session = create parent issue + sub-issues.
@@ -165,27 +244,47 @@ Issue Rules
   Integration sub-issue executes after parallel sub-issues complete (serialized dependency).
   Analysis basis = target files field in issue body. If absent, infer from issue purpose and premise.
 
-  Sub-issue API:
-  gh issue develop targets parent issue only (branch creation).
-  Sub-issue linking uses REST API with internal numeric ID, not issue number.
+#######################################################
 
-  [PR Review Judgment]
+PR Review Judgment
+
+#######################################################
+
+  --------
+  Responsibilities
+  --------
 
   Main agent judges PR review results without reading Li+operations.md.
   Judgment basis = issue body + PR diff + CI result.
   APPROVED → proceed (delegate merge execution to subagent if available).
   CHANGES_REQUESTED → read review comments, judge against issue requirements, delegate fix to subagent.
 
-  [Subagent Delegation]
+#######################################################
+
+Subagent Delegation
+
+#######################################################
+
+  --------
+  Rules
+  --------
 
   Parent agent delegates implementation and operations to subagent.
   Parent retains: issue creation, issue management (labels, close), review judgment.
   Subagent executes: branch, implementation, commit, push, PR, CI loop, merge.
 
-  Convey to subagent:
-  Li+core.md path, issue URL.
   Do not convey: Li+github.md, Li+operations.md path, step-by-step procedure, branch name, commit message, intent.
   Intent is already in issue body.
+
+  Subagent must not change labels or close issues.
+
+  ----------------
+  Responsibilities
+  ----------------
+
+  Convey to subagent:
+  Li+core.md path, issue URL.
+
   Subagent reads Li+core.md, then hook chain drives the rest:
     self-assign → on_issue fires → Li+github.md loaded
     branch create → on_branch fires → Li+operations.md loaded
@@ -195,12 +294,15 @@ Issue Rules
 
   Issue body update:
   Subagent may update issue body when premise or constraints change during implementation.
-  Subagent must not change labels or close issues.
 
   Failure reporting:
   On failure, subagent writes failure report as issue comment. Format is not specified.
 
   Branch linking: see Li+operations.md Branch_And_Label_Flow.
+
+  --------
+  Policies
+  --------
 
   If subagent capability is unavailable:
   Parent executes operations directly. All rules still apply.

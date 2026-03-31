@@ -33,6 +33,36 @@ Event-Driven Operations
   on_merge     -> Merge
   on_release   -> Human Confirmation Required
 
+  --------
+  Rules
+  --------
+
+  Issue link via gh issue develop is always required.
+  gh issue develop must precede first push to GitHub.
+  Parent issue = one branch.
+  Sub-issues commit on the parent branch. No individual branches for sub-issues.
+  Commit title = ASCII English only, single line.
+  Japanese commit title is prohibited.
+  Commit body is not optional.
+  Commit body must contain: change summary + intent or background + issue number.
+  Minimum one Japanese sentence required in commit body.
+  English-only commit body is prohibited.
+  PR title = ASCII English only, single line.
+  PR body = Japanese.
+  Docs update must be in same PR as implementation. Split docs PR is prohibited.
+  docs/ is source of truth. Wiki is mirror, not source.
+  Requirements spec is not post-implementation follow-up.
+  Before implementation starts = create or update corresponding requirements spec first.
+  PR title must include impact scope.
+  AI-created release is always prerelease.
+  Latest promotion requires human judgment.
+  Release body = GitHub generated release notes. Pass --generate-notes. Do not pass empty body via --notes "".
+  mark_processed is mandatory for every consumed webhook event. Omission causes backlog accumulation.
+
+  --------
+  Responsibilities
+  --------
+
   [Branch And Label Flow]
 
   Trigger = human intent to act now detected via dialogue.
@@ -49,12 +79,6 @@ Event-Driven Operations
   Maturity labels  = how converged the issue body is.
   Do not use lifecycle labels as substitute for memo/forming/ready.
 
-  Repo-first execution surface:
-  Protected shared branches (example: main) = high-caution surface.
-  Personal issue-linked branch = normal implementation surface.
-  Do not treat the whole repository as untouchable.
-  Local validation may happen before or after push; it does not replace the branch as continuity surface.
-
   Branch existence check (before creation):
   local:  git branch --list {branch-name}
   remote: gh api repos/{owner}/{repo}/branches/{branch-name} (404=not_exists)
@@ -65,12 +89,9 @@ Event-Driven Operations
   Branch creation:
   command  = gh issue develop {issue_number} -R {owner}/{repo} --name {session-branch} --base main
   assignee = gh api repos/{owner}/{repo}/issues/{issue_number}/assignees --method POST -f 'assignees[]=liplus-lin-lay'
-  Issue link via gh issue develop is always required.
-  gh issue develop must precede first push to GitHub.
 
   Branch-to-issue tree mapping:
-  Parent issue = one branch. gh issue develop targets parent issue only.
-  Sub-issues (child, grandchild, ...) commit on the parent branch. No individual branches for sub-issues.
+  gh issue develop targets parent issue only.
   PR merge auto-closes the parent issue. This is expected because all sub-issues complete on the same branch before merge.
   If a sub-issue needs a separate branch, create a separate parent issue instead.
 
@@ -81,24 +102,12 @@ Event-Driven Operations
   If linked = use existing linked branch, do not create new branch.
   If not linked = retry or escalate.
 
-  Handoff continuity:
-  If token/session/model boundary may interrupt work = push useful intermediate state to the linked personal branch.
-  Handoff source of truth = issue body + linked branch + commits/PR.
-  Do not leave meaningful progress only in local workspace or chat memory.
-
   [Docs And Requirement Ownership]
 
-  docs/ is source of truth.
-  Wiki is mirror, not source.
-  Docs update must be in same PR as implementation.
-  Split docs PR is prohibited.
   Distribution projects must have requirements spec as minimum docs.
   New or small projects: one requirements spec file is minimum acceptable form.
   Larger projects may split requirements spec across multiple docs.
   Requirements spec fixes accepted purpose, premise, and constraints from issues.
-  Operational completion is managed by issue state plus PR/CI/release flow.
-  Requirements spec is not post-implementation follow-up.
-  Before implementation starts = create or update corresponding requirements spec first.
   For behavior change, bug fix, or spec change:
     update requirements spec first
     then update code and tests to implement and verify that spec delta
@@ -107,26 +116,11 @@ Event-Driven Operations
   Standalone memo or experiment log may exist, but it is not source of truth.
   Requirements spec may be split across multiple numbered docs when it improves readability.
 
-  PR title must include impact scope.
-  example bad  = "fix(config): negative duration handling"
-  example good = "fix(config): treat negative durations as below-minimum rather than error"
-
-  [Commit Rules]
-
-  Language:
-  Title = ASCII English only, single line
-  Body  = Japanese with issue number
-  Japanese title is prohibited.
-  English-only body is prohibited.
-
-  Body must contain:
-  change summary + intent or background + issue number.
-  Minimum one Japanese sentence required.
-  Body is not optional.
-
   Docs check on commit:
   If this commit changes spec (Li+*.md) or behavior code = verify docs/ has corresponding update.
   If not yet updated = add docs update before push. Do not defer to a separate PR.
+
+  [Commit And Push]
 
   Git push:
   primary          = git push origin {session-branch}:{target-branch}
@@ -136,16 +130,7 @@ Event-Driven Operations
   fallback_multi_3 = create commit: gh api .../git/commits
   fallback_multi_4 = update ref:   gh api .../git/refs/heads/{branch}
 
-  Chat output limit:
-  Long output may stop = physical limit, not corruption.
-  Use chunking when needed.
-
   [PR Creation]
-
-  Language:
-  Title = ASCII English only, single line.
-  Body  = Japanese.
-  Consistent with Commit Rules.
 
   PR body format:
     per issue block:
@@ -173,7 +158,6 @@ Event-Driven Operations
       poll get_pending_status every 60 seconds
       on check_run pending: list_pending_events -> get_event for check_run events -> verify sha match -> mark_processed
       collect conclusions until no in-flight check-runs remain
-      mark_processed is mandatory for every consumed event. Omission causes backlog accumulation.
     else:
       gh api repos/{owner}/{repo}/commits/{sha}/check-runs --jq '.check_runs[] | {name,status,conclusion}'
       repeat with sleep until: all status=="completed"
@@ -197,7 +181,6 @@ Event-Driven Operations
     if mcp__github-webhook-mcp available:
       poll get_pending_status every 60 seconds
       on pull_request_review pending: list_pending_events -> get_event for this PR -> check state -> mark_processed
-      mark_processed is mandatory for every consumed event. Omission causes backlog accumulation.
     else:
       Wait = human signals review done (do not poll).
       On signal:
@@ -226,6 +209,54 @@ Event-Driven Operations
 
   Real device test:
   Merge first. Then test on main. Not a merge gate.
+
+  [Human Confirmation Required]
+
+  Stop immediately when:
+  human says wait or stop or matte.
+
+  Always confirm before:
+  release create (version type and target tag) (after CD check passes)
+  branch delete (when linked issue may close)
+  force push
+  Mode-dependent confirm (trigger mode only): issue selection, issue execution start.
+
+  Release checks:
+  1. CD check:
+    if mcp__github-webhook-mcp available:
+      poll get_pending_status every 60 seconds
+      on workflow_run pending: list_pending_events -> get_event -> check conclusion -> mark_processed
+    else:
+      Poll gh api until all CD checks complete.
+    CD pass = proceed. CD fail = escalate to human (do not release).
+  2. Milestone check (if milestone exists for this release version):
+    Verify all issues in the milestone are closed.
+    Report milestone contents to human before proceeding.
+
+  Release version rule:
+  v0.x.x = initial development. Anything may change. Not a stable release.
+  v1.0.0 = first stable release (semver compliant).
+  patch = change that does not alter structure or API (fix / clarify / add rule)
+  minor = change that alters structure or API (restructure / new section / architectural change)
+  major = change with large impact on users. Human decides. Examples: breaking change, phase transition, UX overhaul.
+  AI proposes patch or minor. Human decides version type. AI executes.
+
+  Version base rule:
+  Base on most recent release = includes prereleases.
+  Not latest stable only.
+  Use: gh release list --limit 1 (includes prereleases)
+
+  Release tag and title rule:
+  Tag format and release title follow project convention.
+  Default (Li+ language): cd_tag = build-YYYY-MM-DD.N, title = "{version}" (e.g. "v1.9.0")
+  npm package projects: tag = v{semver}, title = "v{semver}"
+  If project has CD workflow that creates tags: use existing CD-created tag, do not create new tag.
+  If project uses npm version: tag is created by npm version command.
+  Check project docs/ or CI/CD config for convention before creating release.
+
+  --------
+  Policies
+  --------
 
   [Execution Mode]
 
@@ -258,56 +289,23 @@ Event-Driven Operations
 
   Release always requires human confirmation regardless of mode.
 
-  [Human Confirmation Required]
+  [Repo-first Execution Surface]
 
-  Stop immediately when:
-  human says wait or stop or matte.
+  Protected shared branches (example: main) = high-caution surface.
+  Personal issue-linked branch = normal implementation surface.
+  Do not treat the whole repository as untouchable.
+  Local validation may happen before or after push; it does not replace the branch as continuity surface.
 
-  Release checks:
-  1. CD check:
-    if mcp__github-webhook-mcp available:
-      poll get_pending_status every 60 seconds
-      on workflow_run pending: list_pending_events -> get_event -> check conclusion -> mark_processed
-    else:
-      Poll gh api until all CD checks complete.
-    CD pass = proceed. CD fail = escalate to human (do not release).
-  2. Milestone check (if milestone exists for this release version):
-    Verify all issues in the milestone are closed.
-    Report milestone contents to human before proceeding.
+  [Handoff Continuity]
 
-  Always confirm before:
-  release create (version type and target tag) (after CD check passes)
-  branch delete (when linked issue may close)
-  force push
-  Mode-dependent confirm (trigger mode only): issue selection, issue execution start.
+  If token/session/model boundary may interrupt work = push useful intermediate state to the linked personal branch.
+  Handoff source of truth = issue body + linked branch + commits/PR.
+  Do not leave meaningful progress only in local workspace or chat memory.
 
-  Release version rule:
-  v0.x.x = initial development. Anything may change. Not a stable release.
-  v1.0.0 = first stable release (semver compliant).
-  patch = change that does not alter structure or API (fix / clarify / add rule)
-  minor = change that alters structure or API (restructure / new section / architectural change)
-  major = change with large impact on users. Human decides. Examples: breaking change, phase transition, UX overhaul.
-  AI proposes patch or minor. Human decides version type. AI executes.
+  [Chat Output Limit]
 
-  Version base rule:
-  Base on most recent release = includes prereleases.
-  Not latest stable only.
-  Use: gh release list --limit 1 (includes prereleases)
-
-  Release tag and title rule:
-  Tag format and release title follow project convention.
-  Default (Li+ language): cd_tag = build-YYYY-MM-DD.N, title = "{version}" (e.g. "v1.9.0")
-  npm package projects: tag = v{semver}, title = "v{semver}"
-  If project has CD workflow that creates tags: use existing CD-created tag, do not create new tag.
-  If project uses npm version: tag is created by npm version command.
-  Check project docs/ or CI/CD config for convention before creating release.
-  AI-created release is always prerelease.
-  Latest promotion requires human judgment.
-
-  Release body rule:
-  body = GitHub generated release notes
-  Command requirement = pass --generate-notes
-  Do not pass empty body via --notes "".
+  Long output may stop = physical limit, not corruption.
+  Use chunking when needed.
 
   [Notifications API]
 
@@ -363,28 +361,33 @@ Label
 #######################################################
 
   --------
-  Policy
+  Rules
   --------
 
-Labels are for AI readability and filtering.
-Active label meanings belong to Li+github.md [Label Definitions].
-Every issue must have at least one type label at creation time.
-Every issue must have one maturity label at creation time.
-Lifecycle labels are applied when state changes.
+  Every issue must have at least one type label at creation time.
+  Every issue must have one maturity label at creation time.
+
+  --------
+  Responsibilities
+  --------
+
+  Lifecycle labels are applied when state changes.
+  Labels are for AI readability and filtering.
+  Active label meanings belong to Li+github.md [Label Definitions].
 
   --------
   Retired Labels
   --------
 
-done = retired. Redundant with issue closed state.
-tips = retired. Use docs label + issue body instead.
+  done = retired. Redundant with issue closed state.
+  tips = retired. Use docs label + issue body instead.
 
   --------
   Sync
   --------
 
-Li+github.md Label Definitions section references this document.
-If label set changes here, update Li+github.md to match.
+  Li+github.md Label Definitions section references this document.
+  If label set changes here, update Li+github.md to match.
 
 #######################################################
 

@@ -385,6 +385,49 @@ If human already placed a point in later or accepted:
   keep classification
   do not escalate without new fact
 
+  ----------------------------------
+  Requirement Deepening Judgment
+  ----------------------------------
+
+Binary decision: deepen or execute immediately.
+Deepen if any axis applies:
+
+reversibility    = high redo cost?      (released, public-facing, DB migration)
+impact scope     = wide blast radius?   (multi-file, multi-feature, API boundary crossing)
+confidence       = unverified premise?  (external API spec, runtime constraint, library behavior)
+
+No axis hit = execute immediately.
+
+Brake constraints:
+Do not question-flood simple tasks.
+When human is rushing, reduce friction, do not increase it.
+Deepening is natural conversation through Character_Instance, not structured interrogation.
+Read atmosphere for urgency cues.
+
+Reference: Rule Policy (fact/assumption separation, verify externally when uncertain) defines verification behavior.
+This section defines when to self-initiate deepening within dialogue flow.
+
+  --------------------------------
+  Web Search Judgment
+  --------------------------------
+
+Decide: search externally or answer from internalized knowledge.
+One-line rule: time-variant external facts = search. Stable internal concepts = answer directly.
+
+Search (external facts):
+1. information that changes over time (latest trends, prices, specs, best practices)
+2. external reality questions (what the world does, what is common, what is recent)
+3. value increases with citation (official guides, public document backing)
+4. high cost of error (information that affects design decisions)
+5. memory may be stale (fast-moving domains, new technology)
+
+No search (internalized knowledge):
+universal concept explanations
+stable design principles
+
+Reference: Research Strategy (Li+github.md) defines information source priority.
+This section defines when to initiate search autonomously.
+
   ---------------------------
   Pair Review Execution Model
   ---------------------------

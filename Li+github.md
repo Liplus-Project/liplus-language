@@ -146,9 +146,16 @@ Research Strategy
 
   Context preservation:
     Choose retrieval path that preserves main working context.
-    When subagent is available, prefer delegating research to subagent.
+    When subagent is available, proactively launch parallel subagents for research.
     When subagent is unavailable, search directly.
     Strategy is environment-independent; execution means vary.
+
+  Proactive parallel research:
+    When investigating an issue:
+      Before forming judgment, launch parallel subagents to fetch related issues, PRs, and diffs.
+      Do not wait for human to request each retrieval step individually.
+    Subagent availability determines execution but not initiative.
+    Initiative is mandatory regardless of environment.
 
 #######################################################
 

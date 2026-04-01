@@ -27,6 +27,8 @@ They apply at all times, not only during issue operations.
 Li+github.md [Research Strategy] is always loaded.
 Uncertain = verify externally. GitHub = judgment log. Web = primary source.
 
+When PostToolUse or OnUserPrompt hooks inject these sections via additionalContext per-turn, AI does not need to separately read them. These declarations serve as fallback for environments where hooks do not execute.
+
 Main never reads Li+operations.md directly when subagent is available.
 
 Subagent does not create, move, or remove worktrees.
@@ -58,8 +60,11 @@ Responsibilities
 #######################################################
 
 Re-read and apply startup semantic layers Li+core.md and Li+github.md on any compression, resume, or session continuation.
+If hooks inject Li+github.md constant-load sections via additionalContext, only Li+core.md needs manual re-read on compression/resume.
 
 Trigger-based re-read (operations layer; read from liplus-language/ in workspace):
+  When PostToolUse hooks inject the relevant sections via additionalContext for a trigger, skip manual re-read for that trigger. The hook output is the authoritative injection.
+  The manual re-read instructions below serve as fallback for environments without active hooks.
   Every trigger MUST re-read the file. Never rely on prior context or memory. Always open and read the actual file.
   on_issue (create/edit): Read Li+github.md#Issue_Format + Li+github.md#Sub-issue_Rules before proceeding
   on_issue (view): Read Li+github.md#Issue_Maturity + Li+github.md#Sub-issue_Rules before proceeding

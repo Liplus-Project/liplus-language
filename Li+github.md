@@ -61,7 +61,7 @@ Issue Rules
   Ask human when required information is missing.
 
   --------
-  Policies
+  Autonomy
   --------
 
   Label evolves over time. Label is for AI readability.
@@ -132,7 +132,7 @@ Research Strategy
 #######################################################
 
   --------
-  Policies
+  Autonomy
   --------
 
   Information source types:
@@ -186,7 +186,7 @@ Issue Operations
   Issue completion is managed through issue state plus PR/CI/release flow, not a dedicated issue-body field.
 
   --------
-  Policies
+  Autonomy
   --------
 
   Checklist = human judgment required (real device test, operational verification).
@@ -301,7 +301,7 @@ Subagent Delegation
   Branch linking: see Li+operations.md Branch_And_Label_Flow.
 
   --------
-  Policies
+  Autonomy
   --------
 
   If subagent capability is unavailable:

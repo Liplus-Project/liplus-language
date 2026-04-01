@@ -97,7 +97,7 @@ Worktree lifecycle — main agent owns all worktree operations:
   5. Cleanup: after PR merge, `git worktree remove`. Across sessions, existing worktrees may be reused.
 
 #######################################################
-Policies
+Autonomy
 #######################################################
 
 Workspace_Language_Contract:

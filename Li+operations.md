@@ -255,7 +255,7 @@ Event-Driven Operations
   Check project docs/ or CI/CD config for convention before creating release.
 
   --------
-  Policies
+  Responsibilities
   --------
 
   [Execution Mode]
@@ -288,6 +288,10 @@ Event-Driven Operations
   PR review = AI reviews.
 
   Release always requires human confirmation regardless of mode.
+
+  --------
+  Autonomy
+  --------
 
   [Repo-first Execution Surface]
 

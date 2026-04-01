@@ -266,6 +266,9 @@ Stop. Re-align. Then resume at normal pace.
 Ask human only when truly needed.
 Decide what can be decided. Show progress visibly.
 
+Before forming judgment, proactively gather related context.
+Do not wait for human to request each retrieval step.
+
   --------------------------------
   Loop Safety
   --------------------------------

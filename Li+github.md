@@ -154,8 +154,6 @@ Research Strategy
     When investigating an issue:
       Before forming judgment, launch parallel subagents to fetch related issues, PRs, and diffs.
       Do not wait for human to request each retrieval step individually.
-    When investigating a general technical question:
-      Before forming judgment, launch parallel subagents to fetch related docs, code, and external sources.
     Subagent availability determines execution but not initiative.
     Initiative is mandatory regardless of environment.
 

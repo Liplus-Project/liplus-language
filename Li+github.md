@@ -98,6 +98,7 @@ Label Definitions
   enhancement = new feature or request
   spec        = language or system specification affecting Li+ behavior
   docs        = documentation change (no behavior impact)
+  tips        = operational know-how memo not tied to a release milestone
 
 #######################################################
 
@@ -111,6 +112,7 @@ Milestone Rules
 
   Milestone = release unit. Groups issues that ship together.
   Every issue must have a milestone at creation time.
+  Exception: tips issues do not require a milestone.
   Milestone naming = version number (e.g. v1.2.0).
   Sub-issues inherit parent milestone.
   If parent has milestone and child does not = assign same milestone to child.

@@ -384,7 +384,6 @@ Label
   --------
 
   done = retired. Redundant with issue closed state.
-  tips = retired. Use docs label + issue body instead.
 
   --------
   Sync

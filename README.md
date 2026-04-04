@@ -78,6 +78,34 @@ Explanation, intention, or internal consistency do not constitute correctness.
 
 ---
 
+## Design Philosophy
+
+Li+ is a **dialogue-driven compiler** — not a specification-driven one.
+
+In specification-driven approaches, the human writes a detailed spec and the AI executes it faithfully. In Li+, the human just talks. The AI distills purpose, premises, and constraints from the conversation, structures them into issues, and compiles them into working software through CI-verified iteration.
+
+The rules in Li+ files are written **for the AI to read**, not for the human. Human learning cost is designed to approach zero — you talk, the AI handles the structure.
+
+### What's exchangeable
+
+Li+ does not depend on any specific tool in its stack:
+
+- **AI model** — Claude, GPT, Gemini, or future models
+- **Version control** — anything that tracks diffs
+- **CI/CD** — anything that runs automated verification
+- **Host** — Claude Code, Codex, or future environments
+- **Issue tracker** — anything that holds purpose, premises, and constraints
+
+What's *not* exchangeable: the principle that correctness is observable behavior, that requirements are distilled from dialogue, and that the human is the final judge.
+
+### Current limitations
+
+- No GitHub RAG yet — the AI must actively fetch issue state instead of having it as ambient context, making autonomous issue lifecycle management expensive
+- The "create freely, close freely" issue workflow depends on low-cost access to the full issue landscape
+- Some workflow transitions still benefit from a human nudge, even where rules permit full autonomy
+
+---
+
 ## Compatibility
 
 | Environment | Status | Notes |

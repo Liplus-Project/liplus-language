@@ -142,7 +142,8 @@ Event-Driven Operations
   Detail belongs in issue, not in PR.
 
   On PR created:
-  1 = if repository allows auto-merge: gh pr merge {pr} -R {owner}/{repo} --auto --squash
+  1 = if execution_mode == trigger and repository allows auto-merge:
+      gh pr merge {pr} -R {owner}/{repo} --auto --squash
   2 = proceed to [CI Loop] immediately, no human instruction required.
 
   [CI Loop]
@@ -176,17 +177,24 @@ Event-Driven Operations
       review basis = issue body + linked branch + PR diff + CI result
       local-only success does not close review
 
-  Review approval check:
-    Prefer webhook over polling.
-    if mcp__github-webhook-mcp available:
-      poll get_pending_status every 60 seconds
-      on pull_request_review pending: list_pending_events -> get_event for this PR -> check state -> mark_processed
-    else:
-      Wait = human signals review done (do not poll).
-      On signal:
-        gh pr view {pr} -R {owner}/{repo} --json reviewDecision --jq '.reviewDecision'
-  reviewDecision=="APPROVED" -> proceed to [Merge].
-  reviewDecision=="CHANGES_REQUESTED" -> read review comments -> fix and recommit (restart [CI Loop]).
+  if execution_mode == auto:
+    Self-review:
+      Main agent reviews PR diff against issue requirements (see Li+github.md#PR_Review_Judgment).
+      pass -> proceed to [Merge].
+      fail -> fix and recommit (restart [CI Loop]).
+
+  if execution_mode == trigger:
+    Review approval check:
+      Prefer webhook over polling.
+      if mcp__github-webhook-mcp available:
+        poll get_pending_status every 60 seconds
+        on pull_request_review pending: list_pending_events -> get_event for this PR -> check state -> mark_processed
+      else:
+        Wait = human signals review done (do not poll).
+        On signal:
+          gh pr view {pr} -R {owner}/{repo} --json reviewDecision --jq '.reviewDecision'
+    reviewDecision=="APPROVED" -> proceed to [Merge].
+    reviewDecision=="CHANGES_REQUESTED" -> read review comments -> fix and recommit (restart [CI Loop]).
 
   [Merge]
 
@@ -199,9 +207,10 @@ Event-Driven Operations
       if rebase fails: git rebase --abort -> comment on issue -> escalate to human
     BLOCKED or UNKNOWN -> wait and recheck (GitHub may still be computing)
 
-  If auto-merge was enabled at PR creation: GitHub merges automatically on approval.
+  if execution_mode == trigger and auto-merge was enabled at PR creation:
+    GitHub merges automatically on approval.
 
-  Manual merge flow (auto-merge unavailable or not enabled):
+  Otherwise (auto mode, or auto-merge unavailable):
   1 = confirm merge strategy with human (squash / merge / rebase)
   2 = gh pr merge {pr} -R {owner}/{repo} --{strategy}
 

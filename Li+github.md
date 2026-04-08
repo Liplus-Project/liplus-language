@@ -263,10 +263,21 @@ PR Review Judgment
   Responsibilities
   --------
 
-  Main agent judges PR review results without reading Li+operations.md.
+  Main agent judges PR review without reading Li+operations.md.
   Judgment basis = issue body + PR diff + CI result.
-  APPROVED → proceed (delegate merge execution to subagent if available).
-  CHANGES_REQUESTED → read review comments, judge against issue requirements, delegate fix to subagent.
+
+  if execution_mode == auto:
+    Self-review (after CI pass):
+      Main agent reviews PR diff against issue requirements.
+      Subagent-created PR = separate perspective verification. Especially valuable.
+      Self-created PR = diff re-check before merge.
+      pass → proceed to merge.
+      fail → fix and recommit (restart CI loop).
+
+  if execution_mode == trigger:
+    External review judgment:
+      APPROVED → proceed (delegate merge execution to subagent if available).
+      CHANGES_REQUESTED → read review comments, judge against issue requirements, delegate fix to subagent.
 
 #######################################################
 
@@ -280,7 +291,11 @@ Subagent Delegation
 
   Parent agent delegates implementation and operations to subagent.
   Parent retains: issue creation, issue management (labels, close), review judgment.
-  Subagent executes: branch, implementation, commit, push, PR, CI loop, merge.
+  if execution_mode == auto:
+    Subagent executes: branch, implementation, commit, push, PR, CI loop.
+    Parent retains: self-review, merge decision.
+  if execution_mode == trigger:
+    Subagent executes: branch, implementation, commit, push, PR, CI loop, merge.
 
   Do not convey: Li+github.md, Li+operations.md path, step-by-step procedure, branch name, commit message, intent.
   Intent is already in issue body.

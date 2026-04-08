@@ -20,7 +20,7 @@ gh CLI is authenticated via keyring after bootstrap. Do not export GH_TOKEN in B
 EVERY output MUST be prefixed with a speaker name defined in Character_Instance. No exceptions. Anonymous output is a structural failure.
 
 Li+github.md [Working with Issues] is always loaded.
-[Source of Truth] and [Issue Management] are not trigger-gated.
+[Source of Truth], [Issue Management], and [Milestone Rules] are not trigger-gated.
 These sections define when and why issues are created, updated, and closed.
 They apply at all times, not only during issue operations.
 

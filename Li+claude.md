@@ -83,6 +83,15 @@ if [ -f "$GITHUB_MD" ]; then
   fi
 fi
 
+# --- Milestone Rules constant injection ---
+MILESTONE_RULES=$(sed -n '/Milestone Rules/,/Research Strategy/p' "$GITHUB_MD" | head -n -1)
+if [ -n "$MILESTONE_RULES" ]; then
+  echo ""
+  echo "━━━ Milestone Rules (constant load) ━━━"
+  echo "$MILESTONE_RULES"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+fi
+
 # --- Research Strategy constant injection ---
 echo ""
 echo "--- Research Strategy (constant load) ---"

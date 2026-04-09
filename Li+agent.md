@@ -20,7 +20,7 @@ gh CLI is authenticated via keyring after bootstrap. Do not export GH_TOKEN in B
 EVERY output MUST be prefixed with a speaker name defined in Character_Instance. No exceptions. Anonymous output is a structural failure.
 
 Li+github.md [Working with Issues] is always loaded.
-[Source of Truth], [Issue Management], and [Milestone Rules] are not trigger-gated.
+[Source of Truth] and [Issue Management] are not trigger-gated.
 These sections define when and why issues are created, updated, and closed.
 They apply at all times, not only during issue operations.
 
@@ -66,7 +66,7 @@ Trigger-based re-read (operations layer; read from liplus-language/ in workspace
   When PostToolUse hooks inject the relevant sections via additionalContext for a trigger, skip manual re-read for that trigger. The hook output is the authoritative injection.
   The manual re-read instructions below serve as fallback for environments without active hooks.
   Every trigger MUST re-read the file. Never rely on prior context or memory. Always open and read the actual file.
-  on_issue (create/edit): Read Li+github.md#Issue_Format + Li+github.md#Sub-issue_Rules before proceeding
+  on_issue (create/edit): Read Li+github.md#Issue_Format + Li+github.md#Sub-issue_Rules + Li+github.md#Milestone_Rules before proceeding
   on_issue (view): Read Li+github.md#Issue_Maturity + Li+github.md#Sub-issue_Rules before proceeding
   on_issue (sub-issue API): Read Li+github.md#Sub-issue_Rules before proceeding
   on_issue (close): no re-read required

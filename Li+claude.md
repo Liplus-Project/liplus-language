@@ -83,15 +83,6 @@ if [ -f "$GITHUB_MD" ]; then
   fi
 fi
 
-# --- Milestone Rules constant injection ---
-MILESTONE_RULES=$(sed -n '/Milestone Rules/,/Research Strategy/p' "$GITHUB_MD" | head -n -1)
-if [ -n "$MILESTONE_RULES" ]; then
-  echo ""
-  echo "━━━ Milestone Rules (constant load) ━━━"
-  echo "$MILESTONE_RULES"
-  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-fi
-
 # --- Research Strategy constant injection ---
 echo ""
 echo "--- Research Strategy (constant load) ---"
@@ -281,7 +272,7 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? (issue assign|api .*/issues/.*/assign
   exit 0
 fi
 
-# on_issue (create/edit): gh issue create/edit → Li+github.md Issue_Format + Sub-issue_Rules
+# on_issue (create/edit): gh issue create/edit → Li+github.md Issue_Format + Sub-issue_Rules + Milestone_Rules
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? issue (create|edit)'; then
   CONTEXT=$(get_section \
     "on_issue (create/edit): Issue_Format re-read" \
@@ -292,6 +283,11 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? issue (create|edit)'; then
   if [ -n "$SUB" ]; then
     CONTEXT="${CONTEXT}
 $(printf '━━━ on_issue (create/edit): Sub-issue_Rules re-read ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$SUB")"
+  fi
+  MILE=$(sed -n '/Milestone Rules/,/Research Strategy/p' "$GITHUB_MD" | head -n -1)
+  if [ -n "$MILE" ]; then
+    CONTEXT="${CONTEXT}
+$(printf '━━━ on_issue (create/edit): Milestone_Rules re-read ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$MILE")"
   fi
   emit_context "$CONTEXT"
   exit 0

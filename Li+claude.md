@@ -70,25 +70,6 @@ if [ -f "$CLAUDE_MD" ]; then
   sed -n '/\[Character_Instance\]/{n;n;n;:a;/^#######/q;p;n;ba}' "$CLAUDE_MD"
 fi
 
-# --- Working with Issues constant injection ---
-LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
-GITHUB_MD="$LIPLUS_DIR/Li+github.md"
-if [ -f "$GITHUB_MD" ]; then
-  WORKING_ISSUES=$(sed -n '/\[Working with Issues\]/,/\[Label Definitions\]/p' "$GITHUB_MD" | head -n -1)
-  if [ -n "$WORKING_ISSUES" ]; then
-    echo ""
-    echo "━━━ Working with Issues (constant load) ━━━"
-    echo "$WORKING_ISSUES"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  fi
-fi
-
-# --- Research Strategy constant injection ---
-echo ""
-echo "--- Research Strategy (constant load) ---"
-echo "  Uncertain → verify externally. GitHub = judgment log. Web = primary source."
-echo "-----------------------------------------"
-
 # --- Webhook notification reminder ---
 echo ""
 echo "━━━ Webhook: check pending notifications ━━━"
@@ -104,18 +85,10 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 ```bash
 #!/bin/bash
 # Source: Li+claude.md ({LI_PLUS_TAG})
-# This hook re-injects Li+core.md into context after compact.
-# When modifying this file, update Li+claude.md as the source of truth.
-PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
-LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
-CORE_MD="$LIPLUS_DIR/Li+core.md"
-
-if [ -f "$CORE_MD" ]; then
-  echo "━━━ SessionStart(compact): Li+core.md re-injection ━━━"
-  cat "$CORE_MD"
-  echo ""
-  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-fi
+# No-op: Li+core.md and Li+operations.md are loaded via .claude/rules/ and survive compaction.
+# Li+github.md is loaded via .claude/skills/ with auto-invocation.
+# This hook is retained for forward compatibility but performs no action.
+exit 0
 ```
 
 ## post-tool-use.sh
@@ -272,49 +245,44 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? (issue assign|api .*/issues/.*/assign
   exit 0
 fi
 
-# on_issue (create/edit): gh issue create/edit → Li+github.md Issue_Format + Sub-issue_Rules + Milestone_Rules
+# on_issue (create/edit): gh issue create/edit → Li+operations.md Issue_Format + Sub-issue_Rules focus pointer
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? issue (create|edit)'; then
   CONTEXT=$(get_section \
-    "on_issue (create/edit): Issue_Format re-read" \
-    "$GITHUB_MD" \
+    "on_issue (create/edit): Issue_Format focus" \
+    "$OPERATIONS_MD" \
     "Issue Format" \
     "Issue Maturity")
-  SUB=$(print_section "$GITHUB_MD" "Sub-issue Rules" "PR Review Judgment")
+  SUB=$(print_section "$OPERATIONS_MD" "Sub-issue Rules" "Branch And Label Flow")
   if [ -n "$SUB" ]; then
     CONTEXT="${CONTEXT}
-$(printf '━━━ on_issue (create/edit): Sub-issue_Rules re-read ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$SUB")"
-  fi
-  MILE=$(sed -n '/Milestone Rules/,/Research Strategy/p' "$GITHUB_MD" | head -n -1)
-  if [ -n "$MILE" ]; then
-    CONTEXT="${CONTEXT}
-$(printf '━━━ on_issue (create/edit): Milestone_Rules re-read ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$MILE")"
+$(printf '━━━ on_issue (create/edit): Sub-issue_Rules focus ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$SUB")"
   fi
   emit_context "$CONTEXT"
   exit 0
 fi
 
-# on_issue (sub-issue API): gh api .*/sub_issues → Li+github.md Sub-issue_Rules
+# on_issue (sub-issue API): gh api .*/sub_issues → Li+operations.md Sub-issue_Rules focus pointer
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? api .*/sub_issues'; then
   CONTEXT=$(get_section \
-    "on_issue (sub-issue): Sub-issue_Rules re-read" \
-    "$GITHUB_MD" \
+    "on_issue (sub-issue): Sub-issue_Rules focus" \
+    "$OPERATIONS_MD" \
     "Sub-issue Rules" \
-    "PR Review Judgment")
+    "Branch And Label Flow")
   emit_context "$CONTEXT"
   exit 0
 fi
 
-# on_issue (view): gh issue view/list → Li+github.md Issue_Maturity + Sub-issue_Rules
+# on_issue (view): gh issue view/list → Li+operations.md Issue_Maturity + Sub-issue_Rules focus pointer
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? (issue (view|list)|api .*/issues)'; then
   CONTEXT=$(get_section \
-    "on_issue (view): Issue_Maturity re-read" \
-    "$GITHUB_MD" \
+    "on_issue (view): Issue_Maturity focus" \
+    "$OPERATIONS_MD" \
     "Issue Maturity" \
     "Sub-issue Rules")
-  SUB=$(print_section "$GITHUB_MD" "Sub-issue Rules" "PR Review Judgment")
+  SUB=$(print_section "$OPERATIONS_MD" "Sub-issue Rules" "Branch And Label Flow")
   if [ -n "$SUB" ]; then
     CONTEXT="${CONTEXT}
-$(printf '━━━ on_issue (view): Sub-issue_Rules re-read ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$SUB")"
+$(printf '━━━ on_issue (view): Sub-issue_Rules focus ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$SUB")"
   fi
   emit_context "$CONTEXT"
   exit 0
@@ -357,4 +325,53 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? release create'; then
   emit_context "$CONTEXT"
   exit 0
 fi
+```
+
+## rules/ generation template
+
+Generated at: {workspace_root}/.claude/rules/
+
+### Li+core.md
+
+```markdown
+---
+globs:
+alwaysApply: true
+---
+
+{contents of Li+core.md from liplus-language repository}
+```
+
+### Li+operations.md
+
+```markdown
+---
+globs:
+alwaysApply: true
+---
+
+{contents of Li+operations.md from liplus-language repository}
+```
+
+## skills/ generation template
+
+Generated at: {workspace_root}/.claude/skills/li-plus-github/SKILL.md
+
+### SKILL.md
+
+```markdown
+---
+name: li-plus-github
+description: |
+  Li+ issue management and task layer rules.
+  TRIGGER when: a new idea, concept, or plan emerges in dialogue that should survive the session;
+  when creating, editing, viewing, or closing issues;
+  when assigning labels or milestones;
+  when delegating work to subagents;
+  when reviewing PRs against issue requirements;
+  when researching information sources.
+  All concepts start from issue. Detect when dialogue produces a durable work unit and invoke automatically.
+---
+
+{contents of Li+github.md from liplus-language repository, excluding Issue Operations section}
 ```

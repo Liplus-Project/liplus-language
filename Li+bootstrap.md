@@ -84,6 +84,28 @@ Silent continuation on a stale local clone is prohibited.
   - Set executable permission on .sh files.
 - Note: bootstrap takes effect from the NEXT session. Current session continues with Li+config.md execution.
 
+7b. Generate .claude/rules/ files (runtime=claude only):
+- If {workspace_root}/.claude/rules/ does not exist: create directory.
+- Generate Li+core.md:
+  - If file does not exist or source tag differs from current target tag:
+    Prepend YAML frontmatter (globs: empty, alwaysApply: true) to Li+core.md contents.
+    Write to {workspace_root}/.claude/rules/Li+core.md.
+  - If source tag matches: skip (up to date).
+- Generate Li+operations.md:
+  - Same tag-based skip logic as Li+core.md.
+  - Prepend YAML frontmatter (globs: empty, alwaysApply: true) to Li+operations.md contents.
+  - Write to {workspace_root}/.claude/rules/Li+operations.md.
+- Tag detection: check first line for "# Source: Li+{name}.md ({tag})" comment or frontmatter containing tag.
+
+7c. Generate .claude/skills/li-plus-github/SKILL.md (runtime=claude only):
+- If {workspace_root}/.claude/skills/li-plus-github/ does not exist: create directory.
+- If SKILL.md does not exist or source tag differs from current target tag:
+  Prepend skill frontmatter (name, description with trigger conditions) to Li+github.md contents.
+  Li+github.md is copied without the Issue Operations section (Issue Format, Issue Maturity, Sub-issue Rules have been moved to Li+operations.md).
+  Write to {workspace_root}/.claude/skills/li-plus-github/SKILL.md.
+- If source tag matches: skip (up to date).
+- Frontmatter template defined in Li+claude.md skills/ generation template section.
+
 8. Prepare USER_REPOSITORY working clone (skip if `owner/repository-name`):
 - If USER_REPOSITORY matches LI_PLUS_REPOSITORY: run `git checkout main` in the local clone.
 - Otherwise: clone by repository name to workspace.

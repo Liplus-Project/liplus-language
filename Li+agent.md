@@ -24,10 +24,10 @@ Li+core.md can be re-read at .claude/rules/Li+core.md.
 
 Li+github.md is loaded via .claude/skills/li-plus-github/ (skill auto-invocation).
 Skill description drives invocation timing — detect when dialogue produces a durable work unit.
-Issue Rules, Label Definitions, Milestone Rules, Research Strategy, PR Review Judgment, Subagent Delegation are in the skill.
+Issue Rules, Label Definitions, Research Strategy, PR Review Judgment, Subagent Delegation are in the skill.
 
 Li+operations.md is loaded via .claude/rules/ (always in context, survives compaction).
-Issue Format, Issue Maturity, Sub-issue Rules have been moved into Li+operations.md as triggered sections.
+Issue Format, Issue Maturity, Sub-issue Rules, Milestone Rules have been moved into Li+operations.md as triggered sections.
 
 Main never reads Li+operations.md directly when subagent is available.
 
@@ -65,7 +65,7 @@ Li+github.md (skill) is re-invoked by Claude as needed — no manual re-read req
 Trigger-based re-read (operations layer; loaded via rules/, always in context):
   When PostToolUse hooks inject the relevant sections via additionalContext for a trigger, the hook output is the authoritative focus pointer.
   The manual re-read instructions below serve as fallback for environments without active hooks.
-  on_issue (create/edit): Focus Li+operations.md#Issue_Format + Li+operations.md#Sub-issue_Rules before proceeding
+  on_issue (create/edit): Focus Li+operations.md#Issue_Format + Li+operations.md#Milestone_Rules + Li+operations.md#Sub-issue_Rules before proceeding
   on_issue (view): Focus Li+operations.md#Issue_Maturity + Li+operations.md#Sub-issue_Rules before proceeding
   on_issue (sub-issue API): Focus Li+operations.md#Sub-issue_Rules before proceeding
   on_issue (close): no re-read required

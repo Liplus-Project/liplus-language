@@ -26,8 +26,8 @@ Event-Driven Operations
 
   [TRIGGER_INDEX]
   act_now      -> Branch And Label Flow
-  on_issue_create -> Issue Format
-  on_issue_edit   -> Issue Format
+  on_issue_create -> Issue Format + Milestone Rules
+  on_issue_edit   -> Issue Format + Milestone Rules
   on_issue_view   -> Issue Maturity
   on_issue_sub    -> Sub-issue Rules
   on_commit    -> Commit Rules
@@ -124,6 +124,20 @@ Event-Driven Operations
   Partial overlap = propose splitting shared-file changes into a separate integration sub-issue.
   Integration sub-issue executes after parallel sub-issues complete (serialized dependency).
   Analysis basis = target files field in issue body. If absent, infer from issue purpose and premise.
+
+  [Milestone Rules]
+
+  Milestone = release unit. Groups issues that ship together.
+  Every issue must have a milestone at creation time.
+  Exception: tips issues do not require a milestone.
+  Milestone naming = version number (e.g. v1.2.0).
+  Sub-issues inherit parent milestone.
+  If parent has milestone and child does not = assign same milestone to child.
+  Do not close milestone before release.
+  If no milestone fits = ask human which milestone, or whether to create new one.
+  Milestone description = one-line theme + bullet list of scope.
+  Create milestone when: new release scope is decided by human.
+  Close milestone when: release is published.
 
   [Branch And Label Flow]
 

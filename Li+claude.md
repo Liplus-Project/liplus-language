@@ -245,14 +245,19 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? (issue assign|api .*/issues/.*/assign
   exit 0
 fi
 
-# on_issue (create/edit): gh issue create/edit → Li+operations.md Issue_Format + Sub-issue_Rules focus pointer
+# on_issue (create/edit): gh issue create/edit → Li+operations.md Issue_Format + Milestone_Rules + Sub-issue_Rules focus pointer
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? issue (create|edit)'; then
   CONTEXT=$(get_section \
     "on_issue (create/edit): Issue_Format focus" \
     "$OPERATIONS_MD" \
     "Issue Format" \
     "Issue Maturity")
-  SUB=$(print_section "$OPERATIONS_MD" "Sub-issue Rules" "Branch And Label Flow")
+  MILE=$(print_section "$OPERATIONS_MD" "Milestone Rules" "Branch And Label Flow")
+  if [ -n "$MILE" ]; then
+    CONTEXT="${CONTEXT}
+$(printf '━━━ on_issue (create/edit): Milestone_Rules focus ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$MILE")"
+  fi
+  SUB=$(print_section "$OPERATIONS_MD" "Sub-issue Rules" "Milestone Rules")
   if [ -n "$SUB" ]; then
     CONTEXT="${CONTEXT}
 $(printf '━━━ on_issue (create/edit): Sub-issue_Rules focus ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$SUB")"
@@ -267,7 +272,7 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? api .*/sub_issues'; then
     "on_issue (sub-issue): Sub-issue_Rules focus" \
     "$OPERATIONS_MD" \
     "Sub-issue Rules" \
-    "Branch And Label Flow")
+    "Milestone Rules")
   emit_context "$CONTEXT"
   exit 0
 fi
@@ -279,7 +284,7 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? (issue (view|list)|api .*/issues)'; t
     "$OPERATIONS_MD" \
     "Issue Maturity" \
     "Sub-issue Rules")
-  SUB=$(print_section "$OPERATIONS_MD" "Sub-issue Rules" "Branch And Label Flow")
+  SUB=$(print_section "$OPERATIONS_MD" "Sub-issue Rules" "Milestone Rules")
   if [ -n "$SUB" ]; then
     CONTEXT="${CONTEXT}
 $(printf '━━━ on_issue (view): Sub-issue_Rules focus ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$SUB")"

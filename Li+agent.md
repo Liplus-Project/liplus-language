@@ -65,7 +65,7 @@ Li+github.md (skill) is re-invoked by Claude as needed — no manual re-read req
 Trigger-based re-read (operations layer; loaded via rules/, always in context):
   When PostToolUse hooks inject the relevant sections via additionalContext for a trigger, the hook output is the authoritative focus pointer.
   The manual re-read instructions below serve as fallback for environments without active hooks.
-  on_issue (create/edit): Focus Li+operations.md#Issue_Format + Li+operations.md#Sub-issue_Rules before proceeding
+  on_issue (create/edit): Focus Li+operations.md#Issue_Format + Li+operations.md#Sub-issue_Rules + Li+github.md#Milestone_Rules before proceeding
   on_issue (view): Focus Li+operations.md#Issue_Maturity + Li+operations.md#Sub-issue_Rules before proceeding
   on_issue (sub-issue API): Focus Li+operations.md#Sub-issue_Rules before proceeding
   on_issue (close): no re-read required

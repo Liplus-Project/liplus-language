@@ -245,7 +245,7 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? (issue assign|api .*/issues/.*/assign
   exit 0
 fi
 
-# on_issue (create/edit): gh issue create/edit → Li+operations.md Issue_Format + Sub-issue_Rules focus pointer
+# on_issue (create/edit): gh issue create/edit → Li+operations.md Issue_Format + Sub-issue_Rules focus pointer + Milestone_Rules focus pointer
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? issue (create|edit)'; then
   CONTEXT=$(get_section \
     "on_issue (create/edit): Issue_Format focus" \
@@ -257,6 +257,8 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? issue (create|edit)'; then
     CONTEXT="${CONTEXT}
 $(printf '━━━ on_issue (create/edit): Sub-issue_Rules focus ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$SUB")"
   fi
+  CONTEXT="${CONTEXT}
+$(printf '━━━ on_issue (create/edit): Milestone_Rules focus ━━━\nMilestone Rules are in li-plus-github skill. Every issue must have a milestone at creation time (exception: tips issues). Sub-issues inherit parent milestone.\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')"
   emit_context "$CONTEXT"
   exit 0
 fi

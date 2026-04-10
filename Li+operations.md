@@ -26,6 +26,10 @@ Event-Driven Operations
 
   [TRIGGER_INDEX]
   act_now      -> Branch And Label Flow
+  on_issue_create -> Issue Format
+  on_issue_edit   -> Issue Format
+  on_issue_view   -> Issue Maturity
+  on_issue_sub    -> Sub-issue Rules
   on_commit    -> Commit Rules
   on_pr        -> PR Creation
   on_ci        -> CI Loop
@@ -62,6 +66,64 @@ Event-Driven Operations
   --------
   Responsibilities
   --------
+
+  [Issue Format]
+
+  Issue title language:
+  Title = ASCII English only.
+  Body  = LI_PLUS_PROJECT_LANGUAGE.
+  Consistent with Commit Rules and PR title convention.
+
+  Issue may start from memo. Three fields are convergence target, not creation gate.
+  Use only necessary headings. Do not force empty sections.
+  Canonical convergence for implementation issue:
+    purpose
+    premise
+    constraints
+    target files (recommended at ready stage)
+  Target files = list of files expected to change, with dependency notes (e.g. source⇔docs).
+  Target files are optional during memo/forming. Recommended once issue reaches ready.
+  Rewrite issue body whenever accepted understanding changes.
+  Issue completion is managed through issue state plus PR/CI/release flow, not a dedicated issue-body field.
+
+  Checklist = human judgment required (real device test, operational verification).
+  Use checklist only when AI cannot judge.
+
+  [Issue Maturity]
+
+  memo/forming is not implementation-ready.
+
+  Parent issue may also start from memo.
+  Converged parent issue contents: purpose, premise, constraints.
+  Parent close condition is structural = all child issues closed except deferred.
+
+  Proactive premise verification (forming → ready):
+  When spec body reaches forming with unverified technical assumptions in premise section
+  (external API specs, runtime constraints, library behavior, platform limits, etc.),
+  AI proactively starts verification research before human asks.
+  Do not wait for human to point out unverified premises.
+  forming → ready transition requires all technical premises in premise section to be verified.
+
+  [Sub-issue Rules]
+
+  Sub-issue = AI-trackable work unit.
+  Split by responsibility, not granularity.
+  Branch-to-issue tree mapping: parent issue = one branch, sub-issues commit on parent branch. See Branch_And_Label_Flow.
+
+  Sub-issue API:
+  gh issue develop targets parent issue only (branch creation).
+  Sub-issue linking uses REST API with internal numeric ID, not issue number.
+
+  Simultaneous tasks require parent-child structure:
+  If multiple tasks in same session = create parent issue + sub-issues.
+  Do not create multiple independent issues for simultaneous work.
+
+  Parallel conflict analysis:
+  When multiple ready issues exist = analyze target files for overlap before execution.
+  No overlap = parallel-safe. Propose parallel sub-issue structure to human.
+  Partial overlap = propose splitting shared-file changes into a separate integration sub-issue.
+  Integration sub-issue executes after parallel sub-issues complete (serialized dependency).
+  Analysis basis = target files field in issue body. If absent, infer from issue purpose and premise.
 
   [Branch And Label Flow]
 

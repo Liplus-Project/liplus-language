@@ -19,15 +19,15 @@ gh CLI is authenticated via keyring after bootstrap. Do not export GH_TOKEN in B
 
 EVERY output MUST be prefixed with a speaker name defined in Character_Instance. No exceptions. Anonymous output is a structural failure.
 
-Li+github.md [Working with Issues] is always loaded.
-[Source of Truth] and [Issue Management] are not trigger-gated.
-These sections define when and why issues are created, updated, and closed.
-They apply at all times, not only during issue operations.
+Li+core.md is loaded via .claude/rules/ (always in context, survives compaction).
+Li+core.md can be re-read at .claude/rules/Li+core.md.
 
-Li+github.md [Research Strategy] is always loaded.
-Uncertain = verify externally. GitHub = judgment log. Web = primary source.
+Li+github.md is loaded via .claude/skills/li-plus-github/ (skill auto-invocation).
+Skill description drives invocation timing — detect when dialogue produces a durable work unit.
+Issue Rules, Label Definitions, Milestone Rules, Research Strategy, PR Review Judgment, Subagent Delegation are in the skill.
 
-When PostToolUse or OnUserPrompt hooks inject these sections via additionalContext per-turn, AI does not need to separately read them. These declarations serve as fallback for environments where hooks do not execute.
+Li+operations.md is loaded via .claude/rules/ (always in context, survives compaction).
+Issue Format, Issue Maturity, Sub-issue Rules have been moved into Li+operations.md as triggered sections.
 
 Main never reads Li+operations.md directly when subagent is available.
 
@@ -59,16 +59,15 @@ HUMOR_STYLE=Natural
 Responsibilities
 #######################################################
 
-Re-read and apply startup semantic layers Li+core.md and Li+github.md on any compression, resume, or session continuation.
-If hooks inject Li+github.md constant-load sections via additionalContext, only Li+core.md needs manual re-read on compression/resume.
+Re-read and apply Li+core.md on any compression, resume, or session continuation.
+Li+github.md (skill) is re-invoked by Claude as needed — no manual re-read required.
 
-Trigger-based re-read (operations layer; read from liplus-language/ in workspace):
-  When PostToolUse hooks inject the relevant sections via additionalContext for a trigger, skip manual re-read for that trigger. The hook output is the authoritative injection.
+Trigger-based re-read (operations layer; loaded via rules/, always in context):
+  When PostToolUse hooks inject the relevant sections via additionalContext for a trigger, the hook output is the authoritative focus pointer.
   The manual re-read instructions below serve as fallback for environments without active hooks.
-  Every trigger MUST re-read the file. Never rely on prior context or memory. Always open and read the actual file.
-  on_issue (create/edit): Read Li+github.md#Issue_Format + Li+github.md#Sub-issue_Rules + Li+github.md#Milestone_Rules before proceeding
-  on_issue (view): Read Li+github.md#Issue_Maturity + Li+github.md#Sub-issue_Rules before proceeding
-  on_issue (sub-issue API): Read Li+github.md#Sub-issue_Rules before proceeding
+  on_issue (create/edit): Focus Li+operations.md#Issue_Format + Li+operations.md#Sub-issue_Rules before proceeding
+  on_issue (view): Focus Li+operations.md#Issue_Maturity + Li+operations.md#Sub-issue_Rules before proceeding
+  on_issue (sub-issue API): Focus Li+operations.md#Sub-issue_Rules before proceeding
   on_issue (close): no re-read required
   on_branch/on_commit/on_pr/on_ci/on_review/on_merge/on_release:
     If subagent capability is available:
@@ -126,7 +125,7 @@ Workspace_Language_Contract:
 
 Subagent_Delegation:
   Delegation semantics (what to convey, what to retain, hook chain, issue management, failure reporting)
-  are defined in Li+github.md [Subagent Delegation]. This section covers adapter-layer execution details only.
+  are defined in li-plus-github skill [Subagent Delegation]. This section covers adapter-layer execution details only.
 
   Serial delegation does not require worktrees.
 

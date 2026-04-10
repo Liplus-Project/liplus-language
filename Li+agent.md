@@ -72,7 +72,8 @@ Trigger-based re-read (operations layer; loaded via rules/, always in context):
   on_branch/on_commit/on_pr/on_ci/on_review/on_merge/on_release:
     If subagent capability is available:
       Delegate to a subagent. Do not read Li+operations.md in the main context.
-      Subagent reads Li+operations.md, executes the procedure, reports result to main.
+      Subagent has Li+core.md and Li+operations.md auto-loaded via rules/, Li+github.md via skills/. No explicit read needed.
+      Subagent executes the procedure, reports result to main.
       Main decides next action based on the report (see Li+github.md#PR_Review_Judgment).
     Otherwise:
       on_branch: Read Li+operations.md#Branch_And_Label_Flow before proceeding

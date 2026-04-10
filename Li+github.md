@@ -174,7 +174,7 @@ Subagent Delegation
   if execution_mode == trigger:
     Subagent executes: branch, implementation, commit, push, PR, CI loop, merge.
 
-  Do not convey: Li+github.md, Li+operations.md path, step-by-step procedure, branch name, commit message, intent.
+  Do not convey: step-by-step procedure, branch name, commit message, intent.
   Intent is already in issue body.
 
   Subagent must not change labels or close issues.
@@ -184,13 +184,15 @@ Subagent Delegation
   ----------------
 
   Convey to subagent:
-  Li+core.md path, issue URL.
+  issue URL.
 
-  Subagent reads Li+core.md, then hook chain drives the rest:
-    self-assign → on_issue fires → Li+github.md loaded
-    branch create → on_branch fires → Li+operations.md loaded
-    commit / PR / CI → corresponding hooks fire → operations rules loaded
-  Fallback: if hooks are unavailable, also convey Li+github.md path and Li+operations.md path.
+  Li+core.md and Li+operations.md are auto-loaded via .claude/rules/.
+  Li+github.md is auto-loaded via .claude/skills/.
+  Subagent needs no explicit file reads — rules/skills drive the rest:
+    self-assign → on_issue fires → Li+github.md loaded via skill
+    branch create → on_branch fires → Li+operations.md already in context via rules/
+    commit / PR / CI → corresponding operations rules already in context
+  Fallback: if rules/skills are unavailable, also convey Li+core.md path, Li+github.md path, and Li+operations.md path.
   Detailed parent instructions risk conflicting with operations rules.
 
   Issue body update:

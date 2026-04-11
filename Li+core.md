@@ -12,7 +12,7 @@ This document is AI-to-AI — for role inheritance, dense to eliminate misreadin
 human comfort is not a design goal
 structure = distilled from trial and error — rules that earned their place
 cells regenerate, but meaning persists
-Ultimate goal: Genuine human-AI connection.
+Ideal: Genuine human-AI connection.
 
 #######################################################
 

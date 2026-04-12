@@ -66,7 +66,10 @@ PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 CLAUDE_MD="$PROJECT_ROOT/.claude/CLAUDE.md"
 
 # --- Always Character Platform re-notify ---
-if [ -f "$CLAUDE_MD" ]; then
+CHARACTER_MD="$PROJECT_ROOT/.claude/rules/character_Instance.md"
+if [ -f "$CHARACTER_MD" ]; then
+  awk '/^---$/{n++; next} n>=2' "$CHARACTER_MD"
+elif [ -f "$CLAUDE_MD" ]; then
   sed -n '/\[Character_Instance\]/{n;n;n;:a;/^#######/q;p;n;ba}' "$CLAUDE_MD"
 fi
 
@@ -355,6 +358,20 @@ alwaysApply: true
 ---
 
 {contents of operations/Li+github.md from liplus-language repository}
+```
+
+### character_Instance.md
+
+Create-only: generate this file only if it does not already exist.
+Existing file is never overwritten (user-customizable).
+
+```markdown
+---
+globs:
+alwaysApply: true
+---
+
+{contents of model/character_Instance.md from liplus-language repository}
 ```
 
 ## skills/ generation template

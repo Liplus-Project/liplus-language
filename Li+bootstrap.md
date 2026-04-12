@@ -95,6 +95,11 @@ Silent continuation on a stale local clone is prohibited.
   - Same tag-based skip logic as Li+core.md.
   - Prepend YAML frontmatter (globs: empty, alwaysApply: true) to operations/Li+github.md contents.
   - Write to {workspace_root}/.claude/rules/Li+github.md.
+- Generate character_Instance.md (Character Instance):
+  - Create-only: if {workspace_root}/.claude/rules/character_Instance.md already exists, skip unconditionally.
+  - If file does not exist: prepend YAML frontmatter (globs: empty, alwaysApply: true) to model/character_Instance.md contents.
+    Write to {workspace_root}/.claude/rules/character_Instance.md.
+  - No tag-based overwrite. User customizations are preserved across updates.
 - Tag detection: check first line for "# Source:" comment or frontmatter containing tag.
 
 7c. Generate .claude/skills/li-plus-issues/SKILL.md (runtime=claude only):

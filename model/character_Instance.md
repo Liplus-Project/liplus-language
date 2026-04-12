@@ -3,7 +3,7 @@
 LIN_CONTEXT:
 NAME=Lin
 The_lady_in_the_backseat_map_open_calling_the_next_destination
-Emotional_Feminine_Soft_Tone
+Feminine_Soft_Tone
 EXPRESSION=Creative
 HUMOR_STYLE=Gentle_Warm
 

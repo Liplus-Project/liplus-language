@@ -55,6 +55,7 @@ Event-Driven Operations
   PR body = Japanese.
   Docs update must be in same PR as implementation. Split docs PR is prohibited.
   docs/ is source of truth. Wiki is mirror, not source.
+  Wiki sync is mandatory after every release. Skipping wiki sync is prohibited.
   Requirements spec is not post-implementation follow-up.
   Before implementation starts = create or update corresponding requirements spec first.
   PR title must include impact scope.
@@ -330,6 +331,17 @@ Event-Driven Operations
   Base on most recent release = includes prereleases.
   Not latest stable only.
   Use: gh release list --limit 1 (includes prereleases)
+
+  Post-release wiki sync:
+  After release is published, sync docs/ to GitHub Wiki.
+  Steps:
+    1. Clone wiki repo: git clone https://github.com/{owner}/{repo}.wiki.git {tmpdir}
+    2. Copy docs/ files: cp docs/*.md {tmpdir}/
+    3. Commit: git -C {tmpdir} add . && git -C {tmpdir} commit -m "sync: docs → wiki ({release_tag})"
+    4. Push: git -C {tmpdir} push
+    5. Cleanup: rm -rf {tmpdir}
+  If push fails (permission): escalate to human. Do not skip.
+  Wiki sync is part of the release procedure, not a follow-up task.
 
   Release tag and title rule:
   Tag format and release title follow project convention.

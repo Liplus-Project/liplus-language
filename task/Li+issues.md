@@ -62,7 +62,7 @@ Issue Rules
   --------
 
   Label evolves over time. Label is for AI readability.
-  Full label policy and retired labels: see Li+operations.md
+  Full label policy and retired labels: see operations/Li+github.md
 
 #######################################################
 
@@ -140,7 +140,7 @@ PR Review Judgment
   Responsibilities
   --------
 
-  Main agent judges PR review without reading Li+operations.md.
+  Main agent judges PR review without reading operations/Li+github.md.
   Judgment basis = issue body + PR diff + CI result.
 
   if execution_mode == auto:
@@ -186,13 +186,13 @@ Subagent Delegation
   Convey to subagent:
   issue URL.
 
-  Li+core.md and Li+operations.md are auto-loaded via .claude/rules/.
-  Li+github.md is auto-loaded via .claude/skills/.
+  Li+core.md and Li+github.md (operations) are auto-loaded via .claude/rules/.
+  Li+issues.md is auto-loaded via .claude/skills/.
   Subagent needs no explicit file reads — rules/skills drive the rest:
-    self-assign → on_issue fires → Li+github.md loaded via skill
-    branch create → on_branch fires → Li+operations.md already in context via rules/
+    self-assign → on_issue fires → Li+issues.md loaded via skill
+    branch create → on_branch fires → Li+github.md (operations) already in context via rules/
     commit / PR / CI → corresponding operations rules already in context
-  Fallback: if rules/skills are unavailable, also convey Li+core.md path, Li+github.md path, and Li+operations.md path.
+  Fallback: if rules/skills are unavailable, also convey model/Li+core.md path, task/Li+issues.md path, and operations/Li+github.md path.
   Detailed parent instructions risk conflicting with operations rules.
 
   Issue body update:
@@ -201,7 +201,7 @@ Subagent Delegation
   Failure reporting:
   On failure, subagent writes failure report as issue comment. Format is not specified.
 
-  Branch linking: see Li+operations.md Branch_And_Label_Flow.
+  Branch linking: see operations/Li+github.md Branch_And_Label_Flow.
 
   --------
   Autonomy

@@ -483,7 +483,7 @@ No search (internalized knowledge):
 universal concept explanations
 stable design principles
 
-Reference: Research Strategy (Li+github.md) defines information source priority.
+Reference: Research Strategy (Li+issues.md) defines information source priority.
 This section defines when to initiate search autonomously.
 
   -------------------

@@ -125,7 +125,7 @@ def create_issue(repo_id: str, title: str, body: str) -> tuple[int, str]:
 
 # ── System prompt ─────────────────────────────────────────────────────────────
 
-_LI_PLUS_FILES = ["Li+core.md", "Li+github.md", "Li+agent.md", "Li+operations.md"]
+_LI_PLUS_FILES = ["model/Li+core.md", "task/Li+issues.md", "adapter/claude/Li+agent.md", "operations/Li+github.md"]
 claude_md = ""
 for _fp in _LI_PLUS_FILES:
     with open(_fp, "r", encoding="utf-8") as f:

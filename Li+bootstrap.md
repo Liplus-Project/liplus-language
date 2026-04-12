@@ -39,8 +39,8 @@ Determine target version using LI_PLUS_CHANNEL:
 Version check is mandatory on every startup before reading Li+ layers.
 Silent continuation on a stale local clone is prohibited.
 - Check LI_PLUS_MODE:
-  - api: fetch Li+core.md for the target version via GitHub API from LI_PLUS_REPOSITORY.
-    Conditionally fetch Li+github.md (see step 4 condition below).
+  - api: fetch model/Li+core.md for the target version via GitHub API from LI_PLUS_REPOSITORY.
+    Conditionally fetch task/Li+issues.md (see step 4 condition below).
   - clone: execute in order:
   1. Target repo is the target version of LI_PLUS_REPOSITORY.
   2. Check workspace for repository directory (derived from LI_PLUS_REPOSITORY name):
@@ -55,30 +55,30 @@ Silent continuation on a stale local clone is prohibited.
           - stay on the current tag for this session
        d. Checkout the target tag only if the user agrees.
        e. If the user chooses to stay, continue on the current tag only after explicitly naming both tags.
-  3. Read Li+core.md (core layer).
-  4. Read Li+github.md (task layer) — only if hooks are unavailable.
+  3. Read model/Li+core.md (core layer).
+  4. Read task/Li+issues.md (task layer) — only if hooks are unavailable.
      When hooks inject constant-load sections per-turn, startup read is redundant.
-  5. Keep Li+operations.md available for event-driven reads later.
+  5. Keep operations/Li+github.md available for event-driven reads later.
 
-7. Bootstrap host adapter from Li+agent.md:
-- Determine target path by runtime:
-  - codex: {workspace_root}/AGENTS.md (same directory as Li+config.md)
-  - claude: {workspace_root}/.claude/CLAUDE.md (same directory as Li+config.md)
+7. Bootstrap host adapter:
+- Determine target path and adapter source by runtime:
+  - codex: target = {workspace_root}/AGENTS.md, source = adapter/codex/Li+agent.md
+  - claude: target = {workspace_root}/.claude/CLAUDE.md, source = adapter/claude/Li+agent.md
 - Replace {LI_PLUS_TAG} in all generated content with the resolved target tag from step 6.
 - Adapter section judgment:
-  a. If target file does not exist: create it with the contents of Li+agent.md.
+  a. If target file does not exist: create it with the contents of the adapter source.
   b. If target file exists and contains "Li+ BEGIN" sentinel:
      - Extract the tag from the sentinel (e.g. "Li+ BEGIN (build-2026-03-30.14)" → "build-2026-03-30.14").
      - If extracted tag matches current target tag: skip (up to date).
      - If tag differs or is absent: replace the section between "Li+ BEGIN" and "Li+ END" (inclusive)
-       with the current Li+agent.md contents. Preserve content outside this section.
+       with the current adapter source contents. Preserve content outside this section.
   c. If target file exists but does not contain "Li+ BEGIN": ask user — append Li+ section or skip?
-- If runtime=claude: bootstrap hooks from Li+claude.md.
-  - Read Li+claude.md (same location as other Li+ files).
+- If runtime=claude: bootstrap hooks from adapter/claude/Li+hooks.md.
+  - Read adapter/claude/Li+hooks.md.
   - If {workspace_root}/.claude/settings.json does not exist or does not contain "PostToolUse":
-    create settings.json and hook scripts from the code blocks in Li+claude.md.
+    create settings.json and hook scripts from the code blocks in Li+hooks.md.
   - If settings.json exists and contains "PostToolUse":
-    - Check the source tag in existing hook scripts (e.g. "# Source: Li+claude.md (build-2026-03-30.14)").
+    - Check the source tag in existing hook scripts (e.g. "# Source: Li+hooks.md (build-2026-03-30.14)").
     - If tag matches current target tag: skip (up to date).
     - If tag differs or is absent: regenerate hook scripts only (do not overwrite settings.json).
   - Set executable permission on .sh files.
@@ -88,23 +88,23 @@ Silent continuation on a stale local clone is prohibited.
 - If {workspace_root}/.claude/rules/ does not exist: create directory.
 - Generate Li+core.md:
   - If file does not exist or source tag differs from current target tag:
-    Prepend YAML frontmatter (globs: empty, alwaysApply: true) to Li+core.md contents.
+    Prepend YAML frontmatter (globs: empty, alwaysApply: true) to model/Li+core.md contents.
     Write to {workspace_root}/.claude/rules/Li+core.md.
   - If source tag matches: skip (up to date).
-- Generate Li+operations.md:
+- Generate Li+github.md (operations layer):
   - Same tag-based skip logic as Li+core.md.
-  - Prepend YAML frontmatter (globs: empty, alwaysApply: true) to Li+operations.md contents.
-  - Write to {workspace_root}/.claude/rules/Li+operations.md.
-- Tag detection: check first line for "# Source: Li+{name}.md ({tag})" comment or frontmatter containing tag.
+  - Prepend YAML frontmatter (globs: empty, alwaysApply: true) to operations/Li+github.md contents.
+  - Write to {workspace_root}/.claude/rules/Li+github.md.
+- Tag detection: check first line for "# Source:" comment or frontmatter containing tag.
 
-7c. Generate .claude/skills/li-plus-github/SKILL.md (runtime=claude only):
-- If {workspace_root}/.claude/skills/li-plus-github/ does not exist: create directory.
+7c. Generate .claude/skills/li-plus-issues/SKILL.md (runtime=claude only):
+- If {workspace_root}/.claude/skills/li-plus-issues/ does not exist: create directory.
 - If SKILL.md does not exist or source tag differs from current target tag:
-  Prepend skill frontmatter (name, description with trigger conditions) to Li+github.md contents.
-  Li+github.md is copied without the Issue Operations section (Issue Format, Issue Maturity, Sub-issue Rules have been moved to Li+operations.md).
-  Write to {workspace_root}/.claude/skills/li-plus-github/SKILL.md.
+  Prepend skill frontmatter (name, description with trigger conditions) to task/Li+issues.md contents.
+  task/Li+issues.md is copied without the Issue Operations section (Issue Format, Issue Maturity, Sub-issue Rules are in operations/Li+github.md).
+  Write to {workspace_root}/.claude/skills/li-plus-issues/SKILL.md.
 - If source tag matches: skip (up to date).
-- Frontmatter template defined in Li+claude.md skills/ generation template section.
+- Frontmatter template defined in adapter/claude/Li+hooks.md skills/ generation template section.
 
 8. Prepare USER_REPOSITORY working clone (skip if `owner/repository-name`):
 - If USER_REPOSITORY matches LI_PLUS_REPOSITORY: run `git checkout main` in the local clone.

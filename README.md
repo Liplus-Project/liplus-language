@@ -37,11 +37,11 @@ Li+ is not a prompt. It is a **layered execution model** that runs on top of AI 
 
 | Layer | Surface | File |
 |-------|---------|------|
-| Model | Character, dialogue rules, loop safety, task mode | `Li+core.md` |
-| Task | Issue-driven workflow, labels, sub-issues, review | `Li+github.md` |
-| Operations | Branch, commit, PR, CI, merge, release | `Li+operations.md` |
+| Model | Character, dialogue rules, loop safety, task mode | `model/Li+core.md` |
+| Task | Issue-driven workflow, labels, sub-issues, review | `task/Li+issues.md` |
+| Operations | Branch, commit, PR, CI, merge, release | `operations/Li+github.md` |
 | Notifications | Webhook intake, queue ownership, multi-AI safety | (operations) |
-| Adapter | Runtime injection, hooks, bootstrap | `Li+agent.md` / `Li+claude.md` |
+| Adapter | Runtime injection, hooks, bootstrap | `adapter/claude/` / `adapter/codex/` |
 
 Layers are **different surfaces over the same program**, connected by dependency order.
 Each layer stabilizes outward behavior according to its responsibility.
@@ -115,7 +115,7 @@ What's *not* exchangeable: the principle that correctness is observable behavior
 | Claude Sonnet 4.6 (claude.ai) | Fair | Strong for documents, not ideal for continuous work |
 | Codex (GPT 5.4) | Good | Practical, tends to over-weight structure |
 | ChatGPT 5.2 | Fair | Strong reasoning, platform limits on long workflows |
-| Claude Haiku 4.5 | Not supported | Cannot reliably apply Li+core.md |
+| Claude Haiku 4.5 | Not supported | Cannot reliably apply model/Li+core.md |
 
 Minimum: roughly Claude Sonnet 4.6 equivalent or above.
 

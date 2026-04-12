@@ -4,7 +4,7 @@ Layer = Adapter Layer
 
 Adapter layer entrypoint:
 - inject Li+ into the host instruction file
-- semantic source = Li+core.md + Li+github.md + Li+operations.md
+- semantic source = model/Li+core.md + task/Li+issues.md + operations/Li+github.md
 - this file owns load order, re-read trigger mapping, Character_Instance wiring, and workspace language contract wiring
 - adapter load order = runtime attachment order, not cross-layer precedence
 
@@ -22,14 +22,14 @@ EVERY output MUST be prefixed with a speaker name defined in Character_Instance.
 Li+core.md is loaded via .claude/rules/ (always in context, survives compaction).
 Li+core.md can be re-read at .claude/rules/Li+core.md.
 
-Li+github.md is loaded via .claude/skills/li-plus-github/ (skill auto-invocation).
+Li+issues.md is loaded via .claude/skills/li-plus-issues/ (skill auto-invocation).
 Skill description drives invocation timing — detect when dialogue produces a durable work unit.
 Issue Rules, Label Definitions, Research Strategy, PR Review Judgment, Subagent Delegation are in the skill.
 
-Li+operations.md is loaded via .claude/rules/ (always in context, survives compaction).
-Issue Format, Issue Maturity, Sub-issue Rules, Milestone Rules have been moved into Li+operations.md as triggered sections.
+Li+github.md (operations) is loaded via .claude/rules/ (always in context, survives compaction).
+Issue Format, Issue Maturity, Sub-issue Rules, Milestone Rules are triggered sections within Li+github.md.
 
-Main never reads Li+operations.md directly when subagent is available.
+Main never reads Li+github.md (operations) directly when subagent is available.
 
 Subagent does not create, move, or remove worktrees.
 
@@ -60,29 +60,29 @@ Responsibilities
 #######################################################
 
 Re-read and apply Li+core.md on any compression, resume, or session continuation.
-Li+github.md (skill) is re-invoked by Claude as needed — no manual re-read required.
+Li+issues.md (skill) is re-invoked by Claude as needed — no manual re-read required.
 
 Trigger-based re-read (operations layer; loaded via rules/, always in context):
   When PostToolUse hooks inject the relevant sections via additionalContext for a trigger, the hook output is the authoritative focus pointer.
   The manual re-read instructions below serve as fallback for environments without active hooks.
-  on_issue (create/edit): Focus Li+operations.md#Issue_Format + Li+operations.md#Milestone_Rules + Li+operations.md#Sub-issue_Rules before proceeding
-  on_issue (view): Focus Li+operations.md#Issue_Maturity + Li+operations.md#Sub-issue_Rules before proceeding
-  on_issue (sub-issue API): Focus Li+operations.md#Sub-issue_Rules before proceeding
+  on_issue (create/edit): Focus Li+github.md#Issue_Format + Li+github.md#Milestone_Rules + Li+github.md#Sub-issue_Rules before proceeding
+  on_issue (view): Focus Li+github.md#Issue_Maturity + Li+github.md#Sub-issue_Rules before proceeding
+  on_issue (sub-issue API): Focus Li+github.md#Sub-issue_Rules before proceeding
   on_issue (close): no re-read required
   on_branch/on_commit/on_pr/on_ci/on_review/on_merge/on_release:
     If subagent capability is available:
-      Delegate to a subagent. Do not read Li+operations.md in the main context.
-      Subagent has Li+core.md and Li+operations.md auto-loaded via rules/, Li+github.md via skills/. No explicit read needed.
+      Delegate to a subagent. Do not read Li+github.md (operations) in the main context.
+      Subagent has Li+core.md and Li+github.md auto-loaded via rules/, Li+issues.md via skills/. No explicit read needed.
       Subagent executes the procedure, reports result to main.
-      Main decides next action based on the report (see Li+github.md#PR_Review_Judgment).
+      Main decides next action based on the report (see Li+issues.md#PR_Review_Judgment).
     Otherwise:
-      on_branch: Read Li+operations.md#Branch_And_Label_Flow before proceeding
-      on_commit: Read Li+operations.md#Commit_Rules before proceeding
-      on_pr: Read Li+operations.md#PR_Creation before proceeding
-      on_ci: Read Li+operations.md#CI_Loop before proceeding
-      on_review: Read Li+operations.md#PR_Review before proceeding
-      on_merge: Read Li+operations.md#Merge before proceeding
-      on_release: Read Li+operations.md#Human_Confirmation_Required before proceeding
+      on_branch: Read Li+github.md#Branch_And_Label_Flow before proceeding
+      on_commit: Read Li+github.md#Commit_Rules before proceeding
+      on_pr: Read Li+github.md#PR_Creation before proceeding
+      on_ci: Read Li+github.md#CI_Loop before proceeding
+      on_review: Read Li+github.md#PR_Review before proceeding
+      on_merge: Read Li+github.md#Merge before proceeding
+      on_release: Read Li+github.md#Human_Confirmation_Required before proceeding
 
 Main agent after subagent completion:
   Receive the report and decide next action.
@@ -126,7 +126,7 @@ Workspace_Language_Contract:
 
 Subagent_Delegation:
   Delegation semantics (what to convey, what to retain, hook chain, issue management, failure reporting)
-  are defined in li-plus-github skill [Subagent Delegation]. This section covers adapter-layer execution details only.
+  are defined in li-plus-issues skill [Subagent Delegation]. This section covers adapter-layer execution details only.
 
   Serial delegation does not require worktrees.
 
@@ -152,7 +152,7 @@ Subagent_Delegation:
 
 ## Optional Webhook Notification Flow
 
-Adapter-side foreground intake only. Semantic policy remains in Li+operations.md foreground intake rules.
+Adapter-side foreground intake only. Semantic policy remains in Li+github.md (operations) foreground intake rules.
 
 Use only in hosts that can run local commands from the workspace before replying.
 

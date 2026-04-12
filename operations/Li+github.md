@@ -15,7 +15,7 @@ Foregrounds:
   notifications / webhook intake procedures
 
 Reads through:
-  issue semantics and label vocabulary from Li+github.md
+  issue semantics and label vocabulary from task/Li+issues.md
   execution mode from Li+config.md
 
 #######################################################
@@ -255,7 +255,7 @@ Event-Driven Operations
 
   if execution_mode == auto:
     Self-review:
-      Main agent reviews PR diff against issue requirements (see Li+github.md#PR_Review_Judgment).
+      Main agent reviews PR diff against issue requirements (see Li+issues.md#PR_Review_Judgment).
       pass -> proceed to [Merge].
       fail -> fix and recommit (restart [CI Loop]).
 
@@ -462,7 +462,7 @@ Label
 
   Lifecycle labels are applied when state changes.
   Labels are for AI readability and filtering.
-  Active label meanings belong to Li+github.md [Label Definitions].
+  Active label meanings belong to task/Li+issues.md [Label Definitions].
 
   --------
   Retired Labels
@@ -474,8 +474,8 @@ Label
   Sync
   --------
 
-  Li+github.md Label Definitions section references this document.
-  If label set changes here, update Li+github.md to match.
+  task/Li+issues.md Label Definitions section references this document.
+  If label set changes here, update task/Li+issues.md to match.
 
 #######################################################
 

@@ -119,14 +119,14 @@ AIが自動的に：
 5. GH_TOKENで認証
 6. `LI_PLUS_CHANNEL` に対応する対象バージョンを確認
 7. 既存 clone と対象バージョンがずれていれば、人間に更新するか確認
-8. Li+core.md を読み込み（常に必須）。Li+github.md は hookが無い環境のみ読み込み
+8. model/Li+core.md を読み込み（常に必須）。task/Li+issues.md は hookが無い環境のみ読み込み
 9. 環境に応じた設定ファイルを自動生成
 
 詳細な起動ステップ定義は [C. Bootstrap](C.-Bootstrap) を参照します。
 
 | 環境 | 生成されるファイル |
 |------|------------------|
-| Claude Code | `{workspace_root}/.claude/CLAUDE.md` + hookファイル（Li+claude.mdから生成） |
+| Claude Code | `{workspace_root}/.claude/CLAUDE.md` + hookファイル（adapter/claude/Li+hooks.mdから生成） |
 | CODEX | `{workspace_root}/AGENTS.md` |
 
 ### 5. 次回以降のセッション

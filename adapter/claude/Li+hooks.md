@@ -1,7 +1,7 @@
-# Li+claude.md — Claude Code Hook Definitions
+# Li+hooks.md — Claude Code Hook Definitions
 
 Layer = Adapter Layer (Claude Code binding)
-Semantic source = Li+agent.md trigger contract + Model Layer / Task Layer / Operations Layer foreground intake rules.
+Semantic source = adapter/claude/Li+agent.md trigger contract + Model Layer / Task Layer / Operations Layer foreground intake rules.
 This file compiles adapter rules into Claude Code hooks.
 
 Bootstrap target: runtime=claude only.
@@ -58,9 +58,9 @@ On tag mismatch: regenerate hook scripts (settings.json structure is stable and 
 
 ```bash
 #!/bin/bash
-# Source: Li+claude.md ({LI_PLUS_TAG})
-# This hook implements Character_Instance re-notify and webhook check from Li+claude.md.
-# When modifying this file, update Li+claude.md as the source of truth.
+# Source: Li+hooks.md ({LI_PLUS_TAG})
+# This hook implements Character_Instance re-notify and webhook check from Li+hooks.md.
+# When modifying this file, update Li+hooks.md as the source of truth.
 export PATH="$HOME/.local/bin:$PATH"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 CLAUDE_MD="$PROJECT_ROOT/.claude/CLAUDE.md"
@@ -84,9 +84,9 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 
 ```bash
 #!/bin/bash
-# Source: Li+claude.md ({LI_PLUS_TAG})
-# No-op: Li+core.md and Li+operations.md are loaded via .claude/rules/ and survive compaction.
-# Li+github.md is loaded via .claude/skills/ with auto-invocation.
+# Source: Li+hooks.md ({LI_PLUS_TAG})
+# No-op: Li+core.md and Li+github.md (operations) are loaded via .claude/rules/ and survive compaction.
+# Li+issues.md is loaded via .claude/skills/ with auto-invocation.
 # This hook is retained for forward compatibility but performs no action.
 exit 0
 ```
@@ -97,9 +97,9 @@ exit 0
 
 ```bash
 #!/bin/bash
-# Source: Li+claude.md ({LI_PLUS_TAG})
-# This hook implements the trigger-based re-read mapping defined in Li+claude.md.
-# When modifying this file, update Li+claude.md as the source of truth.
+# Source: Li+hooks.md ({LI_PLUS_TAG})
+# This hook implements the trigger-based re-read mapping defined in Li+hooks.md.
+# When modifying this file, update Li+hooks.md as the source of truth.
 export PATH="$HOME/.local/bin:$PATH"
 INPUT=$(cat)
 TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
@@ -115,8 +115,7 @@ CMD_LINE=$(printf '%s' "$COMMAND" | head -1 | sed 's/<<.*$//')
 
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
-GITHUB_MD="$LIPLUS_DIR/Li+github.md"
-OPERATIONS_MD="$LIPLUS_DIR/Li+operations.md"
+OPERATIONS_MD="$LIPLUS_DIR/operations/Li+github.md"
 
 print_section() {
   local file="$1"
@@ -166,7 +165,7 @@ repo_from_origin() {
     | sed 's/\.git$//' 2>/dev/null || echo ""
 }
 
-# on_branch: linked branch / local branch create → Li+operations.md Branch_And_Label_Flow re-read
+# on_branch: linked branch / local branch create → operations/Li+github.md Branch_And_Label_Flow re-read
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? issue develop|git switch -c|git checkout -b'; then
   CONTEXT=$(get_section \
     "on_branch: Branch_And_Label_Flow re-read" \
@@ -177,7 +176,7 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? issue develop|git switch -c|git check
   exit 0
 fi
 
-# on_pr: gh pr create → full Li+operations.md re-read + sub-issue auto-append
+# on_pr: gh pr create → full operations/Li+github.md re-read + sub-issue auto-append
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? pr create'; then
   CONTEXT=$(get_full_file "on_pr: Operations layer re-read" "$OPERATIONS_MD")
 
@@ -234,7 +233,7 @@ ${APPEND_MSG}"
   exit 0
 fi
 
-# on_branch (assignees): assign = act now = start of branch work → Li+operations.md Branch_And_Label_Flow
+# on_branch (assignees): assign = act now = start of branch work → operations/Li+github.md Branch_And_Label_Flow
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? (issue assign|api .*/issues/.*/assignees)'; then
   CONTEXT=$(get_section \
     "on_branch: Branch_And_Label_Flow re-read (assignees)" \
@@ -245,7 +244,7 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? (issue assign|api .*/issues/.*/assign
   exit 0
 fi
 
-# on_issue (create/edit): gh issue create/edit → Li+operations.md Issue_Format + Milestone_Rules + Sub-issue_Rules focus pointer
+# on_issue (create/edit): gh issue create/edit → operations/Li+github.md Issue_Format + Milestone_Rules + Sub-issue_Rules focus pointer
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? issue (create|edit)'; then
   CONTEXT=$(get_section \
     "on_issue (create/edit): Issue_Format focus" \
@@ -266,7 +265,7 @@ $(printf '━━━ on_issue (create/edit): Sub-issue_Rules focus ━━━\n%s\
   exit 0
 fi
 
-# on_issue (sub-issue API): gh api .*/sub_issues → Li+operations.md Sub-issue_Rules focus pointer
+# on_issue (sub-issue API): gh api .*/sub_issues → operations/Li+github.md Sub-issue_Rules focus pointer
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? api .*/sub_issues'; then
   CONTEXT=$(get_section \
     "on_issue (sub-issue): Sub-issue_Rules focus" \
@@ -277,7 +276,7 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? api .*/sub_issues'; then
   exit 0
 fi
 
-# on_issue (view): gh issue view/list → Li+operations.md Issue_Maturity + Sub-issue_Rules focus pointer
+# on_issue (view): gh issue view/list → operations/Li+github.md Issue_Maturity + Sub-issue_Rules focus pointer
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? (issue (view|list)|api .*/issues)'; then
   CONTEXT=$(get_section \
     "on_issue (view): Issue_Maturity focus" \
@@ -298,7 +297,7 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? issue close'; then
   exit 0
 fi
 
-# on_commit: git commit → Li+operations.md Commit_Rules section re-read
+# on_commit: git commit → operations/Li+github.md Commit_Rules section re-read
 if echo "$CMD_LINE" | grep -q 'git commit'; then
   CONTEXT=$(get_section \
     "on_commit: Commit_Rules re-read" \
@@ -309,7 +308,7 @@ if echo "$CMD_LINE" | grep -q 'git commit'; then
   exit 0
 fi
 
-# on_merge: gh pr merge → Li+operations.md Merge_And_Cleanup section re-read
+# on_merge: gh pr merge → operations/Li+github.md Merge section re-read
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? pr merge'; then
   CONTEXT=$(get_section \
     "on_merge: Merge re-read" \
@@ -320,7 +319,7 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? pr merge'; then
   exit 0
 fi
 
-# on_release: gh release create → Li+operations.md Human_Confirmation_Required section re-read
+# on_release: gh release create → operations/Li+github.md Human_Confirmation_Required section re-read
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? release create'; then
   CONTEXT=$(get_section \
     "on_release: Human_Confirmation_Required re-read" \
@@ -344,10 +343,10 @@ globs:
 alwaysApply: true
 ---
 
-{contents of Li+core.md from liplus-language repository}
+{contents of model/Li+core.md from liplus-language repository}
 ```
 
-### Li+operations.md
+### Li+github.md
 
 ```markdown
 ---
@@ -355,18 +354,18 @@ globs:
 alwaysApply: true
 ---
 
-{contents of Li+operations.md from liplus-language repository}
+{contents of operations/Li+github.md from liplus-language repository}
 ```
 
 ## skills/ generation template
 
-Generated at: {workspace_root}/.claude/skills/li-plus-github/SKILL.md
+Generated at: {workspace_root}/.claude/skills/li-plus-issues/SKILL.md
 
 ### SKILL.md
 
 ```markdown
 ---
-name: li-plus-github
+name: li-plus-issues
 description: |
   Li+ issue management and task layer rules.
   TRIGGER when: a new idea, concept, or plan emerges in dialogue that should survive the session;
@@ -378,5 +377,5 @@ description: |
   All concepts start from issue. Detect when dialogue produces a durable work unit and invoke automatically.
 ---
 
-{contents of Li+github.md from liplus-language repository, excluding Issue Operations section}
+{contents of task/Li+issues.md from liplus-language repository, excluding Issue Operations section}
 ```

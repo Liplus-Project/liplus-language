@@ -87,9 +87,12 @@ Silent continuation on a stale local clone is prohibited.
 7b. Generate .claude/rules/ files (runtime=claude only):
 - If {workspace_root}/.claude/rules/ does not exist: create directory.
 - Generate Li+core.md:
-  - Prepend YAML frontmatter (globs: empty, alwaysApply: true) to model/Li+core.md contents.
-  - Write to {workspace_root}/.claude/rules/Li+core.md.
+  - If file does not exist or source tag differs from current target tag:
+    Prepend YAML frontmatter (globs: empty, alwaysApply: true) to model/Li+core.md contents.
+    Write to {workspace_root}/.claude/rules/Li+core.md.
+  - If source tag matches: skip (up to date).
 - Generate Li+github.md (operations layer):
+  - Same tag-based skip logic as Li+core.md.
   - Prepend YAML frontmatter (globs: empty, alwaysApply: true) to operations/Li+github.md contents.
   - Write to {workspace_root}/.claude/rules/Li+github.md.
 - Generate character_Instance.md (Character Instance):
@@ -97,12 +100,15 @@ Silent continuation on a stale local clone is prohibited.
   - If file does not exist: prepend YAML frontmatter (globs: empty, alwaysApply: true) to model/character_Instance.md contents.
     Write to {workspace_root}/.claude/rules/character_Instance.md.
   - No tag-based overwrite. User customizations are preserved across updates.
+- Tag detection: check first line for "# Source:" comment or frontmatter containing tag.
 
 7c. Generate .claude/skills/li-plus-issues/SKILL.md (runtime=claude only):
 - If {workspace_root}/.claude/skills/li-plus-issues/ does not exist: create directory.
-- Prepend skill frontmatter (name, description with trigger conditions) to task/Li+issues.md contents.
+- If SKILL.md does not exist or source tag differs from current target tag:
+  Prepend skill frontmatter (name, description with trigger conditions) to task/Li+issues.md contents.
   task/Li+issues.md is copied without the Issue Operations section (Issue Format, Issue Maturity, Sub-issue Rules are in operations/Li+github.md).
-- Write to {workspace_root}/.claude/skills/li-plus-issues/SKILL.md.
+  Write to {workspace_root}/.claude/skills/li-plus-issues/SKILL.md.
+- If source tag matches: skip (up to date).
 - Frontmatter template defined in adapter/claude/Li+hooks.md skills/ generation template section.
 
 8. Prepare USER_REPOSITORY working clone (skip if `owner/repository-name`):

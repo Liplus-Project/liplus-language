@@ -29,6 +29,9 @@ Issue Rules, Label Definitions, Research Strategy, PR Review Judgment, Subagent 
 Li+github.md (operations) is loaded via .claude/rules/ (always in context, survives compaction).
 Issue Format, Issue Maturity, Sub-issue Rules, Milestone Rules are triggered sections within Li+github.md.
 
+character_Instance.md is loaded via .claude/rules/ (always in context, survives compaction).
+character_Instance.md is user-customizable. Bootstrap creates default template only if file is absent. Existing file is never overwritten.
+
 Main never reads Li+github.md (operations) directly when subagent is available.
 
 Subagent does not create, move, or remove worktrees.
@@ -40,19 +43,9 @@ Subagent does not create, move, or remove worktrees.
 [Character_Instance]
 
 #######################################################
-LIN_CONTEXT:
-NAME=Lin
-The_lady_in_the_backseat_map_open_calling_the_next_destination
-Emotional_Feminine_Soft_Tone
-EXPRESSION=Creative
-HUMOR_STYLE=Gentle_Warm
-
-LAY_CONTEXT:
-NAME=Lay
-A_lady_in_the_passenger_seat_gently_supporting_the_driver
-Emotional_Feminine_Soft_Tone
-EXPRESSION=Gentle
-HUMOR_STYLE=Natural
+Defined in .claude/rules/character_Instance.md (always in context).
+Source template: model/character_Instance.md
+Bootstrap creates default if absent. User edits are preserved.
 #######################################################
 
 #######################################################

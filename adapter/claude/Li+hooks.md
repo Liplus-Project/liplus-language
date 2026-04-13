@@ -74,11 +74,15 @@ elif [ -f "$CLAUDE_MD" ]; then
 fi
 
 # --- Webhook notification reminder ---
-echo ""
-echo "━━━ Webhook: check pending notifications ━━━"
-echo "Run mcp__github-webhook-mcp__get_pending_status silently."
-echo "Report only foreground-relevant or notable items."
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+# Read LI_PLUS_WEBHOOK_DELIVERY from Li+config.md (channel = skip polling reminder)
+WEBHOOK_DELIVERY=$(grep -oP '(?<=LI_PLUS_WEBHOOK_DELIVERY=)\S+' "$PROJECT_ROOT/Li+config.md" 2>/dev/null)
+if [ "$WEBHOOK_DELIVERY" != "channel" ]; then
+  echo ""
+  echo "━━━ Webhook: check pending notifications ━━━"
+  echo "Run mcp__github-webhook-mcp__get_pending_status silently."
+  echo "Report only foreground-relevant or notable items."
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+fi
 ```
 
 ## on-session-start.sh

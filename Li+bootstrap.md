@@ -24,6 +24,13 @@ Read Li+config.md first to resolve all settings before executing this file.
   - If the user wants a different artifact language, accept it.
   - Write resolved values to Li+config.md. No manual editing required.
 
+3b. Resolve webhook delivery mode (optional):
+- LI_PLUS_WEBHOOK_DELIVERY = how webhook notifications reach the session (`channel` or `poll`).
+- `channel`: MCP channel delivers events in real time. The on-user-prompt hook skips the polling reminder.
+- `poll`: each user turn triggers a polling reminder (default, backward compatible).
+- If unset: poll behavior is assumed. No user prompt required.
+- This setting is read by the on-user-prompt hook at runtime. No bootstrap action needed.
+
 4. Install gh CLI:
 - Install only if `~/.local/bin/gh` does not exist. No sudo. No PATH update.
 - Always use full path `~/.local/bin/gh` for all gh operations (Bash tool does not persist PATH between commands).

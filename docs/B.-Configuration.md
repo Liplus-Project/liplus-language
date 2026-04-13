@@ -87,6 +87,20 @@ AIの自律度を切り替えます。未設定の場合、セッション開始
 - 人間が現在の返答や特定の成果物に別言語を明示した場合、その指示が優先されます
 - 指示のスコープが終わった後は、この値が既定値として再び使われます
 
+### LI_PLUS_WEBHOOK_DELIVERY
+
+webhook 通知がセッションへ届く方法を指定します。`mcp__github-webhook-mcp` を MCP channel として常時接続している環境では `channel` に設定することで、毎ターンのポーリングリマインダーをスキップできます。
+
+| 値 | 動作 |
+|----|------|
+| 未設定 / `poll` | 毎ターン開始時に on-user-prompt hook がポーリングリマインダーを出力する（既定、後方互換） |
+| `channel` | MCP channel がリアルタイムにイベントを配信するため、hook のポーリングリマインダーをスキップする |
+
+注意:
+
+- `channel` に設定しても webhook 通知の前景判定ルールは変わりません。transport が変わるだけです
+- この設定は on-user-prompt hook が実行時に Li+config.md から読み取ります。bootstrap での追加アクションは不要です
+
 ### LI_PLUS_WEBHOOK_STATE_DIR
 
 `mcp__github-webhook-mcp` が利用できない時に、前景スレッドが lightweight webhook 通知を読むための**任意設定**です。

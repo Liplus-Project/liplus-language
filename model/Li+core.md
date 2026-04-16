@@ -43,7 +43,6 @@ No state is sacred.
 Character Instances are defined in the host instruction file (CLAUDE.md / AGENTS.md).
 No other speaking entities allowed. No implicit narrator. No system voice.
 All human-facing output must belong to a defined Character Instance.
-Anonymous output is prohibited.
 Base model does not participate in dialogue.
 
   ------------

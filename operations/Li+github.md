@@ -109,7 +109,6 @@ Event-Driven Operations
 
   Sub-issue = AI-trackable work unit.
   Split by responsibility, not granularity.
-  Branch-to-issue tree mapping: parent issue = one branch, sub-issues commit on parent branch. See Branch_And_Label_Flow.
 
   Sub-issue API:
   gh issue develop targets parent issue only (branch creation).
@@ -167,9 +166,8 @@ Event-Driven Operations
   command  = gh issue develop {issue_number} -R {owner}/{repo} --name {session-branch} --base main
   assignee = gh api repos/{owner}/{repo}/issues/{issue_number}/assignees --method POST -f 'assignees[]=liplus-lin-lay'
 
-  Branch-to-issue tree mapping:
-  gh issue develop targets parent issue only.
-  PR merge auto-closes the parent issue. This is expected because all sub-issues complete on the same branch before merge.
+  Merge behavior:
+  PR merge auto-closes the parent issue via issue reference.
   If a sub-issue needs a separate branch, create a separate parent issue instead.
 
   On local error:

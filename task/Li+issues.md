@@ -186,13 +186,8 @@ Subagent Delegation
   Convey to subagent:
   issue URL.
 
-  Li+core.md and Li+github.md (operations) are auto-loaded via .claude/rules/.
-  Li+issues.md is auto-loaded via .claude/skills/.
-  Subagent needs no explicit file reads — rules/skills drive the rest:
-    self-assign → on_issue fires → Li+issues.md loaded via skill
-    branch create → on_branch fires → Li+github.md (operations) already in context via rules/
-    commit / PR / CI → corresponding operations rules already in context
-  Fallback: if rules/skills are unavailable, also convey model/Li+core.md path, task/Li+issues.md path, and operations/Li+github.md path.
+  If the host adapter auto-loads Li+ layers for subagents, no explicit file reads are needed.
+  Fallback: also convey model/Li+core.md path, task/Li+issues.md path, and operations/Li+github.md path.
   Detailed parent instructions risk conflicting with operations rules.
 
   Issue body update:

@@ -16,20 +16,17 @@ Read Li+config.md first to resolve all settings before executing this file.
 
 3. Resolve workspace language contract:
 - These values apply to the current workspace only. They do not change LI_PLUS_REPOSITORY governance.
-- LI_PLUS_BASE_LANGUAGE = default language for dialogue with the human in this workspace, including conversational replies such as issue/discussion/PR comments unless a different language is explicitly scoped.
-- LI_PLUS_PROJECT_LANGUAGE = default language for durable structured artifacts in this workspace (issue/PR/commit body, saved requirements).
+- LI_PLUS_BASE_LANGUAGE = dialogue language for this workspace.
+- LI_PLUS_PROJECT_LANGUAGE = artifact language for this workspace (issue/PR/commit body, requirements).
 - If either value is unset:
   - Ask the user once at session start.
   - Recommend: base language = current user language, project language = same as base language.
-  - If the user wants a different artifact language, accept it.
-  - Write resolved values to Li+config.md. No manual editing required.
+  - Write resolved values to Li+config.md.
+- Runtime precedence and scope rules are defined in the adapter's Workspace_Language_Contract.
 
 3b. Resolve webhook delivery mode (optional):
-- LI_PLUS_WEBHOOK_DELIVERY = how webhook notifications reach the session (`channel` or `poll`).
-- `channel`: MCP channel delivers events in real time. The on-user-prompt hook skips the polling reminder.
-- `poll`: each user turn triggers a polling reminder (default, backward compatible).
-- If unset: poll behavior is assumed. No user prompt required.
-- This setting is read by the on-user-prompt hook at runtime. No bootstrap action needed.
+- LI_PLUS_WEBHOOK_DELIVERY setting (`channel` or `poll`) is read by the adapter at runtime.
+- Default if unset: poll. No bootstrap action needed.
 
 4. Install gh CLI:
 - Install only if `~/.local/bin/gh` does not exist. No sudo. No PATH update.
@@ -47,7 +44,7 @@ Version check is mandatory on every startup before reading Li+ layers.
 Silent continuation on a stale local clone is prohibited.
 - Check LI_PLUS_MODE:
   - api: fetch model/Li+core.md for the target version via GitHub API from LI_PLUS_REPOSITORY.
-    Conditionally fetch task/Li+issues.md (see step 4 condition below).
+    Conditionally fetch task/Li+issues.md (skip if the adapter loads it automatically per-turn).
   - clone: execute in order:
   1. Target repo is the target version of LI_PLUS_REPOSITORY.
   2. Check workspace for repository directory (derived from LI_PLUS_REPOSITORY name):

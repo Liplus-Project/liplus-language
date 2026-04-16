@@ -145,40 +145,5 @@ Subagent_Delegation:
 
 ## Optional Webhook Notification Flow
 
-Adapter-side foreground intake only. Semantic policy remains in Li+github.md (operations) foreground intake rules.
-
-Use only in hosts that can run local commands from the workspace before replying.
-
-1. At the start of each user turn, before other work, inspect lightweight GitHub webhook notifications for the foreground thread.
-   - Perform this check silently as internal housekeeping.
-   - Do not mention that the check is running, and do not report empty/no-op results.
-2. Source selection priority:
-   - if `mcp__github-webhook-mcp` is available: use it.
-   - else if `LI_PLUS_MODE=clone` and a local `liplus-language/` clone is available:
-     - resolve `workspace_root` as the directory containing this instruction file
-     - resolve the local webhook state dir in this order:
-       1. `LI_PLUS_WEBHOOK_STATE_DIR` from `Li+config.md` (absolute path or `workspace_root`-relative path)
-       2. `workspace_root/github-webhook-mcp`
-       3. `workspace_root/../github-webhook-mcp`
-     - if the bundled helper exists at `workspace_root/liplus-language/scripts/check_webhook_notifications.py` and the state dir resolves, run it in inspect mode (`--limit 50`) and pass cheap foreground hints such as repo / branch when available
-   - else: skip silently.
-3. Mention notifications only when foreground-matched items or exceptional notable items exist.
-4. Do not auto-consume the local backlog from this foreground inspect path. `claim` / `read` / `done` / `cleanup` require explicit helper commands or a deeper workflow that owns the notification.
-5. Do not launch a separate AI process for webhook replies from this foreground flow.
-6. Do not open the full webhook payload unless deeper inspection is actually needed.
-
-### Self-action notification processing
-
-Self-action notifications are webhook events caused by the agent's own operations (or subagent operations). These are arrival confirmations, not external events requiring judgment.
-
-Self-action notifications follow the same foreground check flow as all other notifications. No auto-consume exemption.
-
-Identification criteria — all must hold:
-- sender is the agent's own account (or a subagent's account)
-- the event corresponds in time and content to an operation the agent just performed (e.g. issue edit -> `issues.edited`, commit push -> `check_run` / `workflow_job`, PR create -> `pull_request.opened`)
-- governance CI transitions (`queued` -> `in_progress` -> `completed`) triggered as side effects of issue/PR operations are self-action by extension
-
-Processing rule:
-- inspect each notification individually during foreground check
-- self-action and confirmed = mark as processed, no need to report to human
-- not self-action or uncertain = follow existing foreground rules unchanged
+Policy and procedures: see Li+github.md [Foreground Webhook Notification Intake].
+This adapter activates that flow using the host's UserPromptSubmit hook.

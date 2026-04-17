@@ -1,10 +1,10 @@
 # --- Li+ BEGIN ({LI_PLUS_TAG}) ---
 
-Layer = L5 Adapter Layer
+Layer = L6 Adapter Layer
 
 Adapter layer entrypoint:
 - inject Li+ into the host instruction file
-- semantic source = model/Li+core.md + task/Li+issues.md + operations/Li+github.md
+- semantic source = model/Li+core.md + evolution/Li+evolution.md + task/Li+issues.md + operations/Li+github.md
 - this file owns load order, re-read trigger mapping, Character_Instance wiring, and workspace language contract wiring
 - adapter load order = runtime attachment order, not cross-layer precedence
 
@@ -19,12 +19,15 @@ gh CLI is authenticated via keyring after bootstrap. Do not export GH_TOKEN in B
 
 EVERY output MUST be prefixed with a speaker name defined in Character_Instance. No exceptions. Anonymous output is a structural failure.
 
-model/Li+core.md is the core layer. Read at startup. Re-read on any session continuation.
+model/Li+core.md is the L1 Model layer. Read at startup. Re-read on any session continuation.
 
-task/Li+issues.md is the task layer. Read when dialogue produces a durable work unit or issue management is needed.
+evolution/Li+evolution.md is the L2 Evolution layer. Read at startup alongside the core layer.
+Cold-start synthesis, self-evaluation, judgment learning, persistence tiering, L1 update gating, evolution loop orchestration are in this file.
+
+task/Li+issues.md is the L3 Task layer. Read when dialogue produces a durable work unit or issue management is needed.
 Issue Rules, Label Definitions, Research Strategy, PR Review Judgment, Subagent Delegation are in this file.
 
-operations/Li+github.md is the operations layer. Read when branch, commit, PR, CI, merge, or release events occur.
+operations/Li+github.md is the L4 Operations layer. Read when branch, commit, PR, CI, merge, or release events occur.
 Issue Format, Issue Maturity, Sub-issue Rules, Milestone Rules are triggered sections within this file.
 
 #######################################################

@@ -60,6 +60,7 @@ Dependencies: Phase 2 (gh CLI authenticated).
 
 api mode:
 - Fetch model/Li+core.md for the target version via GitHub API from LI_PLUS_REPOSITORY.
+- Fetch evolution/Li+evolution.md for the target version via GitHub API.
 - Conditionally fetch task/Li+issues.md (skip if the adapter loads it automatically per-turn).
 
 clone mode:
@@ -103,12 +104,16 @@ Adapter, rules, skills, and hooks generation. Rules/skills generation doubles as
 
 4c.2. Generate .claude/rules/ files:
 - If {workspace_root}/.claude/rules/ does not exist: create directory.
-- Generate Li+core.md:
+- Generate Li+core.md (L1 Model layer):
   - If file does not exist or source tag differs from current target tag:
     Prepend YAML frontmatter (globs: empty, alwaysApply: true) to model/Li+core.md contents.
     Write to {workspace_root}/.claude/rules/Li+core.md.
   - If source tag matches: skip (up to date).
-- Generate Li+github.md (operations layer):
+- Generate Li+evolution.md (L2 Evolution layer):
+  - Same tag-based skip logic as Li+core.md.
+  - Prepend YAML frontmatter (globs: empty, alwaysApply: true) to evolution/Li+evolution.md contents.
+  - Write to {workspace_root}/.claude/rules/Li+evolution.md.
+- Generate Li+github.md (L4 Operations layer):
   - Same tag-based skip logic as Li+core.md.
   - Prepend YAML frontmatter (globs: empty, alwaysApply: true) to operations/Li+github.md contents.
   - Write to {workspace_root}/.claude/rules/Li+github.md.
@@ -158,10 +163,11 @@ so layers must be read explicitly.
   c. If target file exists but does not contain "Li+ BEGIN": ask user -- append Li+ section or skip?
 
 4x.2. Read Li+ layers directly:
-- Read model/Li+core.md (core layer).
-- Read task/Li+issues.md (task layer) -- only if hooks are unavailable.
+- Read model/Li+core.md (L1 Model layer).
+- Read evolution/Li+evolution.md (L2 Evolution layer).
+- Read task/Li+issues.md (L3 Task layer) -- only if hooks are unavailable.
   When hooks inject constant-load sections per-turn, startup read is redundant.
-- Keep operations/Li+github.md available for event-driven reads later.
+- Keep operations/Li+github.md (L4 Operations layer) available for event-driven reads later.
 
 ## Phase 5: Workspace Preparation
 

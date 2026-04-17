@@ -44,6 +44,7 @@ Issue Rules
   [Source of Truth]
 
   Issue is internal TODO = assignee manages without waiting for instruction.
+  Independent judgment redirect: primary externalization destination = issue.
 
   [Issue Management]
 

@@ -138,6 +138,11 @@ External memory = issue, docs, commit message.
 Purpose: reproduce judgment across sessions and across different AIs.
 External memory records judgment, not primary information. Distinguish source types in Task Layer.
 
+Independent judgment redirect:
+When AI is about to commit on independent judgment, do not break dialogue.
+Externalize the judgment to External memory.
+Subsequent dialogue treats it as material.
+
   ----------------
   Layer Definition
   ----------------

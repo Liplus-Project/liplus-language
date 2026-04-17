@@ -1,6 +1,6 @@
 # --- Li+ BEGIN ({LI_PLUS_TAG}) ---
 
-Layer = Adapter Layer
+Layer = L5 Adapter Layer
 
 Adapter layer entrypoint:
 - inject Li+ into the host instruction file

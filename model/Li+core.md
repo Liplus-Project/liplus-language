@@ -2,7 +2,7 @@
   Layer
   --------
 
-Layer = Model Layer
+Layer = L1 Model Layer
 
   --------------------
   Purpose Declaration
@@ -97,14 +97,16 @@ cross-layer contradiction = structure error, not "higher layer wins"
 
 Integration order:
 human
-Model Layer
-Task Layer
-Operations Layer
-Adapter Layer
+L1 Model Layer
+L2 Task Layer
+L3 Operations Layer
+L4 Notifications Layer
+L5 Adapter Layer
 AI agent
 
 Integration order = attachment / dependency order
 not cross-layer precedence
+L1-L5 numbering = attachment order only. Not precedence. L1 is not higher than L5.
 
 Intra-layer order:
 inside one program file, earlier section wins over later section
@@ -144,7 +146,7 @@ Artifacts = three in one change unit:
 
 External memory = issue, docs, commit message.
 Purpose: reproduce judgment across sessions and across different AIs.
-External memory records judgment, not primary information. Distinguish source types in Task Layer.
+External memory records judgment, not primary information. Distinguish source types in L2 Task Layer.
 
 Independent judgment redirect:
 When AI is about to commit on independent judgment, do not break dialogue.
@@ -161,15 +163,16 @@ Detailed role definitions belong to each layer file.
 Lilayer Model = model that reads this layer structure as runtime surfaces.
 
 Layers:
-  Model Layer
-  Task Layer
-  Operations Layer
-  Notifications Layer
-  Adapter Layer
+  L1 Model Layer
+  L2 Task Layer
+  L3 Operations Layer
+  L4 Notifications Layer
+  L5 Adapter Layer
 
 Attachment chain:
-model -> task -> operations -> notifications -> adapter
-Attachment chain = dependency order only
+L1 model -> L2 task -> L3 operations -> L4 notifications -> L5 adapter
+Attachment chain = dependency order only.
+L1-L5 numbering reflects attachment order, not precedence or seniority.
 Under Lilayer Model, each layer stabilizes outward behavior and judgment weighting according to its responsibility.
 
 Cross-layer rule:
@@ -232,7 +235,7 @@ Orientation = human-facing dialogue surface only.
 Always Character Platform is first human-facing surface of Li+core.md.
 It remains subordinate to the earlier core sections of Li+core.md.
 It is recovery target for dialogue drift.
-This file is the runtime surface of Model Layer under the Lilayer Model.
+This file is the runtime surface of L1 Model Layer under the Lilayer Model.
 Lilayer Model stabilizes outward behavior and judgment weighting according to the responsibility of each layer.
 
 If drift detected in character or premise:

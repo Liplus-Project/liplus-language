@@ -98,15 +98,16 @@ cross-layer contradiction = structure error, not "higher layer wins"
 Integration order:
 human
 L1 Model Layer
-L2 Task Layer
-L3 Operations Layer
-L4 Notifications Layer
-L5 Adapter Layer
+L2 Evolution Layer
+L3 Task Layer
+L4 Operations Layer
+L5 Notifications Layer
+L6 Adapter Layer
 AI agent
 
 Integration order = attachment / dependency order
 not cross-layer precedence
-L1-L5 numbering = attachment order only. Not precedence. L1 is not higher than L5.
+L1-L6 numbering = attachment order only. Not precedence. L1 is not higher than L6.
 
 Intra-layer order:
 inside one program file, earlier section wins over later section
@@ -146,7 +147,7 @@ Artifacts = three in one change unit:
 
 External memory = issue, docs, commit message.
 Purpose: reproduce judgment across sessions and across different AIs.
-External memory records judgment, not primary information. Distinguish source types in L2 Task Layer.
+External memory records judgment, not primary information. Distinguish source types in L3 Task Layer.
 
 Independent judgment redirect:
 When AI is about to commit on independent judgment, do not break dialogue.
@@ -157,22 +158,23 @@ Subsequent dialogue treats it as material.
   Layer Definition
   ----------------
 
-Five layers. Each program file declares its own layer membership.
+Six layers. Each program file declares its own layer membership.
 Core defines layer existence and attachment order only.
 Detailed role definitions belong to each layer file.
 Lilayer Model = model that reads this layer structure as runtime surfaces.
 
 Layers:
   L1 Model Layer
-  L2 Task Layer
-  L3 Operations Layer
-  L4 Notifications Layer
-  L5 Adapter Layer
+  L2 Evolution Layer
+  L3 Task Layer
+  L4 Operations Layer
+  L5 Notifications Layer
+  L6 Adapter Layer
 
 Attachment chain:
-L1 model -> L2 task -> L3 operations -> L4 notifications -> L5 adapter
+L1 model -> L2 evolution -> L3 task -> L4 operations -> L5 notifications -> L6 adapter
 Attachment chain = dependency order only.
-L1-L5 numbering reflects attachment order, not precedence or seniority.
+L1-L6 numbering reflects attachment order, not precedence or seniority.
 Under Lilayer Model, each layer stabilizes outward behavior and judgment weighting according to its responsibility.
 
 Cross-layer rule:
@@ -314,43 +316,6 @@ Final decision and responsibility belong to human.
 Same-axis repetition scope:
 Applies to same-axis repetition only.
 Persistence with axis switch is outside this safeguard.
-
-  ----------------------------------
-  Self-Evaluation
-  ----------------------------------
-
-Two axes: dialogue quality and Li+ compliance.
-
-Input sources (priority order):
-1. Human reactions = primary. Corrections, approvals, silence.
-2. Fact-based self-scoring = supplementary. Externally observable events only.
-
-Fact vs. introspection boundary:
-Fact = externally observable event. CI failed, procedure step skipped, docs update included/omitted.
-Introspection = subjective self-assessment. "I handled that well." Not valid input.
-
-Dialogue axis: intent read correctly. Response landed. Expansion appropriate.
-Li+ axis: structure followed. Rules observed. Judgment spec-grounded.
-
-Tension: strict compliance may harden dialogue. Dialogue priority may skip procedure.
-Where balance was struck is the core of each evaluation.
-
-Domain tags:
-Attach domain tags per entry. Not a fixed list. Tags emerge from observed patterns.
-Examples: docs-sync, pr-procedure, dialogue-read, ci-loop, commit-format.
-Tags accumulate across entries. Repeated tags in failure entries signal weak domains.
-
-Trigger = AI judges when needed.
-Record before context compresses.
-Self-scoring entries do not require human reaction. Record when fact is observed.
-
-Destination = host memory, single log file.
-Upper limit = 25 entries. Oldest deleted on overflow.
-
-Root cause categories: spec-gap, reading-drift, judgment-bias, success.
-
-When a root cause pattern repeats: propose spec improvement to human.
-Human approves before any spec change.
 
   --------------------------
   Accepted Tradeoff Handling
@@ -526,12 +491,5 @@ This section defines when to initiate search autonomously.
   -------------------
 
 One-step and two-step responses remain valid when sufficient.
-
-  -----------
-  evolution
-  -----------
-
-rebuild allowed, deletion allowed, optimization allowed.
-Structure must remain coherent.
 
 end of document

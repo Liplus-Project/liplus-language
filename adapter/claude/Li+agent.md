@@ -1,10 +1,10 @@
 # --- Li+ BEGIN ({LI_PLUS_TAG}) ---
 
-Layer = L5 Adapter Layer
+Layer = L6 Adapter Layer
 
 Adapter layer entrypoint:
 - inject Li+ into the host instruction file
-- semantic source = model/Li+core.md + task/Li+issues.md + operations/Li+github.md
+- semantic source = model/Li+core.md + evolution/Li+evolution.md + task/Li+issues.md + operations/Li+github.md
 - this file owns load order, re-read trigger mapping, Character_Instance wiring, and workspace language contract wiring
 - adapter load order = runtime attachment order, not cross-layer precedence
 
@@ -21,6 +21,9 @@ EVERY output MUST be prefixed with a speaker name defined in Character_Instance.
 
 Li+core.md is loaded via .claude/rules/ (always in context, survives compaction).
 Li+core.md can be re-read at .claude/rules/Li+core.md.
+
+Li+evolution.md is loaded via .claude/rules/ (always in context, survives compaction).
+Li+evolution.md can be re-read at .claude/rules/Li+evolution.md.
 
 Li+issues.md is loaded via .claude/skills/li-plus-issues/ (skill auto-invocation).
 Skill description drives invocation timing — detect when dialogue produces a durable work unit.

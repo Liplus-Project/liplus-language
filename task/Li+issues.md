@@ -4,10 +4,10 @@ Layer Position
 
 #######################################################
 
-Layer = Task Layer
+Layer = L2 Task Layer
 Issue-facing surface over the shared Li+ program
-Requires = Model Layer
-Companion surface = Operations Layer for event-driven execution
+Requires = L1 Model Layer
+Companion surface = L3 Operations Layer for event-driven execution
 Foregrounds:
   issue rules
   label vocabulary

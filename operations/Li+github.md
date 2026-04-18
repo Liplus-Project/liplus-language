@@ -335,12 +335,15 @@ Event-Driven Operations
   Wiki must be a complete mirror of docs/. Renamed or removed pages must disappear from Wiki.
   Steps:
     1. Clone wiki repo: git clone https://github.com/{owner}/{repo}.wiki.git {tmpdir}
-    2. Wipe existing markdown (prevents stale pages from rename/delete): rm -f {tmpdir}/*.md
-    3. Copy docs/ files: cp docs/*.md {tmpdir}/
-    4. Stage all (including deletions): git -C {tmpdir} add -A
-    5. Commit: git -C {tmpdir} commit -m "sync: docs → wiki ({release_tag})"
-    6. Push: git -C {tmpdir} push
-    7. Cleanup: rm -rf {tmpdir}
+    2. Configure identity (clone-and-throw-away pattern requires explicit identity):
+       git -C {tmpdir} config user.name  "{commit-author-name}"
+       git -C {tmpdir} config user.email "{commit-author-email}"
+    3. Wipe existing markdown (prevents stale pages from rename/delete): rm -f {tmpdir}/*.md
+    4. Copy docs/ files: cp docs/*.md {tmpdir}/
+    5. Stage all (including deletions): git -C {tmpdir} add -A
+    6. Commit: git -C {tmpdir} commit -m "sync: docs → wiki ({release_tag})"
+    7. Push: git -C {tmpdir} push
+    8. Cleanup: rm -rf {tmpdir}
   If push fails (permission): escalate to human. Do not skip.
   Wiki sync is part of the release procedure, not a follow-up task.
 

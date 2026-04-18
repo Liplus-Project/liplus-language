@@ -172,19 +172,28 @@ if [ -n "$OPEN_ISSUES" ]; then
 fi
 
 # --- latest self-evaluation entry from host memory (if exists) ---
-# Path convention: Claude Code stores user memory under ~/.claude/ and project memory
-# under CLAUDE_PROJECT_DIR's memory subtree. Best-effort read only.
-SELFEVAL_CANDIDATES=(
-  "$HOME/.claude/projects/C--Users-smile-Code/memory/self-evaluation_log.md"
-  "$PROJECT_ROOT/memory/self-evaluation_log.md"
-)
-for candidate in "${SELFEVAL_CANDIDATES[@]}"; do
+# Claude Code stores user memory at ~/.claude/projects/<slug>/memory/, where <slug>
+# is CLAUDE_PROJECT_DIR with ':', '/', and '\' all replaced by '-'.
+# Best-effort read only: silent skip when the file is absent.
+CPD="${CLAUDE_PROJECT_DIR:-$PROJECT_ROOT}"
+CCD_SLUG=$(printf '%s' "$CPD" | sed 's|[:/\\]|-|g')
+SELFEVAL_FOUND=""
+for candidate in \
+  "$HOME/.claude/projects/$CCD_SLUG/memory/self-evaluation_log.md" \
+  "$PROJECT_ROOT/memory/self-evaluation_log.md"; do
   if [ -f "$candidate" ]; then
-    SELFEVAL_HEAD=$(head -n 30 "$candidate")
-    emit_section "Self-evaluation log head (most recent)" "$SELFEVAL_HEAD"
+    SELFEVAL_FOUND="$candidate"
     break
   fi
 done
+# Glob fallback: pick the most recently modified self-eval log under any project slug.
+if [ -z "$SELFEVAL_FOUND" ]; then
+  SELFEVAL_FOUND=$(ls -1t "$HOME"/.claude/projects/*/memory/self-evaluation_log.md 2>/dev/null | head -n 1)
+fi
+if [ -n "$SELFEVAL_FOUND" ] && [ -f "$SELFEVAL_FOUND" ]; then
+  SELFEVAL_HEAD=$(head -n 30 "$SELFEVAL_FOUND")
+  emit_section "Self-evaluation log head (most recent)" "$SELFEVAL_HEAD"
+fi
 
 # --- instruction to the AI: synthesize through Character_Instance ---
 cat <<'EOF'

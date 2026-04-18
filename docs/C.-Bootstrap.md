@@ -166,7 +166,7 @@ Bootstrap は次回セッションから有効。現セッションは Li+config
 
 - [B. Configuration](B.-Configuration) — 設定リファレンス
 - [D. Installation](D.-Installation) — Quickstartセットアップ手順
-- [4. Adapter](4.-Adapter) — アダプターレイヤー仕様書
+- [6. Adapter](6.-Adapter) — アダプターレイヤー仕様書
 
 ---
 

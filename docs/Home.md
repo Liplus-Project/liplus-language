@@ -18,10 +18,11 @@ Li+ v1.0.0 の成立条件は到達済みとみなし、現在の本番はその
 | ページ | 内容 |
 |--------|------|
 | [1. Model](1.-Model) | モデルレイヤー仕様書 |
-| [2. Task](2.-Task) | タスクレイヤー仕様書 |
-| [3. Operations](3.-Operations) | オペレーションレイヤー仕様書 |
-| [4. Adapter](4.-Adapter) | アダプターレイヤー仕様書 |
+| [2. Evolution](2.-Evolution) | 進化レイヤー仕様書 |
+| [3. Task](3.-Task) | タスクレイヤー仕様書 |
+| [4. Operations](4.-Operations) | オペレーションレイヤー仕様書 |
 | [5. Notifications](5.-Notifications) | 通知レイヤー仕様書 |
+| [6. Adapter](6.-Adapter) | アダプターレイヤー仕様書 |
 
 ---
 

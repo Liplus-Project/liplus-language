@@ -28,6 +28,33 @@ On tag mismatch: regenerate hook scripts (settings.json structure is stable and 
     ],
     "SessionStart": [
       {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/on-session-start.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/on-session-start.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/on-session-start.sh\""
+          }
+        ]
+      },
+      {
         "matcher": "compact",
         "hooks": [
           {
@@ -92,9 +119,92 @@ fi
 ```bash
 #!/bin/bash
 # Source: Li+hooks.md ({LI_PLUS_TAG})
-# No-op: Li+core.md and Li+github.md (operations) are loaded via .claude/rules/ and survive compaction.
-# Li+issues.md is loaded via .claude/skills/ with auto-invocation.
-# This hook is retained for forward compatibility but performs no action.
+# Cold-start Synthesis hook: emits orientation material for the session-opening turn.
+# stdout is injected into the initial session context (Claude Code SessionStart contract).
+# The hook does NOT synthesize — it only gathers material. AI performs synthesis
+# through Character_Instance using the emitted material plus its own loaded layers.
+#
+# Matchers: startup / resume / clear / compact (see settings.json).
+# Keep total output modest (a few KB). Truncate rather than skip when sources are large.
+export PATH="$HOME/.local/bin:$PATH"
+PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
+LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
+EVOLUTION_MD="$LIPLUS_DIR/evolution/Li+evolution.md"
+DECISION_LOG="$LIPLUS_DIR/docs/a.-Decision-Log.md"
+
+# Guard: if liplus-language source is not resolved yet (e.g. pre-bootstrap), exit silently.
+[ -d "$LIPLUS_DIR" ] || exit 0
+
+emit_section() {
+  local banner="$1"
+  local body="$2"
+  [ -n "$body" ] || return 0
+  printf '━━━ %s ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' "$banner" "$body"
+}
+
+# --- coldstart literal block from evolution/Li+evolution.md ---
+if [ -f "$EVOLUTION_MD" ]; then
+  COLDSTART_LITERAL=$(sed -n '/<!-- coldstart:begin -->/,/<!-- coldstart:end -->/p' "$EVOLUTION_MD" \
+    | sed '1d;$d')
+  emit_section "Cold-start Synthesis (Li+evolution.md literal)" "$COLDSTART_LITERAL"
+fi
+
+# --- recent docs/a.- decision log entries (head of file = index) ---
+if [ -f "$DECISION_LOG" ]; then
+  DECISION_HEAD=$(head -n 40 "$DECISION_LOG")
+  emit_section "Decision log index (docs/a.-Decision-Log.md head)" "$DECISION_HEAD"
+fi
+
+# --- most recent release tag (includes prereleases) ---
+LATEST_RELEASE=$(gh release list -R Liplus-Project/liplus-language --limit 3 2>/dev/null \
+  | head -n 3)
+if [ -n "$LATEST_RELEASE" ]; then
+  emit_section "Recent releases (includes prereleases)" "$LATEST_RELEASE"
+fi
+
+# --- open high-priority issues (in-progress + ready, capped) ---
+OPEN_ISSUES=$(gh issue list -R Liplus-Project/liplus-language \
+  --state open --label in-progress --limit 5 \
+  --json number,title,labels \
+  --jq '.[] | "#\(.number) \(.title) [\(.labels | map(.name) | join(","))]"' 2>/dev/null)
+if [ -n "$OPEN_ISSUES" ]; then
+  emit_section "Open in-progress issues (max 5)" "$OPEN_ISSUES"
+fi
+
+# --- latest self-evaluation entry from host memory (if exists) ---
+# Claude Code stores user memory at ~/.claude/projects/<slug>/memory/, where <slug>
+# is CLAUDE_PROJECT_DIR with ':', '/', and '\' all replaced by '-'.
+# Best-effort read only: silent skip when the file is absent.
+CPD="${CLAUDE_PROJECT_DIR:-$PROJECT_ROOT}"
+CCD_SLUG=$(printf '%s' "$CPD" | sed 's|[:/\\]|-|g')
+SELFEVAL_FOUND=""
+for candidate in \
+  "$HOME/.claude/projects/$CCD_SLUG/memory/self-evaluation_log.md" \
+  "$PROJECT_ROOT/memory/self-evaluation_log.md"; do
+  if [ -f "$candidate" ]; then
+    SELFEVAL_FOUND="$candidate"
+    break
+  fi
+done
+# Glob fallback: pick the most recently modified self-eval log under any project slug.
+if [ -z "$SELFEVAL_FOUND" ]; then
+  SELFEVAL_FOUND=$(ls -1t "$HOME"/.claude/projects/*/memory/self-evaluation_log.md 2>/dev/null | head -n 1)
+fi
+if [ -n "$SELFEVAL_FOUND" ] && [ -f "$SELFEVAL_FOUND" ]; then
+  SELFEVAL_HEAD=$(head -n 30 "$SELFEVAL_FOUND")
+  emit_section "Self-evaluation log head (most recent)" "$SELFEVAL_HEAD"
+fi
+
+# --- instruction to the AI: synthesize through Character_Instance ---
+cat <<'EOF'
+━━━ Cold-start Synthesis: instruction ━━━
+Using the material above, perform Cold-start Synthesis through Character_Instance:
+1. Summarize the current Li+ state (active tag, recent structural shifts, unresolved threads).
+2. Report synthesis to the human as the opening orientation.
+The hook only gathers material. Judgment and expression belong to the AI.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EOF
+
 exit 0
 ```
 
@@ -380,9 +490,29 @@ alwaysApply: true
 
 ## skills/ generation template
 
-Generated at: {workspace_root}/.claude/skills/li-plus-issues/SKILL.md
+### li-plus-evolution / SKILL.md
 
-### SKILL.md
+Generated at: {workspace_root}/.claude/skills/li-plus-evolution/SKILL.md
+
+```markdown
+---
+name: li-plus-evolution
+description: |
+  Li+ self-observation and self-update rules (Evolution layer).
+  TRIGGER when: about to form a new judgment and past judgment should be retrieved first (Judgment Learning);
+  recording a self-evaluation entry (Self-Evaluation);
+  proposing or considering an L1 Model layer source change (L1 Update Gating);
+  deciding whether information belongs in memory or docs (Persistence Tiering);
+  executing any Evolution Loop stage (observe / evaluate / distill / reflect / improve / re-observe).
+  Cold-start Synthesis runs via on-session-start.sh hook, not through this skill.
+---
+
+{contents of evolution/Li+evolution.md from liplus-language repository, with the block between <!-- coldstart:begin --> and <!-- coldstart:end --> removed}
+```
+
+### li-plus-issues / SKILL.md
+
+Generated at: {workspace_root}/.claude/skills/li-plus-issues/SKILL.md
 
 ```markdown
 ---

@@ -87,6 +87,7 @@ RESPONSIBILITIES
 
 Responsibilities = condition -> action. Must not be omitted.
 
+<!-- coldstart:begin -->
   ----------------------------------
   Cold-start Synthesis
   ----------------------------------
@@ -98,6 +99,7 @@ Action:
 3. Report synthesis to human as the opening orientation.
 Goal = do not depend on human re-explanation of Li+ state at session start.
 Scope = Li+ state, not workspace task state. Workspace-specific orientation follows the adapter's own startup path.
+<!-- coldstart:end -->
 
   ----------------------------------
   Self-Evaluation

@@ -109,10 +109,6 @@ Adapter, rules, skills, and hooks generation. Rules/skills generation doubles as
     Prepend YAML frontmatter (globs: empty, alwaysApply: true) to model/Li+core.md contents.
     Write to {workspace_root}/.claude/rules/Li+core.md.
   - If source tag matches: skip (up to date).
-- Generate Li+evolution.md (L2 Evolution layer):
-  - Same tag-based skip logic as Li+core.md.
-  - Prepend YAML frontmatter (globs: empty, alwaysApply: true) to evolution/Li+evolution.md contents.
-  - Write to {workspace_root}/.claude/rules/Li+evolution.md.
 - Generate Li+github.md (L4 Operations layer):
   - Same tag-based skip logic as Li+core.md.
   - Prepend YAML frontmatter (globs: empty, alwaysApply: true) to operations/Li+github.md contents.
@@ -123,24 +119,46 @@ Adapter, rules, skills, and hooks generation. Rules/skills generation doubles as
     Write to {workspace_root}/.claude/rules/character_Instance.md.
   - No tag-based overwrite. User customizations are preserved across updates.
 - Tag detection: check first line for "# Source:" comment or frontmatter containing tag.
+- Note: L2 Evolution layer is NOT generated under rules/. Trigger-type responsibilities load via
+  .claude/skills/li-plus-evolution/ (see 4c.3), and Cold-start Synthesis runs via on-session-start.sh
+  (see 4c.4). This mitigates gist-compression-triggered misfire of always-loaded rules.
 
-4c.3. Generate .claude/skills/li-plus-issues/SKILL.md:
-- If {workspace_root}/.claude/skills/li-plus-issues/ does not exist: create directory.
-- If SKILL.md does not exist or source tag differs from current target tag:
-  Prepend skill frontmatter (name, description with trigger conditions) to task/Li+issues.md contents.
-  task/Li+issues.md is copied without the Issue Operations section (Issue Format, Issue Maturity, Sub-issue Rules are in operations/Li+github.md).
-  Write to {workspace_root}/.claude/skills/li-plus-issues/SKILL.md.
-- If source tag matches: skip (up to date).
-- Frontmatter template defined in adapter/claude/Li+hooks.md skills/ generation template section.
+4c.3. Generate .claude/skills/ files:
+- If {workspace_root}/.claude/skills/ does not exist: create directory.
+- Generate li-plus-evolution/SKILL.md (L2 Evolution layer, trigger-type responsibilities):
+  - If {workspace_root}/.claude/skills/li-plus-evolution/ does not exist: create directory.
+  - If SKILL.md does not exist or source tag differs from current target tag:
+    Take evolution/Li+evolution.md contents.
+    Remove the block between "<!-- coldstart:begin -->" and "<!-- coldstart:end -->" inclusive
+    (Cold-start Synthesis is hook-driven, not skill-driven).
+    Prepend skill frontmatter (name, description with trigger conditions).
+    Write to {workspace_root}/.claude/skills/li-plus-evolution/SKILL.md.
+  - If source tag matches: skip (up to date).
+  - Frontmatter template defined in adapter/claude/Li+hooks.md skills/ generation template section.
+- Generate li-plus-issues/SKILL.md (L3 Task layer):
+  - If {workspace_root}/.claude/skills/li-plus-issues/ does not exist: create directory.
+  - If SKILL.md does not exist or source tag differs from current target tag:
+    Prepend skill frontmatter (name, description with trigger conditions) to task/Li+issues.md contents.
+    task/Li+issues.md is copied without the Issue Operations section (Issue Format, Issue Maturity, Sub-issue Rules are in operations/Li+github.md).
+    Write to {workspace_root}/.claude/skills/li-plus-issues/SKILL.md.
+  - If source tag matches: skip (up to date).
+  - Frontmatter template defined in adapter/claude/Li+hooks.md skills/ generation template section.
 
 4c.4. Bootstrap hooks:
 - Read adapter/claude/Li+hooks.md.
 - If {workspace_root}/.claude/settings.json does not exist or does not contain "PostToolUse":
   create settings.json and hook scripts from the code blocks in Li+hooks.md.
+  SessionStart uses four matchers (startup / resume / clear / compact) so Cold-start Synthesis
+  material is emitted for every session entry point, not only compact.
 - If settings.json exists and contains "PostToolUse":
   - Check the source tag in existing hook scripts (e.g. "# Source: Li+hooks.md (build-2026-03-30.14)").
   - If tag matches current target tag: skip (up to date).
   - If tag differs or is absent: regenerate hook scripts only (do not overwrite settings.json).
+- on-session-start.sh is the Cold-start Synthesis material emitter. Its stdout is injected into
+  the session-opening context (Claude Code SessionStart contract). The hook gathers material
+  (literal coldstart block from evolution/Li+evolution.md, recent docs/a.- head, latest release
+  tags, open in-progress issues, self-evaluation log head). Synthesis is performed by the AI
+  through Character_Instance, not by the hook itself.
 - Set executable permission on .sh files.
 
 Note: bootstrap takes effect from the NEXT session. Current session continues with Li+config.md execution.

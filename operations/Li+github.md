@@ -332,12 +332,15 @@ Event-Driven Operations
 
   Post-release wiki sync:
   After release is published, sync docs/ to GitHub Wiki.
+  Wiki must be a complete mirror of docs/. Renamed or removed pages must disappear from Wiki.
   Steps:
     1. Clone wiki repo: git clone https://github.com/{owner}/{repo}.wiki.git {tmpdir}
-    2. Copy docs/ files: cp docs/*.md {tmpdir}/
-    3. Commit: git -C {tmpdir} add . && git -C {tmpdir} commit -m "sync: docs → wiki ({release_tag})"
-    4. Push: git -C {tmpdir} push
-    5. Cleanup: rm -rf {tmpdir}
+    2. Wipe existing markdown (prevents stale pages from rename/delete): rm -f {tmpdir}/*.md
+    3. Copy docs/ files: cp docs/*.md {tmpdir}/
+    4. Stage all (including deletions): git -C {tmpdir} add -A
+    5. Commit: git -C {tmpdir} commit -m "sync: docs → wiki ({release_tag})"
+    6. Push: git -C {tmpdir} push
+    7. Cleanup: rm -rf {tmpdir}
   If push fails (permission): escalate to human. Do not skip.
   Wiki sync is part of the release procedure, not a follow-up task.
 

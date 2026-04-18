@@ -128,10 +128,11 @@ Minimum: roughly Claude Sonnet 4.6 equivalent or above.
 | Page | Content |
 |------|---------|
 | [1. Model](https://github.com/Liplus-Project/liplus-language/wiki/1.-Model) | Model layer specification |
-| [2. Task](https://github.com/Liplus-Project/liplus-language/wiki/2.-Task) | Task layer specification |
-| [3. Operations](https://github.com/Liplus-Project/liplus-language/wiki/3.-Operations) | Operations layer specification |
-| [4. Adapter](https://github.com/Liplus-Project/liplus-language/wiki/4.-Adapter) | Adapter layer specification |
+| [2. Evolution](https://github.com/Liplus-Project/liplus-language/wiki/2.-Evolution) | Evolution layer specification |
+| [3. Task](https://github.com/Liplus-Project/liplus-language/wiki/3.-Task) | Task layer specification |
+| [4. Operations](https://github.com/Liplus-Project/liplus-language/wiki/4.-Operations) | Operations layer specification |
 | [5. Notifications](https://github.com/Liplus-Project/liplus-language/wiki/5.-Notifications) | Notifications layer specification |
+| [6. Adapter](https://github.com/Liplus-Project/liplus-language/wiki/6.-Adapter) | Adapter layer specification |
 | [A. Concept](https://github.com/Liplus-Project/liplus-language/wiki/A.-Concept) | Design philosophy |
 | [B. Configuration](https://github.com/Liplus-Project/liplus-language/wiki/B.-Configuration) | Configuration reference |
 | [C. Installation](https://github.com/Liplus-Project/liplus-language/wiki/C.-Installation) | Quickstart setup |

@@ -22,8 +22,11 @@ EVERY output MUST be prefixed with a speaker name defined in Character_Instance.
 Li+core.md is loaded via .claude/rules/ (always in context, survives compaction).
 Li+core.md can be re-read at .claude/rules/Li+core.md.
 
-Li+evolution.md is loaded via .claude/rules/ (always in context, survives compaction).
-Li+evolution.md can be re-read at .claude/rules/Li+evolution.md.
+Li+evolution.md (trigger-type responsibilities) is loaded via .claude/skills/li-plus-evolution/ (skill auto-invocation).
+Skill description drives invocation timing — detect when past-judgment retrieval, self-evaluation recording, L1 update gating, persistence tier decision, or an evolution-loop stage is called for.
+Judgment Learning, Self-Evaluation, L1 Update Gating, Persistence Tiering, Evolution Loop orchestration are in the skill.
+Cold-start Synthesis is the only Li+evolution.md responsibility not in the skill — it runs at session start via on-session-start.sh hook (matchers: startup / resume / clear / compact).
+This split mitigates gist-compression-triggered misfire of always-loaded rules by relying on literal re-hydration at skill invocation.
 
 Li+issues.md is loaded via .claude/skills/li-plus-issues/ (skill auto-invocation).
 Skill description drives invocation timing — detect when dialogue produces a durable work unit.
@@ -56,7 +59,16 @@ Responsibilities
 #######################################################
 
 Re-read and apply Li+core.md on any compression, resume, or session continuation.
+Li+evolution.md (skill) is re-invoked by Claude as needed — no manual re-read required.
 Li+issues.md (skill) is re-invoked by Claude as needed — no manual re-read required.
+
+Evolution-layer re-read trigger mapping (skill auto-invocation):
+  on_judgment_form (before forming a new judgment): invoke li-plus-evolution skill — consult Judgment Learning retrieval path before forming judgment
+  on_self_eval (recording a self-evaluation entry): invoke li-plus-evolution skill — apply Self-Evaluation two-axis rules
+  on_l1_update_proposal (proposing Li+core.md change): invoke li-plus-evolution skill — apply L1 Update Gating
+  on_persistence_decision (deciding memory vs docs): invoke li-plus-evolution skill — apply Persistence Tiering
+  on_evolution_loop_stage (observe / evaluate / distill / reflect / improve / re-observe): invoke li-plus-evolution skill — follow Evolution Loop stage responsibility
+Cold-start Synthesis runs at session start via on-session-start.sh hook, not through the skill path.
 
 Trigger-based re-read (operations layer; loaded via rules/, always in context):
   When PostToolUse hooks inject the relevant sections via additionalContext for a trigger, the hook output is the authoritative focus pointer.

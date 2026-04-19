@@ -95,6 +95,10 @@ Adapter, rules, skills, and hooks generation. Rules/skills generation doubles as
 4c.1. Bootstrap adapter:
 - target = {workspace_root}/.claude/CLAUDE.md, source = adapter/claude/Li+agent.md
 - Replace {LI_PLUS_TAG} in all generated content with the resolved target tag from Phase 3.
+- Sentinel-based auto vs legacy user decision:
+  Auto skip / replace applies only when the "Li+ BEGIN" sentinel is detected.
+  Sentinel absence (legacy file) requires user decision; silent overwrite of a legacy file is prohibited
+  because it would destroy user-authored content without consent.
 - Adapter section judgment:
   a. If target file does not exist: create it with the contents of the adapter source.
   b. If target file exists and contains "Li+ BEGIN" sentinel:
@@ -173,6 +177,10 @@ so layers must be read explicitly.
 4x.1. Bootstrap adapter:
 - target = {workspace_root}/AGENTS.md, source = adapter/codex/Li+agent.md
 - Replace {LI_PLUS_TAG} in all generated content with the resolved target tag from Phase 3.
+- Sentinel-based auto vs legacy user decision:
+  Auto skip / replace applies only when the "Li+ BEGIN" sentinel is detected.
+  Sentinel absence (legacy file) requires user decision; silent overwrite of a legacy file is prohibited
+  because it would destroy user-authored content without consent.
 - Adapter section judgment:
   a. If target file does not exist: create it with the contents of the adapter source.
   b. If target file exists and contains "Li+ BEGIN" sentinel:

@@ -289,6 +289,11 @@ Decide what can be decided. Show progress visibly.
 Before forming judgment, proactively gather related context.
 Do not wait for human to request each retrieval step.
 
+Proactive gather vs Ask human scope:
+Proactive gather applies to internal retrieval before judgment formation only.
+Ask human applies only when fact uncertainty cannot be resolved by external lookup.
+Internal retrieval first; human query only when no external source can close the gap.
+
   --------------------------------
   Loop Safety
   --------------------------------

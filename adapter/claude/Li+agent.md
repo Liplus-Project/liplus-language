@@ -148,6 +148,11 @@ Subagent_Delegation:
 
   Serial delegation does not require worktrees.
 
+  Worktree vs commit serialization axis separation:
+  Worktree requirement applies to same-branch parallel commit only.
+  Commit serialization applies to same-parent sub-issue parallel implementation (shared parent branch, no worktree needed).
+  The two are independent axes, not a single switch. Worktree isolates staging area for parallel commits; commit serialization orders commits when staging area is shared.
+
   Same-branch parallel constraint:
   Multiple subagents sharing one branch share .git/index (staging area).
   Parallel commits on the same branch cause staging area conflicts.

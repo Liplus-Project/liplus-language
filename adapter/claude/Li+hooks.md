@@ -322,7 +322,7 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? pr create'; then
               ADDITIONS=""
               for num in "${MISSING[@]}"; do
                 ADDITIONS="${ADDITIONS}
-Refs #${num}"
+Closes #${num}"
               done
 
               NEW_BODY="${PR_BODY}${ADDITIONS}"
@@ -332,7 +332,7 @@ Refs #${num}"
               APPEND_MSG="━━━ PR #${PR_NUMBER}: sub-issue refs auto-appended ━━━"
               for num in "${MISSING[@]}"; do
                 APPEND_MSG="${APPEND_MSG}
-  + Refs #${num}"
+  + Closes #${num}"
               done
               APPEND_MSG="${APPEND_MSG}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

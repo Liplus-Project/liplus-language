@@ -220,11 +220,13 @@ Event-Driven Operations
 
   PR body format:
     per issue block:
-      line1 = "Refs #{issue_number}" or "Refs sub #{child_issue_number}"
+      line1 = "Closes #{issue_number}" (for non-parent issues, including sub-issues)
       line2_to_3 = two to three line summary of that issue
-    order = parent first, then closed children (omit deferred and open children).
-    parent issue reference: use "Part of #{parent_number}" instead of "Refs".
-    "Refs" triggers GitHub auto-close on merge. Parent issues must not be auto-closed by sub-issue PRs.
+    order = non-parent issues first, then parent (if any); omit deferred and open children.
+    parent issue reference: use "Part of #{parent_number}" (not a close keyword).
+    "Closes" triggers GitHub auto-close on merge. "Part of" does not, so parent is preserved.
+    GitHub auto-close keywords (authoritative list): close / closes / closed / fix / fixes / fixed / resolve / resolves / resolved.
+    "Refs" is not a close keyword and does not auto-close; do not use "Refs" for issues that should close on merge.
   Detail belongs in issue, not in PR.
 
   On PR created:

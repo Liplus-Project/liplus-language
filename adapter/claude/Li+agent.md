@@ -44,6 +44,11 @@ Subagent does not create, move, or remove worktrees.
 
 `EnterWorktree` (host feature) switches session-wide CWD. Not suitable for parallel subagents. Use raw `git worktree add` + absolute paths.
 
+Main / Subagent axis separation:
+Li+github.md direct read applies to subagent-absent environments only.
+Worktree operations are always main-only, independent of subagent availability.
+The two are independent axes, not a single switch. When subagent is available, main delegates operations reads but still owns worktree lifecycle.
+
 #######################################################
 
 [Character_Instance]

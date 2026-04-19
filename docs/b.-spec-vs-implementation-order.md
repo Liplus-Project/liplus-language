@@ -2,23 +2,28 @@
 
 ## 背景
 
-2026-04-19 に「**spec が外部システムの挙動や external tool の coverage を literal 確認せずに claim する**」パターンが同日 3 回観測された。
+2026-04-19 に「**literal 確認せずに claim / 推論する**」パターンが同日 6 回観測された。当初 3 件は自分の発言 (spec claim) 起点、後半 3 件は外部情報源の oracle 扱いへの拡張。
 
 ### 観測事例
 
-| # | 場所 | 誤った claim | 実態 |
+| # | 場所 | 誤った claim / 推論 | 実態 |
 |---|------|-------------|------|
 | 1 | `operations/Li+github.md` [PR Creation] | 「`Refs` triggers GitHub auto-close on merge」 | GitHub の close キーワードは `close/closes/closed/fix/fixes/fixed/resolve/resolves/resolved` のみ。`Refs` は close キーワードではない。PR #1066 merge で sub-issue 9 件が OPEN 残存して顕在化 |
 | 2 | `task/Li+issues.md` Research Strategy | 「github-rag-mcp は commit diff surface を持つ」 | 当時 github-rag-mcp は `path.endsWith(".md")` のみで commit diff indexing は未実装。PR #1069 を close して実装 #80/#81 を先行させ、その後 #1056/#1070 で spec を実体反映 |
 | 3 | 自己評価 #02 (self-evaluation_log) | `git log --all -- '**/momeri*'` の null 結果から「存在しない」と断定 | glob pathspec `**/` prefix が root 直下ファイルを除外する仕様を未検証。実際は `momeri.pal` が root 直下に存在した |
+| 4 | subagent research report | 「Poller doc 経路: 専用実装がない」という subagent の要約を literal 検証せず信じた | `src/poller.ts:599` に `pollDocs()` が存在。cron 経由で docs が毎時 index されていた |
+| 5 | 診断推論 | 「diff index が動かない = webhook 設定が必要」と推論 | 実際は orphan webhook の残骸が認証ループで 403 を生んでいただけ。削除＋再設定で解決。webhook 未配線が問題の本質ではなかった |
+| 6 | 診断推論 | repo-level webhook 配線前提で 403 原因を推論 | Liplus-Project org は **GitHub Apps 経由** の webhook delivery。repo Webhooks 欄は空で、App 層が別軸で配信。この layer の存在を確認せず推論を進めた |
 
 ## 判断ルール
 
-**spec が外部システムの capability を claim する時は、その capability が deployed されていることを literal 確認する。**
+**spec / 推論 が外部システムの capability や状態を claim する時は、その capability が literal に存在・動作していることを確認する。**
 
 - 「X が可能である」式の claim は現在形で書く前に、X を実機で call した結果を確認する
 - verification 対象は自然言語の記述ではなく、該当システムの実行結果 / 実装コード / 公式 docs のどれか
 - 主観的 confident 感は verification の代替にならない（self-evaluation_log 2026-04-19 #01/#02 参照）
+- **外部情報源も自分の発言と同等に扱う**: subagent の research report、過去 session の記録、config の残留状態を「事実」として無検証に使わない。必要なら現在の実装 / 現在の config を直接読む
+- **複数 layer の可能性を網羅する**: 特に GitHub 系 integration は repo-level webhook / org-level webhook / GitHub App の 3 layer が独立に存在しうる。1 layer だけ見て「設定されてない」と結論しない
 
 ## 適用順序
 

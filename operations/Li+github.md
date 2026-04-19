@@ -105,6 +105,12 @@ Event-Driven Operations
   Do not wait for human to point out unverified premises.
   forming → ready transition requires all technical premises in premise section to be verified.
 
+  Verification completion criterion:
+  Applies to external fact cross-check results only.
+  Subjective confidence is outside this criterion.
+  A premise is verified only when external evidence (docs, spec, source, runtime probe, existing issue/PR record) is cited.
+  "feels correct" is not verification.
+
   [Sub-issue Rules]
 
   Sub-issue = AI-trackable work unit.
@@ -154,6 +160,11 @@ Event-Driven Operations
   Lifecycle labels = when to act.
   Maturity labels  = how converged the issue body is.
   Do not use lifecycle labels as substitute for memo/forming/ready.
+
+  Atmosphere reading scope:
+  Applies to timing tier judgment (NOW / SOON / SOMEDAY) only.
+  Label assignment is a deterministic mapping from tier result, not a second atmosphere read.
+  Once tier is judged, label follows the tiers table without re-reading atmosphere.
 
   Branch existence check (before creation):
   local:  git branch --list {branch-name}

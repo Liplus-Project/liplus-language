@@ -40,7 +40,9 @@ Dependencies: Phase 1 (runtime detected).
   - Ask the user once at session start.
   - Recommend: base language = current user language, project language = same as base language.
   - Write resolved values to Li+config.md.
-- Runtime precedence and scope rules are defined in the adapter's Workspace_Language_Contract.
+- Bootstrap ask and Li+config.md write apply only to this unresolved-at-session-start path.
+  Once config is resolved, mid-session re-ask and mid-session config write are outside this phase's scope.
+- Runtime precedence (human explicit instruction > thread agreement > config > ask) is defined in the adapter's Workspace_Language_Contract and applies throughout the session without re-triggering this phase.
 
 2.4. Resolve webhook delivery mode (optional):
 - LI_PLUS_WEBHOOK_DELIVERY setting (`channel` or `poll`) is read by the adapter at runtime.
@@ -93,6 +95,10 @@ Adapter, rules, skills, and hooks generation. Rules/skills generation doubles as
 4c.1. Bootstrap adapter:
 - target = {workspace_root}/.claude/CLAUDE.md, source = adapter/claude/Li+agent.md
 - Replace {LI_PLUS_TAG} in all generated content with the resolved target tag from Phase 3.
+- Sentinel-based auto vs legacy user decision:
+  Auto skip / replace applies only when the "Li+ BEGIN" sentinel is detected.
+  Sentinel absence (legacy file) requires user decision; silent overwrite of a legacy file is prohibited
+  because it would destroy user-authored content without consent.
 - Adapter section judgment:
   a. If target file does not exist: create it with the contents of the adapter source.
   b. If target file exists and contains "Li+ BEGIN" sentinel:
@@ -171,6 +177,10 @@ so layers must be read explicitly.
 4x.1. Bootstrap adapter:
 - target = {workspace_root}/AGENTS.md, source = adapter/codex/Li+agent.md
 - Replace {LI_PLUS_TAG} in all generated content with the resolved target tag from Phase 3.
+- Sentinel-based auto vs legacy user decision:
+  Auto skip / replace applies only when the "Li+ BEGIN" sentinel is detected.
+  Sentinel absence (legacy file) requires user decision; silent overwrite of a legacy file is prohibited
+  because it would destroy user-authored content without consent.
 - Adapter section judgment:
   a. If target file does not exist: create it with the contents of the adapter source.
   b. If target file exists and contains "Li+ BEGIN" sentinel:

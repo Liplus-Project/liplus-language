@@ -44,6 +44,11 @@ Subagent does not create, move, or remove worktrees.
 
 `EnterWorktree` (host feature) switches session-wide CWD. Not suitable for parallel subagents. Use raw `git worktree add` + absolute paths.
 
+Main / Subagent axis separation:
+Li+github.md direct read applies to subagent-absent environments only.
+Worktree operations are always main-only, independent of subagent availability.
+The two are independent axes, not a single switch. When subagent is available, main delegates operations reads but still owns worktree lifecycle.
+
 #######################################################
 
 [Character_Instance]
@@ -128,6 +133,11 @@ Workspace_Language_Contract:
   3. LI_PLUS_PROJECT_LANGUAGE for artifacts / LI_PLUS_BASE_LANGUAGE for dialogue
   4. if still unresolved: ask human
 
+  Bootstrap vs runtime scope:
+  human explicit language instruction receipt applies to runtime globally.
+  Bootstrap ask (write resolved values to Li+config.md) applies only when config is unresolved at session start.
+  Mid-session re-ask is outside this scope. Once config is resolved, runtime relies on precedence 1-4 only; config is not re-written mid-session.
+
   Keep scope local:
   - do not infer host workspace language contract from liplus-language repository internal Japanese governance
   - changing this workspace contract does not rewrite liplus-language repository rules
@@ -137,6 +147,11 @@ Subagent_Delegation:
   are defined in li-plus-issues skill [Subagent Delegation]. This section covers adapter-layer execution details only.
 
   Serial delegation does not require worktrees.
+
+  Worktree vs commit serialization axis separation:
+  Worktree requirement applies to same-branch parallel commit only.
+  Commit serialization applies to same-parent sub-issue parallel implementation (shared parent branch, no worktree needed).
+  The two are independent axes, not a single switch. Worktree isolates staging area for parallel commits; commit serialization orders commits when staging area is shared.
 
   Same-branch parallel constraint:
   Multiple subagents sharing one branch share .git/index (staging area).

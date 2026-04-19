@@ -46,6 +46,11 @@ Issue Rules
   Issue is internal TODO = assignee manages without waiting for instruction.
   Independent judgment redirect: primary externalization destination = issue.
 
+  Independent judgment redirect scope:
+  Applies to externalization of independent judgment only.
+  Dialogue context itself is outside this scope.
+  Issue body = judgment record (what was decided). Dialogue message = history (how the decision emerged). Do not transcribe dialogue messages into issue body.
+
   [Issue Management]
 
   Create issue when: bug found, spec gap found, task split needed, dialogue yields durable work memo, or Li+ spec improvement noticed during dialogue.

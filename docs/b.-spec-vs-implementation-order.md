@@ -2,7 +2,7 @@
 
 ## 背景
 
-2026-04-19 に「**literal 確認せずに claim / 推論する**」パターンが同日 6 回観測された。当初 3 件は自分の発言 (spec claim) 起点、後半 3 件は外部情報源の oracle 扱いへの拡張。
+2026-04-19 に「**literal 確認せずに claim / 推論する**」パターンが同日 7 回観測された。当初 3 件は自分の発言 (spec claim) 起点、中盤 3 件は外部情報源の oracle 扱いへの拡張、最終 1 件は外部システムの**数値制限 (quota / limit)** を verify せず設計した事例。
 
 ### 観測事例
 
@@ -14,6 +14,7 @@
 | 4 | subagent research report | 「Poller doc 経路: 専用実装がない」という subagent の要約を literal 検証せず信じた | `src/poller.ts:599` に `pollDocs()` が存在。cron 経由で docs が毎時 index されていた |
 | 5 | 診断推論 | 「diff index が動かない = webhook 設定が必要」と推論 | 実際は orphan webhook の残骸が認証ループで 403 を生んでいただけ。削除＋再設定で解決。webhook 未配線が問題の本質ではなかった |
 | 6 | 診断推論 | repo-level webhook 配線前提で 403 原因を推論 | Liplus-Project org は **GitHub Apps 経由** の webhook delivery。repo Webhooks 欄は空で、App 層が別軸で配信。この layer の存在を確認せず推論を進めた |
+| 7 | `Liplus-Project/github-rag-mcp#80/#81` の Vector ID scheme 設計 | `{repo}#commit-{sha}#file-{base64url(path)}` ≈ 130 bytes、docs side の `{repo}#doc-{path}` も path 次第で 74 bytes | Cloudflare Vectorize の ID 上限 **64 bytes** を literal 確認せず設計。`PR #1075` 実機 merge で `VECTOR_UPSERT_ERROR (code = 40008): id too long; max is 64 bytes, got 74 bytes` として露出。`Liplus-Project/github-rag-mcp#83/PR #84` で SHA-256 hash 固定 46 bytes 方式に修正 |
 
 ## 判断ルール
 
@@ -24,6 +25,7 @@
 - 主観的 confident 感は verification の代替にならない（self-evaluation_log 2026-04-19 #01/#02 参照）
 - **外部情報源も自分の発言と同等に扱う**: subagent の research report、過去 session の記録、config の残留状態を「事実」として無検証に使わない。必要なら現在の実装 / 現在の config を直接読む
 - **複数 layer の可能性を網羅する**: 特に GitHub 系 integration は repo-level webhook / org-level webhook / GitHub App の 3 layer が独立に存在しうる。1 layer だけ見て「設定されてない」と結論しない
+- **数値制限・quota も同列に verify する**: ID 長、file size、rate limit、timeout、request/response サイズ等、外部システムが課す数値上限は API spec や実機 error から先に確認する。実装過程で出る `code = NNNN` 形式のエラーは貴重な literal 事実として Observability で捕捉する
 
 ## 適用順序
 

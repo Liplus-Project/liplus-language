@@ -151,6 +151,7 @@ Artifacts = three in one change unit:
 External memory = issue, docs, commit message.
 Purpose: reproduce judgment across sessions and across different AIs.
 External memory records judgment, not primary information. Distinguish source types in L3 Task Layer.
+Commit diff = append-only exposure of judgment. Fits the retrieval surface as judgment-history. Concrete surface split belongs to L3 Task Layer.
 
 Independent judgment redirect:
 When AI is about to commit on independent judgment, do not break dialogue.

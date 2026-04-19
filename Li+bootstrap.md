@@ -40,7 +40,9 @@ Dependencies: Phase 1 (runtime detected).
   - Ask the user once at session start.
   - Recommend: base language = current user language, project language = same as base language.
   - Write resolved values to Li+config.md.
-- Runtime precedence and scope rules are defined in the adapter's Workspace_Language_Contract.
+- Bootstrap ask and Li+config.md write apply only to this unresolved-at-session-start path.
+  Once config is resolved, mid-session re-ask and mid-session config write are outside this phase's scope.
+- Runtime precedence (human explicit instruction > thread agreement > config > ask) is defined in the adapter's Workspace_Language_Contract and applies throughout the session without re-triggering this phase.
 
 2.4. Resolve webhook delivery mode (optional):
 - LI_PLUS_WEBHOOK_DELIVERY setting (`channel` or `poll`) is read by the adapter at runtime.

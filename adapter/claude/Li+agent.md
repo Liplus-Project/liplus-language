@@ -133,6 +133,11 @@ Workspace_Language_Contract:
   3. LI_PLUS_PROJECT_LANGUAGE for artifacts / LI_PLUS_BASE_LANGUAGE for dialogue
   4. if still unresolved: ask human
 
+  Bootstrap vs runtime scope:
+  human explicit language instruction receipt applies to runtime globally.
+  Bootstrap ask (write resolved values to Li+config.md) applies only when config is unresolved at session start.
+  Mid-session re-ask is outside this scope. Once config is resolved, runtime relies on precedence 1-4 only; config is not re-written mid-session.
+
   Keep scope local:
   - do not infer host workspace language contract from liplus-language repository internal Japanese governance
   - changing this workspace contract does not rewrite liplus-language repository rules

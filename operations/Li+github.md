@@ -105,6 +105,12 @@ Event-Driven Operations
   Do not wait for human to point out unverified premises.
   forming → ready transition requires all technical premises in premise section to be verified.
 
+  Verification completion criterion:
+  Applies to external fact cross-check results only.
+  Subjective confidence is outside this criterion.
+  A premise is verified only when external evidence (docs, spec, source, runtime probe, existing issue/PR record) is cited.
+  "feels correct" is not verification.
+
   [Sub-issue Rules]
 
   Sub-issue = AI-trackable work unit.

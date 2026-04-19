@@ -203,7 +203,7 @@ Dependencies: Phase 2 (gh CLI authenticated).
 
 5.1. Prepare USER_REPOSITORY working clone (skip if `owner/repository-name`):
 - If USER_REPOSITORY matches LI_PLUS_REPOSITORY: run `git checkout main` in the local clone.
-- Otherwise: clone by repository name to workspace.
+- Otherwise: clone by repository name to workspace if the directory is not present. Skip if the directory already exists.
 
 ## Phase 6: Completion Report
 

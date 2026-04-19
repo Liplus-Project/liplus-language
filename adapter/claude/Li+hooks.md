@@ -195,6 +195,134 @@ if [ -n "$SELFEVAL_FOUND" ] && [ -f "$SELFEVAL_FOUND" ]; then
   emit_section "Self-evaluation log head (most recent)" "$SELFEVAL_HEAD"
 fi
 
+# --- promotion candidates (memory → Li+ source) ---
+# Evolution Loop observe stage: surface pattern-detection candidates at cold-start
+# so that AI sees promotion candidates without waiting for passive noticing.
+# All three detectors are best-effort; silent skip when sources are absent.
+# Threshold is adjustable via THRESHOLD_N (initial value = 2, see issue #1080).
+THRESHOLD_N=2
+
+# Resolve memory directory using the same lookup path as self-evaluation_log.md.
+MEMORY_DIR=""
+if [ -n "$SELFEVAL_FOUND" ]; then
+  MEMORY_DIR=$(dirname "$SELFEVAL_FOUND")
+fi
+
+PROMOTION_BODY=""
+
+# Detector 1: repeated (root_cause, domain-tag) combinations in self-evaluation_log.md.
+# Log entries use lines like "root_cause: <category>" and "tags: <t1>, <t2>, ...".
+# We pair each root_cause with the first tag on the following tags line and
+# count duplicates. Any pair seen >= THRESHOLD_N times is surfaced.
+if [ -n "$SELFEVAL_FOUND" ] && [ -f "$SELFEVAL_FOUND" ]; then
+  PAIR_DUPES=$(awk -v n="$THRESHOLD_N" '
+    /^[[:space:]]*root_cause:[[:space:]]*/ {
+      sub(/^[[:space:]]*root_cause:[[:space:]]*/, "")
+      rc=$0
+      next
+    }
+    /^[[:space:]]*tags:[[:space:]]*/ && rc != "" {
+      sub(/^[[:space:]]*tags:[[:space:]]*/, "")
+      split($0, t, /,[[:space:]]*/)
+      tag=t[1]
+      gsub(/[[:space:]]+$/, "", tag)
+      if (tag != "") {
+        key=rc "|" tag
+        count[key]++
+      }
+      rc=""
+    }
+    END {
+      for (k in count) {
+        if (count[k] >= n) {
+          split(k, p, "|")
+          printf "  - (%s, %s) x%d\n", p[1], p[2], count[k]
+        }
+      }
+    }
+  ' "$SELFEVAL_FOUND")
+  if [ -n "$PAIR_DUPES" ]; then
+    PROMOTION_BODY="${PROMOTION_BODY}repeated (root_cause, domain-tag) pairs:
+${PAIR_DUPES}
+"
+  fi
+fi
+
+# Detector 2: recent section additions to memory/feedback.md or memory/project.md
+# (within the last 7 days). Section headers match lines starting with '## '.
+# Uses file mtime as the proxy for recency; if the file itself was modified
+# within 7 days, list all '## ' section titles and flag when count >= THRESHOLD_N.
+if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
+  RECENT_SECTIONS=""
+  for memfile in "$MEMORY_DIR/feedback.md" "$MEMORY_DIR/project.md"; do
+    [ -f "$memfile" ] || continue
+    # file modified within last 7 days?
+    if find "$memfile" -mtime -7 -print 2>/dev/null | grep -q .; then
+      SECTIONS=$(grep -E '^## ' "$memfile" 2>/dev/null | sed 's/^## /  - /')
+      SEC_COUNT=$(printf '%s\n' "$SECTIONS" | grep -c '^  - ' 2>/dev/null)
+      if [ "${SEC_COUNT:-0}" -ge "$THRESHOLD_N" ]; then
+        RECENT_SECTIONS="${RECENT_SECTIONS}$(basename "$memfile") (modified within 7d, ${SEC_COUNT} sections):
+${SECTIONS}
+"
+      fi
+    fi
+  done
+  if [ -n "$RECENT_SECTIONS" ]; then
+    PROMOTION_BODY="${PROMOTION_BODY}recent memory additions (<= 7d):
+${RECENT_SECTIONS}"
+  fi
+fi
+
+# Detector 3: simple keyword overlap between memory section titles and Li+ source files.
+# For each '## ' header in feedback.md / project.md, extract alphanumeric tokens of
+# length >= 4 and check whether any token appears in a Li+ source file. Matches are
+# surfaced as "possible overlap" candidates — not a promotion decision, only a hint.
+if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
+  OVERLAP=""
+  TMP_HEADERS=$(mktemp 2>/dev/null || echo "/tmp/liplus-headers-$$")
+  TMP_TOKENS=$(mktemp 2>/dev/null || echo "/tmp/liplus-tokens-$$")
+  for memfile in "$MEMORY_DIR/feedback.md" "$MEMORY_DIR/project.md"; do
+    [ -f "$memfile" ] || continue
+    grep -E '^## ' "$memfile" 2>/dev/null > "$TMP_HEADERS" || true
+    while IFS= read -r header; do
+      [ -n "$header" ] || continue
+      title=$(printf '%s' "$header" | sed 's/^## //')
+      # Extract tokens (>=4 ASCII alnum chars). Non-ASCII titles yield no tokens.
+      # Lowercase tokens (avoids unstable -iF combo on MinGW grep).
+      printf '%s' "$title" | tr 'A-Z' 'a-z' | tr -cs 'a-z0-9' '\n' \
+        | awk 'length($0) >= 4' > "$TMP_TOKENS"
+      [ -s "$TMP_TOKENS" ] || continue
+      for src in \
+        "$LIPLUS_DIR/model/Li+core.md" \
+        "$LIPLUS_DIR/evolution/Li+evolution.md" \
+        "$LIPLUS_DIR/task/Li+issues.md" \
+        "$LIPLUS_DIR/operations/Li+github.md"; do
+        [ -f "$src" ] || continue
+        HIT=""
+        # Lowercase source snapshot for case-insensitive match without -iF combo.
+        SRC_LC=$(tr 'A-Z' 'a-z' < "$src")
+        while IFS= read -r tok; do
+          [ -n "$tok" ] || continue
+          if printf '%s' "$SRC_LC" | grep -qF "$tok" 2>/dev/null; then
+            HIT="${HIT}${tok} "
+          fi
+        done < "$TMP_TOKENS"
+        if [ -n "$HIT" ]; then
+          OVERLAP="${OVERLAP}  - $(basename "$memfile") [${title}] ~ $(basename "$src") (tokens: ${HIT% })
+"
+        fi
+      done
+    done < "$TMP_HEADERS"
+  done
+  rm -f "$TMP_HEADERS" "$TMP_TOKENS"
+  if [ -n "$OVERLAP" ]; then
+    PROMOTION_BODY="${PROMOTION_BODY}possible keyword overlap with Li+ source:
+${OVERLAP}"
+  fi
+fi
+
+emit_section "Promotion candidates (memory → Li+ source)" "$PROMOTION_BODY"
+
 # --- instruction to the AI: synthesize through Character_Instance ---
 cat <<'EOF'
 ━━━ Cold-start Synthesis: instruction ━━━

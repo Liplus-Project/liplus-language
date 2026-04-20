@@ -45,6 +45,8 @@ Event-Driven Operations
   gh issue develop must precede first push to GitHub.
   Parent issue = one branch.
   Sub-issues commit on the parent branch. No individual branches for sub-issues.
+  Parent issue with sub-issues = single parent PR. Per-sub-issue PR is prohibited.
+  Per-commit CI visibility uses draft PR opened early on the parent branch, not split PRs.
   Commit title = ASCII English only, single line.
   Japanese commit title is prohibited.
   Commit body is not optional.
@@ -117,6 +119,24 @@ Event-Driven Operations
   Sub-issue = AI-trackable work unit.
   Split by responsibility, not granularity.
 
+  Classification litmus (sub-issue vs sibling issue):
+  Ask: "Can this unit ship independently without breaking the parent's atomic deliverable?"
+  If yes = this is a sibling issue, not a sub-issue. Create it as an independent issue.
+  If no  = this is a legitimate sub-issue. It only makes sense as part of the parent's atomic deliverable.
+  Rationale: if a unit can ship alone, nothing is gained by making it a sub-issue.
+  The feeling "I want per-sub-issue PR to ship these independently" = signal that these should have been sibling issues from the start.
+  Re-classify before splitting PRs. Do not split PRs.
+
+  Single parent PR flow (canonical, ref #919):
+  Parent issue with sub-issues accumulates commits on one parent branch.
+  One PR per parent issue, opened against main. Sub-issues are handled inside that PR.
+  PR may be opened as draft early to expose per-commit CI on the parent branch.
+  Merge happens once, after all sub-issues are complete.
+  Parent auto-close on merge is the intended behavior: all sub-issues are already closed by that point
+  because the parent PR is the last event, not the first.
+  Per-sub-issue PR flow is prohibited. Accumulating multiple PRs on a shared parent branch breaks this model:
+  the first merged PR auto-closes the parent before the remaining sub-issues are done.
+
   Sub-issue API:
   gh issue develop targets parent issue only (branch creation).
   Sub-issue linking uses REST API with internal numeric ID, not issue number.
@@ -180,7 +200,13 @@ Event-Driven Operations
 
   Merge behavior:
   PR merge auto-closes the parent issue via issue reference.
-  If a sub-issue needs a separate branch, create a separate parent issue instead.
+  Parent branch is linked to parent issue via gh issue develop, so any PR from that branch
+  auto-closes the parent on merge. This is safe under the single parent PR flow (see Sub-issue Rules):
+  the single merge happens only after all sub-issues are done, so parent auto-close lands correctly.
+  Per-sub-issue PR on the parent branch is prohibited precisely because it triggers parent auto-close
+  before the remaining sub-issues complete.
+  If a unit needs an independent branch and PR = it is a sibling issue, not a sub-issue.
+  Create it as an independent issue with its own parent branch.
 
   On local error:
   gh issue develop may fail locally but succeed on GitHub side.
@@ -219,12 +245,24 @@ Event-Driven Operations
 
   [PR Creation]
 
+  One PR per parent issue (see Sub-issue Rules#Single parent PR flow).
+  Parent issue with sub-issues = single PR that closes all sub-issues + the parent on merge.
+  Per-sub-issue PR is prohibited.
+
+  Draft PR early open (optional, for per-commit CI visibility):
+  On parent issue with sub-issues, open the parent PR as draft immediately after the first commit is pushed.
+  command = gh pr create --draft -R {owner}/{repo} --base main --head {session-branch} ...
+  pull_request.synchronize CI fires on every subsequent push, giving per-commit CI without splitting PRs.
+  Mark ready for review (gh pr ready {pr}) only after all sub-issues are complete and the PR body is final.
+  Draft PR is not required; it is a convenience for long-running parent work.
+
   PR body format:
     per issue block:
       line1 = "Closes #{issue_number}" (for non-parent issues, including sub-issues)
       line2_to_3 = two to three line summary of that issue
     order = non-parent issues first, then parent (if any); omit deferred and open children.
-    parent issue reference: use "Part of #{parent_number}" (not a close keyword).
+    parent issue reference under single parent PR flow = "Closes #{parent_number}" (parent closes together with sub-issues on the single final merge).
+    "Part of #{parent_number}" is used only when the current PR is NOT the final parent PR — e.g. an explicitly deferred remainder PR on a different parent issue. In the canonical single parent PR flow, "Part of" does not appear.
     "Closes" triggers GitHub auto-close on merge. "Part of" does not, so parent is preserved.
     GitHub auto-close keywords (authoritative list): close / closes / closed / fix / fixes / fixed / resolve / resolves / resolved.
     "Refs" is not a close keyword and does not auto-close; do not use "Refs" for issues that should close on merge.

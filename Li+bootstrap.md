@@ -53,8 +53,12 @@ Dependencies: Phase 1 (runtime detected).
 Dependencies: Phase 2 (gh CLI authenticated).
 
 3.1. Determine target version using LI_PLUS_CHANNEL:
-- latest: use the Latest release tag.
-- release: use the most recent tag including pre-releases.
+- latest: use the Latest release tag (stable release only).
+- release: use the most recent tag including pre-releases (GitHub Release API).
+- tag: use the most recent git tag by creation date, including tags without a GitHub Release
+  (clone mode primary: `git ls-remote --tags --sort=-creatordate {repo_url} | head -1`).
+  Containment: tag ⊇ release ⊇ latest. Intended for pre-release tag verification before a
+  GitHub Release is created. api mode extension is out of scope at this time.
 - Version check is mandatory on every startup before proceeding to Phase 4.
 - Silent continuation on a stale local clone is prohibited.
 

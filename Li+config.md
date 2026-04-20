@@ -16,7 +16,8 @@ LI_PLUS_REPOSITORY=Liplus-Project/liplus-language
 ### 取得モード: api（軽量）または clone（ローカルで動作）
 LI_PLUS_MODE=clone
 
-### チャンネル: latest（安定版）または release（プレリリース含む最新版）
+### チャンネル: latest（安定版）/ release（プレリリース含む最新リリース）/ tag（GitHub Release 未作成の tag も含む最新 git tag）
+### 包含関係: tag ⊇ release ⊇ latest
 LI_PLUS_CHANNEL=release
 
 ### 基本言語: このworkspaceで人間と対話する時の既定言語

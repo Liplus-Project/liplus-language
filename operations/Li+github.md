@@ -269,7 +269,12 @@ Event-Driven Operations
   Detail belongs in issue, not in PR.
 
   On PR created:
-  1 = proceed to [CI Loop] immediately, no human instruction required.
+  1 = self-assign AI bot to PR assignees:
+      gh pr edit {pr} -R {owner}/{repo} --add-assignee liplus-lin-lay
+      rationale: existing issue-side assignee does not auto-propagate to the PR entity. Self-assign makes "AI owns this PR" explicit in the Assignees field.
+      mechanism note: GitHub rejects `--add-reviewer` self-assignment silently, but allows `--add-assignee` self-assign for PR author (empirically verified 2026-04-20 on PR #1099).
+      scope: assignee self-assign is UI trail only; it does not replace the formal self-review record (`gh pr review --comment`, see [PR Review]).
+  2 = proceed to [CI Loop] immediately, no human instruction required.
   Merge execution is unified to AI across all modes (see [Merge]). GitHub auto-merge handoff is no longer used.
 
   [CI Loop]

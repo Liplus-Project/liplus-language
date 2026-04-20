@@ -59,8 +59,9 @@ Event-Driven Operations
   Requirements spec is not post-implementation follow-up.
   Before implementation starts = create or update corresponding requirements spec first.
   PR title must include impact scope.
-  AI-created release is always prerelease.
-  Latest promotion requires human judgment.
+  AI `gh release create` default = no state flag (prerelease=false, latest=false).
+  prerelease flag = AI option. Use only when an explicit test period is desired. Tag name stays final-form; no alpha/rc/-pre suffix. Promotion strips the flag, not the tag.
+  latest flag = human-only. Set via `gh release edit {tag} --latest=true` after real-device verification.
   Release body = GitHub generated release notes. Pass --generate-notes. Do not pass empty body via --notes "".
   mark_processed is mandatory for every consumed webhook event. Omission causes backlog accumulation.
 
@@ -333,10 +334,17 @@ Event-Driven Operations
   Release version rule:
   v0.x.x = initial development. Anything may change. Not a stable release.
   v1.0.0 = first stable release (semver compliant).
-  patch = change that does not alter structure or API (fix / clarify / add rule)
-  minor = change that alters structure or API (restructure / new section / architectural change)
-  major = change with large impact on users. Human decides. Examples: breaking change, phase transition, UX overhaul.
-  AI proposes patch or minor. Human decides version type. AI executes.
+  Judgment axis = change scale + user/system observability.
+  patch = everything else (docs / small fix / small spec / config / internal rule / governance structure change with no user/system observable impact). This issue (#1087) is itself a patch example: release-rule redesign is structurally governance but not observable from a Li+ user's surface.
+  minor = large refactor or large structural change that is user/system observable.
+  major = large-scale change or major goal milestone (phase transition, project milestone). Human decides.
+  Important note: "structural change -> minor" is wrong. "Structural change AND user/system observable -> minor". Governance / spec rule changes without observable impact stay patch regardless of structural scale.
+  AI proposes patch or minor. Human confirms minor or major. AI executes.
+
+  Release state rule (independent axis from version type):
+  default = no state flag. prerelease=false, latest=false. This is the AI `gh release create` default for any version type.
+  prerelease = AI option. Apply only when an explicit test period is wanted. Tag name is final-form; do not append alpha.N / rc.N / -pre suffix. Promotion = strip flag (`gh release edit {tag} --prerelease=false`), keep the same tag.
+  latest = human-only. Real-device verification gate. Human flips via `gh release edit {tag} --latest=true`. Independent of version type: patch / minor / major all gate on the same real-device check.
 
   Version base rule:
   Base on most recent release = includes prereleases.

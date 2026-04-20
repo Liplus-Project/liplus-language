@@ -308,8 +308,15 @@ Event-Driven Operations
 
   Self-review procedure (all modes):
     Main agent reviews PR diff against issue requirements (see Li+issues.md#PR_Review_Judgment).
-    self-review pass -> proceed to mode-specific human gate (below).
+    self-review pass -> post formal review record (below) -> proceed to mode-specific human gate.
     self-review fail -> fix and recommit (restart [CI Loop]).
+
+  Self-review formal record (all modes, mandatory):
+    After internal self-review pass, AI MUST post the self-review outcome as a formal GitHub PR review:
+      gh pr review {pr} -R {owner}/{repo} --comment --body "<summary of self-review outcome>"
+    Rationale: creates audit trail visible on the PR's Reviews tab, separating AI's review record from PR author authorship.
+    Mechanism note: GitHub rejects `--add-reviewer` self-assignment silently; only `gh pr review --comment` works for PR author self-review records (empirically verified 2026-04-20 on PR #1095).
+    Review body must include: acceptance-criteria check result, scope deviations (if any), next-step expectation (e.g. "awaiting human review" for trigger / minor-major semi_auto).
 
   Mode-specific human gate after self-review:
 

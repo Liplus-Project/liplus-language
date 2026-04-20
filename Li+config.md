@@ -6,7 +6,7 @@ GH_TOKEN=github_pat_XXXX
 
 ### あなたのプロジェクトリポジトリ
 USER_REPOSITORY=owner/repository-name
-### 実行モード: trigger（人間主導）または auto（AI自律）
+### 実行モード: trigger（人間主導）/ semi_auto（patch は AI 自律、minor/major は人間確認）/ auto（AI 自律）
 ### 未設定の場合、セッション開始時にAIが聞いて自動設定します
 # USER_REPOSITORY_EXECUTION_MODE=trigger
 

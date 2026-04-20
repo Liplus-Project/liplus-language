@@ -36,3 +36,15 @@ Li+ v1.0.0 の成立条件は到達済みとみなし、現在の本番はその
 | [B. Configuration](B.-Configuration) | 設定リファレンス |
 | [C. Bootstrap](C.-Bootstrap) | セッション起動フロー |
 | [D. Installation](D.-Installation) | Quickstartセットアップ手順 |
+
+---
+
+## 判断記録（a–z）
+
+セッションをまたぐ判断知を蓄積する decision log。設計上の分岐で選んだ理由、検証で確定した前提、外部システム依存などを小文字プレフィックス付きで記録する。
+
+| ページ | 内容 |
+|--------|------|
+| [a. Decision Log](a.-Decision-Log) | 判断記録レイヤーの運用ルール |
+| [b. Spec vs Implementation Order](b.-spec-vs-implementation-order) | 外部システム依存の spec 記述ルール |
+| [c. semi_auto Release Rule Dogfood](c.-semi-auto-release-rule-dogfood) | 2026-04-20 release rule + semi_auto dogfood の知見 |

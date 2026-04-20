@@ -299,7 +299,12 @@ Event-Driven Operations
   if execution_mode == trigger and auto-merge was enabled at PR creation:
     GitHub merges automatically on approval.
 
-  Otherwise (auto mode, or auto-merge unavailable):
+  if execution_mode == auto:
+    Default merge strategy = squash (repo convention).
+    1 = gh pr merge {pr} -R {owner}/{repo} --squash
+    Confirm with human only when AI judges a deviation from squash is necessary (pause and ask).
+
+  if execution_mode == trigger and auto-merge unavailable:
   1 = confirm merge strategy with human (squash / merge / rebase)
   2 = gh pr merge {pr} -R {owner}/{repo} --{strategy}
 

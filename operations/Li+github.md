@@ -269,9 +269,8 @@ Event-Driven Operations
   Detail belongs in issue, not in PR.
 
   On PR created:
-  1 = if execution_mode == trigger and repository allows auto-merge:
-      gh pr merge {pr} -R {owner}/{repo} --auto --squash
-  2 = proceed to [CI Loop] immediately, no human instruction required.
+  1 = proceed to [CI Loop] immediately, no human instruction required.
+  Merge execution is unified to AI across all modes (see [Merge]). GitHub auto-merge handoff is no longer used.
 
   [CI Loop]
 
@@ -299,18 +298,32 @@ Event-Driven Operations
 
   [PR Review]
 
+  AI self-review is mandatory in every mode (trigger / semi_auto / auto).
+  Skipping self-review before merge is a spec violation. Self-review runs first; external human check (if any) is layered on top, not in place of it.
+
   Review basis:
     repository-state-first:
       review basis = issue body + linked branch + PR diff + CI result
       local-only success does not close review
 
+  Self-review procedure (all modes):
+    Main agent reviews PR diff against issue requirements (see Li+issues.md#PR_Review_Judgment).
+    self-review pass -> proceed to mode-specific human gate (below).
+    self-review fail -> fix and recommit (restart [CI Loop]).
+
+  Mode-specific human gate after self-review:
+
   if execution_mode == auto:
-    Self-review:
-      Main agent reviews PR diff against issue requirements (see Li+issues.md#PR_Review_Judgment).
-      pass -> proceed to [Merge].
-      fail -> fix and recommit (restart [CI Loop]).
+    No human gate. Self-review pass -> proceed to [Merge].
+
+  if execution_mode == semi_auto:
+    Type-gated human check.
+    patch -> no human gate. Self-review pass -> proceed to [Merge].
+    minor / major -> human check required after self-review pass (procedure = trigger mode's Review approval check below).
+    Version type is the same judgment axis used at release (see [Human Confirmation Required]#Release version rule). AI proposes type at PR creation time; on unclear, default to the safer side (minor) and ask human.
 
   if execution_mode == trigger:
+    Human check required on every PR after self-review pass.
     Review approval check:
       Prefer webhook over polling.
       if mcp__github-webhook-mcp available:
@@ -325,6 +338,9 @@ Event-Driven Operations
 
   [Merge]
 
+  Merge executor is AI in every mode (trigger / semi_auto / auto).
+  AI runs `gh pr merge` after all preconditions pass (self-review + mode-specific human gate, and mergeable state check). GitHub auto-merge handoff is no longer used.
+
   Pre-merge mergeable state check:
     gh pr view {pr} -R {owner}/{repo} --json mergeStateStatus --jq '.mergeStateStatus'
     CLEAN -> proceed to merge.
@@ -334,17 +350,10 @@ Event-Driven Operations
       if rebase fails: git rebase --abort -> comment on issue -> escalate to human
     BLOCKED or UNKNOWN -> wait and recheck (GitHub may still be computing)
 
-  if execution_mode == trigger and auto-merge was enabled at PR creation:
-    GitHub merges automatically on approval.
-
-  if execution_mode == auto:
-    Default merge strategy = squash (repo convention).
-    1 = gh pr merge {pr} -R {owner}/{repo} --squash
-    Confirm with human only when AI judges a deviation from squash is necessary (pause and ask).
-
-  if execution_mode == trigger and auto-merge unavailable:
-  1 = confirm merge strategy with human (squash / merge / rebase)
-  2 = gh pr merge {pr} -R {owner}/{repo} --{strategy}
+  Merge strategy:
+    Default = squash (repo convention).
+    All modes = AI runs: gh pr merge {pr} -R {owner}/{repo} --squash
+    Deviation from squash = AI pauses and asks human.
 
   Parent close condition: closed automatically on merge via issue reference.
 
@@ -451,15 +460,29 @@ Event-Driven Operations
   [Execution Mode]
 
   Mode source = USER_REPOSITORY_EXECUTION_MODE from Li+config.md
-  Valid values = trigger | auto
+  Valid values = trigger | semi_auto | auto
   Default = trigger
 
   If mode not set:
   Ask human at session start with options:
-    option A = "trigger: human decides when to start (timing only)"
-    option B = "auto: AI decides when to start"
+    option A = "trigger: human decides when to start; human reviews every PR"
+    option B = "semi_auto: AI decides when to start; AI self-reviews; human reviews minor/major only"
+    option C = "auto: AI decides when to start; AI self-reviews only"
   Write selection to Li+config.md.
   No manual editing required.
+
+  Mode matrix:
+
+  | axis                 | trigger          | semi_auto                    | auto        |
+  |----------------------|------------------|------------------------------|-------------|
+  | Execution timing     | human decides    | AI decides                   | AI decides  |
+  | AI self-review       | required         | required                     | required    |
+  | Human PR check       | every PR         | minor / major only           | none        |
+  | Merge executor       | AI               | AI                           | AI          |
+  | Release confirm      | human            | human                        | human       |
+
+  AI self-review is required in every mode. See [PR Review] for the self-review procedure and the type-gated human check in semi_auto.
+  Merge is executed by AI in every mode. See [Merge]. GitHub auto-merge handoff is no longer used.
 
   Common to all modes:
   Issue create/close/modify = assignee responsibility (AI in most cases).
@@ -471,11 +494,21 @@ Event-Driven Operations
   Issue create/update = allowed before execution trigger.
   Branch prepare/create = allowed before execution trigger.
   Implementation start = wait for human timing, then work from linked personal branch as primary surface.
-  PR review = human reviews.
+  PR review = AI self-review, then human check on every PR.
+
+  semi_auto mode:
+  Execution timing = AI decides.
+  PR review = AI self-review on every PR; human check layered on top for minor / major only.
+    patch = AI self-review pass -> AI merges (no human review).
+    minor / major = AI self-review pass -> human check required -> AI merges on approval.
+  Rationale: self-evolution loop rotation is the design goal; patch-level auto-merge removes the human bottleneck for low-risk changes while minor/major retain human oversight.
+  Defense-in-depth (intentionally two layers):
+    Layer 1 = AI self-review + Li+ spec discipline (absorbs everyday mistakes).
+    Layer 2 = Release human gate (latest flip on real-device verification, prevents catastrophic user exposure).
 
   auto mode:
   Execution timing = AI decides.
-  PR review = AI reviews.
+  PR review = AI self-review only (no human check).
 
   Release always requires human confirmation regardless of mode.
 

@@ -54,36 +54,36 @@ Responsibilities
 Re-read and apply rules/ on any compression, resume, or session continuation. Skills are re-invoked by Claude as needed — no manual re-read required.
 
 Evolution-layer skill auto-invocation triggers:
-  on_judgment_form → skills/evolution/judgment-learning + skills/model/requirement-deepening
-  on_self_eval → skills/evolution/self-evaluation
-  on_l1_update_proposal → skills/evolution/l1-update-gating
-  on_persistence_decision → skills/evolution/persistence-tiering
-  on_evolution_loop_stage → skills/evolution/evolution-loop
+  on_judgment_form → skills/evolution-judgment-learning + skills/model-requirement-deepening
+  on_self_eval → skills/evaluation-self
+  on_l1_update_proposal → skills/evolution-l1-update-gating
+  on_persistence_decision → skills/evolution-persistence-tiering
+  on_evolution_loop_stage → skills/evolution-loop
 Cold-start Synthesis runs at session start via on-session-start.sh hook, not via skill.
 
 Operations-layer skill auto-invocation triggers:
-  on_issue (create/edit) → skills/operations/on-issue-format + skills/operations/on-milestone + skills/operations/on-sub-issue
-  on_issue (view) → skills/operations/on-issue-maturity + skills/operations/on-sub-issue
-  on_issue (sub-issue API) → skills/operations/on-sub-issue
+  on_issue (create/edit) → skills/operations-on-issue-format + skills/operations-on-milestone + skills/operations-on-sub-issue
+  on_issue (view) → skills/operations-on-issue-maturity + skills/operations-on-sub-issue
+  on_issue (sub-issue API) → skills/operations-on-sub-issue
   on_issue (close): no skill re-invoke required
-  on_branch → skills/operations/on-branch
-  on_commit → skills/operations/on-commit + skills/operations/on-docs-ownership
-  on_pr → skills/operations/on-pr-creation
-  on_ci → skills/operations/on-ci
-  on_review → skills/operations/on-pr-review + skills/task/pr-review-judgment
-  on_merge → skills/operations/on-merge
-  on_release → skills/operations/on-release
-  on_webhook_intake → skills/operations/foreground-webhook-intake
+  on_branch → skills/operations-on-branch
+  on_commit → skills/operations-on-commit + skills/operations-on-docs-ownership
+  on_pr → skills/operations-on-pr-creation
+  on_ci → skills/operations-on-ci
+  on_review → skills/operations-on-pr-review + skills/task-pr-review-judgment
+  on_merge → skills/operations-on-merge
+  on_release → skills/operations-on-release
+  on_webhook_intake → skills/operations-foreground-webhook-intake
 
 Task-layer skill auto-invocation triggers:
-  on_research → skills/task/research-strategy
-  on_subagent_delegation → skills/task/subagent-delegation
-  on_pr_review_judgment → skills/task/pr-review-judgment
+  on_research → skills/task-research-strategy
+  on_subagent_delegation → skills/task-subagent-delegation
+  on_pr_review_judgment → skills/task-pr-review-judgment
 
 L1 Model-layer skill auto-invocation triggers:
-  on_structural_change → skills/model/pair-review
-  on_search_decision → skills/model/web-search-judgment
-  on_review_output → skills/model/review-output-partition
+  on_structural_change → skills/model-pair-review
+  on_search_decision → skills/model-web-search-judgment
+  on_review_output → skills/model-review-output-partition
 
 When subagent-absent and a skill is relevant, the main agent invokes the skill directly. Rules stay always-on.
 
@@ -134,7 +134,7 @@ Workspace_Language_Contract:
 
 Subagent_Delegation:
   Delegation semantics (what to convey, what to retain, hook chain, issue management, failure reporting)
-  are defined in skills/task/subagent-delegation/SKILL.md. This section covers adapter-layer execution details only.
+  are defined in skills/task-subagent-delegation/SKILL.md. This section covers adapter-layer execution details only.
 
   Serial delegation does not require worktrees.
 
@@ -164,5 +164,5 @@ Subagent_Delegation:
 
 ## Optional Webhook Notification Flow
 
-Policy and procedures: see `skills/operations/foreground-webhook-intake/SKILL.md`.
+Policy and procedures: see `skills/operations-foreground-webhook-intake/SKILL.md`.
 This adapter activates that flow using the host's UserPromptSubmit hook.

@@ -8,8 +8,8 @@
 
 | # | 場所 | 誤った claim / 推論 | 実態 |
 |---|------|-------------|------|
-| 1 | `skills/operations/on-pr-creation/SKILL.md`（旧 `operations/Li+github.md` [PR Creation]） | 「`Refs` triggers GitHub auto-close on merge」 | GitHub の close キーワードは `close/closes/closed/fix/fixes/fixed/resolve/resolves/resolved` のみ。`Refs` は close キーワードではない。PR #1066 merge で sub-issue 9 件が OPEN 残存して顕在化 |
-| 2 | `skills/task/research-strategy/SKILL.md`（旧 `task/Li+issues.md` Research Strategy） | 「github-rag-mcp は commit diff surface を持つ」 | 当時 github-rag-mcp は `path.endsWith(".md")` のみで commit diff indexing は未実装。PR #1069 を close して実装 #80/#81 を先行させ、その後 #1056/#1070 で spec を実体反映 |
+| 1 | `skills/operations-on-pr-creation/SKILL.md`（旧 `operations/Li+github.md` [PR Creation]） | 「`Refs` triggers GitHub auto-close on merge」 | GitHub の close キーワードは `close/closes/closed/fix/fixes/fixed/resolve/resolves/resolved` のみ。`Refs` は close キーワードではない。PR #1066 merge で sub-issue 9 件が OPEN 残存して顕在化 |
+| 2 | `skills/task-research-strategy/SKILL.md`（旧 `task/Li+issues.md` Research Strategy） | 「github-rag-mcp は commit diff surface を持つ」 | 当時 github-rag-mcp は `path.endsWith(".md")` のみで commit diff indexing は未実装。PR #1069 を close して実装 #80/#81 を先行させ、その後 #1056/#1070 で spec を実体反映 |
 | 3 | 自己評価 #02 (self-evaluation_log) | `git log --all -- '**/momeri*'` の null 結果から「存在しない」と断定 | glob pathspec `**/` prefix が root 直下ファイルを除外する仕様を未検証。実際は `momeri.pal` が root 直下に存在した |
 | 4 | subagent research report | 「Poller doc 経路: 専用実装がない」という subagent の要約を literal 検証せず信じた | `src/poller.ts:599` に `pollDocs()` が存在。cron 経由で docs が毎時 index されていた |
 | 5 | 診断推論 | 「diff index が動かない = webhook 設定が必要」と推論 | 実際は orphan webhook の残骸が認証ループで 403 を生んでいただけ。削除＋再設定で解決。webhook 未配線が問題の本質ではなかった |

@@ -128,14 +128,16 @@ Adapter, rules, skills, and hooks generation. Rules/skills generation doubles as
   - No tag-based overwrite. User customizations are preserved across updates.
 - Remove stale rules: for each file in {workspace_root}/.claude/rules/ (recursive) that no longer exists at the corresponding path in LI_PLUS_REPOSITORY/rules/ and is not character_Instance.md, delete it. Also remove empty subdirectories after deletion.
 
-4c.3. Generate .claude/skills/ files (recursive directory mirror):
+4c.3. Generate .claude/skills/ files (flat directory mirror):
 - If {workspace_root}/.claude/skills/ does not exist: create directory.
-- For each `*/SKILL.md` in LI_PLUS_REPOSITORY/skills/ (recursive, including `<layer>/<name>/SKILL.md`):
-  - Preserve the relative path: `skills/<layer>/<name>/SKILL.md` -> `.claude/skills/<layer>/<name>/SKILL.md`.
-  - Ensure target subdirectories exist.
-  - If target file does not exist or source tag differs: copy verbatim (source already has Claude Code skill frontmatter).
+- For each `<name>/SKILL.md` directly under LI_PLUS_REPOSITORY/skills/ (FLAT, no subdirectories):
+  - Target = `.claude/skills/<name>/SKILL.md`.
+  - Create target subdirectory if needed.
+  - Copy source verbatim (source already has Claude Code skill frontmatter).
   - If source tag matches: skip.
-- Remove stale skills: for each `<layer>/<name>/` directory in `.claude/skills/` that no longer exists in LI_PLUS_REPOSITORY/skills/, recursively delete it. Also remove empty layer subdirectories.
+- Remove stale skills: for each `<name>/` directory in `.claude/skills/` that no longer exists in LI_PLUS_REPOSITORY/skills/, recursively delete it.
+
+Note: Claude Code's skill discovery does NOT recurse into subdirectories under `.claude/skills/`. Skill names must be unique at the flat level. Layer attribution is expressed via prefix convention in the skill name (e.g. `evolution-judgment-learning`).
 
 4c.4. Bootstrap hooks:
 - Read adapter/claude/Li+hooks.md.

@@ -126,7 +126,7 @@ AIが自動的に：
 
 | 環境 | 生成されるファイル |
 |------|------------------|
-| Claude Code | `{workspace_root}/.claude/CLAUDE.md` + hookファイル（adapter/claude/Li+hooks.mdから生成） |
+| Claude Code | `{workspace_root}/.claude/CLAUDE.md` + `{workspace_root}/.claude/settings.json` + `{workspace_root}/.claude/hooks/*.sh`（adapter/claude/ 配下から生成） |
 | CODEX | `{workspace_root}/AGENTS.md` |
 
 ### 5. 次回以降のセッション

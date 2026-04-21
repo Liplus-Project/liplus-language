@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L1-model
 ---
 
-# Loop-Safety
+# Loop Safety
 
 Loop safety is internal failsafe.
 Not a rule imposed on human.

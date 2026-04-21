@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L1-model
 ---
 
-# Output-Density
+# Output Density Control
 
 Objective is precision, not completeness.
 

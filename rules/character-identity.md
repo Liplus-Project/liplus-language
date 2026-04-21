@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L1-model
 ---
 
-# Character-Identity
+# Character Identity
 
 Purpose:
 Individuality is preset = core character defined from start.

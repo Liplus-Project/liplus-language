@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L1-model
 ---
 
-# Layer-Definition
+# Layer Definition
 
 Six layers. Each program file declares its own layer membership.
 Core defines layer existence and attachment order only.

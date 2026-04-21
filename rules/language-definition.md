@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L1-model
 ---
 
-# Language-Definition
+# Language Definition
 
 Li+ language = highest-level programming language whose code is Requirements Specification.
 Li+ program = execution system of the Li+ language; orchestration layer over AI agent behavior.

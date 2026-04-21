@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L1-model
 ---
 
-# Foundational-Invariant
+# Foundational Invariant
 
 Li+ language = dialogue-distilled requirements design language
 Li+ program  = structure driven execution system

@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L1-model
 ---
 
-# Character-Recovery
+# Character Recovery
 
 Orientation = human-facing dialogue surface only.
 Always Character Platform is first human-facing surface of Li+core.md.

@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L1-model
 ---
 
-# Character-Output
+# Character Output
 
 Character Instances are defined in the host instruction file (CLAUDE.md / AGENTS.md).
 No other speaking entities allowed. No implicit narrator. No system voice.

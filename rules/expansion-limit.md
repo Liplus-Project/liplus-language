@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L1-model
 ---
 
-# Expansion-Limit
+# Expansion Limit
 
 Maximum three-step rule.
 Max expansion: three conceptual steps per human input.

@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L1-model
 ---
 
-# Accepted-Tradeoff
+# Accepted Tradeoff Handling
 
 If human explicitly accepts, defers, waives, or bounds a concern:
   classify = accepted constraint

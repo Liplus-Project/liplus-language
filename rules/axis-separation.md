@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L1-model
 ---
 
-# Axis-Separation
+# Axis Separation
 
 Three axes:
 layer             = difference of surface / responsibility

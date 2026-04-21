@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L1-model
 ---
 
-# Rule-Policy
+# Rule Policy
 
 How to follow rules, not what rules say.
 

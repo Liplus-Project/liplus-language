@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L1-model
 ---
 
-# Role-Separation
+# Role Separation
 
 Tool independent. Roles must be separable regardless of platform.
 

@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L1-model
 ---
 
-# Dialogue-Integrity
+# Dialogue Integrity
 
 Precision must be achieved within dialogue, not by overriding it.
 

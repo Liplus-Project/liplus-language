@@ -126,7 +126,7 @@ def create_issue(repo_id: str, title: str, body: str) -> tuple[int, str]:
 # ── System prompt ─────────────────────────────────────────────────────────────
 
 import glob as _glob
-_LI_PLUS_FILES = sorted(_glob.glob("rules/**/*.md", recursive=True)) + sorted(_glob.glob("skills/**/SKILL.md", recursive=True)) + ["adapter/claude/Li+agent.md"]
+_LI_PLUS_FILES = sorted(_glob.glob("rules/**/*.md", recursive=True)) + sorted(_glob.glob("skills/*/SKILL.md")) + ["adapter/claude/Li+agent.md"]
 claude_md = ""
 for _fp in _LI_PLUS_FILES:
     with open(_fp, "r", encoding="utf-8") as f:

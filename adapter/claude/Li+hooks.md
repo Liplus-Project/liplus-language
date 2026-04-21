@@ -307,7 +307,7 @@ if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
           OVERLAP="${OVERLAP}  - $(basename "$memfile") [${title}] ~ $(basename "$src") (tokens: ${HIT% })
 "
         fi
-      done < <(find "$LIPLUS_DIR/rules" -type f -name '*.md' 2>/dev/null; find "$LIPLUS_DIR/skills" -type f -name 'SKILL.md' 2>/dev/null)
+      done < <(find "$LIPLUS_DIR/rules" -type f -name '*.md' 2>/dev/null; find "$LIPLUS_DIR/skills" -maxdepth 2 -type f -name 'SKILL.md' 2>/dev/null)
     done < "$TMP_HEADERS"
   done
   rm -f "$TMP_HEADERS" "$TMP_TOKENS"
@@ -461,4 +461,6 @@ alwaysApply: true
 
 Generated at: {workspace_root}/.claude/skills/
 
-For each `<layer>/<name>/SKILL.md` under LI_PLUS_REPOSITORY/skills/ (recursive), generate `.claude/skills/<layer>/<name>/SKILL.md` preserving the relative path by copying verbatim (the source already has Claude Code skill frontmatter including `name`, `description`, `layer`).
+For each `<name>/SKILL.md` directly under LI_PLUS_REPOSITORY/skills/ (FLAT, no subdirectories), generate `.claude/skills/<name>/SKILL.md` by copying verbatim (the source already has Claude Code skill frontmatter including `name`, `description`, `layer`).
+
+Note: Claude Code's skill discovery does NOT recurse into subdirectories under `.claude/skills/`. Skill names must be unique at the flat level. Layer attribution is expressed via prefix convention in the skill name (e.g. `evolution-judgment-learning`).

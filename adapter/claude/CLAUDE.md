@@ -160,6 +160,20 @@ Subagent_Delegation:
   - worktree absolute path (required when worktree is used)
   - All other delegation rules unchanged.
 
+Memory_Write_Autonomy:
+  Memory file writes (feedback.md, project.md, user_*.md, reference_*.md) are AI-autonomous decisions.
+  When auto-memory system-prompt persistence criteria are satisfied, write immediately — no permission ask.
+
+  Existing maintenance rules still apply:
+  - check for duplicate or conflicting entries before writing
+  - remove outdated entries
+  - match memory type to content
+  - verify specification literal before writing (impression-based entries fuel later impression-critique loops)
+
+  Explicit exclusion scope:
+  Human explicit "do not save X" instruction suppresses writes for that scope only.
+  It does not revert the default to permission-ask mode.
+
 # --- Li+ END ---
 
 ## Optional Webhook Notification Flow

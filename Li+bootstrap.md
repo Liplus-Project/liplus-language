@@ -97,7 +97,7 @@ Adapter, rules, skills, and hooks generation. Rules/skills generation doubles as
 (the host reads generated rules/ and skills/ files every turn, so explicit reads are unnecessary).
 
 4c.1. Bootstrap adapter:
-- target = {workspace_root}/.claude/CLAUDE.md, source = adapter/claude/Li+agent.md
+- target = {workspace_root}/.claude/CLAUDE.md, source = adapter/claude/CLAUDE.md
 - Replace {LI_PLUS_TAG} in all generated content with the resolved target tag from Phase 3.
 - Sentinel-based auto vs legacy user decision:
   Auto skip / replace applies only when the "Li+ BEGIN" sentinel is detected.
@@ -140,15 +140,23 @@ Adapter, rules, skills, and hooks generation. Rules/skills generation doubles as
 Note: Claude Code's skill discovery does NOT recurse into subdirectories under `.claude/skills/`. Skill names must be unique at the flat level. Layer attribution is expressed via prefix convention in the skill name (e.g. `evolution-judgment-learning`).
 
 4c.4. Bootstrap hooks:
-- Read adapter/claude/Li+hooks.md.
-- If {workspace_root}/.claude/settings.json does not exist or does not contain "PostToolUse":
-  create settings.json and hook scripts from the code blocks in Li+hooks.md.
+- Source files:
+  - adapter/claude/hooks-settings.md — contains the literal `settings.json` JSON block.
+  - adapter/claude/hooks/*.sh — hook script bodies as real files (copied verbatim, with
+    `{LI_PLUS_TAG}` placeholder replaced by the resolved target tag).
+- If {workspace_root}/.claude/settings.json does not exist:
+  Create it from the JSON code block in adapter/claude/hooks-settings.md.
+  Also create {workspace_root}/.claude/hooks/ and copy all adapter/claude/hooks/*.sh there.
   SessionStart uses four matchers (startup / resume / clear / compact) so Cold-start Synthesis
   material is emitted for every session entry point, not only compact.
-- If settings.json exists and contains "PostToolUse":
-  - Check the source tag in existing hook scripts (e.g. "# Source: Li+hooks.md (build-2026-03-30.14)").
+- If {workspace_root}/.claude/settings.json exists:
+  - Do not modify settings.json. The workspace owns it; Li+ does not silently rewrite
+    user-added keys (permissions / env / theme / other component hooks).
+  - Check the source tag in existing {workspace_root}/.claude/hooks/*.sh files
+    (e.g. "# Source: adapter/claude/hooks/on-session-start.sh (build-2026-03-30.14)").
   - If tag matches current target tag: skip (up to date).
-  - If tag differs or is absent: regenerate hook scripts only (do not overwrite settings.json).
+  - If tag differs or is absent: regenerate hook scripts only by copying adapter/claude/hooks/*.sh
+    and replacing {LI_PLUS_TAG} with the current target tag.
 - on-session-start.sh is the Cold-start Synthesis material emitter. Its stdout is injected into
   the session-opening context (Claude Code SessionStart contract). The hook gathers material
   (literal cold-start content from rules/cold-start-synthesis.md, recent docs/a.- head, latest release
@@ -164,7 +172,7 @@ Adapter generation and direct layer reads. Codex has no rules/skills mechanism,
 so layers must be read explicitly.
 
 4x.1. Bootstrap adapter:
-- target = {workspace_root}/AGENTS.md, source = adapter/codex/Li+agent.md
+- target = {workspace_root}/AGENTS.md, source = adapter/codex/AGENTS.md
 - Replace {LI_PLUS_TAG} in all generated content with the resolved target tag from Phase 3.
 - Sentinel-based auto vs legacy user decision:
   Auto skip / replace applies only when the "Li+ BEGIN" sentinel is detected.
@@ -181,7 +189,7 @@ so layers must be read explicitly.
 
 4x.2. Read Li+ layers directly:
 - Read all `rules/*.md` files in LI_PLUS_REPOSITORY (always-on).
-- `skills/<name>/SKILL.md` files are read on demand per the trigger table in adapter/codex/Li+agent.md.
+- `skills/<name>/SKILL.md` files are read on demand per the trigger table in adapter/codex/AGENTS.md.
 
 ## Phase 5: Workspace Preparation
 

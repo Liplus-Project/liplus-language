@@ -27,7 +27,7 @@ Convey to subagent:
 issue URL.
 
 If the host adapter auto-loads Li+ layers for subagents, no explicit file reads are needed.
-Fallback: also convey model/Li+core.md path, task/Li+issues.md path, and operations/Li+github.md path.
+Fallback: also convey rules/*.md and skills/*/SKILL.md paths from LI_PLUS_REPOSITORY.
 Detailed parent instructions risk conflicting with operations rules.
 
 Issue body update:
@@ -36,7 +36,7 @@ Subagent may update issue body when premise or constraints change during impleme
 Failure reporting:
 On failure, subagent writes failure report as issue comment. Format is not specified.
 
-Branch linking: see operations/Li+github.md Branch_And_Label_Flow.
+Branch linking: see skills/on-branch/SKILL.md.
 
 ## Autonomy
 

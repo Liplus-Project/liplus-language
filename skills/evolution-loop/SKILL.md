@@ -21,6 +21,6 @@ Execution mode:
 Stage responsibility:
   observe/evaluate = AI autonomous. No human prompt needed.
   distill          = AI autonomous. Externalize to issue when a pattern crosses the memo-level threshold.
-  reflect          = AI drafts (PR). Human approves merge per operations/Li+github.md.
+  reflect          = AI drafts (PR). Human approves merge per skills/on-merge/SKILL.md.
   improve          = AI executes under the updated spec.
   re-observe       = AI autonomous.

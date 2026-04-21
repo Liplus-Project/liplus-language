@@ -19,7 +19,7 @@ Foregrounds:
   notifications / webhook intake procedures
 
 Reads through:
-  issue semantics and label vocabulary from task/Li+issues.md
+  issue semantics and label vocabulary from rules/task-*.md (and skills/*/SKILL.md)
   execution mode from Li+config.md
 
 # Event-Driven Operations

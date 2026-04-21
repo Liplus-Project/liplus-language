@@ -46,4 +46,4 @@ Ask human when required information is missing.
 ## Autonomy
 
 Label evolves over time. Label is for AI readability.
-Full label policy and retired labels: see operations/Li+github.md
+Full label policy and retired labels: see rules/operations-label.md

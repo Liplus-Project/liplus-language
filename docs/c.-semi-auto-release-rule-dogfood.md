@@ -90,5 +90,5 @@ Master 判断「複雑さは人間側にも AI 側にも error surface を作る
 この判断記録は、以下の場合に削除する：
 
 - GitHub API の Latest 判定 / review assignment / sub-issue linkage 挙動が本記録と根本的に変わり、実態が記述と乖離した時
-- spec (`operations/Li+github.md` [Release state rule] / [PR Review] / [Sub-issue Rules]) が本記録の全発見を体系的に吸収し、個別参照の必要がなくなった時
+- spec (`skills/on-release/SKILL.md` [Release state rule] / `skills/on-pr-review/SKILL.md` / `skills/on-sub-issue/SKILL.md`、旧 `operations/Li+github.md` 内 [Release state rule] / [PR Review] / [Sub-issue Rules]) が本記録の全発見を体系的に吸収し、個別参照の必要がなくなった時
 - 同種の blind spot が 6 ヶ月以上観測されず、記録の参照が途絶えた時

@@ -65,9 +65,9 @@ Dependencies: Phase 2 (gh CLI authenticated).
 3.2. Resolve source by LI_PLUS_MODE:
 
 api mode:
-- Fetch model/Li+core.md for the target version via GitHub API from LI_PLUS_REPOSITORY.
-- Fetch evolution/Li+evolution.md for the target version via GitHub API.
-- Conditionally fetch task/Li+issues.md (skip if the adapter loads it automatically per-turn).
+- Fetch `rules/` directory contents (all `*.md` files) for the target version via GitHub API from LI_PLUS_REPOSITORY.
+- Fetch `skills/` directory contents (all `*/SKILL.md` files) for the target version via GitHub API.
+- Fetch `adapter/claude/` and `adapter/codex/` adapter files depending on detected runtime.
 
 clone mode:
 1. Target repo is the target version of LI_PLUS_REPOSITORY.
@@ -112,47 +112,30 @@ Adapter, rules, skills, and hooks generation. Rules/skills generation doubles as
        with the current adapter source contents. Preserve content outside this section.
   c. If target file exists but does not contain "Li+ BEGIN": ask user -- append Li+ section or skip?
 
-4c.2. Generate .claude/rules/ files:
+4c.2. Generate .claude/rules/ files (directory mirror):
 - If {workspace_root}/.claude/rules/ does not exist: create directory.
-- Generate Li+core.md (L1 Model layer):
-  - If file does not exist or source tag differs from current target tag:
-    Prepend YAML frontmatter (globs: empty, alwaysApply: true) to model/Li+core.md contents.
-    Write to {workspace_root}/.claude/rules/Li+core.md.
+- For each `<name>.md` in LI_PLUS_REPOSITORY/rules/:
+  - If `.claude/rules/<name>.md` does not exist or source tag differs from current target tag:
+    Copy LI_PLUS_REPOSITORY/rules/<name>.md contents, ensuring frontmatter contains `globs:` (empty) and `alwaysApply: true`. If the source frontmatter already includes them, keep; otherwise merge. Preserve `layer` field.
+    Write to {workspace_root}/.claude/rules/<name>.md.
   - If source tag matches: skip (up to date).
-- Generate Li+github.md (L4 Operations layer):
-  - Same tag-based skip logic as Li+core.md.
-  - Prepend YAML frontmatter (globs: empty, alwaysApply: true) to operations/Li+github.md contents.
-  - Write to {workspace_root}/.claude/rules/Li+github.md.
 - Generate character_Instance.md (Character Instance):
   - Create-only: if {workspace_root}/.claude/rules/character_Instance.md already exists, skip unconditionally.
-  - If file does not exist: prepend YAML frontmatter (globs: empty, alwaysApply: true) to model/character_Instance.md contents.
+  - If file does not exist: prepend YAML frontmatter (globs: empty, alwaysApply: true) to LI_PLUS_REPOSITORY/model/character_Instance.md contents.
     Write to {workspace_root}/.claude/rules/character_Instance.md.
   - No tag-based overwrite. User customizations are preserved across updates.
-- Tag detection: check first line for "# Source:" comment or frontmatter containing tag.
-- Note: L2 Evolution layer is NOT generated under rules/. Trigger-type responsibilities load via
-  .claude/skills/li-plus-evolution/ (see 4c.3), and Cold-start Synthesis runs via on-session-start.sh
-  (see 4c.4). This mitigates gist-compression-triggered misfire of always-loaded rules.
+- Remove stale rules: for each file in {workspace_root}/.claude/rules/ that no longer exists in LI_PLUS_REPOSITORY/rules/ and is not character_Instance.md, delete it.
+- Tag detection: check the source tag embedded in the `.claude/rules/` file headers (if tracking is needed). Implementations may compare file hash instead.
 
-4c.3. Generate .claude/skills/ files:
+4c.3. Generate .claude/skills/ files (directory mirror):
 - If {workspace_root}/.claude/skills/ does not exist: create directory.
-- Generate li-plus-evolution/SKILL.md (L2 Evolution layer, trigger-type responsibilities):
-  - If {workspace_root}/.claude/skills/li-plus-evolution/ does not exist: create directory.
-  - If SKILL.md does not exist or source tag differs from current target tag:
-    Take evolution/Li+evolution.md contents.
-    Remove the block between "<!-- coldstart:begin -->" and "<!-- coldstart:end -->" inclusive
-    (Cold-start Synthesis is hook-driven, not skill-driven).
-    Prepend skill frontmatter (name, description with trigger conditions).
-    Write to {workspace_root}/.claude/skills/li-plus-evolution/SKILL.md.
+- For each `<name>/SKILL.md` in LI_PLUS_REPOSITORY/skills/:
+  - If {workspace_root}/.claude/skills/<name>/ does not exist: create directory.
+  - If `.claude/skills/<name>/SKILL.md` does not exist or source tag differs from current target tag:
+    Copy LI_PLUS_REPOSITORY/skills/<name>/SKILL.md contents verbatim (source already carries Claude Code skill frontmatter).
+    Write to {workspace_root}/.claude/skills/<name>/SKILL.md.
   - If source tag matches: skip (up to date).
-  - Frontmatter template defined in adapter/claude/Li+hooks.md skills/ generation template section.
-- Generate li-plus-issues/SKILL.md (L3 Task layer):
-  - If {workspace_root}/.claude/skills/li-plus-issues/ does not exist: create directory.
-  - If SKILL.md does not exist or source tag differs from current target tag:
-    Prepend skill frontmatter (name, description with trigger conditions) to task/Li+issues.md contents.
-    task/Li+issues.md is copied without the Issue Operations section (Issue Format, Issue Maturity, Sub-issue Rules are in operations/Li+github.md).
-    Write to {workspace_root}/.claude/skills/li-plus-issues/SKILL.md.
-  - If source tag matches: skip (up to date).
-  - Frontmatter template defined in adapter/claude/Li+hooks.md skills/ generation template section.
+- Remove stale skills: for each directory in {workspace_root}/.claude/skills/ that no longer exists in LI_PLUS_REPOSITORY/skills/, delete it.
 
 4c.4. Bootstrap hooks:
 - Read adapter/claude/Li+hooks.md.
@@ -166,7 +149,7 @@ Adapter, rules, skills, and hooks generation. Rules/skills generation doubles as
   - If tag differs or is absent: regenerate hook scripts only (do not overwrite settings.json).
 - on-session-start.sh is the Cold-start Synthesis material emitter. Its stdout is injected into
   the session-opening context (Claude Code SessionStart contract). The hook gathers material
-  (literal coldstart block from evolution/Li+evolution.md, recent docs/a.- head, latest release
+  (literal cold-start content from rules/cold-start-synthesis.md, recent docs/a.- head, latest release
   tags, open in-progress issues, self-evaluation log head). Synthesis is performed by the AI
   through Character_Instance, not by the hook itself.
 - Set executable permission on .sh files.
@@ -195,11 +178,8 @@ so layers must be read explicitly.
   c. If target file exists but does not contain "Li+ BEGIN": ask user -- append Li+ section or skip?
 
 4x.2. Read Li+ layers directly:
-- Read model/Li+core.md (L1 Model layer).
-- Read evolution/Li+evolution.md (L2 Evolution layer).
-- Read task/Li+issues.md (L3 Task layer) -- only if hooks are unavailable.
-  When hooks inject constant-load sections per-turn, startup read is redundant.
-- Keep operations/Li+github.md (L4 Operations layer) available for event-driven reads later.
+- Read all `rules/*.md` files in LI_PLUS_REPOSITORY (always-on).
+- `skills/<name>/SKILL.md` files are read on demand per the trigger table in adapter/codex/Li+agent.md.
 
 ## Phase 5: Workspace Preparation
 

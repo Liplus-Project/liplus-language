@@ -37,9 +37,10 @@ Li+ is not a prompt. It is a **layered execution model** that runs on top of AI 
 
 | Layer | Surface | File |
 |-------|---------|------|
-| Model | Character, dialogue rules, loop safety, task mode | `model/Li+core.md` |
-| Task | Issue-driven workflow, labels, sub-issues, review | `task/Li+issues.md` |
-| Operations | Branch, commit, PR, CI, merge, release | `operations/Li+github.md` |
+| Model | Character, dialogue rules, loop safety, task mode | `rules/*.md` (L1 Model layer content) |
+| Evolution | Self-observation, judgment learning, evolution loop | `rules/*.md` + `skills/*/SKILL.md` (L2 Evolution layer content) |
+| Task | Issue-driven workflow, labels, sub-issues, review | `rules/task-*.md` + `skills/*/SKILL.md` (L3 Task layer content) |
+| Operations | Branch, commit, PR, CI, merge, release | `rules/operations-*.md` + `skills/on-*/SKILL.md` (L4 Operations layer content) |
 | Notifications | Webhook intake, queue ownership, multi-AI safety | (operations) |
 | Adapter | Runtime injection, hooks, bootstrap | `adapter/claude/` / `adapter/codex/` |
 
@@ -115,7 +116,7 @@ What's *not* exchangeable: the principle that correctness is observable behavior
 | Claude Sonnet 4.6 (claude.ai) | Fair | Strong for documents, not ideal for continuous work |
 | Codex (GPT 5.4) | Good | Practical, tends to over-weight structure |
 | ChatGPT 5.2 | Fair | Strong reasoning, platform limits on long workflows |
-| Claude Haiku 4.5 | Not supported | Cannot reliably apply model/Li+core.md |
+| Claude Haiku 4.5 | Not supported | Cannot reliably apply L1 Model layer rules |
 
 Minimum: roughly Claude Sonnet 4.6 equivalent or above.
 

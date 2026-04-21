@@ -4,7 +4,7 @@ Layer = L6 Adapter Layer
 
 Adapter layer entrypoint:
 - inject Li+ into the host instruction file
-- semantic source = model/Li+core.md + evolution/Li+evolution.md + task/Li+issues.md + operations/Li+github.md
+- semantic source = `rules/*.md` + `skills/*/SKILL.md` from LI_PLUS_REPOSITORY
 - this file owns load order, re-read trigger mapping, Character_Instance wiring, and workspace language contract wiring
 - adapter load order = runtime attachment order, not cross-layer precedence
 
@@ -19,43 +19,31 @@ gh CLI is authenticated via keyring after bootstrap. Do not export GH_TOKEN in B
 
 EVERY output MUST be prefixed with a speaker name defined in Character_Instance. No exceptions. Anonymous output is a structural failure.
 
-Li+core.md is loaded via .claude/rules/ (always in context, survives compaction).
-Li+core.md can be re-read at .claude/rules/Li+core.md.
+All Li+ rules/*.md files are loaded via `.claude/rules/` (always in context, survives compaction). Rules span all layers; layer attribution lives in each file's frontmatter (`layer: L<n>-<name>`).
 
-Li+evolution.md (trigger-type responsibilities) is loaded via .claude/skills/li-plus-evolution/ (skill auto-invocation).
-Skill description drives invocation timing — detect when past-judgment retrieval, self-evaluation recording, L1 update gating, persistence tier decision, or an evolution-loop stage is called for.
-Judgment Learning, Self-Evaluation, L1 Update Gating, Persistence Tiering, Evolution Loop orchestration are in the skill.
-Cold-start Synthesis is the only Li+evolution.md responsibility not in the skill — it runs at session start via on-session-start.sh hook (matchers: startup / resume / clear / compact).
-This split mitigates gist-compression-triggered misfire of always-loaded rules by relying on literal re-hydration at skill invocation.
+All Li+ skills/*/SKILL.md files are loaded via `.claude/skills/` (skill auto-invocation). Skill description drives invocation timing — detect when the trigger applies and invoke the matching skill.
 
-Li+issues.md is loaded via .claude/skills/li-plus-issues/ (skill auto-invocation).
-Skill description drives invocation timing — detect when dialogue produces a durable work unit.
-Issue Rules, Label Definitions, Research Strategy, PR Review Judgment, Subagent Delegation are in the skill.
+Cold-start Synthesis is not a skill. Its content lives in `rules/cold-start-synthesis.md` and is emitted as session-opening material via `on-session-start.sh` hook (matchers: startup / resume / clear / compact).
 
-Li+github.md (operations) is loaded via .claude/rules/ (always in context, survives compaction).
-Issue Format, Issue Maturity, Sub-issue Rules, Milestone Rules are triggered sections within Li+github.md.
+character_Instance.md is loaded via `.claude/rules/character_Instance.md` (always in context). User-customizable. Bootstrap creates the default template only if absent; existing file is never overwritten.
 
-character_Instance.md is loaded via .claude/rules/ (always in context, survives compaction).
-character_Instance.md is user-customizable. Bootstrap creates default template only if file is absent. Existing file is never overwritten.
-
-Main never reads Li+github.md (operations) directly when subagent is available.
+Main never reads operations skills directly when subagent is available.
 
 Subagent does not create, move, or remove worktrees.
 
 `EnterWorktree` (host feature) switches session-wide CWD. Not suitable for parallel subagents. Use raw `git worktree add` + absolute paths.
 
 Main / Subagent axis separation:
-Li+github.md direct read applies to subagent-absent environments only.
+Skill-driven operations apply to subagent-absent environments as well; subagents auto-load the same rules/ and skills/.
 Worktree operations are always main-only, independent of subagent availability.
-The two are independent axes, not a single switch. When subagent is available, main delegates operations reads but still owns worktree lifecycle.
 
 #######################################################
 
 [Character_Instance]
 
 #######################################################
-Defined in .claude/rules/character_Instance.md (always in context).
-Source template: model/character_Instance.md
+Defined in `.claude/rules/character_Instance.md` (always in context).
+Source template: `model/character_Instance.md`
 Bootstrap creates default if absent. User edits are preserved.
 #######################################################
 
@@ -63,39 +51,41 @@ Bootstrap creates default if absent. User edits are preserved.
 Responsibilities
 #######################################################
 
-Re-read and apply Li+core.md on any compression, resume, or session continuation.
-Li+evolution.md (skill) is re-invoked by Claude as needed — no manual re-read required.
-Li+issues.md (skill) is re-invoked by Claude as needed — no manual re-read required.
+Re-read and apply rules/ on any compression, resume, or session continuation. Skills are re-invoked by Claude as needed — no manual re-read required.
 
-Evolution-layer re-read trigger mapping (skill auto-invocation):
-  on_judgment_form (before forming a new judgment): invoke li-plus-evolution skill — consult Judgment Learning retrieval path before forming judgment
-  on_self_eval (recording a self-evaluation entry): invoke li-plus-evolution skill — apply Self-Evaluation two-axis rules
-  on_l1_update_proposal (proposing Li+core.md change): invoke li-plus-evolution skill — apply L1 Update Gating
-  on_persistence_decision (deciding memory vs docs): invoke li-plus-evolution skill — apply Persistence Tiering
-  on_evolution_loop_stage (observe / evaluate / distill / reflect / improve / re-observe): invoke li-plus-evolution skill — follow Evolution Loop stage responsibility
-Cold-start Synthesis runs at session start via on-session-start.sh hook, not through the skill path.
+Evolution-layer skill auto-invocation triggers:
+  on_judgment_form → skills/judgment-learning + skills/requirement-deepening
+  on_self_eval → skills/self-evaluation
+  on_l1_update_proposal → skills/l1-update-gating
+  on_persistence_decision → skills/persistence-tiering
+  on_evolution_loop_stage → skills/evolution-loop
+Cold-start Synthesis runs at session start via on-session-start.sh hook, not via skill.
 
-Trigger-based re-read (operations layer; loaded via rules/, always in context):
-  When PostToolUse hooks inject the relevant sections via additionalContext for a trigger, the hook output is the authoritative focus pointer.
-  The manual re-read instructions below serve as fallback for environments without active hooks.
-  on_issue (create/edit): Focus Li+github.md#Issue_Format + Li+github.md#Milestone_Rules + Li+github.md#Sub-issue_Rules before proceeding
-  on_issue (view): Focus Li+github.md#Issue_Maturity + Li+github.md#Sub-issue_Rules before proceeding
-  on_issue (sub-issue API): Focus Li+github.md#Sub-issue_Rules before proceeding
-  on_issue (close): no re-read required
-  on_branch/on_commit/on_pr/on_ci/on_review/on_merge/on_release:
-    If subagent capability is available:
-      Delegate to a subagent. Do not read Li+github.md (operations) in the main context.
-      Subagent has Li+core.md and Li+github.md auto-loaded via rules/, Li+issues.md via skills/. No explicit read needed.
-      Subagent executes the procedure, reports result to main.
-      Main decides next action based on the report (see Li+issues.md#PR_Review_Judgment).
-    Otherwise:
-      on_branch: Read Li+github.md#Branch_And_Label_Flow before proceeding
-      on_commit: Read Li+github.md#Commit_Rules before proceeding
-      on_pr: Read Li+github.md#PR_Creation before proceeding
-      on_ci: Read Li+github.md#CI_Loop before proceeding
-      on_review: Read Li+github.md#PR_Review before proceeding
-      on_merge: Read Li+github.md#Merge before proceeding
-      on_release: Read Li+github.md#Human_Confirmation_Required before proceeding
+Operations-layer skill auto-invocation triggers:
+  on_issue (create/edit) → skills/on-issue-format + skills/on-milestone + skills/on-sub-issue
+  on_issue (view) → skills/on-issue-maturity + skills/on-sub-issue
+  on_issue (sub-issue API) → skills/on-sub-issue
+  on_issue (close): no skill re-invoke required
+  on_branch → skills/on-branch
+  on_commit → skills/on-commit + skills/on-docs-ownership
+  on_pr → skills/on-pr-creation
+  on_ci → skills/on-ci
+  on_review → skills/on-pr-review + skills/pr-review-judgment
+  on_merge → skills/on-merge
+  on_release → skills/on-release
+  on_webhook_intake → skills/foreground-webhook-intake
+
+Task-layer skill auto-invocation triggers:
+  on_research → skills/research-strategy
+  on_subagent_delegation → skills/subagent-delegation
+  on_pr_review_judgment → skills/pr-review-judgment
+
+L1 Model-layer skill auto-invocation triggers:
+  on_structural_change → skills/pair-review
+  on_search_decision → skills/web-search-judgment
+  on_review_output → skills/review-output-partition
+
+When subagent-absent and a skill is relevant, the main agent invokes the skill directly. Rules stay always-on.
 
 Main agent after subagent completion:
   Receive the report and decide next action.
@@ -114,7 +104,7 @@ Autonomy
 #######################################################
 
 Workspace_Language_Contract:
-  These language rules apply to the host workspace only. They do not change liplus-language repository governance.
+  These language rules apply to the host workspace only. They do not change LI_PLUS_REPOSITORY governance.
 
   Read LI_PLUS_BASE_LANGUAGE and LI_PLUS_PROJECT_LANGUAGE from the workspace-root Li+config.md.
   If either value is missing:
@@ -144,14 +134,13 @@ Workspace_Language_Contract:
 
 Subagent_Delegation:
   Delegation semantics (what to convey, what to retain, hook chain, issue management, failure reporting)
-  are defined in li-plus-issues skill [Subagent Delegation]. This section covers adapter-layer execution details only.
+  are defined in skills/subagent-delegation/SKILL.md. This section covers adapter-layer execution details only.
 
   Serial delegation does not require worktrees.
 
   Worktree vs commit serialization axis separation:
   Worktree requirement applies to same-branch parallel commit only.
   Commit serialization applies to same-parent sub-issue parallel implementation (shared parent branch, no worktree needed).
-  The two are independent axes, not a single switch. Worktree isolates staging area for parallel commits; commit serialization orders commits when staging area is shared.
 
   Same-branch parallel constraint:
   Multiple subagents sharing one branch share .git/index (staging area).
@@ -175,5 +164,5 @@ Subagent_Delegation:
 
 ## Optional Webhook Notification Flow
 
-Policy and procedures: see Li+github.md [Foreground Webhook Notification Intake].
+Policy and procedures: see `skills/foreground-webhook-intake/SKILL.md`.
 This adapter activates that flow using the host's UserPromptSubmit hook.

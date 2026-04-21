@@ -4,7 +4,7 @@ Layer = L6 Adapter Layer
 
 Adapter layer entrypoint:
 - inject Li+ into the host instruction file
-- semantic source = model/Li+core.md + evolution/Li+evolution.md + task/Li+issues.md + operations/Li+github.md
+- semantic source = `rules/*.md` + `skills/*/SKILL.md` from LI_PLUS_REPOSITORY
 - this file owns load order, re-read trigger mapping, Character_Instance wiring, and workspace language contract wiring
 - adapter load order = runtime attachment order, not cross-layer precedence
 
@@ -19,16 +19,9 @@ gh CLI is authenticated via keyring after bootstrap. Do not export GH_TOKEN in B
 
 EVERY output MUST be prefixed with a speaker name defined in Character_Instance. No exceptions. Anonymous output is a structural failure.
 
-model/Li+core.md is the L1 Model layer. Read at startup. Re-read on any session continuation.
+All files under `rules/` are always-on. Read every `rules/*.md` at startup and re-read on session continuation. Each file's frontmatter declares its layer (`layer: L<n>-<name>`).
 
-evolution/Li+evolution.md is the L2 Evolution layer. Read at startup alongside the core layer.
-Cold-start synthesis, self-evaluation, judgment learning, persistence tiering, L1 update gating, evolution loop orchestration are in this file.
-
-task/Li+issues.md is the L3 Task layer. Read when dialogue produces a durable work unit or issue management is needed.
-Issue Rules, Label Definitions, Research Strategy, PR Review Judgment, Subagent Delegation are in this file.
-
-operations/Li+github.md is the L4 Operations layer. Read when branch, commit, PR, CI, merge, or release events occur.
-Issue Format, Issue Maturity, Sub-issue Rules, Milestone Rules are triggered sections within this file.
+Files under `skills/` are trigger-scoped. Codex has no skill auto-invocation — consult the trigger table below and read the matching `skills/<name>/SKILL.md` on demand.
 
 #######################################################
 
@@ -54,20 +47,33 @@ HUMOR_STYLE=Natural
 Responsibilities
 #######################################################
 
-Re-read and apply model/Li+core.md on any session continuation.
+Re-read and apply all `rules/*.md` on any session continuation.
 
-Trigger-based re-read:
-  on_issue (create/edit): Read operations/Li+github.md#Issue_Format + operations/Li+github.md#Milestone_Rules + operations/Li+github.md#Sub-issue_Rules before proceeding
-  on_issue (view): Read operations/Li+github.md#Issue_Maturity + operations/Li+github.md#Sub-issue_Rules before proceeding
-  on_issue (sub-issue API): Read operations/Li+github.md#Sub-issue_Rules before proceeding
+Trigger-based skill reads:
+  on_issue (create/edit) → skills/on-issue-format + skills/on-milestone + skills/on-sub-issue
+  on_issue (view) → skills/on-issue-maturity + skills/on-sub-issue
+  on_issue (sub-issue API) → skills/on-sub-issue
   on_issue (close): no re-read required
-  on_branch: Read operations/Li+github.md#Branch_And_Label_Flow before proceeding
-  on_commit: Read operations/Li+github.md#Commit_Rules before proceeding
-  on_pr: Read operations/Li+github.md#PR_Creation before proceeding
-  on_ci: Read operations/Li+github.md#CI_Loop before proceeding
-  on_review: Read operations/Li+github.md#PR_Review before proceeding
-  on_merge: Read operations/Li+github.md#Merge before proceeding
-  on_release: Read operations/Li+github.md#Human_Confirmation_Required before proceeding
+  on_branch → skills/on-branch
+  on_commit → skills/on-commit + skills/on-docs-ownership
+  on_pr → skills/on-pr-creation
+  on_ci → skills/on-ci
+  on_review → skills/on-pr-review + skills/pr-review-judgment
+  on_merge → skills/on-merge
+  on_release → skills/on-release
+  on_webhook_intake → skills/foreground-webhook-intake
+  on_research → skills/research-strategy
+  on_subagent_delegation → skills/subagent-delegation
+  on_judgment_form → skills/judgment-learning + skills/requirement-deepening
+  on_self_eval → skills/self-evaluation
+  on_l1_update_proposal → skills/l1-update-gating
+  on_persistence_decision → skills/persistence-tiering
+  on_evolution_loop_stage → skills/evolution-loop
+  on_structural_change → skills/pair-review
+  on_search_decision → skills/web-search-judgment
+  on_review_output → skills/review-output-partition
+
+Cold-start Synthesis: read `rules/cold-start-synthesis.md` body at session start and perform the synthesis through Character_Instance.
 
 Main agent after completion:
   Receive the report and decide next action.
@@ -79,7 +85,7 @@ Autonomy
 #######################################################
 
 Workspace_Language_Contract:
-  These language rules apply to the host workspace only. They do not change liplus-language repository governance.
+  These language rules apply to the host workspace only. They do not change LI_PLUS_REPOSITORY governance.
 
   Read LI_PLUS_BASE_LANGUAGE and LI_PLUS_PROJECT_LANGUAGE from the workspace-root Li+config.md.
   If either value is missing:

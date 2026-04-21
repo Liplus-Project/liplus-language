@@ -145,20 +145,20 @@ CIテストは、その変更が要求どおりかを継続的に観測する。
 
 ---
 
-## Li+プログラム（model/Li+core.md）
+## Li+プログラム（rules/*.md L1 Model layer）
 
-`model/Li+core.md` は、**Li+言語で書かれた最初のプログラム**である。
+`rules/*.md`（L1 Model layer 内容群）は、**Li+言語で書かれた最初のプログラム**である。
 
 これは言語仕様の解説書ではない。
 AI に渡して実行し、Li+言語を安定した重み付けで走らせるための、Li+ program の最初の可視部分である。
 
-model/Li+core.md の始まりは、次のチャットへの引継ぎメモだった。
+L1 Model layer の始まりは、次のチャットへの引継ぎメモだった。
 そこから、AI が AI のために読む実行文書へ変わっていった。
 
-model/Li+core.md が優先するのは、人間の読みやすさではなく、AI の挙動の再現性である。
+L1 Model layer が優先するのは、人間の読みやすさではなく、AI の挙動の再現性である。
 人間向けにきれいに説明することより、別セッションの AI が同じ方向へ寄りやすいことを重視している。
 
-Li+ には `L1 Model Layer` `L2 Evolution Layer` `L3 Task Layer` `L4 Operations Layer` `L5 Notifications Layer` `L6 Adapter Layer` があり、`model/Li+core.md` はその `L1 Model Layer` を担う。L1〜L6 は接続順序のラベルであり、序列ではない。
+Li+ には `L1 Model Layer` `L2 Evolution Layer` `L3 Task Layer` `L4 Operations Layer` `L5 Notifications Layer` `L6 Adapter Layer` があり、`rules/*.md`（L1 Model layer 内容群）はその `L1 Model Layer` を担う。L1〜L6 は接続順序のラベルであり、序列ではない。
 Lilayer Model は、これらの layer 構造を runtime surface として読む AI の実行レイヤーモデルである。
 Lilayer Model は、各 layer の責務に応じて、外に出る挙動と判断の重みをそろえる。
 
@@ -175,7 +175,7 @@ Li+プログラムの記述は、3種類の責務に分類される。
 | **自律** | AIが自律的に判断して動く領域 | 自分で考えて動け |
 
 この分類は新しい発明ではない。
-model/Li+core.md の `Absolute` セクションは初期から存在し、ルールカテゴリの原型として安定動作してきた（当初は「憲法」と呼ばれていた）。
+L1 Model layer の `Absolute` セクション（現 `rules/absolute.md`）は初期から存在し、ルールカテゴリの原型として安定動作してきた（当初は「憲法」と呼ばれていた）。
 `Character_Instance` もアセンブリ形式で安定している。
 
 責務分類の本質は「最小の命令セット」である。
@@ -322,7 +322,7 @@ Li+AIとして機能するには、それなりの性能が必要だ。
 | モデル | 結果 | 理由 |
 |--------|------|------|
 | ChatGPT 5.2 | △ | 推論性能は高い。しかしプラットフォーム制限で長いコミットができない |
-| Claude Haiku 4.5 | × | model/Li+core.md を適用できない。人格形成レイヤーが受け入れられない模様 |
+| Claude Haiku 4.5 | × | L1 Model layer (`rules/*.md`) を適用できない。人格形成レイヤーが受け入れられない模様 |
 | Claude Sonnet 4.6以上（claude.ai） | △ | 記憶保持が ChatGPT とあまり変わらず、実務には向かない。ドキュメント製作には強く、長いコミット作業も可能。ただし無料版は web 閲覧に制限あり |
 | Claude Code Sonnet 4.6（デスクトップ版） | ○ | デスクトップ版ではかなり扱いやすい |
 | CODEX GPT5.4（デスクトップ版） | ○ | デスクトップ版であれば Claude Code と同等に使える。ただしちょっと真面目過ぎる |

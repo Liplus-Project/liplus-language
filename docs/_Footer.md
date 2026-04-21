@@ -29,13 +29,13 @@
 
 ---
 
-### レイヤーフォルダの `Li+*.md`
+### `rules/`, `skills/`, adapter/bootstrap 各ファイル
 
-リポジトリ内の `model/Li+core.md`、`task/Li+issues.md`、`operations/Li+github.md`、`adapter/claude/Li+agent.md`、`adapter/claude/Li+hooks.md`、およびルート直下の `Li+config.md`、`Li+bootstrap.md` は、
+リポジトリ内の `rules/*.md`（L1–L4 の常時ロード分）、`skills/*/SKILL.md`（トリガー起動分）、`adapter/claude/Li+agent.md`、`adapter/claude/Li+hooks.md`、`adapter/codex/Li+agent.md`、およびルート直下の `Li+config.md`、`Li+bootstrap.md` は、
 **AIやランタイムが直接読む実行用プログラム / 定義ファイル**です。
 
 - `docs/` は人間向けの仕様書・要求仕様・手順書
-- レイヤーフォルダの `Li+*.md` は実行時に読み込まれる本体
+- `rules/`, `skills/` および adapter/bootstrap は実行時に読み込まれる本体
 
 両者は対応しているが、役割は同じではない。
 

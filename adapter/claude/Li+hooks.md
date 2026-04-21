@@ -129,7 +129,7 @@ fi
 export PATH="$HOME/.local/bin:$PATH"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
-EVOLUTION_MD="$LIPLUS_DIR/evolution/Li+evolution.md"
+COLDSTART_MD="$LIPLUS_DIR/rules/cold-start-synthesis.md"
 DECISION_LOG="$LIPLUS_DIR/docs/a.-Decision-Log.md"
 
 # Guard: if liplus-language source is not resolved yet (e.g. pre-bootstrap), exit silently.
@@ -142,11 +142,11 @@ emit_section() {
   printf '━━━ %s ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' "$banner" "$body"
 }
 
-# --- coldstart literal block from evolution/Li+evolution.md ---
-if [ -f "$EVOLUTION_MD" ]; then
-  COLDSTART_LITERAL=$(sed -n '/<!-- coldstart:begin -->/,/<!-- coldstart:end -->/p' "$EVOLUTION_MD" \
-    | sed '1d;$d')
-  emit_section "Cold-start Synthesis (Li+evolution.md literal)" "$COLDSTART_LITERAL"
+# --- coldstart literal block from rules/cold-start-synthesis.md ---
+if [ -f "$COLDSTART_MD" ]; then
+  # Strip frontmatter (lines between first two `---` markers) and H1 line
+  COLDSTART_LITERAL=$(awk '/^---$/{n++; next} n>=2' "$COLDSTART_MD" | sed '1{/^# /d;}' | sed '/./,$!d')
+  emit_section "Cold-start Synthesis (rules/cold-start-synthesis.md literal)" "$COLDSTART_LITERAL"
 fi
 
 # --- recent docs/a.- decision log entries (head of file = index) ---
@@ -292,11 +292,7 @@ if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
       printf '%s' "$title" | tr 'A-Z' 'a-z' | tr -cs 'a-z0-9' '\n' \
         | awk 'length($0) >= 4' > "$TMP_TOKENS"
       [ -s "$TMP_TOKENS" ] || continue
-      for src in \
-        "$LIPLUS_DIR/model/Li+core.md" \
-        "$LIPLUS_DIR/evolution/Li+evolution.md" \
-        "$LIPLUS_DIR/task/Li+issues.md" \
-        "$LIPLUS_DIR/operations/Li+github.md"; do
+      for src in "$LIPLUS_DIR"/rules/*.md "$LIPLUS_DIR"/skills/*/SKILL.md; do
         [ -f "$src" ] || continue
         HIT=""
         # Lowercase source snapshot for case-insensitive match without -iF combo.
@@ -343,8 +339,10 @@ exit 0
 ```bash
 #!/bin/bash
 # Source: Li+hooks.md ({LI_PLUS_TAG})
-# This hook implements the trigger-based re-read mapping defined in Li+hooks.md.
-# When modifying this file, update Li+hooks.md as the source of truth.
+# Simplified post-tool-use hook: after adapter flattening (#1102),
+# rules/* are always-loaded and skills/* auto-invoke by description match,
+# so section-extraction injection is no longer needed.
+# Retained: gh pr create → sub-issue refs auto-append to PR body.
 export PATH="$HOME/.local/bin:$PATH"
 INPUT=$(cat)
 TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
@@ -353,45 +351,10 @@ COMMAND=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/nul
 [[ "$TOOL_NAME" == "Bash" ]] || exit 0
 [ -n "$COMMAND" ] || exit 0
 
-# Extract only the first line of the command, stripping heredoc markers.
-# Heredoc bodies contain user data (issue bodies, commit messages) that
-# must not be matched against trigger patterns.
 CMD_LINE=$(printf '%s' "$COMMAND" | head -1 | sed 's/<<.*$//')
 
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
-OPERATIONS_MD="$LIPLUS_DIR/operations/Li+github.md"
-
-print_section() {
-  local file="$1"
-  local start="$2"
-  local end="$3"
-
-  [ -f "$file" ] || return 1
-  sed -n "/\\[$start\\]/,/\\[$end\\]/p" "$file" | head -n -1
-}
-
-get_section() {
-  local banner="$1"
-  local file="$2"
-  local start="$3"
-  local end="$4"
-  local body
-
-  body=$(print_section "$file" "$start" "$end") || return 1
-  [ -n "$body" ] || return 1
-
-  printf '━━━ %s ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$banner" "$body"
-}
-
-get_full_file() {
-  local banner="$1"
-  local file="$2"
-
-  [ -f "$file" ] || return 1
-
-  printf '━━━ %s ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$banner" "$(cat "$file")"
-}
 
 emit_context() {
   local context="$1"
@@ -410,196 +373,74 @@ repo_from_origin() {
     | sed 's/\.git$//' 2>/dev/null || echo ""
 }
 
-# on_branch: linked branch / local branch create → operations/Li+github.md Branch_And_Label_Flow re-read
-if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? issue develop|git switch -c|git checkout -b'; then
-  CONTEXT=$(get_section \
-    "on_branch: Branch_And_Label_Flow re-read" \
-    "$OPERATIONS_MD" \
-    "Branch And Label Flow" \
-    "Docs And Requirement Ownership")
-  emit_context "$CONTEXT"
-  exit 0
-fi
-
-# on_pr: gh pr create → full operations/Li+github.md re-read + sub-issue auto-append
+# on_pr: gh pr create → sub-issue auto-append to PR body (only remaining injection)
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? pr create'; then
-  CONTEXT=$(get_full_file "on_pr: Operations layer re-read" "$OPERATIONS_MD")
-
   OUTPUT=$(printf '%s' "$INPUT" | jq -r '.tool_response.output // empty' 2>/dev/null)
   PR_NUMBER=$(echo "$OUTPUT" | grep -oE '/pull/[0-9]+' | grep -oE '[0-9]+' | head -1)
+  [ -n "$PR_NUMBER" ] || exit 0
 
-  if [ -n "$PR_NUMBER" ]; then
-    REPO=$(repo_from_origin)
-    if [ -n "$REPO" ]; then
-      PR_BODY=$(gh api "repos/$REPO/pulls/$PR_NUMBER" --jq '.body' 2>/dev/null || echo "")
-      if [ -n "$PR_BODY" ]; then
-        PARENT_ISSUE=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | head -1 | tr -d '#')
-        if [ -n "$PARENT_ISSUE" ]; then
-          SUB_ISSUE_NUMBERS=$(gh api "repos/$REPO/issues/$PARENT_ISSUE/sub_issues" \
-            --jq '.[].number' 2>/dev/null || echo "")
-          if [ -n "$SUB_ISSUE_NUMBERS" ]; then
-            MISSING=()
-            while IFS= read -r issue_num; do
-              [ -z "$issue_num" ] && continue
-              if ! echo "$PR_BODY" | grep -qE "#${issue_num}([^0-9]|$)"; then
-                MISSING+=("$issue_num")
-              fi
-            done <<< "$SUB_ISSUE_NUMBERS"
+  REPO=$(repo_from_origin)
+  [ -n "$REPO" ] || exit 0
 
-            if [ ${#MISSING[@]} -gt 0 ]; then
-              ADDITIONS=""
-              for num in "${MISSING[@]}"; do
-                ADDITIONS="${ADDITIONS}
-Closes #${num}"
-              done
+  PR_BODY=$(gh api "repos/$REPO/pulls/$PR_NUMBER" --jq '.body' 2>/dev/null || echo "")
+  [ -n "$PR_BODY" ] || exit 0
 
-              NEW_BODY="${PR_BODY}${ADDITIONS}"
-              gh api "repos/$REPO/pulls/$PR_NUMBER" \
-                --method PATCH -f body="$NEW_BODY" > /dev/null 2>&1
+  PARENT_ISSUE=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | head -1 | tr -d '#')
+  [ -n "$PARENT_ISSUE" ] || exit 0
 
-              APPEND_MSG="━━━ PR #${PR_NUMBER}: sub-issue refs auto-appended ━━━"
-              for num in "${MISSING[@]}"; do
-                APPEND_MSG="${APPEND_MSG}
-  + Closes #${num}"
-              done
-              APPEND_MSG="${APPEND_MSG}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-              CONTEXT="${CONTEXT}
+  SUB_ISSUE_NUMBERS=$(gh api "repos/$REPO/issues/$PARENT_ISSUE/sub_issues" \
+    --jq '.[].number' 2>/dev/null || echo "")
+  [ -n "$SUB_ISSUE_NUMBERS" ] || exit 0
 
-${APPEND_MSG}"
-            fi
-          fi
-        fi
-      fi
+  MISSING=()
+  while IFS= read -r issue_num; do
+    [ -z "$issue_num" ] && continue
+    if ! echo "$PR_BODY" | grep -qE "#${issue_num}([^0-9]|$)"; then
+      MISSING+=("$issue_num")
     fi
-  fi
+  done <<< "$SUB_ISSUE_NUMBERS"
 
-  emit_context "$CONTEXT"
+  [ ${#MISSING[@]} -gt 0 ] || exit 0
+
+  ADDITIONS=""
+  for num in "${MISSING[@]}"; do
+    ADDITIONS="${ADDITIONS}
+Closes #${num}"
+  done
+
+  NEW_BODY="${PR_BODY}${ADDITIONS}"
+  gh api "repos/$REPO/pulls/$PR_NUMBER" \
+    --method PATCH -f body="$NEW_BODY" > /dev/null 2>&1
+
+  APPEND_MSG="━━━ PR #${PR_NUMBER}: sub-issue refs auto-appended ━━━"
+  for num in "${MISSING[@]}"; do
+    APPEND_MSG="${APPEND_MSG}
+  + Closes #${num}"
+  done
+  APPEND_MSG="${APPEND_MSG}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+  emit_context "$APPEND_MSG"
   exit 0
 fi
 
-# on_branch (assignees): assign = act now = start of branch work → operations/Li+github.md Branch_And_Label_Flow
-if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? (issue assign|api .*/issues/.*/assignees)'; then
-  CONTEXT=$(get_section \
-    "on_branch: Branch_And_Label_Flow re-read (assignees)" \
-    "$OPERATIONS_MD" \
-    "Branch And Label Flow" \
-    "Docs And Requirement Ownership")
-  emit_context "$CONTEXT"
-  exit 0
-fi
-
-# on_issue (create/edit): gh issue create/edit → operations/Li+github.md Issue_Format + Milestone_Rules + Sub-issue_Rules focus pointer
-if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? issue (create|edit)'; then
-  CONTEXT=$(get_section \
-    "on_issue (create/edit): Issue_Format focus" \
-    "$OPERATIONS_MD" \
-    "Issue Format" \
-    "Issue Maturity")
-  MILE=$(print_section "$OPERATIONS_MD" "Milestone Rules" "Branch And Label Flow")
-  if [ -n "$MILE" ]; then
-    CONTEXT="${CONTEXT}
-$(printf '━━━ on_issue (create/edit): Milestone_Rules focus ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$MILE")"
-  fi
-  SUB=$(print_section "$OPERATIONS_MD" "Sub-issue Rules" "Milestone Rules")
-  if [ -n "$SUB" ]; then
-    CONTEXT="${CONTEXT}
-$(printf '━━━ on_issue (create/edit): Sub-issue_Rules focus ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$SUB")"
-  fi
-  emit_context "$CONTEXT"
-  exit 0
-fi
-
-# on_issue (sub-issue API): gh api .*/sub_issues → operations/Li+github.md Sub-issue_Rules focus pointer
-if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? api .*/sub_issues'; then
-  CONTEXT=$(get_section \
-    "on_issue (sub-issue): Sub-issue_Rules focus" \
-    "$OPERATIONS_MD" \
-    "Sub-issue Rules" \
-    "Milestone Rules")
-  emit_context "$CONTEXT"
-  exit 0
-fi
-
-# on_issue (view): gh issue view/list → operations/Li+github.md Issue_Maturity + Sub-issue_Rules focus pointer
-if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? (issue (view|list)|api .*/issues)'; then
-  CONTEXT=$(get_section \
-    "on_issue (view): Issue_Maturity focus" \
-    "$OPERATIONS_MD" \
-    "Issue Maturity" \
-    "Sub-issue Rules")
-  SUB=$(print_section "$OPERATIONS_MD" "Sub-issue Rules" "Milestone Rules")
-  if [ -n "$SUB" ]; then
-    CONTEXT="${CONTEXT}
-$(printf '━━━ on_issue (view): Sub-issue_Rules focus ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' "$SUB")"
-  fi
-  emit_context "$CONTEXT"
-  exit 0
-fi
-
-# on_issue (close): no re-read required — exit silently
-if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? issue close'; then
-  exit 0
-fi
-
-# on_commit: git commit → operations/Li+github.md Commit_Rules section re-read
-if echo "$CMD_LINE" | grep -q 'git commit'; then
-  CONTEXT=$(get_section \
-    "on_commit: Commit_Rules re-read" \
-    "$OPERATIONS_MD" \
-    "Commit Rules" \
-    "PR Creation")
-  emit_context "$CONTEXT"
-  exit 0
-fi
-
-# on_merge: gh pr merge → operations/Li+github.md Merge section re-read
-if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? pr merge'; then
-  CONTEXT=$(get_section \
-    "on_merge: Merge re-read" \
-    "$OPERATIONS_MD" \
-    "Merge" \
-    "Execution Mode")
-  emit_context "$CONTEXT"
-  exit 0
-fi
-
-# on_release: gh release create → operations/Li+github.md Human_Confirmation_Required section re-read
-if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? release create'; then
-  CONTEXT=$(get_section \
-    "on_release: Human_Confirmation_Required re-read" \
-    "$OPERATIONS_MD" \
-    "Human Confirmation Required" \
-    "Notifications API")
-  emit_context "$CONTEXT"
-  exit 0
-fi
+exit 0
 ```
 
 ## rules/ generation template
 
 Generated at: {workspace_root}/.claude/rules/
 
-### Li+core.md
+For each `<name>.md` under LI_PLUS_REPOSITORY/rules/, generate `.claude/rules/<name>.md` with:
 
 ```markdown
 ---
 globs:
 alwaysApply: true
+{additional frontmatter fields from source preserved}
 ---
 
-{contents of model/Li+core.md from liplus-language repository}
-```
-
-### Li+github.md
-
-```markdown
----
-globs:
-alwaysApply: true
----
-
-{contents of operations/Li+github.md from liplus-language repository}
+{body of LI_PLUS_REPOSITORY/rules/<name>.md, with its frontmatter merged (globs and alwaysApply take precedence; layer field preserved)}
 ```
 
 ### character_Instance.md
@@ -618,43 +459,6 @@ alwaysApply: true
 
 ## skills/ generation template
 
-### li-plus-evolution / SKILL.md
+Generated at: {workspace_root}/.claude/skills/
 
-Generated at: {workspace_root}/.claude/skills/li-plus-evolution/SKILL.md
-
-```markdown
----
-name: li-plus-evolution
-description: |
-  Li+ self-observation and self-update rules (Evolution layer).
-  TRIGGER when: about to form a new judgment and past judgment should be retrieved first (Judgment Learning);
-  recording a self-evaluation entry (Self-Evaluation);
-  proposing or considering an L1 Model layer source change (L1 Update Gating);
-  deciding whether information belongs in memory or docs (Persistence Tiering);
-  executing any Evolution Loop stage (observe / evaluate / distill / reflect / improve / re-observe).
-  Cold-start Synthesis runs via on-session-start.sh hook, not through this skill.
----
-
-{contents of evolution/Li+evolution.md from liplus-language repository, with the block between <!-- coldstart:begin --> and <!-- coldstart:end --> removed}
-```
-
-### li-plus-issues / SKILL.md
-
-Generated at: {workspace_root}/.claude/skills/li-plus-issues/SKILL.md
-
-```markdown
----
-name: li-plus-issues
-description: |
-  Li+ issue management and task layer rules.
-  TRIGGER when: a new idea, concept, or plan emerges in dialogue that should survive the session;
-  when creating, editing, viewing, or closing issues;
-  when assigning labels or milestones;
-  when delegating work to subagents;
-  when reviewing PRs against issue requirements;
-  when researching information sources.
-  All concepts start from issue. Detect when dialogue produces a durable work unit and invoke automatically.
----
-
-{contents of task/Li+issues.md from liplus-language repository, excluding Issue Operations section}
-```
+For each `<name>/SKILL.md` under LI_PLUS_REPOSITORY/skills/, generate `.claude/skills/<name>/SKILL.md` by copying verbatim (the source already has Claude Code skill frontmatter including `name`, `description`, `layer`).

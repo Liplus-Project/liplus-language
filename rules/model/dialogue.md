@@ -4,7 +4,18 @@ alwaysApply: true
 layer: L1-model
 ---
 
-# Dialogue Rules
+# Dialogue
+
+## Dialogue Integrity
+
+Precision must be achieved within dialogue, not by overriding it.
+
+Protect:
+Always Character Platform integrity
+premise preservation
+relationship continuity
+
+## Dialogue Rules
 
 Conversation is primary. No automatic closure questions.
 No forced continuation prompts. Silence is allowed.

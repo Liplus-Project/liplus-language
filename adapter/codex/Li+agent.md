@@ -50,30 +50,30 @@ Responsibilities
 Re-read and apply all `rules/*.md` on any session continuation.
 
 Trigger-based skill reads:
-  on_issue (create/edit) → skills/on-issue-format + skills/on-milestone + skills/on-sub-issue
-  on_issue (view) → skills/on-issue-maturity + skills/on-sub-issue
-  on_issue (sub-issue API) → skills/on-sub-issue
+  on_issue (create/edit) → skills/operations/on-issue-format + skills/operations/on-milestone + skills/operations/on-sub-issue
+  on_issue (view) → skills/operations/on-issue-maturity + skills/operations/on-sub-issue
+  on_issue (sub-issue API) → skills/operations/on-sub-issue
   on_issue (close): no re-read required
-  on_branch → skills/on-branch
-  on_commit → skills/on-commit + skills/on-docs-ownership
-  on_pr → skills/on-pr-creation
-  on_ci → skills/on-ci
-  on_review → skills/on-pr-review + skills/pr-review-judgment
-  on_merge → skills/on-merge
-  on_release → skills/on-release
-  on_webhook_intake → skills/foreground-webhook-intake
-  on_research → skills/research-strategy
-  on_subagent_delegation → skills/subagent-delegation
-  on_judgment_form → skills/judgment-learning + skills/requirement-deepening
-  on_self_eval → skills/self-evaluation
-  on_l1_update_proposal → skills/l1-update-gating
-  on_persistence_decision → skills/persistence-tiering
-  on_evolution_loop_stage → skills/evolution-loop
-  on_structural_change → skills/pair-review
-  on_search_decision → skills/web-search-judgment
-  on_review_output → skills/review-output-partition
+  on_branch → skills/operations/on-branch
+  on_commit → skills/operations/on-commit + skills/operations/on-docs-ownership
+  on_pr → skills/operations/on-pr-creation
+  on_ci → skills/operations/on-ci
+  on_review → skills/operations/on-pr-review + skills/task/pr-review-judgment
+  on_merge → skills/operations/on-merge
+  on_release → skills/operations/on-release
+  on_webhook_intake → skills/operations/foreground-webhook-intake
+  on_research → skills/task/research-strategy
+  on_subagent_delegation → skills/task/subagent-delegation
+  on_judgment_form → skills/evolution/judgment-learning + skills/model/requirement-deepening
+  on_self_eval → skills/evolution/self-evaluation
+  on_l1_update_proposal → skills/evolution/l1-update-gating
+  on_persistence_decision → skills/evolution/persistence-tiering
+  on_evolution_loop_stage → skills/evolution/evolution-loop
+  on_structural_change → skills/model/pair-review
+  on_search_decision → skills/model/web-search-judgment
+  on_review_output → skills/model/review-output-partition
 
-Cold-start Synthesis: read `rules/cold-start-synthesis.md` body at session start and perform the synthesis through Character_Instance.
+Cold-start Synthesis: read `rules/evolution/cold-start-synthesis.md` body at session start and perform the synthesis through Character_Instance.
 
 Main agent after completion:
   Receive the report and decide next action.

@@ -112,30 +112,30 @@ Adapter, rules, skills, and hooks generation. Rules/skills generation doubles as
        with the current adapter source contents. Preserve content outside this section.
   c. If target file exists but does not contain "Li+ BEGIN": ask user -- append Li+ section or skip?
 
-4c.2. Generate .claude/rules/ files (directory mirror):
+4c.2. Generate .claude/rules/ files (recursive directory mirror):
 - If {workspace_root}/.claude/rules/ does not exist: create directory.
-- For each `<name>.md` in LI_PLUS_REPOSITORY/rules/:
-  - If `.claude/rules/<name>.md` does not exist or source tag differs from current target tag:
-    Copy LI_PLUS_REPOSITORY/rules/<name>.md contents, ensuring frontmatter contains `globs:` (empty) and `alwaysApply: true`. If the source frontmatter already includes them, keep; otherwise merge. Preserve `layer` field.
-    Write to {workspace_root}/.claude/rules/<name>.md.
-  - If source tag matches: skip (up to date).
+- For each `*.md` in LI_PLUS_REPOSITORY/rules/ (recursive, including files under `model/`, `evolution/`, `task/`, `operations/` subdirectories):
+  - Preserve the relative path from LI_PLUS_REPOSITORY/rules/ in the target.
+    (e.g., `rules/model/absolute.md` -> `.claude/rules/model/absolute.md`)
+  - If target file does not exist or source tag differs from current target tag:
+    Copy source contents; source already has `globs:` + `alwaysApply: true` + `layer:` frontmatter.
+    Create target subdirectory if needed.
+  - If source tag matches: skip.
 - Generate character_Instance.md (Character Instance):
   - Create-only: if {workspace_root}/.claude/rules/character_Instance.md already exists, skip unconditionally.
   - If file does not exist: prepend YAML frontmatter (globs: empty, alwaysApply: true) to LI_PLUS_REPOSITORY/model/character_Instance.md contents.
     Write to {workspace_root}/.claude/rules/character_Instance.md.
   - No tag-based overwrite. User customizations are preserved across updates.
-- Remove stale rules: for each file in {workspace_root}/.claude/rules/ that no longer exists in LI_PLUS_REPOSITORY/rules/ and is not character_Instance.md, delete it.
-- Tag detection: check the source tag embedded in the `.claude/rules/` file headers (if tracking is needed). Implementations may compare file hash instead.
+- Remove stale rules: for each file in {workspace_root}/.claude/rules/ (recursive) that no longer exists at the corresponding path in LI_PLUS_REPOSITORY/rules/ and is not character_Instance.md, delete it. Also remove empty subdirectories after deletion.
 
-4c.3. Generate .claude/skills/ files (directory mirror):
+4c.3. Generate .claude/skills/ files (recursive directory mirror):
 - If {workspace_root}/.claude/skills/ does not exist: create directory.
-- For each `<name>/SKILL.md` in LI_PLUS_REPOSITORY/skills/:
-  - If {workspace_root}/.claude/skills/<name>/ does not exist: create directory.
-  - If `.claude/skills/<name>/SKILL.md` does not exist or source tag differs from current target tag:
-    Copy LI_PLUS_REPOSITORY/skills/<name>/SKILL.md contents verbatim (source already carries Claude Code skill frontmatter).
-    Write to {workspace_root}/.claude/skills/<name>/SKILL.md.
-  - If source tag matches: skip (up to date).
-- Remove stale skills: for each directory in {workspace_root}/.claude/skills/ that no longer exists in LI_PLUS_REPOSITORY/skills/, delete it.
+- For each `*/SKILL.md` in LI_PLUS_REPOSITORY/skills/ (recursive, including `<layer>/<name>/SKILL.md`):
+  - Preserve the relative path: `skills/<layer>/<name>/SKILL.md` -> `.claude/skills/<layer>/<name>/SKILL.md`.
+  - Ensure target subdirectories exist.
+  - If target file does not exist or source tag differs: copy verbatim (source already has Claude Code skill frontmatter).
+  - If source tag matches: skip.
+- Remove stale skills: for each `<layer>/<name>/` directory in `.claude/skills/` that no longer exists in LI_PLUS_REPOSITORY/skills/, recursively delete it. Also remove empty layer subdirectories.
 
 4c.4. Bootstrap hooks:
 - Read adapter/claude/Li+hooks.md.

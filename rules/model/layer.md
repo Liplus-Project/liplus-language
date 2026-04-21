@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L1-model
 ---
 
-# Model Layer
+# Layer
 
 Layer = L1 Model Layer
 

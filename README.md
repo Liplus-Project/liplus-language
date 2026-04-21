@@ -37,10 +37,10 @@ Li+ is not a prompt. It is a **layered execution model** that runs on top of AI 
 
 | Layer | Surface | File |
 |-------|---------|------|
-| Model | Character, dialogue rules, loop safety, task mode | `rules/*.md` (L1 Model layer content) |
-| Evolution | Self-observation, judgment learning, evolution loop | `rules/*.md` + `skills/*/SKILL.md` (L2 Evolution layer content) |
-| Task | Issue-driven workflow, labels, sub-issues, review | `rules/task-*.md` + `skills/*/SKILL.md` (L3 Task layer content) |
-| Operations | Branch, commit, PR, CI, merge, release | `rules/operations-*.md` + `skills/on-*/SKILL.md` (L4 Operations layer content) |
+| Model | Character, dialogue rules, loop safety, task mode | `rules/model/*.md` + `skills/model/*/SKILL.md` |
+| Evolution | Self-observation, judgment learning, evolution loop | `rules/evolution/*.md` + `skills/evolution/*/SKILL.md` |
+| Task | Issue-driven workflow, labels, sub-issues, review | `rules/task/*.md` + `skills/task/*/SKILL.md` |
+| Operations | Branch, commit, PR, CI, merge, release | `rules/operations/*.md` + `skills/operations/*/SKILL.md` |
 | Notifications | Webhook intake, queue ownership, multi-AI safety | (operations) |
 | Adapter | Runtime injection, hooks, bootstrap | `adapter/claude/` / `adapter/codex/` |
 

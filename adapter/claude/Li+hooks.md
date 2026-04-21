@@ -129,7 +129,7 @@ fi
 export PATH="$HOME/.local/bin:$PATH"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
-COLDSTART_MD="$LIPLUS_DIR/rules/cold-start-synthesis.md"
+COLDSTART_MD="$LIPLUS_DIR/rules/evolution/cold-start-synthesis.md"
 DECISION_LOG="$LIPLUS_DIR/docs/a.-Decision-Log.md"
 
 # Guard: if liplus-language source is not resolved yet (e.g. pre-bootstrap), exit silently.
@@ -292,7 +292,7 @@ if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
       printf '%s' "$title" | tr 'A-Z' 'a-z' | tr -cs 'a-z0-9' '\n' \
         | awk 'length($0) >= 4' > "$TMP_TOKENS"
       [ -s "$TMP_TOKENS" ] || continue
-      for src in "$LIPLUS_DIR"/rules/*.md "$LIPLUS_DIR"/skills/*/SKILL.md; do
+      while IFS= read -r src; do
         [ -f "$src" ] || continue
         HIT=""
         # Lowercase source snapshot for case-insensitive match without -iF combo.
@@ -307,7 +307,7 @@ if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
           OVERLAP="${OVERLAP}  - $(basename "$memfile") [${title}] ~ $(basename "$src") (tokens: ${HIT% })
 "
         fi
-      done
+      done < <(find "$LIPLUS_DIR/rules" -type f -name '*.md' 2>/dev/null; find "$LIPLUS_DIR/skills" -type f -name 'SKILL.md' 2>/dev/null)
     done < "$TMP_HEADERS"
   done
   rm -f "$TMP_HEADERS" "$TMP_TOKENS"
@@ -431,7 +431,7 @@ exit 0
 
 Generated at: {workspace_root}/.claude/rules/
 
-For each `<name>.md` under LI_PLUS_REPOSITORY/rules/, generate `.claude/rules/<name>.md` with:
+For each `*.md` under LI_PLUS_REPOSITORY/rules/ (recursive, including `<layer>/<name>.md` subdirectories), generate `.claude/rules/<relpath>` preserving the relative path, with:
 
 ```markdown
 ---
@@ -461,4 +461,4 @@ alwaysApply: true
 
 Generated at: {workspace_root}/.claude/skills/
 
-For each `<name>/SKILL.md` under LI_PLUS_REPOSITORY/skills/, generate `.claude/skills/<name>/SKILL.md` by copying verbatim (the source already has Claude Code skill frontmatter including `name`, `description`, `layer`).
+For each `<layer>/<name>/SKILL.md` under LI_PLUS_REPOSITORY/skills/ (recursive), generate `.claude/skills/<layer>/<name>/SKILL.md` preserving the relative path by copying verbatim (the source already has Claude Code skill frontmatter including `name`, `description`, `layer`).

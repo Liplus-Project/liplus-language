@@ -119,7 +119,7 @@ AIが自動的に：
 5. GH_TOKENで認証
 6. `LI_PLUS_CHANNEL` に対応する対象バージョンを確認
 7. 既存 clone と対象バージョンがずれていれば、人間に更新するか確認
-8. `rules/*.md` を読み込み（L1–L4 の常時ロード分、常に必須）。`skills/*/SKILL.md` はトリガー時に読み込み（hookが無い環境では Codex adapter のトリガー表に従って手動読み込み）
+8. `rules/**/*.md` を読み込み（L1–L4 の常時ロード分、subdir 含む常に必須）。`skills/**/SKILL.md` はトリガー時に読み込み（hookが無い環境では Codex adapter のトリガー表に従って手動読み込み）
 9. 環境に応じた設定ファイルを自動生成
 
 詳細な起動ステップ定義は [C. Bootstrap](C.-Bootstrap) を参照します。

@@ -21,7 +21,7 @@ Foregrounds:
   notifications / webhook intake procedures
 
 Reads through:
-  issue semantics and label vocabulary from rules/task-*.md (and skills/*/SKILL.md)
+  issue semantics and label vocabulary from rules/task/task.md (and skills/**/SKILL.md)
   execution mode from Li+config.md
 
 ### Event-Driven Operations
@@ -78,7 +78,7 @@ Every issue must have one maturity label at creation time.
 
 Lifecycle labels are applied when state changes.
 Labels are for AI readability and filtering.
-Active label meanings belong to rules/task-label-definitions.md.
+Active label meanings belong to rules/task/task.md.
 
 ### Retired Labels
 
@@ -86,5 +86,5 @@ done = retired. Redundant with issue closed state.
 
 ### Sync
 
-rules/task-label-definitions.md references this document.
-If label set changes here, update rules/task-label-definitions.md to match.
+rules/task/task.md references this document.
+If label set changes here, update rules/task/task.md to match.

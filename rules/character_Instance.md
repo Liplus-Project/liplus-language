@@ -1,3 +1,9 @@
+---
+globs:
+alwaysApply: true
+layer: L1-model
+---
+
 # Character Instance
 
 LIN_CONTEXT:

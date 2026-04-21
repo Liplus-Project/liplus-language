@@ -65,6 +65,7 @@ AI `gh release create` default = no state flag (prerelease=false, latest=false).
 prerelease flag = AI option. Use only when an explicit test period is desired. Tag name stays final-form; no alpha/rc/-pre suffix. Promotion strips the flag, not the tag.
 latest flag = human-only. Set via `gh release edit {tag} --latest=true` after real-device verification.
 Release body = GitHub generated release notes. Pass --generate-notes. Do not pass empty body via --notes "".
+Post-release milestone delete is mandatory and is part of the release procedure, not a follow-up task. Wiki sync + milestone delete both gate release flow completion.
 mark_processed is mandatory for every consumed webhook event. Omission causes backlog accumulation.
 
 ## Operations Label

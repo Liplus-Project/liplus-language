@@ -431,31 +431,14 @@ exit 0
 
 Generated at: {workspace_root}/.claude/rules/
 
-For each `*.md` under LI_PLUS_REPOSITORY/rules/ (recursive, including `<layer>/<name>.md` subdirectories), generate `.claude/rules/<relpath>` preserving the relative path, with:
-
-```markdown
----
-globs:
-alwaysApply: true
-{additional frontmatter fields from source preserved}
----
-
-{body of LI_PLUS_REPOSITORY/rules/<name>.md, with its frontmatter merged (globs and alwaysApply take precedence; layer field preserved)}
-```
+For each `*.md` under LI_PLUS_REPOSITORY/rules/ (recursive, including `<layer>/<name>.md` subdirectories), generate `.claude/rules/<relpath>` preserving the relative path. Copy source verbatim (source already has `globs:` + `alwaysApply: true` + `layer:` frontmatter). EXCLUDE `rules/character_Instance.md` from this loop; it is handled separately below as Create-only.
 
 ### character_Instance.md
 
 Create-only: generate this file only if it does not already exist.
 Existing file is never overwritten (user-customizable).
 
-```markdown
----
-globs:
-alwaysApply: true
----
-
-{contents of model/character_Instance.md from liplus-language repository}
-```
+Source = LI_PLUS_REPOSITORY/rules/character_Instance.md. Source already has frontmatter. Copy verbatim to {workspace_root}/.claude/rules/character_Instance.md.
 
 ## skills/ generation template
 

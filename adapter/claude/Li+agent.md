@@ -43,7 +43,7 @@ Worktree operations are always main-only, independent of subagent availability.
 
 #######################################################
 Defined in `.claude/rules/character_Instance.md` (always in context).
-Source template: `model/character_Instance.md`
+Source template: `rules/character_Instance.md`
 Bootstrap creates default if absent. User edits are preserved.
 #######################################################
 

@@ -89,6 +89,13 @@ Steps:
 If push fails (permission): escalate to human. Do not skip.
 Wiki sync is part of the release procedure, not a follow-up task.
 
+Post-release milestone delete (mandatory, gates release flow completion):
+After wiki sync succeeds, delete the milestone shipped by this release:
+  gh api -X DELETE repos/{owner}/{repo}/milestones/{milestone_number}
+DELETE works directly on open milestones (no close step needed, empirically verified 2026-04-21).
+Rationale: GitHub milestone UI retains no informational value post-release; audit lives in release notes + PR/commit history. Skipping causes stale accumulation (dogfood 2026-04-21: v1.14.1 / v1.14.2 / v1.15.0 / v1.15.1 leaked as open despite releases shipped).
+Release flow is incomplete until this step runs.
+
 Release tag and title rule:
 Tag format and release title follow project convention.
 Default (Li+ language): cd_tag = build-YYYY-MM-DD.N, title = "{version}" (e.g. "v1.9.0")

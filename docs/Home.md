@@ -11,7 +11,7 @@ Li+ v1.0.0 の成立条件は到達済みとみなし、現在の本番はその
 
 ---
 
-## 要求仕様書（1–9）
+## 要求仕様書（1–6）
 
 各レイヤーの要求と仕様を一体として定義する。
 
@@ -26,7 +26,7 @@ Li+ v1.0.0 の成立条件は到達済みとみなし、現在の本番はその
 
 ---
 
-## 参考文書（A–Z）
+## 参考文書（A–D）
 
 構想・設定・導入手順などの参照資料。
 
@@ -39,7 +39,7 @@ Li+ v1.0.0 の成立条件は到達済みとみなし、現在の本番はその
 
 ---
 
-## 判断記録（a–z）
+## 判断記録（a–d）
 
 セッションをまたぐ判断知を蓄積する decision log。設計上の分岐で選んだ理由、検証で確定した前提、外部システム依存などを小文字プレフィックス付きで記録する。
 
@@ -48,3 +48,4 @@ Li+ v1.0.0 の成立条件は到達済みとみなし、現在の本番はその
 | [a. Decision Log](a.-Decision-Log) | 判断記録レイヤーの運用ルール |
 | [b. Spec vs Implementation Order](b.-spec-vs-implementation-order) | 外部システム依存の spec 記述ルール |
 | [c. semi_auto Release Rule Dogfood](c.-semi-auto-release-rule-dogfood) | 2026-04-20 release rule + semi_auto dogfood の知見 |
+| [d. Layer Reorg Rationale](d.-layer-reorg-rationale) | L1–L6 層再編の設計意図と L5/L6 位置付け |

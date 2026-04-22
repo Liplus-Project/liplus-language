@@ -123,7 +123,7 @@ rules/skills ファイルはリポジトリの `rules/` / `skills/` から直接
 **ステップ 7b: rules/ ファイル生成（再帰ディレクトリミラー）**
 
 - `.claude/rules/` ディレクトリが存在しなければ作成
-- リポジトリの `rules/**/*.md`（subdir `model/` `evolution/` `task/` `operations/` 含む）を1ファイルずつ、相対パスを保持したまま `.claude/rules/<relpath>` へミラー。frontmatter に `globs:`（空）と `alwaysApply: true` を含めるよう保証する。`layer` フィールドは保持する
+- リポジトリの `rules/**/*.md`（subdir `model/` `evolution/` `task/` `operations/` 含む）を1ファイルずつ、相対パスを保持したまま `.claude/rules/<relpath>` へミラー。frontmatter に `globs:`（空）と `alwaysApply: true` を含めるよう保証する。`layer` フィールドは保持する。L5 Notifications / L6 Adapter に対応する subdir が `rules/` 配下に存在しないのは設計意図であり欠落ではない（L5 は realtime trigger 実装確定までの予約席、L6 はテンプレート + hook 駆動でそもそも rules/ に載らない）。設計意図の詳細は [判断記録 d.-layer-reorg-rationale](d.-layer-reorg-rationale) を参照する
 - character_Instance.md は初回のみ生成し、既存ファイルは上書きしない（ユーザーカスタマイズ可能）
 - ソースタグと現在のターゲットタグを比較し、一致する場合はスキップ（最新）
 - `.claude/rules/` 内でリポジトリ側に存在しないファイル（character_Instance.md を除く）は削除。空の subdir も削除

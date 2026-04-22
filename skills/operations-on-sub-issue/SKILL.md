@@ -17,15 +17,7 @@ Rationale: if a unit can ship alone, nothing is gained by making it a sub-issue.
 The feeling "I want per-sub-issue PR to ship these independently" = signal that these should have been sibling issues from the start.
 Re-classify before splitting PRs. Do not split PRs.
 
-Single parent PR flow (canonical, ref #919):
-Parent issue with sub-issues accumulates commits on one parent branch.
-One PR per parent issue, opened against main. Sub-issues are handled inside that PR.
-PR may be opened as draft early to expose per-commit CI on the parent branch.
-Merge happens once, after all sub-issues are complete.
-Parent auto-close on merge is the intended behavior: all sub-issues are already closed by that point
-because the parent PR is the last event, not the first.
-Per-sub-issue PR flow is prohibited. Accumulating multiple PRs on a shared parent branch breaks this model:
-the first merged PR auto-closes the parent before the remaining sub-issues are done.
+See `rules/operations/operations.md` for parent/sub-issue authoritative rules (single parent PR flow, one branch per parent, sub-issue PR prohibition).
 
 Sub-issue API:
 gh issue develop targets parent issue only (branch creation).

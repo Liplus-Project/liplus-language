@@ -66,6 +66,18 @@ prerelease flag = AI option. Use only when an explicit test period is desired. T
 latest flag = human-only. Set via `gh release edit {tag} --latest=true` after real-device verification.
 Release body = GitHub generated release notes. Pass --generate-notes. Do not pass empty body via --notes "".
 Post-release milestone delete is mandatory and is part of the release procedure, not a follow-up task. Wiki sync + milestone delete both gate release flow completion.
+"Prerelease tag" / "stable tag" in human instructions = GitHub Release prerelease flag (boolean attribute), not git tag object and not release entry itself.
+Release terminology interpretation ladder (most-preserving first, literal delete last):
+  1. Attribute / flag change (prerelease -> stable, draft -> published)
+  2. Visibility change (archive, hide, unlist)
+  3. Replace with new release (supersede, deprecate with successor)
+  4. Explicit confirmation (stop and ask)
+  5. Literal delete (only if human explicitly said "delete", "unpublish", "rm", "tag delete")
+Artifacts where "delete" instruction MUST stop at step 4 (explicit confirmation) before destructive action: GitHub Release, git tag, npm / PyPI / crates.io versions, merged PR (close != delete), main branch (revert != delete), published docs, published wiki.
+PR auto-merge policy is mode-specific:
+  trigger mode = `gh pr merge {pr} --auto --squash` REQUIRED at PR creation time. Human review is the approval gate; auto-merge fires on approval.
+  semi_auto mode = NO `--auto` flag for minor / major PRs (human review is the gate). Patch PRs = AI self-review pass -> AI direct merge (no auto-merge needed).
+  auto mode = repo-level "Allow auto-merge" is INTENTIONALLY disabled. `gh pr merge --auto` being rejected is by design, not a config gap. Parent AI performs self-review then manual `gh pr merge {pr} --squash`.
 mark_processed is mandatory for every consumed webhook event. Omission causes backlog accumulation.
 
 ## Operations Label

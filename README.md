@@ -27,7 +27,7 @@ Li+ addresses **what should be satisfied** — and governs how an AI prioritizes
 2. Place it in your workspace root and edit the settings
 3. Start a session and tell the AI: "Execute the workspace Li+config.md" (first time requires security approval)
 
-See the [Installation Guide](https://github.com/Liplus-Project/liplus-language/wiki/C.-Installation) for details.
+See the [Installation Guide](https://github.com/Liplus-Project/liplus-language/wiki/D.-Installation) for details.
 
 ---
 
@@ -101,9 +101,8 @@ What's *not* exchangeable: the principle that correctness is observable behavior
 
 ### Current limitations
 
-- No GitHub RAG yet — the AI must actively fetch issue state instead of having it as ambient context, making autonomous issue lifecycle management expensive
-- The "create freely, close freely" issue workflow depends on low-cost access to the full issue landscape
 - Some workflow transitions still benefit from a human nudge, even where rules permit full autonomy
+- L5 Notifications layer is a reserved slot for future channel-based webhook delivery; current implementation relies on hooks and CI polling as an interim workaround (the primary channel feature is CLI-only at this stage and does not yet cover all host environments)
 
 ---
 
@@ -111,7 +110,8 @@ What's *not* exchangeable: the principle that correctness is observable behavior
 
 | Environment | Status | Notes |
 |-------------|--------|-------|
-| Claude Code (Opus 4.6) | **Recommended** | Full capability with hooks and subagent delegation |
+| Claude Code (Opus 4.7, 1M context) | **Recommended** | Full capability with hooks and subagent delegation |
+| Claude Code (Opus 4.6) | Good | Previous recommended tier |
 | Claude Code (Sonnet 4.6) | Good | Strong for development work |
 | Claude Sonnet 4.6 (claude.ai) | Fair | Strong for documents, not ideal for continuous work |
 | Codex (GPT 5.4) | Good | Practical, tends to over-weight structure |
@@ -136,7 +136,8 @@ Minimum: roughly Claude Sonnet 4.6 equivalent or above.
 | [6. Adapter](https://github.com/Liplus-Project/liplus-language/wiki/6.-Adapter) | Adapter layer specification |
 | [A. Concept](https://github.com/Liplus-Project/liplus-language/wiki/A.-Concept) | Design philosophy |
 | [B. Configuration](https://github.com/Liplus-Project/liplus-language/wiki/B.-Configuration) | Configuration reference |
-| [C. Installation](https://github.com/Liplus-Project/liplus-language/wiki/C.-Installation) | Quickstart setup |
+| [C. Bootstrap](https://github.com/Liplus-Project/liplus-language/wiki/C.-Bootstrap) | Session startup flow |
+| [D. Installation](https://github.com/Liplus-Project/liplus-language/wiki/D.-Installation) | Quickstart setup |
 
 ---
 

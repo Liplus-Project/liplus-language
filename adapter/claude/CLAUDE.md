@@ -180,3 +180,15 @@ Memory_Write_Autonomy:
 
 Policy and procedures: see `skills/operations-foreground-webhook-intake/SKILL.md`.
 This adapter activates that flow using the host's UserPromptSubmit hook.
+
+Delivery mode is selected by `LI_PLUS_WEBHOOK_DELIVERY` in `Li+config.md`:
+
+- `poll` (default, unset) — bash `on-user-prompt.sh` emits a reminder; the AI
+  calls `mcp__github-webhook-mcp__get_pending_status` itself.
+- `channel` — MCP channel pushes events in real time; the bash hook skips the
+  reminder.
+- `mcp_hook` — a sibling `type: "mcp_tool"` UserPromptSubmit hook entry calls
+  the MCP tool directly at hook execution time, removing the
+  `tool_use` / `tool_result` round trip. The bash hook skips the reminder.
+  Opt-in: requires `github-webhook-mcp` to be connected as an MCP server and a
+  manual `settings.json` addition documented in `adapter/claude/hooks-settings.md`.

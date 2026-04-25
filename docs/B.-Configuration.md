@@ -95,17 +95,19 @@ AIの自律度を切り替えます。未設定の場合、セッション開始
 
 ### LI_PLUS_WEBHOOK_DELIVERY
 
-webhook 通知がセッションへ届く方法を指定します。`mcp__github-webhook-mcp` を MCP channel として常時接続している環境では `channel` に設定することで、毎ターンのポーリングリマインダーをスキップできます。
+webhook 通知がセッションへ届く方法を指定します。`mcp__github-webhook-mcp` を MCP channel として常時接続している環境では `channel` に設定することで、毎ターンのポーリングリマインダーをスキップできます。`mcp_hook` を選ぶと、Claude Code の `type: "mcp_tool"` UserPromptSubmit hook で MCP ツールを直接呼び出すため、`tool_use` / `tool_result` の往復が不要になります。
 
 | 値 | 動作 |
 |----|------|
 | 未設定 / `poll` | 毎ターン開始時に on-user-prompt hook がポーリングリマインダーを出力する（既定、後方互換） |
 | `channel` | MCP channel がリアルタイムにイベントを配信するため、hook のポーリングリマインダーをスキップする |
+| `mcp_hook` | UserPromptSubmit に追加した `type: "mcp_tool"` hook が `mcp__github-webhook-mcp__get_pending_status` を直接呼び出し、結果を prompt context に注入する。bash hook のポーリングリマインダーはスキップされる |
 
 注意:
 
-- `channel` に設定しても webhook 通知の前景判定ルールは変わりません。transport が変わるだけです
+- 値を切り替えても webhook 通知の前景判定ルールは変わりません。transport（呼び出し主体）が変わるだけです
 - この設定は on-user-prompt hook が実行時に Li+config.md から読み取ります。bootstrap での追加アクションは不要です
+- `mcp_hook` は opt-in 経路です。前提条件として `github-webhook-mcp` が MCP サーバーとして接続済みであり、`{workspace_root}/.claude/settings.json` の `UserPromptSubmit` 配列に `type: "mcp_tool"` エントリを手動で追加する必要があります（具体的な JSON は `adapter/claude/hooks-settings.md` の "Optional: mcp_tool delivery" セクション参照）。Li+ は既存の settings.json を上書きしないため、移行は人間判断で実施します
 
 ### LI_PLUS_WEBHOOK_STATE_DIR
 

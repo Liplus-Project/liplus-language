@@ -25,6 +25,11 @@ delivery mode interaction (LI_PLUS_WEBHOOK_DELIVERY):
                    and injects the result into prompt context. The AI does not
                    issue the call itself; foreground handling reads the injected
                    status as if it had been polled.
+                   Precondition: github-webhook-mcp >= v0.11.3 (earlier versions
+                   return generic JSON that Claude Code silently discards because
+                   it does not match a hook decision schema; v0.11.3 wraps the
+                   result in UserPromptSubmit decision shape on the local bridge
+                   side).
   source priority above is unchanged across modes; only the *who initiates the
   call* axis differs. Relevance judgment and destructive consume rules apply
   identically.

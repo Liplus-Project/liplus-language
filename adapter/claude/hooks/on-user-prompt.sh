@@ -15,9 +15,13 @@ elif [ -f "$CLAUDE_MD" ]; then
 fi
 
 # --- Webhook notification reminder ---
-# Read LI_PLUS_WEBHOOK_DELIVERY from Li+config.md (channel = skip polling reminder)
+# Read LI_PLUS_WEBHOOK_DELIVERY from Li+config.md
+#   poll (default / unset) = emit reminder text so Claude calls the MCP tool
+#   channel                = MCP channel delivers events directly; skip reminder
+#   mcp_hook               = a sibling type=mcp_tool hook entry invokes the MCP
+#                            tool directly without going through Claude; skip reminder
 WEBHOOK_DELIVERY=$(awk -F= '/^LI_PLUS_WEBHOOK_DELIVERY=/{print $2}' "$PROJECT_ROOT/Li+config.md" 2>/dev/null)
-if [ "$WEBHOOK_DELIVERY" != "channel" ]; then
+if [ "$WEBHOOK_DELIVERY" != "channel" ] && [ "$WEBHOOK_DELIVERY" != "mcp_hook" ]; then
   echo ""
   echo "━━━ Webhook: check pending notifications ━━━"
   echo "Run mcp__github-webhook-mcp__get_pending_status silently."

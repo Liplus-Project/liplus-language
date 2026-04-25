@@ -17,6 +17,18 @@ source priority:
   2 = local webhook store via bundled helper
   3 = none
 
+delivery mode interaction (LI_PLUS_WEBHOOK_DELIVERY):
+  poll (default) = each user turn, the AI calls mcp__github-webhook-mcp__get_pending_status.
+  channel        = MCP channel pushes events; AI does not poll, intake reads the channel surface.
+  mcp_hook       = a type=mcp_tool UserPromptSubmit hook entry invokes
+                   mcp__github-webhook-mcp__get_pending_status directly at hook time
+                   and injects the result into prompt context. The AI does not
+                   issue the call itself; foreground handling reads the injected
+                   status as if it had been polled.
+  source priority above is unchanged across modes; only the *who initiates the
+  call* axis differs. Relevance judgment and destructive consume rules apply
+  identically.
+
 local webhook store:
   precondition = LI_PLUS_MODE=clone
   helper path = {workspace_root}/liplus-language/scripts/check_webhook_notifications.py

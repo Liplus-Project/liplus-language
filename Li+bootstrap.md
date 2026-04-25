@@ -45,8 +45,9 @@ Dependencies: Phase 1 (runtime detected).
 - Runtime precedence (human explicit instruction > thread agreement > config > ask) is defined in the adapter's Workspace_Language_Contract and applies throughout the session without re-triggering this phase.
 
 2.4. Resolve webhook delivery mode (optional):
-- LI_PLUS_WEBHOOK_DELIVERY setting (`channel` or `poll`) is read by the adapter at runtime.
+- LI_PLUS_WEBHOOK_DELIVERY setting (`poll` / `channel` / `mcp_hook`) is read by the adapter at runtime.
 - Default if unset: poll. No bootstrap action needed.
+- `mcp_hook` is an opt-in path that requires a manual `settings.json` edit; see B. Configuration for details.
 
 ## Phase 3: Li+ Source Resolution
 

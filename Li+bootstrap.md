@@ -145,18 +145,23 @@ Note: Claude Code's skill discovery does NOT recurse into subdirectories under `
   - adapter/claude/hooks-settings.md — contains the literal `settings.json` JSON block.
   - adapter/claude/hooks/*.sh — hook script bodies as real files (copied verbatim, with
     `{LI_PLUS_TAG}` placeholder replaced by the resolved target tag).
-- If {workspace_root}/.claude/settings.json does not exist:
-  Create it from the JSON code block in adapter/claude/hooks-settings.md.
-  Also create {workspace_root}/.claude/hooks/ and copy all adapter/claude/hooks/*.sh there.
-  SessionStart uses four matchers (startup / resume / clear / compact) so Cold-start Synthesis
-  material is emitted for every session entry point, not only compact.
-- If {workspace_root}/.claude/settings.json exists:
-  - Do not modify settings.json. The workspace owns it; Li+ does not silently rewrite
-    user-added keys (permissions / env / theme / other component hooks).
-  - Check the source tag in existing {workspace_root}/.claude/hooks/*.sh files
+- {workspace_root}/.claude/settings.json is Li+ owned (compare-and-overwrite):
+  - If it does not exist: create it from the JSON code block in adapter/claude/hooks-settings.md.
+    Also create {workspace_root}/.claude/hooks/ and copy all adapter/claude/hooks/*.sh there.
+  - If it exists and content matches the rendered template byte-for-byte: skip
+    (no overwrite, no sensitive-file permission prompt).
+  - If it exists and content differs: overwrite with the rendered template.
+    settings.json is Li+ owned; intentional user customizations
+    (permissions / env / theme / additional hooks / additional MCP entries) belong in
+    {workspace_root}/.claude/settings.local.json which Li+ never touches and
+    Claude Code merges with settings.json at runtime.
+  - SessionStart uses four matchers (startup / resume / clear / compact) so Cold-start Synthesis
+    material is emitted for every session entry point, not only compact.
+- {workspace_root}/.claude/hooks/*.sh tag-tracked regeneration:
+  - Check the source tag in existing files
     (e.g. "# Source: adapter/claude/hooks/on-session-start.sh (build-2026-03-30.14)").
   - If tag matches current target tag: skip (up to date).
-  - If tag differs or is absent: regenerate hook scripts only by copying adapter/claude/hooks/*.sh
+  - If tag differs or is absent: regenerate hook scripts by copying adapter/claude/hooks/*.sh
     and replacing {LI_PLUS_TAG} with the current target tag.
 - on-session-start.sh is the Cold-start Synthesis material emitter. Its stdout is injected into
   the session-opening context (Claude Code SessionStart contract). The hook gathers material

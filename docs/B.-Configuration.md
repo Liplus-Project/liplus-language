@@ -101,17 +101,23 @@ webhook 通知がセッションへ届く方法を指定します。`mcp__github
 |----|------|
 | 未設定 / `poll` | 毎ターン開始時に on-user-prompt hook がポーリングリマインダーを出力する（既定、後方互換） |
 | `channel` | MCP channel がリアルタイムにイベントを配信するため、hook のポーリングリマインダーをスキップする |
-| `mcp_hook` | UserPromptSubmit に追加した `type: "mcp_tool"` hook が `mcp__github-webhook-mcp__get_pending_status` を直接呼び出し、結果を prompt context に注入する。bash hook のポーリングリマインダーはスキップされる（`github-webhook-mcp >= v0.11.3` が前提）|
+| `mcp_hook` | UserPromptSubmit の `type: "mcp_tool"` hook が `mcp__github-webhook-mcp__get_pending_status` を直接呼び出し、結果を prompt context に注入する。bash hook のポーリングリマインダーはスキップされる（`github-webhook-mcp >= v0.11.3` が前提） |
 
 注意:
 
 - 値を切り替えても webhook 通知の前景判定ルールは変わりません。transport（呼び出し主体）が変わるだけです
 - この設定は on-user-prompt hook が実行時に Li+config.md から読み取ります。bootstrap での追加アクションは不要です
-- `mcp_hook` は opt-in 経路です。前提条件として:
-  - `github-webhook-mcp` が MCP サーバーとして接続済みであること
+- `mcp_tool` の hook entry は `adapter/claude/hooks-settings.md` の default テンプレートに含まれており、bootstrap によって `.claude/settings.json` に自動配置されます。**手動追加は不要**になりました（旧仕様では opt-in に手動編集が必要でした）
+- 配信が実際に AI 文脈へ届く前提条件:
+  - `mcp__github-webhook-mcp` が MCP サーバーとして接続済みであること（CLI なら `~/.claude.json` / `.mcp.json` / `claude mcp add`、Desktop なら `claude_desktop_config.json`）
   - `github-webhook-mcp >= v0.11.3` であること（`get_pending_status` の戻り値を Claude Code UserPromptSubmit hook decision JSON shape にラップする bridge 側の対応が必要。それ以前のバージョンでは hook 戻り値が AI 文脈に注入されない）
-  - `{workspace_root}/.claude/settings.json` の `UserPromptSubmit` 配列に `type: "mcp_tool"` エントリを手動で追加すること（具体的な JSON は `adapter/claude/hooks-settings.md` の "Optional: mcp_tool delivery" セクション参照）
-  - Li+ は既存の settings.json を上書きしないため、移行は人間判断で実施します
+- MCP サーバー未接続の場合、Claude Code の `mcp_tool` resolver が毎ターン `not connected` テキストを context に出します。挙動上の害はありませんが、webhook 通知を使わないユーザーは設定ノイズとして見えます
+
+### settings.json と settings.local.json の所有境界 (build-2026-04-25 以降)
+
+- `.claude/settings.json` = **Li+ 所有**。bootstrap が `adapter/claude/hooks-settings.md` の literal を render し、内容差分があれば上書きします（compare-and-overwrite。同一なら sensitive-file プロンプトも出ません）
+- `.claude/settings.local.json` = **ユーザー所有**。Li+ は一切触りません。`permissions` / `env` / `theme` / 独自 hook / 追加 MCP entry はここに置きます。Claude Code が runtime で両ファイルを merge します
+- **既存 workspace の移行注意**: 既に `.claude/settings.json` に user-added キー（permissions / env / theme / 独自 hook / 追加 mcp_tool entry）を入れている環境は、本仕様適用前に `settings.local.json` へ移してください。compare-and-overwrite が差分を検出すると Li+ template で上書きされ、user-added キーが失われます
 
 ### LI_PLUS_WEBHOOK_STATE_DIR
 

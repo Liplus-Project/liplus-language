@@ -40,15 +40,28 @@ AI proposes patch or minor; human confirms minor or major; AI executes.
 ## Post-release wiki sync
 
 After release is published, sync docs/ to GitHub Wiki.
-Wiki must be a complete mirror of docs/. Renamed or removed pages must disappear from Wiki.
+
+Ownership boundary (since 2026-04-26):
+- **docs/-owned files** (uppercase + numeric prefix + Home + _Footer): docs/ is source of truth, wiki is mirror; the wiki copy must match docs/ byte-for-byte after sync.
+- **Wiki-only files** (lowercase prefix `[a-z].-*.md` judgment-record entries, plus `_Sidebar.md` and any other wiki-only navigation): wiki owns them, docs/ does not have a counterpart, sync must preserve them.
+- The single exception is `docs/a.-Decision-Log.md` which exists in BOTH docs/ (read by `adapter/claude/hooks/on-session-start.sh` for cold-start synthesis) and wiki (visible in nav). It travels through the sync because docs/ has the source.
+
 Steps:
   1. Clone wiki repo: git clone https://github.com/{owner}/{repo}.wiki.git {tmpdir}
   2. Configure identity (clone-and-throw-away pattern requires explicit identity):
      git -C {tmpdir} config user.name  "{commit-author-name}"
      git -C {tmpdir} config user.email "{commit-author-email}"
-  3. Wipe existing markdown (prevents stale pages from rename/delete): rm -f {tmpdir}/*.md
+  3. Selective wipe — remove only docs/-owned files from wiki, preserving wiki-only entries:
+     ```
+     shopt -s nullglob
+     for f in {tmpdir}/[A-Z]*.md {tmpdir}/[0-9]*.md {tmpdir}/Home.md {tmpdir}/_Footer.md {tmpdir}/a.-*.md; do
+       [ -e "$f" ] && rm -f "$f"
+     done
+     ```
+     The pattern explicitly omits lowercase non-`a` prefixes (`[b-z].-*.md`) and `_Sidebar.md`, leaving them in place.
   4. Copy docs/ files: cp docs/*.md {tmpdir}/
-  5. Stage all (including deletions): git -C {tmpdir} add -A
+     (After migration, docs/ no longer holds `b.-` / `c.-` / ... entries, so this cp does not re-introduce them.)
+  5. Stage all (including any deletes from step 3 that docs/ no longer covers): git -C {tmpdir} add -A
   6. Commit: git -C {tmpdir} commit -m "sync: docs → wiki ({release_tag})"
   7. Push: git -C {tmpdir} push
   8. Cleanup: rm -rf {tmpdir}

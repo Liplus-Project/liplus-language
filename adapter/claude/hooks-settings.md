@@ -131,7 +131,14 @@ This is **opt-in only**:
 Preconditions:
 
 1. `mcp__github-webhook-mcp` is connected as an MCP server in the workspace.
-2. `Li+config.md` contains `LI_PLUS_WEBHOOK_DELIVERY=mcp_hook` so that the bash
+2. `github-webhook-mcp >= v0.11.3`. Earlier versions return generic JSON
+   (`{pending_count, types, latest_received_at}`) which Claude Code parses
+   successfully but discards because it does not match any UserPromptSubmit
+   decision schema, so the hook output never reaches the AI prompt context.
+   v0.11.3 wraps `get_pending_status` results into the canonical decision JSON
+   shape (`hookSpecificOutput.hookEventName="UserPromptSubmit"` plus a natural
+   language summary in `additionalContext`) on the local bridge side.
+3. `Li+config.md` contains `LI_PLUS_WEBHOOK_DELIVERY=mcp_hook` so that the bash
    hook suppresses its reminder text (the `mcp_tool` hook now covers that
    responsibility).
 
@@ -161,7 +168,12 @@ to the existing `UserPromptSubmit` array:
 }
 ```
 
-The `mcp_tool` hook output is injected into the prompt context the same way
-that a Claude-issued tool call result would be, so the foreground intake skill
-treats it identically to the polled path. Relevance judgment and destructive
-consume rules remain governed by `skills/operations-foreground-webhook-intake/SKILL.md`.
+The `mcp_tool` hook output is injected into the prompt context only when the
+tool returns a value that matches a Claude Code hook decision JSON schema
+(see https://code.claude.com/docs/en/hooks). Generic JSON parses successfully
+but is silently discarded; the decision shape is the only path. With
+`github-webhook-mcp >= v0.11.3` the local bridge wraps `get_pending_status`
+into the UserPromptSubmit decision shape automatically, so the foreground
+intake skill sees the result identically to the polled path. Relevance
+judgment and destructive consume rules remain governed by
+`skills/operations-foreground-webhook-intake/SKILL.md`.

@@ -50,3 +50,13 @@ if execution_mode == trigger:
         gh pr view {pr} -R {owner}/{repo} --json reviewDecision --jq '.reviewDecision'
   reviewDecision=="APPROVED" -> proceed to [Merge].
   reviewDecision=="CHANGES_REQUESTED" -> read review comments -> fix and recommit (restart [CI Loop]).
+
+## Follow-through on deferred items
+
+Self-review records may legitimately defer items as "out of PR scope" (e.g. workspace memory cleanup, follow-up issue filing, doc-only follow-up). Deferred ≠ ignored:
+
+- Workspace-side deferrals (memory edits, local config) execute in the SAME session immediately after merge. Do not push them to the next session.
+- Repo-side deferrals (follow-up issues, separate PR for unrelated cleanup) are filed BEFORE merge so they are not lost.
+- Human APPROVED comments that contain "〜したんだよね？" / "did you also do X?" / similar embedded confirmations are part of the approval condition, not optional small talk. Treat the embedded confirmation as an additional gate and respond to it in the same session.
+
+Merge is not the closing bracket; the deferred-item handoff is.

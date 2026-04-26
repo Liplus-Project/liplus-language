@@ -24,6 +24,8 @@ Important note: "structural change -> minor" is wrong. "Structural change AND us
 
 AI proposes patch or minor. Human confirms minor or major. AI executes.
 
+**Application-moment trigger:** Before writing a classification (patch / minor / major) in any artifact, Read this section literally. The recurring miss is omitting the "large" modifier on minor — observable change misclassified as minor when it is incremental scope (patch). See `rules/model/trigger-check-gate.md` Trigger moments.
+
 ## Release state rule (independent axis from version type)
 
 default = no state flag. prerelease=false, latest=false. This is the AI `gh release create` default for any version type.

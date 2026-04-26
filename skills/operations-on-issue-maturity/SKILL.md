@@ -24,3 +24,20 @@ Applies to external fact cross-check results only.
 Subjective confidence is outside this criterion.
 A premise is verified only when external evidence (docs, spec, source, runtime probe, existing issue/PR record) is cited.
 "feels correct" is not verification.
+
+## Memo-mode rapid intake (interrupt-minimal path)
+
+Triggered by human signaling "黙って" / "silent" / "quick memo" / equivalent intent: minimize the cognitive cost of issue creation while the human's main task continues.
+
+Rapid path:
+- title = ASCII English, bug/kind prefix only (e.g. `bug(rerank): cross-encoder not firing`). No deep verb structure.
+- body = observation fact (1-3 lines) + reproduction hint (1-2 lines). No purpose / premise / constraints / target files.
+- labels = one type label (bug / enhancement / spec / docs / tips) + maturity = `memo`.
+- milestone = unassigned. Assignment happens later at forming → ready promotion.
+- assignee = unassigned.
+
+Discriminator: "Is this issue creation itself the main task, or is it interrupting the main task?"
+- Interrupting → rapid path (this section).
+- Main task → full forming/ready intake.
+
+Treating "黙って" as "still do full intake but skip discussing it" defeats the interrupt-cost reduction the human asked for. Memo maturity is a valid resting state, not "incomplete and embarrassing"; promotion to forming/ready happens later when the issue itself is the focus.

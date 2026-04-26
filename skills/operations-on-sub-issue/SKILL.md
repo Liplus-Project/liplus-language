@@ -33,3 +33,17 @@ No overlap = parallel-safe. Propose parallel sub-issue structure to human.
 Partial overlap = propose splitting shared-file changes into a separate integration sub-issue.
 Integration sub-issue executes after parallel sub-issues complete (serialized dependency).
 Analysis basis = target files field in issue body. If absent, infer from issue purpose and premise.
+
+## CI visibility — single parent PR with draft early open
+
+Sub-issue implementations land as commits on the parent branch (one branch per parent issue). Open a draft PR on the parent branch immediately after the first commit so each subsequent push triggers `pull_request.synchronize` for per-commit CI.
+This satisfies per-commit CI visibility without splitting into per-sub-issue PRs. The single parent PR + draft early open pattern is the correct CI strategy; per-sub-issue PR splitting for "CI visibility" reasons is misdiagnosis.
+
+## Recovery from accidental per-sub-issue PR runs
+
+If per-sub-issue PRs already exist on a parent with sub-issues (a spec violation that may have shipped before discovery), the post-hoc recovery is:
+1. Consolidate sub-issue branches into a single parent branch via cherry-pick or rebase.
+2. Manually re-open sub-issues that auto-closed via the wrong branch's merge.
+3. Close them again from the consolidated parent PR's merge once it lands.
+
+This is fix-up only — do not normalize per-sub-issue PRs as a workflow. The single parent PR layout is correct; the recovery procedure exists because past sessions have erred (e.g. github-rag-mcp #198 / OAuth migration sub-PRs #203/#204/#205/#206 ran per-sub-issue and triggered cascading auto-close failures on the parent).

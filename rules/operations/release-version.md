@@ -32,6 +32,8 @@ default = no state flag. prerelease=false, latest=false. This is the AI `gh rele
 prerelease = AI option. Apply only when an explicit test period is wanted. Tag name is final-form; do not append alpha.N / rc.N / -pre suffix. Promotion = strip flag (`gh release edit {tag} --prerelease=false`), keep the same tag.
 latest = human-only. Real-device verification gate. Human flips via `gh release edit {tag} --latest=true`. Independent of version type: patch / minor / major all gate on the same real-device check.
 
+**Authority axis**: "human-only" / "human flips via ..." refers to decision authority, not execution authority — Master decides, AI executes `gh release edit ... --latest=true` after explicit go-sign. See `rules/operations/execution-mode.md` Master judgment gate for the full gate list and axis definition.
+
 ## Canonical release creation command (AI)
 
 ```

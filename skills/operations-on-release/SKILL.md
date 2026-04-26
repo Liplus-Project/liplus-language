@@ -46,6 +46,15 @@ Ownership boundary (since 2026-04-26):
 - **Wiki-only files** (lowercase prefix `[a-z].-*.md` judgment-record entries, plus `_Sidebar.md` and any other wiki-only navigation): wiki owns them, docs/ does not have a counterpart, sync must preserve them.
 - The single exception is `docs/a.-Decision-Log.md` which exists in BOTH docs/ (read by `adapter/claude/hooks/on-session-start.sh` for cold-start synthesis) and wiki (visible in nav). It travels through the sync because docs/ has the source.
 
+Pre-sync verification (mandatory before step 5/6 commit):
+- Run `git -C {tmpdir} status --short` and confirm only docs/-owned paths appear in deletes (`D`) and updates (`M`).
+- If `D` or `M` appears for any wiki-only file (lowercase non-`a` prefix `[b-z].-*.md` or `_Sidebar.md`), STOP and escalate to human. Selective wipe pattern divergence is the recurring failure mode; do not push to wiki on this signal.
+
+New-repo setup (one-shot, before first sync):
+- Seed initial docs/ with Home.md / _Footer.md / canonical uppercase + numeric prefix files (`docs/[A-Z].-*.md`, `docs/[0-9].-*.md`).
+- Push `_Sidebar.md` directly to wiki on the wiki repo (not via docs/).
+- Decision log entries (`[b-z].-*.md`) are wiki-only from creation; do not place under docs/.
+
 Steps:
   1. Clone wiki repo: git clone https://github.com/{owner}/{repo}.wiki.git {tmpdir}
   2. Configure identity (clone-and-throw-away pattern requires explicit identity):
@@ -66,6 +75,16 @@ Steps:
   7. Push: git -C {tmpdir} push
   8. Cleanup: rm -rf {tmpdir}
 If push fails (permission): escalate to human. Do not skip.
+
+Windows-specific (case-only rename hazard):
+On Windows hosts the wiki repo filesystem is case-insensitive. A rename like `Installation.md` → `installation.md` cannot be applied via a single `git mv` and leaves the old case in the index.
+Two-step pattern when sync involves case-only rename:
+
+    git mv Installation.md __tmp_inst.md
+    git mv __tmp_inst.md installation.md
+
+Detection: `git -C {tmpdir} status --short` shows a `D` and `??` pair on the same name with case difference. Linux/Mac do not exhibit this hazard but the two-step is still applied for mirror-parity discipline.
+
 Wiki sync is part of the release procedure, not a follow-up task.
 
 ## Post-release milestone delete (mandatory, gates release flow completion)

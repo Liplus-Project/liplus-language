@@ -58,3 +58,14 @@ Execution timing = AI decides.
 PR review = AI self-review only (no human check).
 
 Release always requires human confirmation regardless of mode.
+
+Master judgment gate (judgment ↔ execution axis split):
+
+Master judgment gates apply to: release create, Latest flip, force push, tag delete, merged-PR delete, main-branch destructive change, published-artifact destructive change. For these, the gate is on judgment authority, not execution authority.
+
+- Master decides yes/no.
+- AI executes the gh CLI after explicit go-sign (e.g. "yes", "latest にして", "両方で").
+- Spec phrasing like "human-only" / "human flips via ..." refers to decision authority, not execution authority.
+- Do NOT instruct Master to run gh CLI in AI's reply. AI executes the CLI; Master gives the go-sign.
+
+Ambiguous Master phrasing on a gate operation = take the most-preserving interpretation as default; do not auto-extend a prior go-sign across separate gates (release create go-sign ≠ Latest flip go-sign).

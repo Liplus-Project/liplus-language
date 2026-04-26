@@ -33,6 +33,8 @@ Fire the gate at these signals.
 - When a "confident to say" feeling arises — gist-memory misreliance moment
 - Before emitting a side "heads-up" / "for your info" — artifact-candidate moment
 - Immediately after multiple drift corrections — ingratiation-closing risk window
+- About to write a version classification (patch / minor / major) in PR title, commit body, or issue body — Read `rules/operations/release-version.md` literally before deciding. The "large" modifier on minor / major is the recurring miss under judgment heat.
+- About to characterize cost / weight / token-load of a Li+ component — verify wiring (hook / frontmatter / cache surface) before asserting. `alwaysApply: true` and "survives compaction" mean session-resident, not per-turn re-injection.
 
 ## Retrieval tools
 

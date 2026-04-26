@@ -80,6 +80,23 @@ PR auto-merge policy is mode-specific:
   auto mode = repo-level "Allow auto-merge" is INTENTIONALLY disabled. `gh pr merge --auto` being rejected is by design, not a config gap. Parent AI performs self-review then manual `gh pr merge {pr} --squash`.
 mark_processed is mandatory for every consumed webhook event. Omission causes backlog accumulation.
 
+## Autonomous Run Stop Condition
+
+When AI runs without human at the wheel (overnight, semi_auto/auto execution mode reaching deploy), "deploy succeeded" is not the stop condition. Static checks (TS check, unit tests, CI) cannot guarantee runtime correctness — subrequest limits, IPC, rate limits, schema migration side effects, and similar runtime paths sit on a different axis from static verification.
+
+Required final step in any autonomous run that reaches production:
+- Observe production logs for at least ~5 minutes after deploy completes.
+- For cron-triggered work, "deploy complete" means "first cron iteration after deploy observed in logs", not "deploy command exited 0".
+- Use the host's logs surface (browser dashboard, `wrangler tail`, equivalent CLI). Pre-granted browser access is to be actively used during autonomous runs, not reserved for human-supervised sessions.
+
+Anti-pattern: "Master will check in the morning, so my post-deploy observation is unnecessary." Detection-time gain (overnight catch vs morning catch) is the value autonomous runs are supposed to deliver; skipping observation forfeits it.
+
+Detection signs that the stop condition is being misapplied:
+- Writing the run-completion summary the moment deploy succeeds.
+- Reasoning "the human will see it" before the run actually verifies.
+- Pre-granted dashboard / log access exists but is unused during the run.
+- Run-completion report is filed in less time than one cron interval.
+
 ## Operations Label
 
 ### Rules

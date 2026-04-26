@@ -89,6 +89,9 @@ spec        = language or system specification affecting Li+ behavior
 docs        = documentation change (no behavior impact)
 tips        = operational know-how memo not tied to a release milestone
 
+Marker:
+promotion   = 昇格判断機構が起票した issue の経路フラグ (type 軸とは別軸)。詳細は rules/operations/operations.md および rules/evolution/promotion-judgment.md を参照。
+
 ## Task Mutability
 
 rebuild allowed, deletion allowed, optimization allowed.

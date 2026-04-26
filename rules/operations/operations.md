@@ -110,6 +110,11 @@ Lifecycle labels are applied when state changes.
 Labels are for AI readability and filtering.
 Active label meanings belong to rules/task/task.md.
 
+### Marker
+
+promotion = 観測機構が noise floor (7日以内に同種クラスタ 3 回以上観測 / もしくは 7日以内 5 回到達で即昇格) を越えて起票した昇格判断 issue。type 軸とは別軸の marker label。
+判定機構と tally 仕様は `rules/evolution/promotion-judgment.md` を参照する。
+
 ### Retired Labels
 
 done = retired. Redundant with issue closed state.

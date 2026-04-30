@@ -63,6 +63,7 @@ Trigger-based skill reads:
   on_release → skills/operations-on-release
   on_webhook_intake → skills/operations-foreground-webhook-intake
   on_research → skills/task-research-strategy
+  on_retrieval → skills/task-retrieval-orchestration
   on_subagent_delegation → skills/task-subagent-delegation
   on_judgment_form → skills/evolution-judgment-learning + skills/model-requirement-deepening
   on_self_eval → skills/evaluation-self

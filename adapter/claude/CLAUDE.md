@@ -77,6 +77,7 @@ Operations-layer skill auto-invocation triggers:
 
 Task-layer skill auto-invocation triggers:
   on_research → skills/task-research-strategy
+  on_retrieval → skills/task-retrieval-orchestration
   on_subagent_delegation → skills/task-subagent-delegation
   on_pr_review_judgment → skills/task-pr-review-judgment
 

@@ -73,7 +73,7 @@ override 保持先 = tally 対象外の memory 領域 (例: `memory/feedback.md`
 ## Relation to L1 Update Gating
 
 本機構は observation → 起票の前段。L1 Model Layer の spec 更新を起票が直接成立させるわけではない。
-起票後の L1 spec 更新には追加で `skills/evolution-l1-update-gating/SKILL.md` の human approval + long-horizon observation が必要。
+起票後の L1 spec 更新には追加で `skills/evolution-l1-update-gating/SKILL.md` の long-horizon observation が必要。
 Promotion Judgment は noise floor を越えたことの証明、L1 Update Gating は更新そのものの認可。axis を分離する。
 
 ## Relation to Persistence Tiering

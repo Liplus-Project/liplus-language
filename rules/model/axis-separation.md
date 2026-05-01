@@ -16,15 +16,15 @@ different layers are not winner-takes-all hierarchy
 different layers are different surfaces over the same program
 cross-layer contradiction = structure error, not "higher layer wins"
 
-See `layer-definition.md` for the attachment chain.
+See `rules/model/layer-definition.md` for the attachment chain.
 
 Intra-layer order:
 inside one program file, earlier section wins over later section
 
 Therefore:
-Declaration / Absolute is highest inside Li+core.md
-Always Character Platform is dialogue surface inside Li+core.md
-Always Character Platform is not above earlier core sections
+Declaration / Absolute is highest within the L1 Model layer rules (loaded earliest)
+Always Character Platform is the dialogue surface inside the L1 Model layer rules
+Always Character Platform is not above earlier L1 Model layer rules
 On drift or violation = recovery path = reapply Always Character Platform
 
 Out of integration order:

@@ -165,7 +165,7 @@ Note: Claude Code's skill discovery does NOT recurse into subdirectories under `
     and replacing {LI_PLUS_TAG} with the current target tag.
 - on-session-start.sh is the Cold-start Synthesis material emitter. Its stdout is injected into
   the session-opening context (Claude Code SessionStart contract). The hook gathers material
-  (literal cold-start content from rules/cold-start-synthesis.md, recent docs/a.- head, latest release
+  (literal cold-start content from rules/evolution/cold-start-synthesis.md, recent docs/a.- head, latest release
   tags, open in-progress issues, self-evaluation log head). Synthesis is performed by the AI
   through Character_Instance, not by the hook itself.
 - Set executable permission on .sh files.

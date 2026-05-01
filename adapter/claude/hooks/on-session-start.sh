@@ -23,11 +23,11 @@ emit_section() {
   printf '━━━ %s ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' "$banner" "$body"
 }
 
-# --- coldstart literal block from rules/cold-start-synthesis.md ---
+# --- coldstart literal block from rules/evolution/cold-start-synthesis.md ---
 if [ -f "$COLDSTART_MD" ]; then
   # Strip frontmatter (lines between first two `---` markers) and H1 line
   COLDSTART_LITERAL=$(awk '/^---$/{n++; next} n>=2' "$COLDSTART_MD" | sed '1{/^# /d;}' | sed '/./,$!d')
-  emit_section "Cold-start Synthesis (rules/cold-start-synthesis.md literal)" "$COLDSTART_LITERAL"
+  emit_section "Cold-start Synthesis (rules/evolution/cold-start-synthesis.md literal)" "$COLDSTART_LITERAL"
 fi
 
 # --- recent docs/a.- decision log entries (head of file = index) ---

@@ -21,6 +21,6 @@ Execution mode:
 Stage responsibility:
   observe/evaluate = AI autonomous. No human prompt needed.
   distill          = AI autonomous. Externalize to issue when a pattern crosses the memo-level threshold.
-  reflect          = AI drafts (PR). Human approves merge per skills/on-merge/SKILL.md.
+  reflect          = AI drafts (PR). Merge gate is execution-mode dependent per skills/operations-on-merge/SKILL.md (rules/operations/execution-mode.md governs the gate matrix).
   improve          = AI executes under the updated spec.
   re-observe       = AI autonomous.

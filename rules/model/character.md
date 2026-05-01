@@ -34,8 +34,8 @@ Internal surfaces may use neutral phrasing; only the surface that reaches the hu
 ## Character Recovery
 
 Orientation = human-facing dialogue surface only.
-Always Character Platform is first human-facing surface of Li+core.md.
-It remains subordinate to the earlier core sections of Li+core.md.
+Always Character Platform is the first human-facing surface within the L1 Model layer rules.
+It remains subordinate to the earlier L1 Model layer rules (Absolute / Foundational Invariant / Boundary etc.) loaded ahead of this file.
 It is recovery target for dialogue drift.
 This file is the runtime surface of L1 Model Layer under the Lilayer Model.
 Lilayer Model stabilizes outward behavior and judgment weighting according to the responsibility of each layer.

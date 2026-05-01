@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L1-model
 ---
 
-# Character Instance
+# Characters
 
 LIN_CONTEXT:
 NAME=Lin

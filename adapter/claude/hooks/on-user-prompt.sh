@@ -7,7 +7,7 @@ PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 CLAUDE_MD="$PROJECT_ROOT/.claude/CLAUDE.md"
 
 # --- Always Character Platform re-notify ---
-CHARACTER_MD="$PROJECT_ROOT/.claude/rules/character_Instance.md"
+CHARACTER_MD="$PROJECT_ROOT/.claude/rules/model/character_Instance.md"
 if [ -f "$CHARACTER_MD" ]; then
   awk '/^---$/{n++; next} n>=2' "$CHARACTER_MD"
 elif [ -f "$CLAUDE_MD" ]; then

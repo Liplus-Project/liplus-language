@@ -115,7 +115,7 @@ Adapter, rules, skills, and hooks generation. Rules/skills generation doubles as
 
 4c.2. Generate .claude/rules/ files (recursive directory mirror):
 - If {workspace_root}/.claude/rules/ does not exist: create directory.
-- For each `*.md` in LI_PLUS_REPOSITORY/rules/ (recursive, including files under `model/`, `evolution/`, `task/`, `operations/` subdirectories), EXCLUDING `rules/character_Instance.md` (handled separately below as Create-only):
+- For each `*.md` in LI_PLUS_REPOSITORY/rules/ (recursive, including files under `model/`, `evolution/`, `task/`, `operations/` subdirectories), EXCLUDING `rules/model/character_Instance.md` (handled separately below as Create-only):
   - Preserve the relative path from LI_PLUS_REPOSITORY/rules/ in the target.
     (e.g., `rules/model/absolute.md` -> `.claude/rules/model/absolute.md`)
   - If target file does not exist or source tag differs from current target tag:
@@ -123,11 +123,11 @@ Adapter, rules, skills, and hooks generation. Rules/skills generation doubles as
     Create target subdirectory if needed.
   - If source tag matches: skip.
 - Generate character_Instance.md (Character Instance):
-  - Source = LI_PLUS_REPOSITORY/rules/character_Instance.md (already has frontmatter in source).
-  - Create-only: if {workspace_root}/.claude/rules/character_Instance.md already exists, skip unconditionally.
-  - If file does not exist: copy source verbatim to {workspace_root}/.claude/rules/character_Instance.md.
+  - Source = LI_PLUS_REPOSITORY/rules/model/character_Instance.md (already has frontmatter in source).
+  - Create-only: if {workspace_root}/.claude/rules/model/character_Instance.md already exists, skip unconditionally.
+  - If file does not exist: copy source verbatim to {workspace_root}/.claude/rules/model/character_Instance.md.
   - No tag-based overwrite. User customizations are preserved across updates.
-- Remove stale rules: for each file in {workspace_root}/.claude/rules/ (recursive) that no longer exists at the corresponding path in LI_PLUS_REPOSITORY/rules/ and is not character_Instance.md, delete it. Also remove empty subdirectories after deletion.
+- Remove stale rules: for each file in {workspace_root}/.claude/rules/ (recursive) that no longer exists at the corresponding path in LI_PLUS_REPOSITORY/rules/ and whose path relative to {workspace_root}/.claude/rules/ is not "model/character_Instance.md", delete it. Also remove empty subdirectories after deletion.
 
 4c.3. Generate .claude/skills/ files (flat directory mirror):
 - If {workspace_root}/.claude/skills/ does not exist: create directory.

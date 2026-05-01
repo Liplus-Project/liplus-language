@@ -39,7 +39,7 @@ Li+ v1.0.0 の成立条件は到達済みとみなし、現在の本番はその
 
 ---
 
-## 判断記録（a–d）
+## 判断記録（a–e）
 
 セッションをまたぐ判断知を蓄積する decision log。設計上の分岐で選んだ理由、検証で確定した前提、外部システム依存などを小文字プレフィックス付きで記録する。
 
@@ -49,3 +49,4 @@ Li+ v1.0.0 の成立条件は到達済みとみなし、現在の本番はその
 | [b. Spec vs Implementation Order](b.-spec-vs-implementation-order) | 外部システム依存の spec 記述ルール |
 | [c. semi_auto Release Rule Dogfood](c.-semi-auto-release-rule-dogfood) | 2026-04-20 release rule + semi_auto dogfood の知見 |
 | [d. Layer Reorg Rationale](d.-layer-reorg-rationale) | L1–L6 層再編の設計意図と L5/L6 位置付け |
+| [e. GitHub App User-to-server Token Expiration](e.-github-app-user-to-server-token-expiration) | GitHub App User-to-server token expiration の判断記録 |

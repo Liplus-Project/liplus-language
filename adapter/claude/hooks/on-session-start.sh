@@ -23,11 +23,11 @@ emit_section() {
   printf '━━━ %s ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' "$banner" "$body"
 }
 
-# --- coldstart literal block from rules/cold-start-synthesis.md ---
+# --- coldstart literal block from rules/evolution/cold-start-synthesis.md ---
 if [ -f "$COLDSTART_MD" ]; then
   # Strip frontmatter (lines between first two `---` markers) and H1 line
   COLDSTART_LITERAL=$(awk '/^---$/{n++; next} n>=2' "$COLDSTART_MD" | sed '1{/^# /d;}' | sed '/./,$!d')
-  emit_section "Cold-start Synthesis (rules/cold-start-synthesis.md literal)" "$COLDSTART_LITERAL"
+  emit_section "Cold-start Synthesis (rules/evolution/cold-start-synthesis.md literal)" "$COLDSTART_LITERAL"
 fi
 
 # --- recent docs/a.- decision log entries (head of file = index) ---
@@ -133,6 +133,13 @@ fi
 # (within the last 7 days). Section headers match lines starting with '## '.
 # Uses file mtime as the proxy for recency; if the file itself was modified
 # within 7 days, list all '## ' section titles and flag when count >= THRESHOLD_N.
+#
+# Note: this 7d window is the memory-scan recency window (Cold-start observe
+# stage surface), independent from the 3d cluster window in
+# rules/evolution/promotion-judgment.md. The two timers serve different axes:
+#   - 7d here = "did anything new land in memory recently? show it for AI review"
+#   - 3d there = "has the same cluster crossed the noise floor for promotion?"
+# Do not unify the two values; they intentionally sit on different axes.
 if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
   RECENT_SECTIONS=""
   for memfile in "$MEMORY_DIR/feedback.md" "$MEMORY_DIR/project.md"; do

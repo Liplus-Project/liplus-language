@@ -8,7 +8,7 @@ layer: L3-task
 
 ## Responsibilities
 
-Main agent judges PR review without reading operations skills (skills/on-pr-review/SKILL.md, skills/on-merge/SKILL.md, etc.) directly.
+Main agent judges PR review without reading operations skills (skills/operations-on-pr-review/SKILL.md, skills/operations-on-merge/SKILL.md, etc.) directly.
 Judgment basis = issue body + PR diff + CI result.
 
 if execution_mode == auto:

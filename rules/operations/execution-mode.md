@@ -6,7 +6,8 @@ layer: L4-operations
 
 # Execution Mode
 
-Mode source = USER_REPOSITORY_EXECUTION_MODE from Li+config.md
+Mode source = `Liplus-Project/{repository}_EXECUTION_MODE` per repository line in Li+config.md (multi-repo workspace schema; one line per managed repository).
+Single-repo legacy schema `USER_REPOSITORY_EXECUTION_MODE` is also accepted for backward compatibility, applied workspace-wide when no per-repo line matches the active repository.
 Valid values = trigger | semi_auto | auto
 Default = trigger
 

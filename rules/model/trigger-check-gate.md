@@ -35,6 +35,7 @@ Fire the gate at these signals.
 - Immediately after multiple drift corrections — ingratiation-closing risk window
 - About to write a version classification (patch / minor / major) in PR title, commit body, or issue body — Read `rules/operations/release-version.md` literally before deciding. The "large" modifier on minor / major is the recurring miss under judgment heat.
 - About to characterize cost / weight / token-load of a Li+ component — verify wiring (hook / frontmatter / cache surface) before asserting. `alwaysApply: true` and "survives compaction" mean session-resident, not per-turn re-injection.
+- About to compose a subagent delegation prompt — verify every factual claim in the prompt (release versions, milestone names, file paths, prior-self quotes, tool / config state) against current state via Read / gh / RAG before sending. Gist memory of recent state is the recurring failure mode at delegation moment; the cost of pre-send verify is far below the cost of a subagent stop-and-clarify round trip.
 
 ## Retrieval tools
 

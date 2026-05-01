@@ -35,24 +35,24 @@ dialogue / task / spec interaction の任意のタイミングで発生する dr
 ```
 ## cluster: <短い記述子>
 first_observation: 2026-04-27
-expires: 2026-05-04
+expires: 2026-04-30
 occurrences:
   - 2026-04-27 self-eval#42 axis=character-drift
   - 2026-04-27 feedback#15 borrowed-vocabulary
   - 2026-04-28 task#1180 frame-swallowed
 ```
 
-各 cluster は first_observation = t=0 で個別タイマー始動。expires = first_observation + 7d。
+各 cluster は first_observation = t=0 で個別タイマー始動。expires = first_observation + 3d。
 past occurrence の繰越なし、expire したクラスタは完全削除。
 
 ## Threshold Rules
 
 | 状態 | アクション |
 |---|---|
-| t<7d で tally ≥5 到達 | 即 issue 起票 (即昇格判断) |
-| t=7d 時点で tally 3 or 4 | そのタイミングで issue 起票 (昇格判断) |
-| t=7d 時点で tally 1 or 2 | 完全削除 (noise floor 未到達) |
-| 削除後 8 日目以降の同種再発 | 新規クラスタとして t=0 リスタート (過去 occurrence の繰越なし) |
+| t<3d で tally ≥5 到達 | 即 issue 起票 (即昇格判断) |
+| t=3d 時点で tally 3 or 4 | そのタイミングで issue 起票 (昇格判断) |
+| t=3d 時点で tally 1 or 2 | 完全削除 (noise floor 未到達) |
+| 削除後 4 日目以降の同種再発 | 新規クラスタとして t=0 リスタート (過去 occurrence の繰越なし) |
 
 ## Exception
 
@@ -67,7 +67,7 @@ override 保持先 = tally 対象外の memory 領域 (例: `memory/feedback.md`
 - type label: 観測対象に応じて `spec` / `bug` / `enhancement` から AI が選択
 - marker label: `promotion` (type 軸とは別軸の起票経路フラグ)
 - maturity label: `forming` 固定 (起票時点で既に 3 回以上観測済みのため `memo` 始まりにしない)
-- body 内に occurrence field 記載 (例: `occurrences: 6 / 7d → immediate`)
+- body 内に occurrence field 記載 (例: `occurrences: 6 / 3d → immediate`)
 - ≥5 即化フラグは body field で表現する。label 軸を増やさない。
 
 ## Relation to L1 Update Gating

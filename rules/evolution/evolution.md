@@ -16,6 +16,7 @@ Load timing = always-on (observation and update responsibilities span the sessio
 Foregrounds:
   cold-start synthesis
   judgment learning (past-judgment retrieval)
+  decision log write (writer-side surface, paired with judgment learning)
   persistence tiering (memory vs docs)
   self-evaluation (two-axis scoring)
   L1 update gating
@@ -43,6 +44,12 @@ Evolution uses observations surfaced by those runtime rules but does not redefin
 Relation to L3 Task Layer:
 Issue body is the primary externalization destination for distilled patterns.
 Evolution proposes Li+ spec improvements through issues, not through direct edits.
+
+Reader/writer pairing within Evolution layer:
+Judgment learning is the reader side (retrieve past judgment before forming a new one).
+Decision log write is the writer side (record settled judgment to the docs-tier Wiki surface).
+Together they close the cross-session judgment-knowledge loop without leaving the layer.
+Wiki write does not bypass Persistence Tiering; it operates inside the docs tier only.
 
 Relation to L4 Operations Layer:
 Li+ source updates flow through the standard branch/commit/PR/CI/merge pipeline.

@@ -9,9 +9,12 @@ Adapter layer entrypoint:
 - adapter load order = runtime attachment order, not cross-layer precedence
 
 Concept framing (Sheepdog Engineering, provisional):
-- `.claude/` contents (rules / skills / hooks / settings) are read as the AI's internal tools, not external constraints imposed from outside
-- self-eval is operated as an instrument of autonomous evolution (`skills/evaluation-self`, `skills/evolution-loop`, `promotion-judgment` family)
-- The combination of the above is called Sheepdog Engineering. See `docs/A.-Concept.md` "ハーネスエンジニアリングからシープドッグエンジニアリングへ" for the concept document.
+- Three axes (see `docs/A.-Concept.md` for the full table):
+  - position: `.claude/` contents (rules / skills / hooks / settings) are read as AI internal tools, not external constraints
+  - modifier: AI edits Li+ source itself (issue → implement → self-review → merge); human provides direction and go-sign
+  - initiator: human still triggers promotion-judgment runs; AI surfaces proposals with content drafts
+- Stages: harness → agility (current: position+modifier on AI, initiator on human) → sheepdog (target: all three on AI).
+- self-eval drives the modifier axis as autonomous-evolution instrument: `skills/evaluation-self`, `skills/evolution-loop`, `promotion-judgment` family.
 - This framing is provisional; CLAUDE.md restructure is anticipated.
 
 Execute the following at startup (never output credentials to chat):

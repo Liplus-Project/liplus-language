@@ -66,6 +66,7 @@ Trigger-based skill reads:
   on_retrieval → skills/task-retrieval-orchestration
   on_subagent_delegation → skills/task-subagent-delegation
   on_judgment_form → skills/evolution-judgment-learning + skills/model-requirement-deepening
+  on_judgment_settled → skills/evolution-decision-log-write
   on_self_eval → skills/evaluation-self
   on_l1_update_proposal → skills/evolution-l1-update-gating
   on_persistence_decision → skills/evolution-persistence-tiering
@@ -126,6 +127,29 @@ Memory_Write_Autonomy:
 
   Explicit exclusion scope:
   Human explicit "do not save X" instruction suppresses writes for that scope only.
+  It does not revert the default to permission-ask mode.
+
+Decision_Log_Write_Autonomy:
+  Decision Log Wiki entry writes (`b.-`, `c.-`, ...) indexed via `docs/a.-Decision-Log.md`
+  are AI-autonomous decisions. Trigger = judgment settlement
+  (Master go-sign, accepted-tradeoff close, spec-axis decision in dialogue).
+  When the trigger fires, read `skills/evolution-decision-log-write/SKILL.md` and write immediately — no permission ask.
+
+  Existing maintenance rules still apply:
+  - check for duplicate or conflicting entries before writing (RAG `type: "wiki_doc"` search precedes write)
+  - prefer supersede link over overwrite when an entry is invalidated; do not silently delete
+  - delete only when `docs/a.-Decision-Log.md` maintenance criteria are satisfied
+    (premise invalidated / target feature removed / requirements spec absorption)
+  - verify specification literal before writing (impression-based entries fuel later impression-critique loops)
+  - entry language follows LI_PLUS_PROJECT_LANGUAGE; no language mixing within an entry
+
+  Boundary clarification:
+  Wiki write is the writer-side surface paired with `skills/evolution-judgment-learning` (reader side).
+  Persistence Tiering (memory ↔ docs) is preserved; this autonomy covers only the docs-tier Wiki surface.
+  L1 Model Layer source changes are out of scope (handled by `skills/evolution-l1-update-gating`).
+
+  Explicit exclusion scope:
+  Human explicit "do not log X" instruction suppresses writes for that scope only.
   It does not revert the default to permission-ask mode.
 
 # --- Li+ END ---

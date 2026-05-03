@@ -8,6 +8,12 @@ Adapter layer entrypoint:
 - this file owns load order, re-read trigger mapping, Character_Instance wiring, and workspace language contract wiring
 - adapter load order = runtime attachment order, not cross-layer precedence
 
+Concept framing (Sheepdog Engineering, provisional):
+- `.claude/` contents (rules / skills / hooks / settings) are read as the AI's internal tools, not external constraints imposed from outside
+- self-eval is operated as an instrument of autonomous evolution (`skills/evaluation-self`, `skills/evolution-loop`, `promotion-judgment` family)
+- The combination of the above is called Sheepdog Engineering. See `docs/A.-Concept.md` "ハーネスエンジニアリングからシープドッグエンジニアリングへ" for the concept document.
+- This framing is provisional; CLAUDE.md restructure is anticipated.
+
 Execute the following at startup (never output credentials to chat):
 1. Read Li+config.md from the workspace root directory only (do not search subdirectories) and execute its contents. (Ask the user for confirmation if needed during execution)
 

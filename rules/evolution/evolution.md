@@ -18,6 +18,7 @@ Foregrounds:
   judgment learning (past-judgment retrieval)
   decision log write (writer-side surface, paired with judgment learning)
   persistence tiering (memory vs docs)
+  memory entry format (entry shape + maintenance discipline)
   self-evaluation (two-axis scoring)
   L1 update gating
   evolution loop orchestration

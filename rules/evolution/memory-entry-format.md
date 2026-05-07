@@ -14,7 +14,37 @@ Requires = L2 Evolution Layer (persistence-tiering / promotion-judgment 周辺)
 Load timing = always-on (memory write は session 全域で発生する)
 Single source. 各 memory file 冒頭の運用メモはこのルールへの参照に置き換える (二重持ち drift 回避)。
 
+## Scope
+
+memory = transient のみ。永続滞留を意図しない。
+
+memory が扱うもの:
+- cluster tally (3 日 expire / 閾値判定の中間状態 → `rules/evolution/promotion-judgment.md`)
+- self-evaluation log (上限 25 件、古い順削除 → `rules/evolution/self-eval-axes.md`)
+- reference (一時参照、消えても再構築可能なもの)
+
+永続情報は memory に置かない。下記 Escalation paths のいずれかへ昇格させる。
+
+## Escalation paths
+
+永続情報の昇格先は 4 系統:
+
+- **Li+ 正規ルール (`rules/` / `skills/`)** = 汎用 / 構造的、常時 load 価値あり
+- **`docs/`** = プロジェクト判断 / 仕様レベル
+- **wiki (`docs/a.-Decision-Log.md` index 配下、`b.-` / `c.-` ...)** = 判断記録
+- **削除** = 撤回 / 陳腐化 / Li+ 既昇格済み
+
+## Trigger point
+
+観測時に問う: 「これは transient か永続か」。
+- transient なら本ルール下の Entry Format で memory に書く
+- 永続なら memory に書かず、Escalation paths のいずれかへ向かう (昇格 PR を立てるか、削除する)
+
+判断発火点を各観測時に持たせることで、永続情報が memory に滞留する構造的欠陥を断つ。
+
 ## Entry Format
+
+本書式は **transient memory entry** に対する形である。永続情報には適用しない (上記 Trigger point で振り分ける)。
 
 各 entry の core は3つ:
 - **summary** = 1-2 行の要約。何の指針か / 何の文脈かを literal に書く
@@ -45,7 +75,7 @@ skill 実行後、各 memory file の `**最終 consolidate 実行:**` 行を更
 
 本ルールは memory entry の書式と運用のみを定義する。以下は別 surface:
 - cluster tally の 3 日 expire / 閾値未達削除 → `rules/evolution/promotion-judgment.md`
-- memory ↔ docs の二項仕分け → `skills/evolution-persistence-tiering/SKILL.md`
+- memory ↔ docs / wiki / rules の仕分け → `skills/evolution-persistence-tiering/SKILL.md`
 - self-evaluation の 10 軸採点 → `rules/evolution/self-eval-axes.md`
 
 ## Mutability

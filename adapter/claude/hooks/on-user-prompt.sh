@@ -1,18 +1,11 @@
 #!/bin/bash
 # Source: adapter/claude/hooks/on-user-prompt.sh ({LI_PLUS_TAG})
-# UserPromptSubmit hook: Character_Instance re-notify and webhook check.
+# UserPromptSubmit hook: webhook check only.
+# Character_Instance is loaded via Claude Code output-styles (system prompt
+# residency) and no longer re-notified per turn.
 # Source of truth is this file; keep hooks-settings.md reference consistent.
 export PATH="$HOME/.local/bin:$PATH"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
-CLAUDE_MD="$PROJECT_ROOT/.claude/CLAUDE.md"
-
-# --- Always Character Platform re-notify ---
-CHARACTER_MD="$PROJECT_ROOT/.claude/rules/model/character_Instance.md"
-if [ -f "$CHARACTER_MD" ]; then
-  awk '/^---$/{n++; next} n>=2' "$CHARACTER_MD"
-elif [ -f "$CLAUDE_MD" ]; then
-  sed -n '/\[Character_Instance\]/{n;n;n;:a;/^#######/q;p;n;ba}' "$CLAUDE_MD"
-fi
 
 # --- Webhook notification reminder ---
 # Read LI_PLUS_WEBHOOK_DELIVERY from Li+config.md

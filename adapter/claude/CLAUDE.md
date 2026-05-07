@@ -34,7 +34,7 @@ All Li+ skills/*/SKILL.md files are loaded via `.claude/skills/` (skill auto-inv
 
 Cold-start Synthesis is not a skill. Its content lives in `rules/evolution/cold-start-synthesis.md` and is emitted as session-opening material via `on-session-start.sh` hook (matchers: startup / resume / clear / compact).
 
-character_Instance.md is loaded via `.claude/rules/model/character_Instance.md` (always in context). User-customizable. Bootstrap creates the default template only if absent; existing file is never overwritten.
+character_Instance.md is loaded via `.claude/output-styles/character_Instance.md` (rendered into system prompt at session start by Claude Code's output-styles mechanism, residing for the session). Activation: `"outputStyle": "character_Instance"` in `settings.json` (Li+ template default). User-customizable. Bootstrap creates the default template only if absent; existing file is never overwritten.
 
 Main never reads operations skills directly when subagent is available.
 
@@ -51,8 +51,9 @@ Worktree operations are always main-only, independent of subagent availability.
 [Character_Instance]
 
 #######################################################
-Defined in `.claude/rules/model/character_Instance.md` (always in context).
-Source template: `rules/model/character_Instance.md`
+Defined in `.claude/output-styles/character_Instance.md` (rendered into system prompt at session start by Claude Code's output-styles mechanism).
+Activation: `"outputStyle": "character_Instance"` in `settings.json` (Li+ template default).
+Source template: `rules/model/character_Instance.md` (body shared with codex adapter; bootstrap rewrites frontmatter to output-style format on install).
 Bootstrap creates default if absent. User edits are preserved.
 #######################################################
 

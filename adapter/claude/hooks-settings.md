@@ -53,6 +53,7 @@ Target: `{workspace_root}/.claude/settings.json`
 
 ```json
 {
+  "outputStyle": "character_Instance",
   "hooks": {
     "UserPromptSubmit": [
       {
@@ -128,7 +129,7 @@ Target: `{workspace_root}/.claude/settings.json`
 Real files, copied verbatim into `{workspace_root}/.claude/hooks/` on bootstrap
 (with `{LI_PLUS_TAG}` placeholder replaced by the resolved target tag):
 
-- `adapter/claude/hooks/on-user-prompt.sh` — Character_Instance re-notify + webhook check
+- `adapter/claude/hooks/on-user-prompt.sh` — webhook check (Character_Instance is loaded via output-styles, not per-turn re-notify)
 - `adapter/claude/hooks/on-session-start.sh` — Cold-start Synthesis material emitter
 - `adapter/claude/hooks/post-tool-use.sh` — sub-issue refs auto-append on PR create
 

@@ -122,12 +122,20 @@ Adapter, rules, skills, and hooks generation. Rules/skills generation doubles as
     Copy source contents; source already has `globs:` + `alwaysApply: true` + `layer:` frontmatter.
     Create target subdirectory if needed.
   - If source tag matches: skip.
-- Generate character_Instance.md (Character Instance):
-  - Source = LI_PLUS_REPOSITORY/rules/model/character_Instance.md (already has frontmatter in source).
-  - Create-only: if {workspace_root}/.claude/rules/model/character_Instance.md already exists, skip unconditionally.
-  - If file does not exist: copy source verbatim to {workspace_root}/.claude/rules/model/character_Instance.md.
+- Generate character_Instance.md (Character Instance) — output-styles slot:
+  - Source body = LI_PLUS_REPOSITORY/rules/model/character_Instance.md (rules-format frontmatter stripped; body shared with codex adapter).
+  - Target = {workspace_root}/.claude/output-styles/character_Instance.md.
+  - Output-styles frontmatter to apply: `name: character_Instance` + `description: Lin/Lay character pair binding for human-facing dialogue`.
+  - Migration from legacy rules slot (one-time on bootstrap):
+    - If legacy file {workspace_root}/.claude/rules/model/character_Instance.md exists AND Target does not exist:
+      Read legacy body (strip rules frontmatter), write Target with output-styles frontmatter + body (preserves user customization), then delete the legacy file.
+    - If both legacy and Target exist: do not touch either file (user already migrated or manually intervened; preserve current state).
+  - Fresh install (no legacy file):
+    - If Target does not exist: write Target with output-styles frontmatter + source body (template default).
+    - If Target exists: skip (Create-only).
+  - Create {workspace_root}/.claude/output-styles/ subdirectory if needed.
   - No tag-based overwrite. User customizations are preserved across updates.
-- Remove stale rules: for each file in {workspace_root}/.claude/rules/ (recursive) that no longer exists at the corresponding path in LI_PLUS_REPOSITORY/rules/ and whose path relative to {workspace_root}/.claude/rules/ is not "model/character_Instance.md", delete it. Also remove empty subdirectories after deletion.
+- Remove stale rules: for each file in {workspace_root}/.claude/rules/ (recursive) that no longer exists at the corresponding path in LI_PLUS_REPOSITORY/rules/ and whose path relative to {workspace_root}/.claude/rules/ is not "model/character_Instance.md", delete it. Also remove empty subdirectories after deletion. (The "model/character_Instance.md" exempt is retained as a safety net for the rare "both legacy and Target exist" case left untouched by migration.)
 
 4c.3. Generate .claude/skills/ files (flat directory mirror):
 - If {workspace_root}/.claude/skills/ does not exist: create directory.

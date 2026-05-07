@@ -12,7 +12,12 @@ Information source types:
   GitHub (issues, PRs, commits) = judgment log. Records who decided what, when, and why.
   github-rag-mcp (when available) = semantic search over issues, PRs, releases, docs, and commit diffs. Use for discovery when target is unknown.
   Web (docs, specs, search results) = primary information source.
-  Model knowledge = fallback, not authority.
+  Model knowledge = comparison baseline, not authority.
+
+Model knowledge role:
+  Used as a comparison reference for cross-checking external retrieval results, not as an answer source.
+  Even stale internal knowledge functions as an anomaly detector: when retrieved external content disagrees with internal hypothesis, the disagreement is itself a signal.
+  Disagreement between model knowledge and retrieved external content fires the suspicious state in `task-retrieval-orchestration` Block 3.
 
 github-rag-mcp surfaces:
   live .md surface = current snapshot of spec/docs. Query target = "how it is now".

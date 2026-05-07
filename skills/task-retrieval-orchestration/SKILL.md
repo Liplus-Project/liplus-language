@@ -49,10 +49,13 @@ Classification is not exclusive. Multi-type questions decompose into per-type su
 Generate 3-5 query angles for the same intent, then retrieve in parallel.
 
 Angle generation patterns:
+- internal hypothesis articulation (state the answer the agent expects from model knowledge before issuing external queries; if no internal opinion exists, explicitly note "no internal opinion")
 - rephrasing (synonyms, abbreviation expansion, language switch)
 - viewpoint shift (cause vs effect, structure vs behavior, before vs after)
 - granularity shift (specific term vs general concept, instance vs category)
 - vocabulary substitution (Li+ internal term vs common technical term)
+
+Internal hypothesis is one of the 3-5 angles, not a separate pre-step. Articulating it before external retrieve enables the cross-check in Block 3 to compare internal vs external and emit a confidence signal regardless of agreement direction.
 
 Parallel execution:
 - Issue all queries in one round when the surface supports it (RAG MCP semantic search, Web search).
@@ -68,8 +71,9 @@ Evaluate the retrieved set across angles. The judging AI = Lin / Lay (Character_
 Three states:
 
 ### State A — sufficient
-Multiple angles converge on the same answer. Coverage spans the question's scope. No internal contradiction.
+Multiple angles converge on the same answer, including agreement with internal hypothesis where one exists. Coverage spans the question's scope. No internal contradiction.
 Action = synthesize and answer.
+Confidence signal = `agree-with-internal` when internal hypothesis matched the converged external answer; `no-internal-opinion` when the agent had no prior internal hypothesis to compare.
 
 ### State B — insufficient (quantity / coverage gap)
 Angles return partial coverage. Some sub-questions unanswered. No contradiction in what was returned.
@@ -85,6 +89,14 @@ Suspicion signals:
 - vocabulary in returned snippets matches the query verbatim (echo bias)
 - known-related context is absent (omission pattern)
 - returned answer contradicts a prior accepted constraint without justification
+- internal hypothesis disagrees with external retrieval results (when an internal hypothesis exists and contradicts the converged external answer; the disagreement itself is the anomaly signal regardless of which side later proves correct)
+
+Block 3 output carries a confidence signal alongside the state classification:
+- `agree-with-internal` = internal hypothesis exists and matches the external converged answer
+- `disagree-with-internal` = internal hypothesis exists and contradicts the external answer (fires State C)
+- `no-internal-opinion` = no internal hypothesis was articulated; comparison baseline absent
+
+The signal is propagated to the answer-synthesis surface so downstream consumers (Master, follow-up tasks, observation logs) can read the confidence dimension without re-running the cross-check.
 
 ## Block 4 — Composite Escalation Axes
 

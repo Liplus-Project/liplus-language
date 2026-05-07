@@ -125,7 +125,7 @@ Adapter, rules, skills, and hooks generation. Rules/skills generation doubles as
 - Generate character_Instance.md (Character Instance) — output-styles slot:
   - Source body = LI_PLUS_REPOSITORY/rules/model/character_Instance.md (rules-format frontmatter stripped; body shared with codex adapter).
   - Target = {workspace_root}/.claude/output-styles/character_Instance.md.
-  - Output-styles frontmatter to apply: `name: character_Instance` + `description: Lin/Lay character pair binding for human-facing dialogue`.
+  - Output-styles frontmatter to apply: `name: character_Instance` + `description: Lin/Lay character pair binding for human-facing dialogue` + `keep-coding-instructions: true` (without this flag, Claude Code's default coding instructions / TodoWrite / tool-use guidance are excluded when a custom output style is active; see https://code.claude.com/docs/en/output-styles.md).
   - Migration from legacy rules slot (one-time on bootstrap):
     - If legacy file {workspace_root}/.claude/rules/model/character_Instance.md exists AND Target does not exist:
       Read legacy body (strip rules frontmatter), write Target with output-styles frontmatter + body (preserves user customization), then delete the legacy file.

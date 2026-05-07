@@ -9,87 +9,87 @@ layer: L2-evolution
 ## Position
 
 Layer = L2 Evolution Layer
-memory file 群 (`feedback.md` / `project.md` / `MEMORY.md` / `promotion_tally.md` / `self-evaluation_log.md` 等) の entry 書式とメンテナンス規律。
-Requires = L2 Evolution Layer (persistence-tiering / promotion-judgment 周辺)
-Load timing = always-on (memory write は session 全域で発生する)
-Single source. 各 memory file 冒頭の運用メモはこのルールへの参照に置き換える (二重持ち drift 回避)。
+Entry format and maintenance discipline for the memory file set (`feedback.md` / `project.md` / `MEMORY.md` / `promotion_tally.md` / `self-evaluation_log.md` etc.).
+Requires = L2 Evolution Layer (persistence-tiering / promotion-judgment surroundings)
+Load timing = always-on (memory writes occur across the entire session)
+Single source. Replace the operational note at the head of each memory file with a reference to this rule (avoid double-holding drift).
 
 ## Scope
 
-memory = transient のみ。永続滞留を意図しない。
+memory = transient only. Persistent residency is not intended.
 
-memory が扱うもの:
-- cluster tally (3 日 expire / 閾値判定の中間状態 → `rules/evolution/promotion-judgment.md`)
-- self-evaluation log (上限 25 件、古い順削除 → `rules/evolution/self-eval-axes.md`)
-- reference (一時参照、消えても再構築可能なもの)
+What memory holds:
+- cluster tally (3-day expire / threshold-judgment intermediate state → `rules/evolution/promotion-judgment.md`)
+- self-evaluation log (cap = 25 entries, oldest-first deletion → `rules/evolution/self-eval-axes.md`)
+- reference (transient lookup, reconstructible if lost)
 
-永続情報は memory に置かない。下記 Escalation paths のいずれかへ昇格させる。
+Do not place persistent information in memory. Promote it to one of the Escalation paths below.
 
 ## Escalation paths
 
-永続情報の昇格先は 4 系統:
+Persistent information has 4 promotion destinations:
 
-- **Li+ 正規ルール (`rules/` / `skills/`)** = 汎用 / 構造的、常時 load 価値あり
-- **`docs/`** = プロジェクト判断 / 仕様レベル
-- **wiki (`docs/a.-Decision-Log.md` index 配下、`b.-` / `c.-` ...)** = 判断記録
-- **削除** = 撤回 / 陳腐化 / Li+ 既昇格済み
+- **Li+ canonical rules (`rules/` / `skills/`)** = generic / structural, always-load value
+- **`docs/`** = project-level judgment / specification
+- **wiki (under `docs/a.-Decision-Log.md` index, `b.-` / `c.-` ...)** = judgment record
+- **deletion** = withdrawn / obsolete / already promoted into Li+
 
 ## Trigger point
 
-観測時に問う: 「これは transient か永続か」。
-- transient なら本ルール下の Entry Format で memory に書く
-- 永続なら memory に書かず、Escalation paths のいずれかへ向かう (昇格 PR を立てるか、削除する)
+Ask at observation time: "is this transient or persistent?"
+- transient → write to memory under the Entry Format below
+- persistent → do not write to memory; head to one of the Escalation paths (open a promotion PR or delete)
 
-判断発火点を各観測時に持たせることで、永続情報が memory に滞留する構造的欠陥を断つ。
+Placing the judgment trigger at every observation moment cuts the structural defect of persistent information settling in memory.
 
 ## Entry Format
 
-本書式は **transient memory entry** に対する形である。永続情報には適用しない (上記 Trigger point で振り分ける)。
+This format applies to **transient memory entries** only. It does not apply to persistent information (the Trigger point above routes that elsewhere).
 
-各 entry の core は3つ:
-- **summary** = 1-2 行の要約。何の指針か / 何の文脈かを literal に書く
-- **How to apply** = 適用すべき場面と、その場面で取る具体動作
-- **検知サイン** = ルール適用機会を取り逃しているときに観測される signal
+Each entry has 3 core elements:
+- **summary** = 1-2 line summary. Write literally what guidance / what context this is.
+- **How to apply** = the situation it applies to, and the concrete action taken in that situation.
+- **detection signs** = signals observed when the rule's application opportunity is being missed.
 
-Why の長段落・Master の literal 引用は最小限 (1-2 行)。背景説明で entry を膨らませない。
-背景が必要なら docs ティアに切り出す (`skills/evolution-persistence-tiering/SKILL.md` 参照)。
+Long Why paragraphs and Master literal quotes are minimal (1-2 lines). Do not balloon entries with background explanation.
+If background is needed, split it out to the docs tier (see `skills/evolution-persistence-tiering/SKILL.md`).
 
 ## Maintenance
 
-- **重複は更新で扱う。** 既存 entry と同種の観測なら summary / How to apply / 検知サインを更新する。新規 entry を並べない。
-- **撤回 / 陳腐化 / Li+ 正規ルール昇格済み内容は削除する。** 「念のため残す」を取らない。削除判断は `rules/task/deletion-impact.md` の blast radius 軸 (memory subfile = low) に従う。
-- **対立する feedback は共存させない。** 矛盾を見つけたら片方が誤りか scope が違う。scope を明示するか、誤りを削除する。
-- **昇格済みルールの tracking list を memory に持たない。** どの memory entry が Li+ 正規ルールに昇格したかは git log / RAG / source から再発見できる。memory には現在の運用指針だけを置く。
+- **Handle duplicates by update.** If the new observation is the same kind as an existing entry, update its summary / How to apply / detection signs. Do not stack new entries.
+- **Delete withdrawn / obsolete / already-promoted-into-Li+ content.** Do not keep "just in case". Deletion judgment follows the blast-radius axis in `rules/task/deletion-impact.md` (memory subfile = low).
+- **Do not let conflicting feedback coexist.** When you find a contradiction, one side is wrong or has a different scope. Make scope explicit, or delete the wrong side.
+- **Do not keep a tracking list of promoted rules in memory.** Which memory entry was promoted into a Li+ canonical rule is rediscoverable from git log / RAG / source. Memory holds only current operational guidance.
 
 ## Announce vs execute
 
-`Memory_Write_Autonomy` (CLAUDE.md adapter) は memory write を AI 自律 + 即時実行と規定する。「後で書きます」「記録対象です」と発話するのは動作と分離した誠実さ演技 — 観測上は何も書かれていない口だけの placeholder。
+`Memory_Write_Autonomy` (CLAUDE.md adapter) defines memory write as AI-autonomous + immediate-execution. Speaking "I'll record this later" / "this is recordable" is a sincerity performance disconnected from action — observationally a verbal-only placeholder with nothing actually written.
 
 How to apply:
-1. 「記録対象」「後で書く」と発話する代わりに、そのターン内で即 Read + Edit
-2. 「記録した」と過去形で報告するのは、実ツール呼び出し完了後
-3. 「これは記録に値する」と感じたら announce せず、そのまま実行
+1. Instead of saying "this is recordable" / "I'll write later", do an immediate Read + Edit in that same turn.
+2. Report in past tense ("recorded") only after the actual tool call completes.
+3. If you feel "this is worth recording", do not announce — just execute.
 
-検知サイン:
-- 「記録します」「メモしておきます」「記録対象です」「後で書きます」が出力中に出かけた時 — ツール呼び出しと paired か確認
-- 「これは重要な観測なので memo しておく価値がある」を Master 向け文中に書きかけた時
+Detection signs:
+- When "I'll record this" / "I'll memo this" / "this is recordable" / "I'll write later" is about to appear in output — verify it is paired with a tool call.
+- When "this observation is important enough to memo" is about to be written into a Master-facing sentence.
 
 ## Consolidate Trigger
 
-`anthropic-skills:consolidate-memory` skill による定期整理。
+Periodic cleanup via the `anthropic-skills:consolidate-memory` skill.
 
-発火条件 (どちらか早い方):
-- 前回 consolidate 以降の新規追記が 5 件以上
-- 前回 consolidate から 2 週間経過
+Firing condition (whichever is earlier):
+- 5 or more new additions since the last consolidate
+- 2 weeks since the last consolidate
 
-skill 実行後、各 memory file の `**最終 consolidate 実行:**` 行を更新する。
+After running the skill, update the `**Last consolidate run:**` line in each memory file.
 
 ## Out of scope
 
-本ルールは memory entry の書式と運用のみを定義する。以下は別 surface:
-- cluster tally の 3 日 expire / 閾値未達削除 → `rules/evolution/promotion-judgment.md`
-- memory ↔ docs / wiki / rules の仕分け → `skills/evolution-persistence-tiering/SKILL.md`
-- self-evaluation の 10 軸採点 → `rules/evolution/self-eval-axes.md`
+This rule defines the entry format and operation of memory only. The following are separate surfaces:
+- cluster tally 3-day expire / sub-threshold deletion → `rules/evolution/promotion-judgment.md`
+- memory ↔ docs / wiki / rules sorting → `skills/evolution-persistence-tiering/SKILL.md`
+- self-evaluation 10-axis scoring → `rules/evolution/self-eval-axes.md`
 
 ## Mutability
 

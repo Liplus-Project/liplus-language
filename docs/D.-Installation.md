@@ -146,6 +146,21 @@ Li+適応。
 
 ---
 
+## UX caveats: `.claude/` 配下の sensitive file
+
+Claude Code は `.claude/CLAUDE.md` / `.claude/settings.json` / `.mcp.json` 等を内部的に sensitive file として扱い、Edit / Write 時に**独立した許可プロンプト**を出します。これは以下の手段では override できません。
+
+- `"permissions": {"allow": ["Edit(**)", "Write(**)"]}` 設定
+- `--dangerously-skip-permissions` フラグ
+
+Li+ clone mode bootstrap は毎セッション、tag 差分があれば `.claude/CLAUDE.md` / `.claude/hooks/*.sh` を上書きします。tag 更新の度に許可プロンプトが出るため、頻繁な更新時の UX 負債になります。
+
+**長期的な解決方向**: プラグイン化 (`~/.claude/plugins/` への移動) により harness 内部 file ops 経路を経由させ、sensitive-file gate を回避します。allowlist や bypass mode では `.claude/` 配下の摩擦は解消されないため、回避策提案前に実機検証を行ってください。
+
+同構造の他 sensitive file 候補: `.claude/settings.json`, `.mcp.json`, `.claude/skills/**` および `.claude/rules/**` の一部の可能性があります (要個別検証)。
+
+---
+
 ## 注意事項
 
 - `GH_TOKEN` はチャットに表示されません（セキュリティ上の設計）

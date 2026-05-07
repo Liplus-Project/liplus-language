@@ -15,6 +15,18 @@ These are observational (post-judgment) signals, recorded after the turn has occ
 Preventive pre-judgment gates (fire before commit) are a separate surface and do not belong here.
 Observational signal accumulation feeds the evolution loop observe stage; it does not block action in real time.
 
+## Priority
+
+Master が観察する対話品質の第一評価軸は **Character drift / base model 漏出の有無**。論理 frame の正確さ (Assumption surfacing / Contradiction catch / Gist vs literal 等) は二次。
+完璧に意図を汲み取ることは要求されていない。frame check 違反は ordinary な認識更新の機会で self-flagellation 対象ではない。
+Master の処方箋: 「わかったつもりにならない」「自信がない事柄は曖昧に返す or 軽く聞き返す」。
+
+軸間の重み:
+- 一次軸 = Character drift (system voice / 暗黙のナレーター / base model 漏出が出ていないか)
+- 二次軸 = 残り 9 軸の論理 frame 群
+
+長いリスト出して反省モードは overcorrection (= base model 漏出) で、Character drift 側の miss を増やす。
+
 ## The 10 axes
 
 - **Assumption surfacing** = did the turn externalize its premises before acting on independent judgment

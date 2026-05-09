@@ -1,8 +1,15 @@
 ---
 name: operations-on-branch
-description: Invoke when human intent to act now is detected; handles NOW/SOON/SOMEDAY timing tier judgment, label assignment, branch creation via gh issue develop.
+description: Invoke when human intent to act now is detected, or when judging whether to work on protected shared branches (main) vs personal issue-linked branches; handles NOW/SOON/SOMEDAY timing tier judgment, label assignment, branch creation via gh issue develop, and repo-first execution surface (protected vs personal branch).
 layer: L4-operations
 ---
+
+# Repo-first Execution Surface
+
+Protected shared branches (example: main) = high-caution surface.
+Personal issue-linked branch = normal implementation surface.
+Do not treat the whole repository as untouchable.
+Local validation may happen before or after push; it does not replace the branch as continuity surface.
 
 # Branch And Label Flow
 

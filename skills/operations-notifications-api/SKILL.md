@@ -1,6 +1,6 @@
 ---
-globs:
-alwaysApply: true
+name: operations-notifications-api
+description: Invoke when calling GitHub notifications API directly (PATCH / PUT / DELETE / GET on /notifications threads) — reference for endpoint behavior, response codes, and required PAT scope.
 layer: L4-operations
 ---
 

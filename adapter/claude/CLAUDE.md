@@ -77,7 +77,7 @@ Operations-layer skill auto-invocation triggers:
   on_issue (view) → skills/operations-on-issue-maturity + skills/operations-on-sub-issue
   on_issue (sub-issue API) → skills/operations-on-sub-issue
   on_issue (close): no skill re-invoke required
-  on_branch → skills/operations-on-branch
+  on_branch (create / protected vs personal surface decision) → skills/operations-on-branch
   on_commit → skills/operations-on-commit + skills/operations-on-docs-ownership
   on_pr → skills/operations-on-pr-creation
   on_ci → skills/operations-on-ci
@@ -85,6 +85,10 @@ Operations-layer skill auto-invocation triggers:
   on_merge → skills/operations-on-merge
   on_release → skills/operations-on-release
   on_webhook_intake → skills/operations-foreground-webhook-intake
+  on_long_output (about to emit long output / mid-output truncation) → skills/operations-chat-output-limit
+  on_discussions_reference → skills/operations-discussions
+  on_session_boundary (token / session / model boundary may interrupt) → skills/operations-handoff-continuity
+  on_notifications_api_call (direct PATCH / PUT / DELETE / GET on /notifications threads) → skills/operations-notifications-api
 
 Task-layer skill auto-invocation triggers:
   on_research → skills/task-research-strategy

@@ -54,6 +54,17 @@ Defense-in-depth (intentionally two layers):
   Layer 1 = AI self-review + Li+ spec discipline (absorbs everyday mistakes).
   Layer 2 = Release human gate (latest flip on real-device verification, prevents catastrophic user exposure).
 
+Per-PR exception (content-based axis):
+  If the PR's own modification qualifies as patch under release-version.md
+  (governance structure change with no user/system observable impact, e.g.
+  language alignment, typo, comment, internal literal, docs alignment), the
+  human-check requirement is waived; AI direct-merges regardless of the parent
+  issue's release type.
+  AI must record the exception judgment reason in the PR self-review comment
+  for Master observability (e.g. "no user/system observable impact, internal
+  literal only, exception applied as patch-equivalent").
+  If uncertain, default to the parent's release type axis (safer-side fallback).
+
 auto mode:
 Execution timing = AI decides.
 PR review = AI self-review only (no human check).

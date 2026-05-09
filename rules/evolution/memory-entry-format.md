@@ -57,7 +57,7 @@ If background is needed, split it out to the docs tier (see `skills/evolution-pe
 ## Maintenance
 
 - **Handle duplicates by update.** If the new observation is the same kind as an existing entry, update its summary / How to apply / detection signs. Do not stack new entries.
-- **Delete withdrawn / obsolete / already-promoted-into-Li+ content.** Do not keep "just in case". Deletion judgment follows the blast-radius axis in `rules/task/deletion-impact.md` (memory subfile = low).
+- **Delete withdrawn / obsolete / already-promoted-into-Li+ content.** Do not keep "just in case". Deletion judgment follows the blast-radius axis in `skills/task-deletion-impact/SKILL.md` (memory subfile = low).
 - **Do not let conflicting feedback coexist.** When you find a contradiction, one side is wrong or has a different scope. Make scope explicit, or delete the wrong side.
 - **Do not keep a tracking list of promoted rules in memory.** Which memory entry was promoted into a Li+ canonical rule is rediscoverable from git log / RAG / source. Memory holds only current operational guidance.
 

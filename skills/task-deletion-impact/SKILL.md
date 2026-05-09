@@ -1,6 +1,6 @@
 ---
-globs:
-alwaysApply: true
+name: task-deletion-impact
+description: Invoke before deleting any artifact (file / branch / release / external send / production data / memory subfile / config / state) — enforces blast-radius based caution where recovery cost > content familiarity; passes the pre-delete single question and the break-scope x recovery-cost matrix.
 layer: L3-task
 ---
 

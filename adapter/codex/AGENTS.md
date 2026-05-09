@@ -65,6 +65,7 @@ Trigger-based skill reads:
   on_research → skills/task-research-strategy
   on_retrieval → skills/task-retrieval-orchestration
   on_subagent_delegation → skills/task-subagent-delegation
+  on_deletion → skills/task-deletion-impact
   on_judgment_form → skills/evolution-judgment-learning + skills/model-requirement-deepening
   on_judgment_settled → skills/evolution-decision-log-write
   on_self_eval → skills/evaluation-self

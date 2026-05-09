@@ -91,6 +91,7 @@ Task-layer skill auto-invocation triggers:
   on_retrieval → skills/task-retrieval-orchestration
   on_subagent_delegation → skills/task-subagent-delegation
   on_pr_review_judgment → skills/task-pr-review-judgment
+  on_deletion (about to delete file / branch / release / config / state / external send) → skills/task-deletion-impact
 
 L1 Model-layer skill auto-invocation triggers:
   on_structural_change → skills/model-pair-review

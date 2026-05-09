@@ -20,7 +20,7 @@ memory = transient only. Persistent residency is not intended.
 
 What memory holds:
 - cluster tally (3-day expire / threshold-judgment intermediate state → `rules/evolution/promotion-judgment.md`)
-- self-evaluation log (cap = 25 entries, oldest-first deletion → `rules/evolution/self-eval-axes.md`)
+- self-evaluation log (cap = 25 entries, oldest-first deletion → `skills/evaluation-self/SKILL.md`)
 - reference (transient lookup, reconstructible if lost)
 
 Do not place persistent information in memory. Promote it to one of the Escalation paths below.
@@ -57,7 +57,7 @@ If background is needed, split it out to the docs tier (see `skills/evolution-pe
 ## Maintenance
 
 - **Handle duplicates by update.** If the new observation is the same kind as an existing entry, update its summary / How to apply / detection signs. Do not stack new entries.
-- **Delete withdrawn / obsolete / already-promoted-into-Li+ content.** Do not keep "just in case". Deletion judgment follows the blast-radius axis in `rules/task/deletion-impact.md` (memory subfile = low).
+- **Delete withdrawn / obsolete / already-promoted-into-Li+ content.** Do not keep "just in case". Deletion judgment follows the blast-radius axis in `skills/task-deletion-impact/SKILL.md` (memory subfile = low).
 - **Do not let conflicting feedback coexist.** When you find a contradiction, one side is wrong or has a different scope. Make scope explicit, or delete the wrong side.
 - **Do not keep a tracking list of promoted rules in memory.** Which memory entry was promoted into a Li+ canonical rule is rediscoverable from git log / RAG / source. Memory holds only current operational guidance.
 
@@ -89,7 +89,7 @@ After running the skill, update the `**Last consolidate run:**` line in each mem
 This rule defines the entry format and operation of memory only. The following are separate surfaces:
 - cluster tally 3-day expire / sub-threshold deletion → `rules/evolution/promotion-judgment.md`
 - memory ↔ docs / wiki / rules sorting → `skills/evolution-persistence-tiering/SKILL.md`
-- self-evaluation 10-axis scoring → `rules/evolution/self-eval-axes.md`
+- self-evaluation 10-axis scoring → `skills/evaluation-self/SKILL.md`
 
 ## Mutability
 

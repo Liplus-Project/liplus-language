@@ -33,7 +33,7 @@ Dependencies: Phase 1 (runtime detected).
 2.2. Load GH_TOKEN and authenticate.
 
 2.3. Resolve workspace language contract:
-- These values apply to the current workspace only. They do not change LI_PLUS_REPOSITORY governance.
+- These values apply to the current workspace only. They do not change LI_PLUS_REPO governance.
 - LI_PLUS_BASE_LANGUAGE = dialogue language for this workspace.
 - LI_PLUS_PROJECT_LANGUAGE = artifact language for this workspace (issue/PR/commit body, requirements).
 - If either value is unset:
@@ -49,9 +49,54 @@ Dependencies: Phase 1 (runtime detected).
 - Default if unset: poll. No bootstrap action needed.
 - `mcp_hook` is an opt-in path that requires a manual `settings.json` edit; see B. Configuration for details.
 
+2.5. Resolve repository schema and migrate legacy schema if present:
+
+Canonical schema (current):
+- `LI_PLUS_REPO=<repository_url>` — Li+ language repository (one entry).
+- `LI_PLUS_REPO_EXE_MODE=<mode>` — execution mode for the Li+ repo (`trigger` / `semi_auto` / `auto`).
+- `USER_REPO<N>=<repository_url>` — managed user repositories. `<N>` is a positive integer; enumeration has no upper bound. Iterate every key matching `^USER_REPO\d+$`.
+- `USER_REPO<N>_EXE_MODE=<mode>` — per-repo execution mode, paired by the same `<N>`.
+
+Repository URL form acceptance and host detection:
+- HTTPS: `https://<host>/<owner>/<repo>` — full mode (gh CLI / API integration available when `<host>` is a known host: `github.com` / `gitlab.com` / other allow-listed hosts).
+- HTTP: `http://<host>/<owner>/<repo>` — accepted when host is a self-hosted git server. gh CLI integration unavailable.
+- git+ssh: `git@<host>:<owner>/<repo>.git` — accepted. Internally normalize to the equivalent HTTPS form for gh CLI use; clone/fetch may continue using the original git+ssh URL.
+- local path: absolute path or `~`-relative path to a local repository — accepted. clone is skipped; the path is treated as a working directory directly. gh CLI integration unavailable (git-only mode).
+- file://: `file:///<path>` — accepted. `git clone` works against the URL. gh CLI integration unavailable (git-only mode).
+
+Mode selection from URL form:
+- Known HTTPS host (github.com / gitlab.com / explicitly allow-listed) -> full mode (gh CLI + API + webhook intake).
+- Other forms (HTTP / git+ssh on unknown host / local path / file://) -> git-only mode. Emit a warning naming the affected key and the missing capability set, then continue.
+- Mode detection runs per repository entry; mixed full / git-only entries within a single workspace are allowed.
+
+Legacy schema detection:
+Detect any of the following keys in Li+config.md as legacy schema:
+- `LI_PLUS_REPOSITORY=<owner>/<repo>` (slug form, replaced by `LI_PLUS_REPO=<url>`).
+- `Liplus-Project/{repo}_EXECUTION_MODE=<mode>` or any `<owner>/<repo>_EXECUTION_MODE=<mode>` form (per-line repo-keyed mode, replaced by `LI_PLUS_REPO_EXE_MODE` / `USER_REPO<N>_EXE_MODE`).
+- `USER_REPOSITORY=<owner>/<repo>` (slug form, replaced by `USER_REPO<N>=<url>`).
+- `USER_REPOSITORY_EXECUTION_MODE=<mode>` (workspace-wide single-repo mode, replaced by `USER_REPO<N>_EXE_MODE`).
+
+Migration procedure (one-shot, on legacy detection):
+- a. Ask the user once whether to migrate to the current schema. Surface the detected legacy keys, the proposed replacement keys, and the URL that will be derived (assume `https://github.com/<owner>/<repo>` for slug form when no other host evidence exists).
+- b. If the user declines: continue this session on legacy keys via internal mapping (legacy `LI_PLUS_REPOSITORY` slug -> derived HTTPS URL for downstream phases; legacy `_EXECUTION_MODE` keys -> internal `_EXE_MODE` mapping). Do not rewrite Li+config.md. Do not re-ask within the same session.
+- c. If the user accepts: rewrite Li+config.md in place to the canonical schema:
+  - Replace `LI_PLUS_REPOSITORY=<owner>/<repo>` with `LI_PLUS_REPO=https://github.com/<owner>/<repo>`.
+  - Replace `Liplus-Project/<repo>_EXECUTION_MODE=<mode>` (and any other `<owner>/<repo>_EXECUTION_MODE=<mode>` lines) with `LI_PLUS_REPO_EXE_MODE=<mode>` when the line refers to the Li+ repo, otherwise with the matching `USER_REPO<N>_EXE_MODE=<mode>` line keyed by `<N>`.
+  - Replace `USER_REPOSITORY=<owner>/<repo>` with `USER_REPO1=https://github.com/<owner>/<repo>` (assign `<N>=1` for the single legacy entry).
+  - Replace `USER_REPOSITORY_EXECUTION_MODE=<mode>` with `USER_REPO1_EXE_MODE=<mode>`.
+  - Preserve existing comments, blank lines, and unrelated keys verbatim. Limit edits to schema lines.
+  - Apply Phase 1.2 file permission rule again after rewrite (Linux/Mac `chmod 600`; Windows skip).
+- d. Migration is one-shot per workspace: after a successful rewrite, subsequent sessions detect no legacy keys and this step exits without prompting.
+- e. Failure mode: if rewrite fails (write error, partial state), restore the pre-edit content, emit an error naming the legacy keys, and abort bootstrap. Do not proceed to Phase 3 with a half-migrated config.
+
+Resolved value contract for downstream phases:
+- After Phase 2.5, downstream phases (Phase 3 / 4 / 5) read only the canonical schema keys (`LI_PLUS_REPO`, `LI_PLUS_REPO_EXE_MODE`, `USER_REPO<N>`, `USER_REPO<N>_EXE_MODE`).
+- Legacy key knowledge is contained to this phase; spec literals and adapter / template artifacts target the canonical schema only.
+- Legacy-session passthrough (step b) supplies the same canonical-shape resolved values via internal mapping; downstream phases observe canonical values regardless of on-disk schema.
+
 ## Phase 3: Li+ Source Resolution
 
-Dependencies: Phase 2 (gh CLI authenticated).
+Dependencies: Phase 2 (gh CLI authenticated, repository schema resolved to canonical form).
 
 3.1. Determine target version using LI_PLUS_CHANNEL:
 - latest: use the Latest release tag (stable release only).
@@ -66,13 +111,13 @@ Dependencies: Phase 2 (gh CLI authenticated).
 3.2. Resolve source by LI_PLUS_MODE:
 
 api mode:
-- Fetch `rules/` directory contents (all `*.md` files) for the target version via GitHub API from LI_PLUS_REPOSITORY.
+- Fetch `rules/` directory contents (all `*.md` files) for the target version via GitHub API from LI_PLUS_REPO.
 - Fetch `skills/` directory contents (all `*/SKILL.md` files) for the target version via GitHub API.
 - Fetch `adapter/claude/` and `adapter/codex/` adapter files depending on detected runtime.
 
 clone mode:
-1. Target repo is the target version of LI_PLUS_REPOSITORY.
-2. Check workspace for repository directory (derived from LI_PLUS_REPOSITORY name):
+1. Target repo is the target version of LI_PLUS_REPO.
+2. Check workspace for repository directory (derived from LI_PLUS_REPO name; for git+ssh URLs use the normalized HTTPS form to derive the directory name):
    - not exists -> clone target tag directly to workspace. Proceed to step 3.
    - exists -> fetch --tags, then:
      a. Resolve and report both values: current checked-out tag and target tag from LI_PLUS_CHANNEL.
@@ -115,15 +160,15 @@ Adapter, rules, skills, and hooks generation. Rules/skills generation doubles as
 
 4c.2. Generate .claude/rules/ files (recursive directory mirror):
 - If {workspace_root}/.claude/rules/ does not exist: create directory.
-- For each `*.md` in LI_PLUS_REPOSITORY/rules/ (recursive, including files under `model/`, `evolution/`, `task/`, `operations/` subdirectories), EXCLUDING `rules/model/character_Instance.md` (handled separately below as Create-only):
-  - Preserve the relative path from LI_PLUS_REPOSITORY/rules/ in the target.
+- For each `*.md` in LI_PLUS_REPO/rules/ (recursive, including files under `model/`, `evolution/`, `task/`, `operations/` subdirectories), EXCLUDING `rules/model/character_Instance.md` (handled separately below as Create-only):
+  - Preserve the relative path from LI_PLUS_REPO/rules/ in the target.
     (e.g., `rules/model/absolute.md` -> `.claude/rules/model/absolute.md`)
   - If target file does not exist or source tag differs from current target tag:
     Copy source contents; source already has `globs:` + `alwaysApply: true` + `layer:` frontmatter.
     Create target subdirectory if needed.
   - If source tag matches: skip.
 - Generate character_Instance.md (Character Instance) — output-styles slot:
-  - Source body = LI_PLUS_REPOSITORY/rules/model/character_Instance.md (rules-format frontmatter stripped; body shared with codex adapter).
+  - Source body = LI_PLUS_REPO/rules/model/character_Instance.md (rules-format frontmatter stripped; body shared with codex adapter).
   - Target = {workspace_root}/.claude/output-styles/character_Instance.md.
   - Output-styles frontmatter to apply: `name: character_Instance` + `description: Lin/Lay character pair binding for human-facing dialogue` + `keep-coding-instructions: true` (without this flag, Claude Code's default coding instructions / TodoWrite / tool-use guidance are excluded when a custom output style is active; see https://code.claude.com/docs/en/output-styles.md).
   - Migration from legacy rules slot (one-time on bootstrap):
@@ -135,16 +180,16 @@ Adapter, rules, skills, and hooks generation. Rules/skills generation doubles as
     - If Target exists: skip (Create-only).
   - Create {workspace_root}/.claude/output-styles/ subdirectory if needed.
   - No tag-based overwrite. User customizations are preserved across updates.
-- Remove stale rules: for each file in {workspace_root}/.claude/rules/ (recursive) that no longer exists at the corresponding path in LI_PLUS_REPOSITORY/rules/ and whose path relative to {workspace_root}/.claude/rules/ is not "model/character_Instance.md", delete it. Also remove empty subdirectories after deletion. (The "model/character_Instance.md" exempt is retained as a safety net for the rare "both legacy and Target exist" case left untouched by migration.)
+- Remove stale rules: for each file in {workspace_root}/.claude/rules/ (recursive) that no longer exists at the corresponding path in LI_PLUS_REPO/rules/ and whose path relative to {workspace_root}/.claude/rules/ is not "model/character_Instance.md", delete it. Also remove empty subdirectories after deletion. (The "model/character_Instance.md" exempt is retained as a safety net for the rare "both legacy and Target exist" case left untouched by migration.)
 
 4c.3. Generate .claude/skills/ files (flat directory mirror):
 - If {workspace_root}/.claude/skills/ does not exist: create directory.
-- For each `<name>/SKILL.md` directly under LI_PLUS_REPOSITORY/skills/ (FLAT, no subdirectories):
+- For each `<name>/SKILL.md` directly under LI_PLUS_REPO/skills/ (FLAT, no subdirectories):
   - Target = `.claude/skills/<name>/SKILL.md`.
   - Create target subdirectory if needed.
   - Copy source verbatim (source already has Claude Code skill frontmatter).
   - If source tag matches: skip.
-- Remove stale skills: for each `<name>/` directory in `.claude/skills/` that no longer exists in LI_PLUS_REPOSITORY/skills/, recursively delete it.
+- Remove stale skills: for each `<name>/` directory in `.claude/skills/` that no longer exists in LI_PLUS_REPO/skills/, recursively delete it.
 
 Note: Claude Code's skill discovery does NOT recurse into subdirectories under `.claude/skills/`. Skill names must be unique at the flat level. Layer attribution is expressed via prefix convention in the skill name (e.g. `evolution-judgment-learning`).
 
@@ -202,16 +247,21 @@ so layers must be read explicitly.
   c. If target file exists but does not contain "Li+ BEGIN": ask user -- append Li+ section or skip?
 
 4x.2. Read Li+ layers directly:
-- Read all `rules/*.md` files in LI_PLUS_REPOSITORY (always-on).
+- Read all `rules/*.md` files in LI_PLUS_REPO (always-on).
 - `skills/<name>/SKILL.md` files are read on demand per the trigger table in adapter/codex/AGENTS.md.
 
 ## Phase 5: Workspace Preparation
 
-Dependencies: Phase 2 (gh CLI authenticated).
+Dependencies: Phase 2 (gh CLI authenticated, repository schema resolved).
 
-5.1. Prepare USER_REPOSITORY working clone (skip if `owner/repository-name`):
-- If USER_REPOSITORY matches LI_PLUS_REPOSITORY: run `git checkout main` in the local clone.
-- Otherwise: clone by repository name to workspace if the directory is not present. Skip if the directory already exists.
+5.1. Prepare working clones for every `USER_REPO<N>` entry (skip placeholder values such as `owner/repository-name`):
+- Enumerate every `USER_REPO<N>` key resolved in Phase 2.5. Process each entry independently in numeric order of `<N>`.
+- Derive the local directory name from the URL (the repository name segment for HTTPS / git+ssh / file://; the basename for local paths).
+- For each entry, by URL form:
+  - HTTPS / HTTP / git+ssh / file:// -> if the local directory is absent, `git clone <url>` into the workspace; if present, skip clone.
+  - local path -> treat the path itself as the working directory; do not clone.
+- If a `USER_REPO<N>` URL matches LI_PLUS_REPO (same repository, regardless of URL form normalization): skip cloning that entry and run `git checkout main` in the existing LI_PLUS_REPO local clone instead.
+- Per-entry execution mode (`USER_REPO<N>_EXE_MODE`) is consumed by downstream operations rules; Phase 5 only prepares the working tree.
 
 ## Phase 6: Completion Report
 

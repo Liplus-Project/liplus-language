@@ -219,21 +219,5 @@ Decision_Log_Write_Autonomy:
 
 ## Optional Webhook Notification Flow
 
-Policy and procedures: see `skills/operations-foreground-webhook-intake/SKILL.md`.
-This adapter activates that flow using the host's UserPromptSubmit hook.
-
-Delivery mode is selected by `LI_PLUS_WEBHOOK_DELIVERY` in `Li+config.md`:
-
-- `poll` (default, unset) — bash `on-user-prompt.sh` emits a reminder; the AI
-  calls `mcp__github-webhook-mcp__get_pending_status` itself.
-- `channel` — MCP channel pushes events in real time; the bash hook skips the
-  reminder.
-- `mcp_hook` — the `type: "mcp_tool"` UserPromptSubmit hook entry shipped in the
-  default `settings.json` template (rendered by bootstrap from
-  `adapter/claude/hooks-settings.md`) calls the MCP tool directly at hook
-  execution time, removing the `tool_use` / `tool_result` round trip. The bash
-  hook skips its reminder text. Manual `settings.json` editing is no longer
-  required (legacy opt-in step retired). Webhook context only reaches the AI
-  when `github-webhook-mcp >= v0.11.3` is connected as an MCP server in the
-  host; otherwise the resolver returns `not connected` plain text per turn,
-  harmless but visible.
+Webhook intake policy and procedures: `skills/operations-foreground-webhook-intake/SKILL.md`.
+Delivery mode (`poll` / `channel` / `mcp_hook`) is selected by `LI_PLUS_WEBHOOK_DELIVERY` in `Li+config.md`. Detailed mode behavior, mcp_tool hook entry semantics, and `github-webhook-mcp >= v0.11.3` connection requirement are documented in the skill above and `adapter/claude/hooks-settings.md`.

@@ -1,6 +1,6 @@
 ---
-globs:
-alwaysApply: true
+name: operations-discussions
+description: Invoke when handling Discussions reference, external user entry into the project, or bot-created issue originating from Discussions — defines Discussions as external entry point with bot stationed (issue create / read only, no commit).
 layer: L4-operations
 ---
 

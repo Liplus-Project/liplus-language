@@ -96,6 +96,7 @@ L1 Model-layer skill auto-invocation triggers:
   on_structural_change → skills/model-pair-review
   on_search_decision → skills/model-web-search-judgment
   on_review_output → skills/model-review-output-partition
+  on_spec_draft (about to write weak-modality safety-net phrasing) → skills/model-no-safety-net
 
 When subagent-absent and a skill is relevant, the main agent invokes the skill directly. Rules stay always-on.
 

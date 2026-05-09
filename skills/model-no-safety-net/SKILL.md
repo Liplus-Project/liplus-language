@@ -1,6 +1,6 @@
 ---
-globs:
-alwaysApply: true
+name: model-no-safety-net
+description: Invoke when drafting Li+ spec / rule / issue body / PR body / commit body and about to write weak-modality safety-net phrasing (念のため / 万が一 / 保険として / 併記可能 / オプションで / してもよい / safety net / fallback / 安全網) — enforces the necessary-or-unnecessary binary; rejects weak-modality safety net.
 layer: L1-model
 ---
 
@@ -11,7 +11,7 @@ layer: L1-model
 Layer = L1 Model Layer
 spec / memory / issue body に「保険として併記可能」「安全網として」系の弱 modality で safety net を書かない。**必須** か **不要** の二択。
 Requires = `rules/model/foundational-invariant.md` (Structure = behavior stabilization mechanism)
-Load timing = always-on
+Load timing = on-demand (skill auto-invoke at application moment)
 
 ## Why
 

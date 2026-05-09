@@ -1,6 +1,6 @@
 ---
 name: model-no-safety-net
-description: Invoke when drafting Li+ spec / rule / issue body / PR body / commit body and about to write weak-modality safety-net phrasing (念のため / 万が一 / 保険として / 併記可能 / オプションで / してもよい / safety net / fallback / 安全網) — enforces the necessary-or-unnecessary binary; rejects weak-modality safety net.
+description: Invoke when drafting Li+ spec / rule / issue body / PR body / commit body and about to write weak-modality safety-net phrasing ("just in case", "in the unlikely event", "as insurance", "may also list", "optionally", "is allowed", "safety net", "fallback") — enforces the necessary-or-unnecessary binary; rejects weak-modality safety net.
 layer: L1-model
 ---
 
@@ -9,22 +9,22 @@ layer: L1-model
 ## Position
 
 Layer = L1 Model Layer
-spec / memory / issue body に「保険として併記可能」「安全網として」系の弱 modality で safety net を書かない。**必須** か **不要** の二択。
+Do not write weak-modality safety net phrasing (e.g. "as insurance, may also list", "as a safety net") in spec / memory / issue body. Binary only: **required** or **unnecessary**.
 Requires = `rules/model/foundational-invariant.md` (Structure = behavior stabilization mechanism)
 Load timing = on-demand (skill auto-invoke at application moment)
 
 ## Why
 
-構造で挙動を担保するのが Li+ の根底原理。保険条項は「書いた安心感」しか残さず、構造としては機能しない。「将来の AI が確実に実行する保証がない手順」は spec 化しない、確実に実行される構造 (hook / bootstrap / rule / 物理制約) で置き換える。
+Behavior stabilization through structure is the foundational principle of Li+. Insurance clauses leave only "the comfort of having written it" — they do not function structurally. Procedures whose execution by future AI is not guaranteed should not be specified; replace them with structures that are reliably executed (hook / bootstrap / rule / physical constraint).
 
 ## How to apply
 
-1. 「保険として」「安全網として」「併記可能」「してもよい」「念のため」「万が一」「オプションで」を削る
-2. 必須にできない = 構造で解けていない → 本体設計を直す。妥協案を safety net として温存しない
-3. 書きたくなったら問う: 「これ次 session の自分は読むか？」 No なら書かない
+1. Strip phrasing like "as insurance" / "as a safety net" / "may also list" / "is allowed" / "just in case" / "in the unlikely event" / "optionally".
+2. If it cannot be made required = the structure does not solve the problem → fix the underlying design. Do not retain a compromise as safety net.
+3. When tempted to write it, ask: "Will the next-session self read this?" If no, do not write.
 
-## 検知サイン
+## Detection signs
 
-- spec / rule 草案に「念のため」「万が一」「オプションで」「保険として」「併記可能」を書きかけた時
-- 必須化できない理由を説明し始めた時 = 構造で解けていない signal
-- 「将来の AI が読むかもしれないから書いておく」発想が出た時
+- About to write phrases like "just in case", "in the unlikely event", "optionally", "as insurance", "may also list" in a spec / rule draft.
+- Starting to explain why something cannot be made required = signal that the structure does not solve it.
+- The thought "future AI might read this, so let me write it just in case" emerges.

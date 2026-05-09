@@ -4,14 +4,15 @@
 
 GH_TOKEN=github_pat_XXXX
 
-### あなたのプロジェクトリポジトリ
-USER_REPOSITORY=owner/repository-name
+### あなたのプロジェクトリポジトリ（URL 形式、N=1,2,3,... と任意拡張可）
+USER_REPO1=https://github.com/owner/repo
 ### 実行モード: trigger（人間主導）/ semi_auto（patch は AI 自律、minor/major は人間確認）/ auto（AI 自律）
 ### 未設定の場合、セッション開始時にAIが聞いて自動設定します
-# USER_REPOSITORY_EXECUTION_MODE=trigger
+# USER_REPO1_EXE_MODE=trigger
 
 ### Li+ 本体（変更不要）
-LI_PLUS_REPOSITORY=Liplus-Project/liplus-language
+LI_PLUS_REPO=https://github.com/Liplus-Project/liplus-language
+LI_PLUS_REPO_EXE_MODE=semi_auto
 
 ### 取得モード: api（軽量）または clone（ローカルで動作）
 LI_PLUS_MODE=clone
@@ -36,4 +37,4 @@ LI_PLUS_CHANNEL=release
 # LI_PLUS_WEBHOOK_STATE_DIR=github-webhook-mcp
 
 ## Bootstrap
-Read and execute LI_PLUS_REPOSITORY/Li+bootstrap.md
+Read and execute LI_PLUS_REPO/Li+bootstrap.md

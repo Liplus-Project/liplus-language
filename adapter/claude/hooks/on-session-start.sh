@@ -32,7 +32,7 @@ fi
 
 # --- recent docs/a.- decision log entries (head of file = index) ---
 if [ -f "$DECISION_LOG" ]; then
-  DECISION_HEAD=$(head -n 40 "$DECISION_LOG")
+  DECISION_HEAD=$(head -n 20 "$DECISION_LOG")
   emit_section "Decision log index (docs/a.-Decision-Log.md head)" "$DECISION_HEAD"
 fi
 
@@ -72,7 +72,7 @@ if [ -z "$SELFEVAL_FOUND" ]; then
   SELFEVAL_FOUND=$(ls -1t "$HOME"/.claude/projects/*/memory/self-evaluation_log.md 2>/dev/null | head -n 1)
 fi
 if [ -n "$SELFEVAL_FOUND" ] && [ -f "$SELFEVAL_FOUND" ]; then
-  SELFEVAL_HEAD=$(head -n 30 "$SELFEVAL_FOUND")
+  SELFEVAL_HEAD=$(head -n 15 "$SELFEVAL_FOUND")
   emit_section "Self-evaluation log head (most recent)" "$SELFEVAL_HEAD"
 fi
 

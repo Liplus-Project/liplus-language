@@ -4,7 +4,7 @@ Layer = L6 Adapter Layer
 
 Adapter layer entrypoint:
 - inject Li+ into the host instruction file
-- semantic source = `rules/*.md` + `skills/*/SKILL.md` from LI_PLUS_REPOSITORY
+- semantic source = `rules/*.md` + `skills/*/SKILL.md` from the repository at `LI_PLUS_REPO` (URL form, defined in Li+config.md)
 - this file owns load order, re-read trigger mapping, Character_Instance wiring, and workspace language contract wiring
 - adapter load order = runtime attachment order, not cross-layer precedence
 
@@ -88,7 +88,7 @@ Autonomy
 #######################################################
 
 Workspace_Language_Contract:
-  These language rules apply to the host workspace only. They do not change LI_PLUS_REPOSITORY governance.
+  These language rules apply to the host workspace only. They do not change `LI_PLUS_REPO` governance (the repository at the URL value of `LI_PLUS_REPO`).
 
   Read LI_PLUS_BASE_LANGUAGE and LI_PLUS_PROJECT_LANGUAGE from the workspace-root Li+config.md.
   If either value is missing:

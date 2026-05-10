@@ -9,7 +9,7 @@ Adapter layer entrypoint:
 - adapter load order = runtime attachment order, not cross-layer precedence
 
 Concept framing (Sheepdog Engineering, provisional):
-- Three axes (see `docs/A.-Concept.md` for the full table):
+- Three axes (see `docs/G.-Sheepdog-Engineering.md` for the full table):
   - position: `.claude/` contents (rules / skills / hooks / settings) are read as AI internal tools, not external constraints
   - modifier: AI edits Li+ source itself (issue → implement → self-review → merge); human provides direction and go-sign
   - initiator: human still triggers promotion-judgment runs; AI surfaces proposals with content drafts

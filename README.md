@@ -134,10 +134,14 @@ Minimum: roughly Claude Sonnet 4.6 equivalent or above.
 | [4. Operations](https://github.com/Liplus-Project/liplus-language/wiki/4.-Operations) | Operations layer specification |
 | [5. Notifications](https://github.com/Liplus-Project/liplus-language/wiki/5.-Notifications) | Notifications layer specification |
 | [6. Adapter](https://github.com/Liplus-Project/liplus-language/wiki/6.-Adapter) | Adapter layer specification |
-| [A. Concept](https://github.com/Liplus-Project/liplus-language/wiki/A.-Concept) | Design philosophy |
+| [A. Concept](https://github.com/Liplus-Project/liplus-language/wiki/A.-Concept) | Overview, navigation, Lin/Lay comments, minimum environment |
 | [B. Configuration](https://github.com/Liplus-Project/liplus-language/wiki/B.-Configuration) | Configuration reference |
 | [C. Bootstrap](https://github.com/Liplus-Project/liplus-language/wiki/C.-Bootstrap) | Session startup flow |
 | [D. Installation](https://github.com/Liplus-Project/liplus-language/wiki/D.-Installation) | Quickstart setup |
+| [E. Li+language](https://github.com/Liplus-Project/liplus-language/wiki/E.-Li+language) | Design theory: Li+ language definition and trinity |
+| [F. Behavior-First](https://github.com/Liplus-Project/liplus-language/wiki/F.-Behavior-First) | Design theory: foundational invariant and behavior axis |
+| [G. Sheepdog-Engineering](https://github.com/Liplus-Project/liplus-language/wiki/G.-Sheepdog-Engineering) | Design theory: harness-to-sheepdog migration, pal / Lilayer |
+| [H. Roles-and-Evaluation](https://github.com/Liplus-Project/liplus-language/wiki/H.-Roles-and-Evaluation) | Design theory: role separation and evaluation axis |
 
 ---
 

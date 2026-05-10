@@ -32,10 +32,23 @@ Li+ v1.0.0 の成立条件は到達済みとみなし、現在の本番はその
 
 | ページ | 内容 |
 |--------|------|
-| [A. Concept](A.-Concept) | Li+の設計思想と概念 |
+| [A. Concept](A.-Concept) | Li+の概要と navigation、Lin/Lay コメント、最低動作環境 |
 | [B. Configuration](B.-Configuration) | 設定リファレンス |
 | [C. Bootstrap](C.-Bootstrap) | セッション起動フロー |
 | [D. Installation](D.-Installation) | Quickstartセットアップ手順 |
+
+---
+
+## 設計思想（E–H）
+
+Li+ プログラムの設計思想を軸別に蒸留した独立 docs。
+
+| ページ | 担う軸 |
+|--------|--------|
+| [E. Li+language](E.-Li+language) | Li+ language の定義と三位一体（要求仕様 = code、対話型コンパイラ、外部記憶） |
+| [F. Behavior-First](F.-Behavior-First) | 動いている挙動が正しさ（foundational invariant、CI = 現実判定装置、Ceiling-by-design） |
+| [G. Sheepdog-Engineering](G.-Sheepdog-Engineering) | 装具を頭の中に置く（ハーネス → アジリティ → シープドッグ、pal / Lilayer、Character_Instance） |
+| [H. Roles-and-Evaluation](H.-Roles-and-Evaluation) | 役割分離と評価軸（Master / AI / Lin / Lay の役割、AI 実機の振る舞いが評価面、Li+ v1.0.0） |
 
 ---
 

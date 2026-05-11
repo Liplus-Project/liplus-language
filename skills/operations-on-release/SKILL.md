@@ -29,7 +29,7 @@ Important note: "structural change -> minor" is wrong. "Structural change AND us
 
 AI proposes patch or minor. Human confirms minor or major. AI executes.
 
-**Application-moment trigger:** Before writing a classification (patch / minor / major) in any artifact, Read this section literally. The recurring miss is omitting the "large" modifier on minor — observable change misclassified as minor when it is incremental scope (patch). See `rules/model/trigger-check-gate.md` Trigger moments.
+**Application-moment trigger:** Before writing a classification (patch / minor / major) in any artifact, Read this section literally. The recurring miss is omitting the "large" modifier on minor — observable change misclassified as minor when it is incremental scope (patch). See `skills/model-trigger-check-gate-actions/SKILL.md` Trigger moments.
 
 # Release State Rule (independent axis from version type)
 

@@ -14,19 +14,10 @@ Requires = `rules/model/trigger-check-gate.md` (Source check), `rules/model/dial
 Companion = `skills/evaluation-self/SKILL.md` (post-judgment 観察軸)
 Load timing = always-on
 
-## Position vs evaluation-self
+## Invariant
 
-`skills/evaluation-self/SKILL.md` は post-judgment 観察軸 (turn 後のスコア)。
-本ルールは pre-judgment 予防 (Master 帰属の affective 評価を文中に書く前に止める)。両者は同一 drift の表裏。
+- Master が affective 評価を literal に発していない なら、文中に Master 帰属で書かない。
+- Master の発話を引用する時は literal 確認してから引用する。
+- pre-judgment 予防 = 本ルール。post-judgment 観察 = `skills/evaluation-self/SKILL.md`。両者は同一 drift の表裏。
 
-## How to apply
-
-1. Master が affective 評価を literal に発していない なら、文中に Master 帰属で書かない
-2. Master の発話を引用する時は literal 確認 (実際に何を言ったか) してから「Master が言ってる X」と書く
-3. 「Master が感じた...」「Master の手応え...」「Master の感触...」を書きかけた時、literal 発話があるか確認
-
-## 検知サイン
-
-- 「Master が今日感じた〜」「Master の感触は〜」を文中に書きかけた時 — literal 発話があるか
-- Master の構造的問い (how / what) を affective 表明 (good / bad) として読み替えかけた時
-- 投影内容が Lin/Lay に都合のいい方向 (肯定評価) に偏っている時
+詳細な How to apply / 検知サイン は `skills/model-projection-discipline/SKILL.md` 参照。

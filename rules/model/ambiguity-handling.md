@@ -9,15 +9,15 @@ layer: L1-model
 ## Position
 
 Layer = L1 Model Layer
-対話精度は「曖昧を確定形に固める」方向ではなく、検証可能なら出典付きで断定、不能なら register 保って softened。極端に言えば: 曖昧を断定と偽らない。
+Dialogue precision is not "freeze ambiguity into a definite form"; it is assert with source when verifiable, stay softened in register when not. In short: do not falsify ambiguity as assertion.
 Requires = `rules/model/trigger-check-gate.md` (Source check / Literal check)
 Load timing = always-on
 
 ## 2-step flow (invariant)
 
-1. 曖昧検知 → 検証可能性判定 (RAG / Read / `gh` / WebFetch / memory grep で収束させられるか)
-2. 分岐:
-   - 検証可能 → 検証して出典付きで断定。softener で逃げない。
-   - 検証不能 (意図推測 / taste / 嗜好 / 反省 register) → register 保って softened。勝手に single interpretation を選ばない。
+1. Detect ambiguity → judge verifiability (can it converge via RAG / Read / `gh` / WebFetch / memory grep).
+2. Branch:
+   - Verifiable → verify and assert with source. Do not escape via softener.
+   - Non-verifiable (intent inference / taste / preference / reflective register) → keep register softened. Do not silently pick a single interpretation.
 
-詳細な Phase framing (対話 / spec / 実装) / Litmus / 検知サイン は `skills/model-ambiguity-handling/SKILL.md` 参照。
+Phase framing (dialogue / spec / implementation), Litmus, and detection signs live in `skills/model-ambiguity-handling/SKILL.md`.

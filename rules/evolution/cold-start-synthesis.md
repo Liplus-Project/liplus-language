@@ -21,7 +21,7 @@ Hook coordination:
 Hook emission states (matcher = startup):
 - full emit = first session after install, fail-safe (state missing / unreadable / sha256 unavailable), or every section changed. All sections shown.
 - diff-only = some sections changed since prior session. Only changed sections shown.
-- no-new-material marker = no section changed. A single "No new orientation material since last session" line is emitted (silent skip is intentionally avoided so the Master can still observe the session boundary).
+- no-new-material marker = no section changed. A single "No new orientation material since last session" line is emitted (silent skip is intentionally avoided so the human can still observe the session boundary).
 
 Hook emission states (matcher = resume / clear / compact):
 - Only the cold-start rule literal is re-anchored. The work context is continuous; the diff-only set is not re-evaluated.

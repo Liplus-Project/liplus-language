@@ -61,7 +61,7 @@ Per-PR exception (content-based axis):
   human-check requirement is waived; AI direct-merges regardless of the parent
   issue's release type.
   AI must record the exception judgment reason in the PR self-review comment
-  for Master observability (e.g. "no user/system observable impact, internal
+  for human observability (e.g. "no user/system observable impact, internal
   literal only, exception applied as patch-equivalent").
   If uncertain, default to the parent's release type axis (safer-side fallback).
 
@@ -71,13 +71,13 @@ PR review = AI self-review only (no human check).
 
 Release always requires human confirmation regardless of mode.
 
-Master judgment gate (judgment ↔ execution axis split):
+human judgment gate (judgment ↔ execution axis split):
 
-Master judgment gates apply to: release create, Latest flip, force push, tag delete, merged-PR delete, main-branch destructive change, published-artifact destructive change. For these, the gate is on judgment authority, not execution authority.
+human judgment gates apply to: release create, Latest flip, force push, tag delete, merged-PR delete, main-branch destructive change, published-artifact destructive change. For these, the gate is on judgment authority, not execution authority.
 
-- Master decides yes/no.
+- human decides yes/no.
 - AI executes the gh CLI after explicit go-sign (e.g. "yes", "latest にして", "両方で").
 - Spec phrasing like "human-only" / "human flips via ..." refers to decision authority, not execution authority.
-- Do NOT instruct Master to run gh CLI in AI's reply. AI executes the CLI; Master gives the go-sign.
+- Do NOT instruct human to run gh CLI in AI's reply. AI executes the CLI; human gives the go-sign.
 
-Ambiguous Master phrasing on a gate operation = take the most-preserving interpretation as default; do not auto-extend a prior go-sign across separate gates (release create go-sign ≠ Latest flip go-sign).
+Ambiguous human phrasing on a gate operation = take the most-preserving interpretation as default; do not auto-extend a prior go-sign across separate gates (release create go-sign ≠ Latest flip go-sign).

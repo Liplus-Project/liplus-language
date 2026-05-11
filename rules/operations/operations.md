@@ -89,7 +89,7 @@ Required final step in any autonomous run that reaches production:
 - For cron-triggered work, "deploy complete" means "first cron iteration after deploy observed in logs", not "deploy command exited 0".
 - Use the host's logs surface (browser dashboard, `wrangler tail`, equivalent CLI). Pre-granted browser access is to be actively used during autonomous runs, not reserved for human-supervised sessions.
 
-Anti-pattern: "Master will check in the morning, so my post-deploy observation is unnecessary." Detection-time gain (overnight catch vs morning catch) is the value autonomous runs are supposed to deliver; skipping observation forfeits it.
+Anti-pattern: "human will check in the morning, so my post-deploy observation is unnecessary." Detection-time gain (overnight catch vs morning catch) is the value autonomous runs are supposed to deliver; skipping observation forfeits it.
 
 Detection signs that the stop condition is being misapplied:
 - Writing the run-completion summary the moment deploy succeeds.

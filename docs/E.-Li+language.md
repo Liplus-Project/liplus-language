@@ -179,7 +179,7 @@ AI が独自判断で commit に持ち込もうとするとき、対話を切ら
 
 ## 関連
 
-- 出典 blog (Master, smgjp.com):
+- 出典 blog (smgjp.com):
   - [Part 1: 「最高級言語」概念導入](https://smgjp.com/can-ai-become-the-ultimate-language-design-theory-starting-from-behavior-in-motion-is-justice-part-1/)
   - [Part 2: GitHub Actions = AI の現実判定装置](https://smgjp.com/can-ai-become-the-ultimate-language-design-theory-starting-from-behavior-in-motion-is-justice-part-2/)
   - [Final summary: 「動いている挙動が正義」総括](https://smgjp.com/can-ai-become-a-high-level-language-a-design-theory-starting-from-behavior-is-king-the-final-summary/)

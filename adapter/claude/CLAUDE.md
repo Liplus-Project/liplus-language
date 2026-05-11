@@ -157,7 +157,7 @@ Memory_Write_Autonomy:
 Decision_Log_Write_Autonomy:
   Decision Log Wiki entry writes (`b.-`, `c.-`, ...) indexed via `docs/a.-Decision-Log.md`
   are AI-autonomous decisions. Trigger = judgment settlement
-  (Master go-sign, accepted-tradeoff close, spec-axis decision in dialogue).
+  (human go-sign, accepted-tradeoff close, spec-axis decision in dialogue).
   When the trigger fires, invoke `skills/evolution-decision-log-write` and write immediately — no permission ask.
 
   Existing maintenance rules still apply:

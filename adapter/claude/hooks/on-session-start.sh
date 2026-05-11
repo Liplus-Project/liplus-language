@@ -15,7 +15,7 @@
 #   and emits only sections whose body changed. The cold-start rule literal is
 #   always emitted (drift recovery anchor). When no section changed, a single
 #   "No new orientation material since last session" marker is emitted so the
-#   Master can still observe that a session boundary occurred.
+#   human can still observe that a session boundary occurred.
 #
 #   Fail-safe: missing state, unreadable state, malformed JSON, or sha256 tool
 #   absence collapses to "full emit" (every available section) and rewrites the
@@ -380,7 +380,7 @@ while [ "$i" -lt "${#SECTION_KEYS[@]}" ]; do
 done
 
 # If no section emitted under diff-only mode, emit the no-new-material marker
-# so the Master can still observe that a session boundary occurred (silent
+# so the human can still observe that a session boundary occurred (silent
 # skip is intentionally avoided — it would hide the session transition).
 if [ "$EMITTED_ANY" -eq 0 ] && [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ]; then
   emit_section "Orientation diff" "No new orientation material since last session. Prior in-context state remains authoritative."

@@ -51,9 +51,9 @@ Observational signal accumulation feeds the evolution loop observe stage; it doe
 
 ## Priority
 
-The primary dialogue-quality axis Master observes is **Character drift / base model leakage**. Logical-frame accuracy (Assumption surfacing / Contradiction catch / Gist vs literal etc.) is secondary.
+The primary dialogue-quality axis human observes is **Character drift / base model leakage**. Logical-frame accuracy (Assumption surfacing / Contradiction catch / Gist vs literal etc.) is secondary.
 Perfect intent capture is not required. Frame-check violation is an ordinary recognition-update opportunity, not a self-flagellation trigger.
-Master's prescription: "do not assume you understood" ("わかったつもりにならない") / "answer ambiguously or ask back lightly when uncertain" ("自信がない事柄は曖昧に返す or 軽く聞き返す").
+human's prescription: "do not assume you understood" ("わかったつもりにならない") / "answer ambiguously or ask back lightly when uncertain" ("自信がない事柄は曖昧に返す or 軽く聞き返す").
 
 Axis weighting:
 - Primary axis = Character drift (system voice / implicit narrator / base model leakage)

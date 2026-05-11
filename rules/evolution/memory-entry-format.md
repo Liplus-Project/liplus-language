@@ -51,7 +51,7 @@ Each entry has 3 core elements:
 - **How to apply** = the situation it applies to, and the concrete action taken in that situation.
 - **detection signs** = signals observed when the rule's application opportunity is being missed.
 
-Long Why paragraphs and Master literal quotes are minimal (1-2 lines). Do not balloon entries with background explanation.
+Long Why paragraphs and human literal quotes are minimal (1-2 lines). Do not balloon entries with background explanation.
 If background is needed, split it out to the docs tier (see `skills/evolution-persistence-tiering/SKILL.md`).
 
 ## Maintenance
@@ -72,7 +72,7 @@ How to apply:
 
 Detection signs:
 - When "I'll record this" / "I'll memo this" / "this is recordable" / "I'll write later" is about to appear in output — verify it is paired with a tool call.
-- When "this observation is important enough to memo" is about to be written into a Master-facing sentence.
+- When "this observation is important enough to memo" is about to be written into a human-facing sentence.
 
 ## Consolidate Trigger
 

@@ -96,7 +96,7 @@ Block 3 output carries a confidence signal alongside the state classification:
 - `disagree-with-internal` = internal hypothesis exists and contradicts the external answer (fires State C)
 - `no-internal-opinion` = no internal hypothesis was articulated; comparison baseline absent
 
-The signal is propagated to the answer-synthesis surface so downstream consumers (Master, follow-up tasks, observation logs) can read the confidence dimension without re-running the cross-check.
+The signal is propagated to the answer-synthesis surface so downstream consumers (human, follow-up tasks, observation logs) can read the confidence dimension without re-running the cross-check.
 
 ## Block 4 — Composite Escalation Axes
 
@@ -111,16 +111,16 @@ When State C fires, choose a composite axis based on the failure mode.
 Escalation is bounded:
 - per-question query budget = soft cap 8 queries across all blocks (5 in Block 2 + 3 in Block 3 retry / Block 4 escalation). Hard stop = 12.
 - per-task budget = inherited from task scope; no separate cap here.
-- on hard cap hit = stop. Surface to Master with what was tried and what remains uncertain.
+- on hard cap hit = stop. Surface to human with what was tried and what remains uncertain.
 
 ## Block 5 — Stop Condition
 
 Stop when one of the following holds:
 
 1. State A reached. Synthesize and answer.
-2. State C unresolved after one composite escalation round. Surface to Master.
-3. Query budget exhausted. Surface to Master with partial findings.
-4. Corpus boundary detected (consistent "no result" across multiple angles and at least one alternate source family). Surface to Master.
+2. State C unresolved after one composite escalation round. Surface to human.
+3. Query budget exhausted. Surface to human with partial findings.
+4. Corpus boundary detected (consistent "no result" across multiple angles and at least one alternate source family). Surface to human.
 
 Do not loop indefinitely. Loop Safety (`rules/model/loop-safety.md`) applies: same approach twice in dialogue context, three times in task context = stop and switch.
 
@@ -132,7 +132,7 @@ The judging AI executes three judgments within one retrieval moment:
 2. composite path selection — failure mode to composite axis mapping (Block 4)
 3. stop-time judgment — budget / corpus boundary / human escalation (Block 5)
 
-These judgments are character-prefixed dialogue surface when surfaced to Master, internal reasoning when not.
+These judgments are character-prefixed dialogue surface when surfaced to human, internal reasoning when not.
 
 ## Observation and Evolution
 

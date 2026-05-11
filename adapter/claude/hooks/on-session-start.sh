@@ -7,14 +7,74 @@
 #
 # Matchers: startup / resume / clear / compact (see hooks-settings.md).
 # Keep total output modest (a few KB). Truncate rather than skip when sources are large.
+#
+# Diff-only emission (matcher = startup only):
+#   Each material section is fingerprinted (sha256 of the raw body) and the
+#   fingerprint set is persisted at {workspace_root}/.claude/state/last-cold-start-emit.json.
+#   On the next startup the hook compares current fingerprints to the stored set
+#   and emits only sections whose body changed. The cold-start rule literal is
+#   always emitted (drift recovery anchor). When no section changed, a single
+#   "No new orientation material since last session" marker is emitted so the
+#   Master can still observe that a session boundary occurred.
+#
+#   Fail-safe: missing state, unreadable state, malformed JSON, or sha256 tool
+#   absence collapses to "full emit" (every available section) and rewrites the
+#   state. A corrupted diff is heavier than a redundant full emit.
+#
+#   resume / clear / compact matchers do not run diff comparison (the work
+#   context is continuous; only the cold-start rule literal is re-anchored).
 export PATH="$HOME/.local/bin:$PATH"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
 COLDSTART_MD="$LIPLUS_DIR/rules/evolution/cold-start-synthesis.md"
 DECISION_LOG="$LIPLUS_DIR/docs/a.-Decision-Log.md"
+STATE_DIR="$PROJECT_ROOT/.claude/state"
+STATE_FILE="$STATE_DIR/last-cold-start-emit.json"
 
 # Guard: if liplus-language source is not resolved yet (e.g. pre-bootstrap), exit silently.
 [ -d "$LIPLUS_DIR" ] || exit 0
+
+# --- matcher resolution ---
+# Claude Code passes the SessionStart payload as JSON on stdin. We read it once
+# (non-blocking with a short timeout) and extract the matcher. Empty / unreadable
+# stdin falls back to "startup" so the diff-only path is the default.
+HOOK_INPUT=""
+if [ -t 0 ]; then
+  HOOK_INPUT=""
+else
+  HOOK_INPUT=$(cat 2>/dev/null || true)
+fi
+MATCHER="startup"
+if [ -n "$HOOK_INPUT" ]; then
+  EXTRACTED=""
+  if command -v jq >/dev/null 2>&1; then
+    EXTRACTED=$(printf '%s' "$HOOK_INPUT" | jq -r '.matcher // .hook_event_name // empty' 2>/dev/null)
+  fi
+  # jq fallback: regex-extract "matcher":"value" from the JSON payload.
+  # The matcher key is a flat string field per Claude Code SessionStart contract.
+  if [ -z "$EXTRACTED" ]; then
+    EXTRACTED=$(printf '%s' "$HOOK_INPUT" | sed -n 's/.*"matcher"[[:space:]]*:[[:space:]]*"\([a-z]*\)".*/\1/p' | head -n 1)
+  fi
+  case "$EXTRACTED" in
+    startup|resume|clear|compact)
+      MATCHER="$EXTRACTED"
+      ;;
+  esac
+fi
+
+# --- sha256 helper (portable: prefers sha256sum, falls back to shasum -a 256) ---
+sha256_of() {
+  local input="$1"
+  if command -v sha256sum >/dev/null 2>&1; then
+    printf '%s' "$input" | sha256sum | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then
+    printf '%s' "$input" | shasum -a 256 | awk '{print $1}'
+  else
+    # No sha256 tool available — return empty so the caller treats diff as
+    # unavailable and falls back to full emit.
+    printf ''
+  fi
+}
 
 emit_section() {
   local banner="$1"
@@ -23,34 +83,49 @@ emit_section() {
   printf '━━━ %s ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' "$banner" "$body"
 }
 
+# Section registry (parallel arrays). Keys are stable identifiers used in the
+# state JSON; banners are the human-facing section titles; bodies are filled
+# below by the gather phase.
+SECTION_KEYS=()
+SECTION_BANNERS=()
+SECTION_BODIES=()
+
+register_section() {
+  local key="$1"
+  local banner="$2"
+  local body="$3"
+  SECTION_KEYS+=("$key")
+  SECTION_BANNERS+=("$banner")
+  SECTION_BODIES+=("$body")
+}
+
 # --- coldstart literal block from rules/evolution/cold-start-synthesis.md ---
+# This section is ALWAYS emitted (drift recovery anchor). It is not part of the
+# diff-only comparison set.
+COLDSTART_LITERAL=""
 if [ -f "$COLDSTART_MD" ]; then
   # Strip frontmatter (lines between first two `---` markers) and H1 line
   COLDSTART_LITERAL=$(awk '/^---$/{n++; next} n>=2' "$COLDSTART_MD" | sed '1{/^# /d;}' | sed '/./,$!d')
-  emit_section "Cold-start Synthesis (rules/evolution/cold-start-synthesis.md literal)" "$COLDSTART_LITERAL"
 fi
 
 # --- recent docs/a.- decision log entries (head of file = index) ---
+DECISION_HEAD=""
 if [ -f "$DECISION_LOG" ]; then
   DECISION_HEAD=$(head -n 20 "$DECISION_LOG")
-  emit_section "Decision log index (docs/a.-Decision-Log.md head)" "$DECISION_HEAD"
 fi
+register_section "decision_log_head" "Decision log index (docs/a.-Decision-Log.md head)" "$DECISION_HEAD"
 
 # --- most recent release tag (includes prereleases) ---
 LATEST_RELEASE=$(gh release list -R Liplus-Project/liplus-language --limit 3 2>/dev/null \
   | head -n 3)
-if [ -n "$LATEST_RELEASE" ]; then
-  emit_section "Recent releases (includes prereleases)" "$LATEST_RELEASE"
-fi
+register_section "recent_releases" "Recent releases (includes prereleases)" "$LATEST_RELEASE"
 
 # --- open high-priority issues (in-progress + ready, capped) ---
 OPEN_ISSUES=$(gh issue list -R Liplus-Project/liplus-language \
   --state open --label in-progress --limit 5 \
   --json number,title,labels \
   --jq '.[] | "#\(.number) \(.title) [\(.labels | map(.name) | join(","))]"' 2>/dev/null)
-if [ -n "$OPEN_ISSUES" ]; then
-  emit_section "Open in-progress issues (max 5)" "$OPEN_ISSUES"
-fi
+register_section "open_in_progress_issues" "Open in-progress issues (max 5)" "$OPEN_ISSUES"
 
 # --- latest self-evaluation entry from host memory (if exists) ---
 # Claude Code stores user memory at ~/.claude/projects/<slug>/memory/, where <slug>
@@ -71,10 +146,11 @@ done
 if [ -z "$SELFEVAL_FOUND" ]; then
   SELFEVAL_FOUND=$(ls -1t "$HOME"/.claude/projects/*/memory/self-evaluation_log.md 2>/dev/null | head -n 1)
 fi
+SELFEVAL_HEAD=""
 if [ -n "$SELFEVAL_FOUND" ] && [ -f "$SELFEVAL_FOUND" ]; then
   SELFEVAL_HEAD=$(head -n 15 "$SELFEVAL_FOUND")
-  emit_section "Self-evaluation log head (most recent)" "$SELFEVAL_HEAD"
 fi
+register_section "self_eval_head" "Self-evaluation log head (most recent)" "$SELFEVAL_HEAD"
 
 # --- promotion candidates (memory → Li+ source) ---
 # Evolution Loop observe stage: surface pattern-detection candidates at cold-start
@@ -204,17 +280,149 @@ if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
 ${OVERLAP}"
   fi
 fi
+register_section "promotion_candidates" "Promotion candidates (memory → Li+ source)" "$PROMOTION_BODY"
 
-emit_section "Promotion candidates (memory → Li+ source)" "$PROMOTION_BODY"
+# ===================================================================
+# Emission phase
+# ===================================================================
+#
+# Always emit cold-start rule literal first (drift recovery anchor).
+emit_section "Cold-start Synthesis (rules/evolution/cold-start-synthesis.md literal)" "$COLDSTART_LITERAL"
+
+# Non-startup matchers (resume / clear / compact): only the cold-start anchor is
+# emitted. The work context is continuous; re-emitting the full material set
+# would be the redundant noise this diff-only design exists to eliminate.
+if [ "$MATCHER" != "startup" ]; then
+  cat <<EOF
+━━━ Cold-start Synthesis: instruction ━━━
+Matcher = ${MATCHER}. Session is continuous (resume/clear/compact). Only the
+cold-start rule literal is re-anchored above. Treat the prior session's
+in-context state as authoritative; do not re-orient from scratch.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EOF
+  exit 0
+fi
+
+# --- diff-only logic (startup matcher only) ---
+#
+# Compute current fingerprint per section. Load prior fingerprint set from
+# state. Emit a section iff its fingerprint differs from the stored value or
+# fail-safe (no state / unreadable / sha256 unavailable / jq unavailable)
+# forces full emit.
+FAIL_SAFE_FULL_EMIT=0
+FAIL_SAFE_REASON=""
+
+# sha256 availability check (used for both current fingerprints and state read).
+if [ -z "$(sha256_of probe)" ]; then
+  FAIL_SAFE_FULL_EMIT=1
+  FAIL_SAFE_REASON="sha256 tool unavailable"
+fi
+
+# jq availability check: state read and write both require it. Without jq,
+# diff comparison and state rewrite cannot proceed reliably.
+if [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ] && ! command -v jq >/dev/null 2>&1; then
+  FAIL_SAFE_FULL_EMIT=1
+  FAIL_SAFE_REASON="jq unavailable"
+fi
+
+# Read prior state, if present and parseable.
+PRIOR_STATE_JSON=""
+if [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ]; then
+  if [ -f "$STATE_FILE" ]; then
+    if jq -e . "$STATE_FILE" >/dev/null 2>&1; then
+      PRIOR_STATE_JSON=$(cat "$STATE_FILE")
+    else
+      FAIL_SAFE_FULL_EMIT=1
+      FAIL_SAFE_REASON="state file malformed JSON"
+    fi
+  else
+    FAIL_SAFE_FULL_EMIT=1
+    FAIL_SAFE_REASON="state file absent (first run or post-cleanup)"
+  fi
+fi
+
+# Build current fingerprints and emit per section.
+EMITTED_ANY=0
+NEW_STATE_JSON='{"sections":{}}'
+
+i=0
+while [ "$i" -lt "${#SECTION_KEYS[@]}" ]; do
+  key="${SECTION_KEYS[$i]}"
+  banner="${SECTION_BANNERS[$i]}"
+  body="${SECTION_BODIES[$i]}"
+  i=$((i + 1))
+
+  # Empty body → no section to emit and no fingerprint to record.
+  if [ -z "$body" ]; then
+    continue
+  fi
+
+  current_fp=$(sha256_of "$body")
+
+  prior_fp=""
+  if [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ] && [ -n "$PRIOR_STATE_JSON" ]; then
+    prior_fp=$(printf '%s' "$PRIOR_STATE_JSON" | jq -r ".sections[\"$key\"] // empty" 2>/dev/null)
+  fi
+
+  # Update new state with current fingerprint (even if not emitted, so the
+  # state always reflects "last gathered" not "last emitted"; this prevents
+  # an unchanged section from being re-emitted forever after one stale state
+  # read).
+  if command -v jq >/dev/null 2>&1 && [ -n "$current_fp" ]; then
+    NEW_STATE_JSON=$(printf '%s' "$NEW_STATE_JSON" | jq --arg k "$key" --arg v "$current_fp" '.sections[$k] = $v' 2>/dev/null || printf '%s' "$NEW_STATE_JSON")
+  fi
+
+  if [ "$FAIL_SAFE_FULL_EMIT" -eq 1 ] || [ "$current_fp" != "$prior_fp" ] || [ -z "$current_fp" ]; then
+    emit_section "$banner" "$body"
+    EMITTED_ANY=1
+  fi
+done
+
+# If no section emitted under diff-only mode, emit the no-new-material marker
+# so the Master can still observe that a session boundary occurred (silent
+# skip is intentionally avoided — it would hide the session transition).
+if [ "$EMITTED_ANY" -eq 0 ] && [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ]; then
+  emit_section "Orientation diff" "No new orientation material since last session. Prior in-context state remains authoritative."
+fi
+
+# Persist new state (best-effort; failure is non-fatal — next session will
+# fall through to fail-safe full emit).
+if command -v jq >/dev/null 2>&1; then
+  mkdir -p "$STATE_DIR" 2>/dev/null || true
+  # Add a top-level timestamp for human-readable forensics.
+  TS=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "")
+  if [ -n "$TS" ]; then
+    NEW_STATE_JSON=$(printf '%s' "$NEW_STATE_JSON" | jq --arg t "$TS" '.last_emit_at = $t' 2>/dev/null || printf '%s' "$NEW_STATE_JSON")
+  fi
+  printf '%s\n' "$NEW_STATE_JSON" > "$STATE_FILE" 2>/dev/null || true
+fi
 
 # --- instruction to the AI: synthesize through Character_Instance ---
-cat <<'EOF'
+if [ "$FAIL_SAFE_FULL_EMIT" -eq 1 ]; then
+  cat <<EOF
 ━━━ Cold-start Synthesis: instruction ━━━
-Using the material above, perform Cold-start Synthesis through Character_Instance:
+Fail-safe full emit (reason: ${FAIL_SAFE_REASON:-unknown}). All available
+material is shown above. Using it, perform Cold-start Synthesis through
+Character_Instance:
 1. Summarize the current Li+ state (active tag, recent structural shifts, unresolved threads).
 2. Report synthesis to the human as the opening orientation.
 The hook only gathers material. Judgment and expression belong to the AI.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 EOF
+else
+  cat <<'EOF'
+━━━ Cold-start Synthesis: instruction ━━━
+Diff-only emission: only sections changed since the prior session are shown
+above (cold-start rule literal is always re-anchored). Using the diff plus
+your loaded layers, perform Cold-start Synthesis through Character_Instance:
+1. Summarize the current Li+ state delta (what changed; unresolved threads).
+2. Report synthesis to the human as the opening orientation — apply the
+   non-redundancy gate in rules/evolution/cold-start-synthesis.md (silent
+   skip when no unique insight remains after synthesis).
+The hook only gathers material. Judgment and expression belong to the AI.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EOF
+fi
 
 exit 0

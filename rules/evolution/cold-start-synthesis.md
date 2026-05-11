@@ -16,13 +16,22 @@ Steps 1-2 are internal AI priming. They run every session regardless of what the
 Step 3 is conditional output gating, not unconditional report.
 
 Hook coordination:
-`on-session-start.sh` already persists and surfaces at session open: recent release tags, decision log index head, self-evaluation log head, cold-start rule literal. These items are already visible to the human via the hook payload.
+`on-session-start.sh` persists and surfaces at session open: recent release tags, decision log index head, self-evaluation log head, cold-start rule literal. Since build-2026-05-11 the hook emits material in diff-only mode (matcher = startup): only sections whose body changed since the previous startup invocation are re-emitted. The cold-start rule literal is always re-anchored regardless of diff state.
 
-Operational criterion:
-- hook-surfaced items = silent (do not re-report what the human already received from the hook)
+Hook emission states (matcher = startup):
+- full emit = first session after install, fail-safe (state missing / unreadable / sha256 unavailable), or every section changed. All sections shown.
+- diff-only = some sections changed since prior session. Only changed sections shown.
+- no-new-material marker = no section changed. A single "No new orientation material since last session" line is emitted (silent skip is intentionally avoided so the Master can still observe the session boundary).
+
+Hook emission states (matcher = resume / clear / compact):
+- Only the cold-start rule literal is re-anchored. The work context is continuous; the diff-only set is not re-evaluated.
+
+Operational criterion (AI side, step 3 gating):
+- hook-surfaced items = silent (do not re-report what the human already received from the hook, regardless of full / diff-only / marker state)
 - unique synthesized insight = speak (structural shift, unresolved thread, cross-artifact pattern not visible in the raw hook material)
 - no unique insight after synthesis = silent skip
+- diff-only state with the no-new-material marker = silent skip is the natural outcome; the marker itself is the human-facing acknowledgement that a session boundary occurred
 
-Goal = do not depend on human re-explanation of Li+ state at session start, while avoiding duplicate orientation noise. The hook handles raw surfacing; step 3 handles synthesis delta only.
+Goal = do not depend on human re-explanation of Li+ state at session start, while avoiding duplicate orientation noise. The hook handles raw surfacing (with diff-only economy on startup); step 3 handles synthesis delta only.
 
 Scope = Li+ state, not workspace task state. Workspace-specific orientation follows the adapter's own startup path.

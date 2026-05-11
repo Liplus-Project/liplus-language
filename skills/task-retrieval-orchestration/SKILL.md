@@ -11,11 +11,11 @@ layer: L3-task
 Layer = L3 Task Layer
 Retrieval execution protocol over a single task moment.
 Requires = L1 Model Layer + L2 Evolution Layer + L3 Task Layer (`task-research-strategy` for source priority)
-Companion = `rules/model/trigger-check-gate.md` retrieval tools table (question type to index mapping)
+Companion = `skills/model-trigger-check-gate-actions/SKILL.md` retrieval tools table (question type to index mapping)
 
 Axis separation from neighboring rules:
 - `task-research-strategy` = which source to use (strategy level: GitHub / RAG / Web / model knowledge priority)
-- `rules/model/trigger-check-gate.md` retrieval tools table = question type to index correspondence (single-shot judgment)
+- `skills/model-trigger-check-gate-actions/SKILL.md` retrieval tools table = question type to index correspondence (single-shot judgment)
 - This skill = within one retrieval moment, multi-angle gather -> cross-check -> composite escalation -> stop (execution protocol)
 
 The three surfaces stack. Strategy chooses source, gate maps question to index, this skill orchestrates the actual call sequence within that single moment.
@@ -39,8 +39,8 @@ Before issuing the first query, classify the question into one of:
 |---|---|---|
 | past judgment (similar prior decision) | RAG MCP (issues / PRs / commit diff) | `evolution-judgment-learning` |
 | time-variant fact (current API, latest spec, recent event) | Web | `model-web-search-judgment` |
-| literal source confirmation (does the source actually say X) | Read / git show / gh api | trigger-check-gate retrieval tools |
-| similar case / pattern memory | memory grep + RAG MCP | trigger-check-gate retrieval tools |
+| literal source confirmation (does the source actually say X) | Read / git show / gh api | model-trigger-check-gate-actions retrieval tools |
+| similar case / pattern memory | memory grep + RAG MCP | model-trigger-check-gate-actions retrieval tools |
 
 Classification is not exclusive. Multi-type questions decompose into per-type subqueries handled by Block 2.
 

@@ -58,7 +58,7 @@ No past-occurrence carryover. Expired clusters are deleted in full.
 
 The AI holds no exception criteria internally.
 Future-reoccurrence prediction at observation time invites over-judgment (retaining "this is important" from one observation), so it is prohibited.
-Exception retention is permitted only when Master explicitly overrides.
+Exception retention is permitted only when human explicitly overrides.
 Override storage = a memory area outside the tally (e.g. an override section in `memory/feedback.md`). Do not write into the tally.
 
 ## Issue Creation Metadata

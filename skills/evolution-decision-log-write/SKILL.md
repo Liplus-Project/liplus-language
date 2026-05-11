@@ -1,6 +1,6 @@
 ---
 name: evolution-decision-log-write
-description: Invoke immediately after a judgment is settled (Master go-sign, accepted-tradeoff close, spec-axis decision in dialogue) to write or update a Decision Log Wiki entry as the writer-side counterpart to evolution-judgment-learning.
+description: Invoke immediately after a judgment is settled (human go-sign, accepted-tradeoff close, spec-axis decision in dialogue) to write or update a Decision Log Wiki entry as the writer-side counterpart to evolution-judgment-learning.
 layer: L2-evolution
 ---
 
@@ -13,7 +13,7 @@ layer: L2-evolution
 
 判断成立直後に発火する。具体的には:
 
-- Master の go-sign が確定したとき (release 承認、Latest flip 等の gate operation を含む実装判断・設計判断)
+- human の go-sign が確定したとき (release 承認、Latest flip 等の gate operation を含む実装判断・設計判断)
 - 受容済み論点 (Accepted Tradeoff) の close が確定したとき
 - 対話中に spec 軸の判断が固まったとき (アーキテクチャ選択、命名規約、運用方針)
 - 失敗の原因が判明し再現可能な学びとなったとき

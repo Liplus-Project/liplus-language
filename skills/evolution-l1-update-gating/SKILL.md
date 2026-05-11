@@ -21,6 +21,6 @@ L1 = seed, L6 Adapter = most mutable end.
 
 Modifier axis = AI (per CLAUDE.md Sheepdog Engineering).
 This gate is observational, not approval-based.
-"highest-gate" = highest observation threshold (most accumulated evidence required), not Master sign-off requirement.
+"highest-gate" = highest observation threshold (most accumulated evidence required), not human sign-off requirement.
 "Do not edit L1" / "Do not propose L1 change" = the AI MUST NOT skip the observation threshold; the subject is AI, not human.
-Master judgment gates appear in separate surfaces (release / Latest flip / minor-major PR review per `rules/operations/execution-mode.md`), not in L1 spec editing.
+human judgment gates appear in separate surfaces (release / Latest flip / minor-major PR review per `rules/operations/execution-mode.md`), not in L1 spec editing.

@@ -130,7 +130,7 @@ Real files, copied verbatim into `{workspace_root}/.claude/hooks/` on bootstrap
 (with `{LI_PLUS_TAG}` placeholder replaced by the resolved target tag):
 
 - `adapter/claude/hooks/on-user-prompt.sh` — webhook check (Character_Instance is loaded via output-styles, not per-turn re-notify)
-- `adapter/claude/hooks/on-session-start.sh` — Cold-start Synthesis material emitter
+- `adapter/claude/hooks/on-session-start.sh` — Cold-start Synthesis material emitter (matcher-aware: `startup` runs diff-only against `{workspace_root}/.claude/state/last-cold-start-emit.json`; `resume` / `clear` / `compact` re-anchor only the cold-start rule literal — see `rules/evolution/cold-start-synthesis.md` for the emission-state table)
 - `adapter/claude/hooks/post-tool-use.sh` — sub-issue refs auto-append on PR create
 
 Each script carries a `# Source: ... ({LI_PLUS_TAG})` comment line near the top as

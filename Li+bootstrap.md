@@ -223,6 +223,27 @@ Note: Claude Code's skill discovery does NOT recurse into subdirectories under `
   through Character_Instance, not by the hook itself.
 - Set executable permission on .sh files.
 
+4c.5. Prepare cold-start state directory (diff-only emission persistence):
+- on-session-start.sh persists per-section fingerprints to
+  `{workspace_root}/.claude/state/last-cold-start-emit.json` so the next
+  startup-matcher invocation can emit only changed sections (full file rewrite
+  every session would defeat the diff-only design).
+- Create `{workspace_root}/.claude/state/` if it does not exist.
+- Write `{workspace_root}/.claude/state/.gitignore` with the literal content
+  below if the file does not exist (do not overwrite a user-modified one):
+
+  ```
+  # Li+ hook runtime state — local-only, not version-controlled.
+  *
+  !.gitignore
+  ```
+
+  Local-scoped gitignore keeps the state out of any version-controlled host
+  workspace without touching the user's top-level `.gitignore`. The state
+  itself (`last-cold-start-emit.json`) is created by the hook on first run.
+- This step is idempotent: existing directory and existing `.gitignore` are
+  left alone.
+
 Note: bootstrap takes effect from the NEXT session. Current session continues with Li+config.md execution.
 
 ### Phase 4 codex: Codex Integration

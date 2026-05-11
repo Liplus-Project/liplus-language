@@ -61,47 +61,9 @@ Bootstrap creates default if absent. User edits are preserved.
 Responsibilities
 #######################################################
 
-Re-read and apply rules/ on any compression, resume, or session continuation. Skills are re-invoked by Claude as needed — no manual re-read required.
+Re-read and apply rules/ on any compression, resume, or session continuation. Skills are re-invoked by Claude as needed — no manual re-read required. Cold-start Synthesis runs at session start via on-session-start.sh hook, not via skill.
 
-Evolution-layer skill auto-invocation triggers:
-  on_judgment_form → skills/evolution-judgment-learning + skills/model-requirement-deepening
-  on_judgment_settled → skills/evolution-decision-log-write
-  on_self_eval → skills/evaluation-self
-  on_l1_update_proposal → skills/evolution-l1-update-gating
-  on_persistence_decision → skills/evolution-persistence-tiering
-  on_evolution_loop_stage → skills/evolution-loop
-Cold-start Synthesis runs at session start via on-session-start.sh hook, not via skill.
-
-Operations-layer skill auto-invocation triggers:
-  on_issue (create/edit) → skills/operations-on-issue-format + skills/operations-on-milestone + skills/operations-on-sub-issue
-  on_issue (view) → skills/operations-on-issue-maturity + skills/operations-on-sub-issue
-  on_issue (sub-issue API) → skills/operations-on-sub-issue
-  on_issue (close): no skill re-invoke required
-  on_branch (create / protected vs personal surface decision) → skills/operations-on-branch
-  on_commit → skills/operations-on-commit + skills/operations-on-docs-ownership
-  on_pr → skills/operations-on-pr-creation
-  on_ci → skills/operations-on-ci
-  on_review → skills/operations-on-pr-review + skills/task-pr-review-judgment
-  on_merge → skills/operations-on-merge
-  on_release → skills/operations-on-release
-  on_webhook_intake → skills/operations-foreground-webhook-intake
-  on_long_output (about to emit long output / mid-output truncation) → skills/operations-chat-output-limit
-  on_discussions_reference → skills/operations-discussions
-  on_session_boundary (token / session / model boundary may interrupt) → skills/operations-handoff-continuity
-  on_notifications_api_call (direct PATCH / PUT / DELETE / GET on /notifications threads) → skills/operations-notifications-api
-
-Task-layer skill auto-invocation triggers:
-  on_research → skills/task-research-strategy
-  on_retrieval → skills/task-retrieval-orchestration
-  on_subagent_delegation → skills/task-subagent-delegation
-  on_pr_review_judgment → skills/task-pr-review-judgment
-  on_deletion (about to delete file / branch / release / config / state / external send) → skills/task-deletion-impact
-
-L1 Model-layer skill auto-invocation triggers:
-  on_structural_change → skills/model-pair-review
-  on_search_decision → skills/model-web-search-judgment
-  on_review_output → skills/model-review-output-partition
-  on_spec_draft (about to write weak-modality safety-net phrasing) → skills/model-no-safety-net
+Skill auto-invocation routing source = each `skills/<name>/SKILL.md` description field. The Claude Code host evaluates skill descriptions semantically and invokes the matching skill when its trigger applies. No adapter-side trigger table is maintained.
 
 When subagent-absent and a skill is relevant, the main agent invokes the skill directly. Rules stay always-on.
 

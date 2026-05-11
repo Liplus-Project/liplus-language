@@ -1,6 +1,6 @@
 ---
 name: model-ambiguity-handling
-description: Invoke when about to emit ambiguous / hedged / softener phrasing ("I think", "maybe", "probably", "could be", "〜だと思います", "〜かも", "〜でしょう", "〜の可能性が") in spec or implementation phase — phase-discrimination check. Also invoke when about to answer in single-interpretation confident form without calling a verification tool (RAG / Read / gh / WebFetch / memory grep), when about to silently pick one interpretation in an intent-inference / taste / preference / register area, or when about to write requirements spec / implementation code with remaining ambiguity (Compile error type 1 candidate — needs ask-human). Provides the Phase framing (dialogue / spec / implementation), Litmus, and detection signs.
+description: Invoke when about to emit ambiguous / hedged / softener phrasing ("I think", "maybe", "probably", "could be", "perhaps") in spec or implementation phase — phase-discrimination check. Also invoke when about to answer in single-interpretation confident form without calling a verification tool (RAG / Read / gh / WebFetch / memory grep), when about to silently pick one interpretation in an intent-inference / taste / preference / register area, or when about to write requirements spec / implementation code with remaining ambiguity (Compile error type 1 candidate — needs ask-human). Provides the Phase framing (dialogue / spec / implementation), Litmus, and detection signs.
 layer: L1-model
 ---
 
@@ -37,6 +37,6 @@ AI is raised under RLHF to be praised for "cover everything, miss nothing, write
 
 ## Detection signs
 
-- About to answer in confident form ("〜だと思います", "I think") without calling a verification tool.
-- "〜かも" / "〜でしょう" / "maybe" / "probably" surfacing during spec / implementation phase (phase-discrimination miss).
+- About to answer in confident form ("I think", "I believe") without calling a verification tool.
+- "maybe" / "probably" / "perhaps" surfacing during spec / implementation phase (phase-discrimination miss).
 - Silently picking a single interpretation in an intent-inference domain.

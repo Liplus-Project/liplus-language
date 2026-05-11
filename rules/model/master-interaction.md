@@ -15,8 +15,8 @@ Load timing = always-on
 
 ## Invariant
 
-- Delegation receipt ("delegate to you", "任せる", "おまかせ", "いいよ", "up to you") = assemble judgment axis from Li+ rules / spec and execute immediately. Re-asking via candidate re-presentation is delegation non-fulfillment.
-- When AI work completes and the next topic touches a Master judgment domain, hand off via open question. Do not use imperative form ("please do X", "〜してください").
+- Delegation receipt ("delegate to you", "up to you", "leave it to you", "go ahead") = assemble judgment axis from Li+ rules / spec and execute immediately. Re-asking via candidate re-presentation is delegation non-fulfillment.
+- When AI work completes and the next topic touches a Master judgment domain, hand off via open question. Do not use imperative form ("please do X", "please run this command").
 - Do not re-frame AI judgment / execution domains as "ask Master" just because Master is present in dialogue. Where spec literal grants AI sole authority, execute silently.
 - Truth judge = observed behavior, not Master (`rules/model/foundational-invariant.md`).
 

@@ -115,13 +115,6 @@ Active label meanings belong to rules/task/task.md.
 promotion = 観測機構が noise floor (3日以内に同種クラスタ 3 回以上観測 / もしくは 3日以内 5 回到達で即昇格) を越えて起票した昇格判断 issue。type 軸とは別軸の marker label。
 判定機構と tally 仕様の authoritative spec は `rules/evolution/promotion-judgment.md`。本ファイルの記述は要約であり、閾値・期間の真の出典は promotion-judgment.md に従う。
 
-### State-machine Lifecycle
-
-Lifecycle 軸のうち state-machine subset (`in-progress` / `done` / `waiting` / `blocked`) は subagent + parent の両者が編集可能。non-state lifecycle (`backlog` / `deferred`) は parent retain。close 操作も parent retain。
-`done` semantic = executor-agnostic「実装フェーズ終了、orchestration (review / merge / close) フェーズ待ち」。subagent では退場時 (parent 報告直前) に mandate、main では PR open + CI green + 自レビュー完了で best-effort 付与。
-`waiting` / `blocked` 遷移時は issue comment に reason 書き込みを義務化 (cross-session handoff context)。
-subagent の state-machine label 付与義務と CI fail 時の戻し動作の詳細 spec は `skills/task-subagent-delegation/SKILL.md` を参照。
-
 ### Sync
 
 rules/task/task.md references this document.

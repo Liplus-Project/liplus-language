@@ -115,10 +115,6 @@ Active label meanings belong to rules/task/task.md.
 promotion = 観測機構が noise floor (3日以内に同種クラスタ 3 回以上観測 / もしくは 3日以内 5 回到達で即昇格) を越えて起票した昇格判断 issue。type 軸とは別軸の marker label。
 判定機構と tally 仕様の authoritative spec は `rules/evolution/promotion-judgment.md`。本ファイルの記述は要約であり、閾値・期間の真の出典は promotion-judgment.md に従う。
 
-### Retired Labels
-
-done = retired. Redundant with issue closed state.
-
 ### Sync
 
 rules/task/task.md references this document.

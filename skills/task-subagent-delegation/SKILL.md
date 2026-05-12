@@ -9,7 +9,7 @@ layer: L3-task
 ## Rules
 
 Parent agent delegates implementation and operations to subagent.
-Parent retains: issue creation, issue management (labels, close), review judgment.
+Parent retains: issue creation, issue management (non-state lifecycle labels / type / maturity / marker / close), review judgment.
 if execution_mode == auto:
   Subagent executes: branch, implementation, commit, push, PR, CI loop.
   Parent retains: self-review, merge decision.
@@ -19,7 +19,19 @@ if execution_mode == trigger:
 Do not convey: step-by-step procedure, branch name, commit message, intent.
 Intent is already in issue body.
 
-Subagent must not change labels or close issues.
+Subagent label authority is partial: the state-machine lifecycle subset (`in-progress` / `done` / `waiting` / `blocked`) is editable by subagent. All other label axes (non-state lifecycle / type / maturity / marker) and close operations remain parent retain.
+
+## State-machine label discipline (subagent side, mandate)
+
+Subagent MUST fire state-machine labels at role boundaries:
+
+- Work start → add `in-progress` (remove any prior `done` / `waiting` / `blocked`).
+- Role completion (implementation phase finished, orchestration awaited) → switch `in-progress` → `done` immediately before reporting to parent and exiting.
+- Pause on external dependency (CI / dependent issue / environment) → switch to `waiting` + write issue comment with reason. The reason comment is mandatory cross-session handoff context.
+- Pause on human input requirement → switch to `blocked` + write issue comment with reason. Comment is mandatory.
+- CI fail → fix recovery → before retry, revert `done` → `in-progress` (same subagent in-session is allowed; the label reflects the actual work state).
+
+Label authority canonical spec is in `rules/operations/operations.md` State-machine Lifecycle section; this skill defines the application-moment behavior.
 
 ## Responsibilities
 

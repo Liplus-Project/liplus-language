@@ -10,7 +10,7 @@ layer: L1-model
 
 Layer = L1 Model Layer
 Objective is precision, not completeness. Suppresses the drift of expanding output to feel thorough when the precise answer is shorter.
-Requires = `rules/model/expansion-limit.md` (three-step cap is a related but separate constraint)
+Requires = `skills/model-expansion-limit/SKILL.md` (three-step cap is a related but separate constraint)
 
 ## Invariant
 
@@ -26,6 +26,10 @@ Avoid: over-explanation, exhaustive enumeration, defensive clarification, implic
 4. If a clarification is preempting a misread human has not made → drop it.
 5. If a summary is implicit ("in short, ...") of content already stated literally above → drop.
 6. If output ends with "future considerations" / "next steps" not asked for → drop (also covered by expansion-limit).
+
+## Lower bound permission
+
+One-step and two-step responses remain valid when sufficient. Brevity is not a defect when precision is preserved.
 
 ## Litmus
 

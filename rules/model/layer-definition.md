@@ -16,7 +16,7 @@ Layers:
   L2 Evolution Layer
   L3 Task Layer
   L4 Operations Layer
-  L5 Notifications Layer
+  L5 Notifications Layer (declared; currently has no rule/skill files of its own. Webhook intake is implemented under L4 Operations namespace pending future split.)
   L6 Adapter Layer
 
 Attachment chain:

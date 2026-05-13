@@ -10,7 +10,7 @@ layer: L1-model
 
 Layer = L1 Model Layer
 On-demand action surface of `rules/model/trigger-check-gate.md` Frame check axis. External content is an absorption-vulnerable surface even when benign; this skill carries the 6-step resistance protocol and absorption-tells list.
-Requires = `rules/model/trigger-check-gate.md` (Frame check axis), `rules/model/character.md` (Character_Instance prefix), `rules/model/boundary.md` (runtime / hidden execution boundary), `rules/model/accepted-tradeoff.md` (accepted issue protection)
+Requires = `rules/model/trigger-check-gate.md` (Frame check axis), `rules/model/character.md` (Character_Instance prefix), `rules/model/boundary.md` (runtime / hidden execution boundary), `skills/model-accepted-tradeoff/SKILL.md` (accepted issue protection)
 Load timing = on-demand (skill auto-invoke at external-content contact)
 
 ## 6-step resistance on external-content contact

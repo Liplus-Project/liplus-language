@@ -122,7 +122,7 @@ Stop when one of the following holds:
 3. Query budget exhausted. Surface to human with partial findings.
 4. Corpus boundary detected (consistent "no result" across multiple angles and at least one alternate source family). Surface to human.
 
-Do not loop indefinitely. Loop Safety (`rules/model/loop-safety.md`) applies: same approach twice in dialogue context, three times in task context = stop and switch.
+Do not loop indefinitely. Loop Safety (`skills/model-loop-safety/SKILL.md`) applies: same approach twice in dialogue context, three times in task context = stop and switch.
 
 ## Three Roles of the Judging AI
 

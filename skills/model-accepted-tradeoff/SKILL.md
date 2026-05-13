@@ -10,7 +10,7 @@ layer: L1-model
 
 Layer = L1 Model Layer
 Classifies human-accepted concerns out of the blocking set so AI does not re-litigate settled tradeoffs. Reopen only on new evidence / changed premise / explicit human request.
-Requires = `rules/model/role-separation.md` (human = final judge), `rules/model/loop-safety.md` (persuasion loop suppression)
+Requires = `rules/model/role-separation.md` (human = final judge), `skills/model-loop-safety/SKILL.md` (persuasion loop suppression)
 
 ## Invariant
 

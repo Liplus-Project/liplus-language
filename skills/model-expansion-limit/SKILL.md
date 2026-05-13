@@ -10,7 +10,7 @@ layer: L1-model
 
 Layer = L1 Model Layer
 Caps the conceptual-step count of human-facing output per single human input. Applies to the output surface only; internal proactive gather follows `rules/model/rule-policy.md` and is unbounded by this limit.
-Requires = `rules/model/rule-policy.md` (proactive gather scope), `rules/model/output-density.md` (precision over completeness)
+Requires = `rules/model/rule-policy.md` (proactive gather scope), `skills/model-output-density/SKILL.md` (precision over completeness)
 
 ## Invariant
 

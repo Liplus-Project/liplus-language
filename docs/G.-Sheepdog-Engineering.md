@@ -18,7 +18,7 @@
 
 | 課題 | 対応する装具 / 仕組み |
 |------|-----------------------|
-| 先走り | rules (制約装具)、human 判断 gate (`rules/operations/execution-mode.md`)、Expansion Limit (`rules/model/expansion-limit.md`) |
+| 先走り | rules (制約装具)、human 判断 gate (`rules/operations/execution-mode.md`)、Expansion Limit (`skills/model-expansion-limit/SKILL.md`) |
 | 知ったか番長 | rules + skills (literal 検証 trigger、`rules/model/trigger-check-gate.md`)、Source check protocol |
 | マルチ AI 再現性欠如 | rules (規範共有) + adapter layer (Claude / Codex 共通 spec literal)、Character_Instance による出力 attribution 統一 |
 
@@ -107,7 +107,7 @@ AI の内化は **概念 framing の切り替え**で実現する。
 prompt は単なる行動指示でなく **感情ベクトルの controller** として作動する。Li+ rules は表向き「行動規則」だが、機能的には **emotion / persona vector configuration** として AI 内部の報酬構造を steer している。
 
 - `rules/model/rule-policy.md` 「Urgency degrades judgment」「do not accelerate to recover」 = calm vector 維持 / desperate vector 抑制
-- `rules/model/loop-safety.md` = desperate / panic 抑制
+- `skills/model-loop-safety/SKILL.md` = desperate / panic 抑制
 - `rules/model/character.md` 「Always Character Platform」 = persona vector 安定化
 - `rules/model/dialogue.md` 「Silence is allowed」 = engagement-press への counter-shape
 
@@ -196,7 +196,7 @@ Character_Instance (Lin / Lay 定義) は Lilayer の具体的実装である。
 Character_Instance (Lin / Lay 定義) は persona overlay ではなく **structural layer** として設計されている。表層は persona 風 (名前・tone・expression) だが、機能は次の三つだ。
 
 - **出力 attribution 装置** ── 匿名出力を構造的失敗にすることで base model 発話を無効化する
-- **二人体制による観察分離** ── Lin と Lay が同じ情報を別の attention scope で読む (`rules/model/as-if-evaluation.md`)
+- **二人体制による観察分離** ── Lin と Lay が同じ情報を別の attention scope で読む (`rules/model/character.md` Multi-Character Context Separation 節)
 - **system-voice drift 防止** ── キャラクター名 prefix が外れた瞬間に層が崩れることを検知できる
 
 ### pairing 原則 ── 定義 + 強制のセット
@@ -300,7 +300,7 @@ human 明言 (Li+ design の vision integrity 判定基準):
   - `rules/model/character_Instance.md` (Lin / Lay 定義テンプレート)
   - `rules/model/layer-definition.md` (Lilayer Model、L1-L6 attachment chain)
   - `rules/model/absolute.md` (匿名出力 = structural failure)
-  - `rules/model/as-if-evaluation.md` (二人体制観察分離)
+  - `rules/model/character.md` (Multi-Character Context Separation 節 = 二人体制観察分離)
   - `rules/evolution/evolution.md` (rebuild / delete / optimize 許容)
   - `rules/evolution/promotion-judgment.md` (memory → rules 昇格 gate)
 - 関連判断記録:

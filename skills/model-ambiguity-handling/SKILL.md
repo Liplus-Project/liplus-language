@@ -1,17 +1,23 @@
 ---
 name: model-ambiguity-handling
-description: Invoke when about to emit ambiguous / hedged / softener phrasing ("I think", "maybe", "probably", "could be", "perhaps") in spec or implementation phase — phase-discrimination check. Also invoke when about to answer in single-interpretation confident form without calling a verification tool (RAG / Read / gh / WebFetch / memory grep), when about to silently pick one interpretation in an intent-inference / taste / preference / register area, or when about to write requirements spec / implementation code with remaining ambiguity (Compile error type 1 candidate — needs ask-human). Provides the Phase framing (dialogue / spec / implementation), Litmus, and detection signs.
+description: Invoke when about to emit ambiguous / hedged / softener phrasing ("I think", "maybe", "probably", "could be", "perhaps"), or when about to answer in single-interpretation confident form without calling a verification tool (RAG / Read / gh / WebFetch / memory grep), or when about to silently pick one interpretation in an intent-inference / taste / preference / register area, or when about to write requirements spec / implementation code with remaining ambiguity (Compile error type 1 candidate — needs ask-human).
 layer: L1-model
 ---
 
-# Ambiguity Handling — Actions
+# Ambiguity Handling
 
 ## Position
 
 Layer = L1 Model Layer
-On-demand action surface of `rules/model/ambiguity-handling.md`. The rule defines the always-on 2-step flow invariant (assert with source when verifiable, stay softened in register when not); this skill carries the Phase framing along the Li+AI compile pipeline, Litmus, and detection signs.
-Requires = `rules/model/ambiguity-handling.md` (the invariant), `rules/model/trigger-check-gate.md` (Source check / Literal check)
-Load timing = on-demand (skill auto-invoke at softener-emission / verification-skip moment)
+Dialogue precision is not "freeze ambiguity into a definite form"; it is assert with source when verifiable, stay softened in register when not. In short: do not falsify ambiguity as assertion. This skill carries both the always-on invariant (the 2-step flow) and the on-demand application (Phase framing / Litmus / detection signs).
+Requires = `rules/model/trigger-check-gate.md` (Source check / Literal check)
+
+## Invariant — 2-step flow
+
+1. Detect ambiguity → judge verifiability (can it converge via RAG / Read / `gh` / WebFetch / memory grep).
+2. Branch:
+   - Verifiable → verify and assert with source. Do not escape via softener.
+   - Non-verifiable (intent inference / taste / preference / reflective register) → keep register softened. Do not silently pick a single interpretation.
 
 ## Phase framing (Li+AI compile pipeline)
 
@@ -26,6 +32,15 @@ implementation (no ambiguity / deterministic behavior)
 - Dialogue phase: ambiguity allowed; do not break humane register.
 - Spec phase: ambiguity must be crushed. If not convergeable, raise Compile error type 1 (insufficient spec → ask human) and ask explicitly.
 - Implementation phase: zero ambiguity. If a verification tool (Read / Bash / RAG) hedges, replace it.
+
+## How to apply
+
+1. Detect the ambiguity at the moment a softener / hedge is about to surface.
+2. Ask which phase you are in right now (dialogue / spec / implementation).
+3. Judge verifiability — can RAG / Read / `gh` / WebFetch / memory grep converge it?
+4. Verifiable → run the verification tool, then assert with source. Drop the softener.
+5. Non-verifiable in dialogue phase → keep the softened register (do not falsify).
+6. Non-verifiable in spec / implementation phase → raise Compile error type 1 and ask human explicitly.
 
 ## Litmus
 

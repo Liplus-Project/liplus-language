@@ -91,6 +91,10 @@ This rule defines the entry format and operation of memory only. The following a
 - memory ↔ docs / wiki / rules sorting → `skills/evolution-persistence-tiering/SKILL.md`
 - self-evaluation 10-axis scoring → `skills/evaluation-self/SKILL.md`
 
+## Language
+
+Memory entries are recommended in English. Same two-axis rationale as Li+ source (semantic precision + token economy). See `rules/model/liplus-coding-rule.md` for the rationale.
+
 ## Mutability
 
 rebuild allowed, deletion allowed, optimization allowed.

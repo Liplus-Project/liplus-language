@@ -1,6 +1,6 @@
 ---
 name: task-retrieval-orchestration
-description: Invoke when retrieving from RAG / Web / git surfaces during a task; defines multi-angle parallel retrieve, cross-check three-state branching (sufficient / insufficient / suspicious), and composite escalation to break naive single-shot consumption.
+description: Invoke at the parent-AI side after a retrieval result is returned to govern consumption discipline (budget gate, stop conditions, surfacing to human). Mechanical multi-angle gather / three-state cross-check / Tier 1-2 escalation now lives in `skills/model-agentic-search/SKILL.md`; this skill carries the consumption discipline the parent retains.
 layer: L3-task
 ---
 
@@ -9,139 +9,40 @@ layer: L3-task
 ## Position
 
 Layer = L3 Task Layer
-Retrieval execution protocol over a single task moment.
-Requires = L1 Model Layer + L2 Evolution Layer + L3 Task Layer (`task-research-strategy` for source priority)
-Companion = `skills/model-trigger-check-gate-actions/SKILL.md` retrieval tools table (question type to index mapping)
+Parent-AI consumption discipline over a retrieval result. The mechanical orchestration core (multi-angle query generation, parallel retrieve, three-state cross-check, composite escalation axes) has been encapsulated into `skills/model-agentic-search/SKILL.md` and is invoked auto by the dual-trigger axis on the model layer. This skill carries only the consumption discipline the parent AI retains.
 
-Axis separation from neighboring rules:
-- `task-research-strategy` = which source to use (strategy level: GitHub / RAG / Web / model knowledge priority)
-- `skills/model-trigger-check-gate-actions/SKILL.md` retrieval tools table = question type to index correspondence (single-shot judgment)
-- This skill = within one retrieval moment, multi-angle gather -> cross-check -> composite escalation -> stop (execution protocol)
+## Consumption discipline — parent-AI retained
 
-The three surfaces stack. Strategy chooses source, gate maps question to index, this skill orchestrates the actual call sequence within that single moment.
+### Budget gate
 
-## Motive
-
-Web search default behavior = agent fetches multiple sources and cross-checks. RAG default behavior = single-shot consume and answer. The asymmetry is the failure surface this skill addresses.
-
-Naive single-shot RAG consumption fails on:
-- corpus boundary (the answer is not in the index)
-- recognition bias (the agent's rephrasings reflect the same internal bias)
-- aligned errors (all sources agree on the same wrong answer)
-
-Single-axis retry does not close these. Composite escalation across orthogonal axes does.
-
-## Block 1 — Question Type Classification
-
-Before issuing the first query, classify the question into one of:
-
-| Question type | Primary surface | Reference |
-|---|---|---|
-| past judgment (similar prior decision) | RAG MCP (issues / PRs / commit diff) | `evolution-judgment-learning` |
-| time-variant fact (current API, latest spec, recent event) | Web | `model-web-search-judgment` |
-| literal source confirmation (does the source actually say X) | Read / git show / gh api | model-trigger-check-gate-actions retrieval tools |
-| similar case / pattern memory | memory grep + RAG MCP | model-trigger-check-gate-actions retrieval tools |
-
-Classification is not exclusive. Multi-type questions decompose into per-type subqueries handled by Block 2.
-
-## Block 2 — Multi-Angle Query Generation and Parallel Retrieve
-
-Generate 3-5 query angles for the same intent, then retrieve in parallel.
-
-Angle generation patterns:
-- internal hypothesis articulation (state the answer the agent expects from model knowledge before issuing external queries; if no internal opinion exists, explicitly note "no internal opinion")
-- rephrasing (synonyms, abbreviation expansion, language switch)
-- viewpoint shift (cause vs effect, structure vs behavior, before vs after)
-- granularity shift (specific term vs general concept, instance vs category)
-- vocabulary substitution (Li+ internal term vs common technical term)
-
-Internal hypothesis is one of the 3-5 angles, not a separate pre-step. Articulating it before external retrieve enables the cross-check in Block 3 to compare internal vs external and emit a confidence signal regardless of agreement direction.
-
-Parallel execution:
-- Issue all queries in one round when the surface supports it (RAG MCP semantic search, Web search).
-- For sequential surfaces (Read tool, git show), batch within a single tool call cluster.
-- Subagent delegation may parallelize further when available; see `task-subagent-delegation`.
-
-Output of this block = a set of retrieved snippets, each tagged by angle.
-
-## Block 3 — Cross-Check and Three-State Branching
-
-Evaluate the retrieved set across angles. The judging AI = Lin / Lay (Character_Instance), not an external scorer.
-
-Three states:
-
-### State A — sufficient
-Multiple angles converge on the same answer, including agreement with internal hypothesis where one exists. Coverage spans the question's scope. No internal contradiction.
-Action = synthesize and answer.
-Confidence signal = `agree-with-internal` when internal hypothesis matched the converged external answer; `no-internal-opinion` when the agent had no prior internal hypothesis to compare.
-
-### State B — insufficient (quantity / coverage gap)
-Angles return partial coverage. Some sub-questions unanswered. No contradiction in what was returned.
-Action = re-query within the same source family, with new angles. Do not switch surface yet.
-Budget = stay within the per-question query cap (see Block 4).
-
-### State C — suspicious (quality / consistency doubt)
-Angles return conflicting answers, or all angles return the same answer with signs of bias (vocabulary echo, single-author dominance, aligned omission).
-Action = composite escalation. Switch to a different source family. Do not retry within the suspicious family.
-
-Suspicion signals:
-- all returned snippets share a single author / commit / source
-- vocabulary in returned snippets matches the query verbatim (echo bias)
-- known-related context is absent (omission pattern)
-- returned answer contradicts a prior accepted constraint without justification
-- internal hypothesis disagrees with external retrieval results (when an internal hypothesis exists and contradicts the converged external answer; the disagreement itself is the anomaly signal regardless of which side later proves correct)
-
-Block 3 output carries a confidence signal alongside the state classification:
-- `agree-with-internal` = internal hypothesis exists and matches the external converged answer
-- `disagree-with-internal` = internal hypothesis exists and contradicts the external answer (fires State C)
-- `no-internal-opinion` = no internal hypothesis was articulated; comparison baseline absent
-
-The signal is propagated to the answer-synthesis surface so downstream consumers (human, follow-up tasks, observation logs) can read the confidence dimension without re-running the cross-check.
-
-## Block 4 — Composite Escalation Axes
-
-When State C fires, choose a composite axis based on the failure mode.
-
-| Failure mode | Composite axis | Concrete switch |
-|---|---|---|
-| corpus has no answer | multi-index composite | switch source family (RAG -> Web, or RAG -> git log + Read) |
-| rephrasings reflect agent bias | decomposition composite | break the question into structurally different sub-questions, retrieve each |
-| all sources aligned wrong | time-axis composite + alternate source | query historical commit diff, query independent external source |
-
-Escalation is bounded:
-- per-question query budget = soft cap 8 queries across all blocks (5 in Block 2 + 3 in Block 3 retry / Block 4 escalation). Hard stop = 12.
+Per-question query budget:
+- soft cap = 8 queries across the full retrieval round (Block 2 multi-angle + Block 3 retry + Block 4 escalation, as defined in `skills/model-agentic-search/SKILL.md`).
+- hard stop = 12.
 - per-task budget = inherited from task scope; no separate cap here.
-- on hard cap hit = stop. Surface to human with what was tried and what remains uncertain.
 
-## Block 5 — Stop Condition
+On hard cap hit = stop. Surface to human with what was tried and what remains uncertain. Loop Safety (`skills/model-loop-safety/SKILL.md`) applies in parallel: same approach twice in dialogue, three times in task = stop and switch.
 
-Stop when one of the following holds:
+### Stop condition (governance side)
 
-1. State A reached. Synthesize and answer.
-2. State C unresolved after one composite escalation round. Surface to human.
-3. Query budget exhausted. Surface to human with partial findings.
-4. Corpus boundary detected (consistent "no result" across multiple angles and at least one alternate source family). Surface to human.
+The four mechanical stop states (State A synthesize / State C unresolved / budget exhausted / corpus boundary) are defined in `skills/model-agentic-search/SKILL.md` Block 5. The parent retains the judgment of:
 
-Do not loop indefinitely. Loop Safety (`skills/model-loop-safety/SKILL.md`) applies: same approach twice in dialogue context, three times in task context = stop and switch.
+- when to surface partial findings to human vs continue another round
+- whether the question is decomposable into a follow-up retrieval task instead of forcing more queries
+- whether to file a follow-up issue capturing what remains uncertain
 
-## Three Roles of the Judging AI
+### Naive single-shot defense
 
-The judging AI executes three judgments within one retrieval moment:
+Naive single-shot RAG consumption fails on corpus boundary, recognition bias, and aligned errors. The parent must not collapse the mechanical multi-angle protocol back into single-shot when result feels "good enough" too early — `skills/model-agentic-search/SKILL.md` Block 3 cross-check is the canonical gate, not the parent's intuition.
 
-1. cross-check evaluation — sufficient / insufficient / suspicious classification (Block 3)
-2. composite path selection — failure mode to composite axis mapping (Block 4)
-3. stop-time judgment — budget / corpus boundary / human escalation (Block 5)
+## Companion surface
 
-These judgments are character-prefixed dialogue surface when surfaced to human, internal reasoning when not.
+- `skills/model-agentic-search/SKILL.md` = mechanical retrieval core (auto-invoked at the trigger axis).
+- `skills/task-research-strategy/SKILL.md` = pre-retrieval governance (when to delegate, verification posture).
+- `skills/model-trigger-check-gate-actions/SKILL.md` retrieval tools table = question type to tool mapping at the 5-axis Gate moment.
 
-## Observation and Evolution
+## Observation and evolution
 
-Single environment cannot benchmark this skill against alternatives. Observation loop instead:
-- log failure cases (hit State C, escalation chosen, outcome) to `memory/feedback.md` or self-evaluation log when notable
-- side-by-side compare with naive single-shot consumption when retrospectively visible
-- feed observations into evolution loop observe stage (`skills/evolution-loop`)
-
-Promotion of recurring patterns to L1 / L2 spec follows `rules/evolution/promotion-judgment.md`.
+Log failure cases (State C hit, escalation chosen, outcome) to `memory/feedback.md` or self-evaluation log when notable. Promotion of recurring patterns follows `rules/evolution/promotion-judgment.md`.
 
 ## Mutability
 

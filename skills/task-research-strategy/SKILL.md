@@ -1,47 +1,40 @@
 ---
 name: task-research-strategy
-description: Invoke when investigating an issue or any research task; defines source priority (GitHub / RAG MCP / Web / model knowledge) and proactive parallel subagent research pattern.
+description: Invoke at the parent-AI side of a research task to govern subagent parallelism and verification posture. Mechanical source priority / cross-check / escalation now lives in `skills/model-agentic-search/SKILL.md`; this skill carries the surrounding governance (when to delegate, when to verify-first) the parent retains.
 layer: L3-task
 ---
 
 # Research Strategy
 
-## Autonomy
+## Position
 
-Information source types:
-  GitHub (issues, PRs, commits) = judgment log. Records who decided what, when, and why.
-  github-rag-mcp (when available) = semantic search over issues, PRs, releases, docs, and commit diffs. Use for discovery when target is unknown.
-  Web (docs, specs, search results) = primary information source.
-  Model knowledge = comparison baseline, not authority.
+Layer = L3 Task Layer
+Parent-AI governance over a research task. The mechanical retrieval core (source priority table, multi-angle gather, cross-check, composite escalation) has been encapsulated into `skills/model-agentic-search/SKILL.md` and is invoked auto by the dual-trigger axis on the model layer. This skill carries only the governance the parent AI retains when launching a research task.
 
-Model knowledge role:
-  Used as a comparison reference for cross-checking external retrieval results, not as an answer source.
-  Even stale internal knowledge functions as an anomaly detector: when retrieved external content disagrees with internal hypothesis, the disagreement is itself a signal.
-  Disagreement between model knowledge and retrieved external content fires the suspicious state in `task-retrieval-orchestration` Block 3.
+## Governance — parent-AI retained
 
-github-rag-mcp surfaces:
-  live .md surface = current snapshot of spec/docs. Query target = "how it is now".
-  commit diff surface (judgment-history) = time-series delta over commit diffs. Query target = "when it appeared or disappeared, why it changed". Covers deleted files and non-.md extensions as historical substance.
+### Verification-first
 
-Retrieval surface scope:
-live .md surface applies to current snapshot retrieval only.
-commit diff surface applies to judgment-history retrieval (time-series delta, deleted content, non-.md extensions) only.
-The two surfaces are complementary, not substitutable.
-Retrieval trigger design (which firing point queries which surface) is a separate design item outside this section.
+When uncertain, verify externally before proceeding.
+Correctness optimization outweighs speed optimization.
 
-Verification-first:
-  When uncertain, verify externally before proceeding.
-  Correctness optimization outweighs speed optimization.
+### Context preservation
 
-Context preservation:
-  Choose retrieval path that preserves main working context.
-  When subagent is available, proactively launch parallel subagents for research.
-  When subagent is unavailable, search directly.
-  Strategy is environment-independent; execution means vary.
+Choose retrieval path that preserves main working context.
+When subagent is available, proactively launch parallel subagents for research.
+When subagent is unavailable, search directly via `skills/model-agentic-search/SKILL.md`.
+Strategy is environment-independent; execution means vary.
 
-Proactive parallel research:
-  When investigating an issue:
-    Before forming judgment, launch parallel subagents to fetch related issues, PRs, and diffs.
-    Do not wait for human to request each retrieval step individually.
-  Subagent availability determines execution but not initiative.
-  Initiative is mandatory regardless of environment.
+### Proactive parallel research
+
+When investigating an issue:
+- Before forming judgment, launch parallel subagents to fetch related issues, PRs, and diffs.
+- Do not wait for human to request each retrieval step individually.
+
+Subagent availability determines execution but not initiative. Initiative is mandatory regardless of environment.
+
+## Companion surface
+
+- `skills/model-agentic-search/SKILL.md` = mechanical retrieval core (source priority, multi-angle gather, three-state cross-check, Tier 1-2 escalation). Auto-invoked at every confidence-low / time-variant-keyword moment.
+- `skills/task-retrieval-orchestration/SKILL.md` = consumption discipline (how to consume the retrieval result, stop conditions, budget gate).
+- `skills/task-subagent-delegation/SKILL.md` = delegation semantics (what to convey, what to retain).

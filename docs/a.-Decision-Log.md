@@ -47,7 +47,7 @@
 主な検索機会：
 - issue の forming → ready 移行時に前提を検証するとき
 - 新しい設計判断を行う前に、過去の類似判断を探すとき
-- `skills/task-research-strategy/SKILL.md` の Research Strategy に基づく情報収集の一環として
+- `skills/task-research-strategy/SKILL.md` の Research Strategy governance + `skills/model-agentic-search/SKILL.md` の探索 trigger 発火に基づく情報収集の一環として
 
 ---
 

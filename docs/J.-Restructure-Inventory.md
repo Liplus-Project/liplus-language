@@ -66,7 +66,8 @@ sub-issue #1280 「substrate ファイル」表を再確認した結果。本 in
 | `skills/model-pair-review/SKILL.md` | task_type == structural_change で review loop 4-phase 起動 | **real-skill** | 現状維持 | (対応 rule なし) | rule 対なし。独立発火 (structural_change 検知) |
 | `skills/model-requirement-deepening/SKILL.md` | reversibility/impact/confidence 軸での deepen 判定 | **real-skill** | 現状維持 | (対応 rule なし) | rule 対なし。独立発火 (判断形成直前) |
 | `skills/model-review-output-partition/SKILL.md` | review 出力の now/later/accepted 三分類 | **real-skill** | 現状維持 | (対応 rule なし) | rule 対なし。独立発火 (review 出力生成時) |
-| `skills/model-web-search-judgment/SKILL.md` | 外部検索 vs 内部知識の判定基準 (time-variant facts = search) | **real-skill** | 現状維持 | (対応 rule なし) | rule 対なし。独立発火 (検索判定時) |
+| `skills/model-web-search-judgment/SKILL.md` | Web 側消費規律 (citation handling + model-knowledge baseline reminder) | **real-skill** | 縮小済 (#1220) | (対応 rule なし) | 機械的「探索 vs 内部知識」判定は `skills/model-agentic-search/SKILL.md` に移管。本 skill は Web 側消費規律のみ残置 |
+| `skills/model-agentic-search/SKILL.md` | broad 探索軸 (Web / RAG / gh / Read / memory) の機械的 core: calibration + category OR trigger / multi-angle / 三状態 cross-check / Tier 1-2 escalation | **real-skill** | 新設 (#1220) | (対応 rule なし) | 独立発火 (calibration 低い瞬間 OR 時変キーワード入力)。#1217 phase 3 結実物 |
 
 L1 Model skills 集計: fake-skill **3 件** (合流対象) / real-skill **8 件** (現状維持) / 合計 12 件。
 
@@ -112,8 +113,8 @@ L2 Evolution 集計: substrate **1 件** (evolution.md) / skill 候補 (rules→
 |---|---|---|---|---|---|
 | `skills/task-deletion-impact/SKILL.md` | 削除前の blast-radius 評価 (break scope × recovery cost) | **real-skill** | 現状維持 | — | 独立発火 (artifact 削除直前) |
 | `skills/task-pr-review-judgment/SKILL.md` | PR review 結果 (auto: self-review / trigger: APPROVED/CHANGES_REQUESTED) 判定 | **real-skill** | 現状維持 | — | 独立発火 (PR review 結果受領時) |
-| `skills/task-research-strategy/SKILL.md` | 調査タスクの source priority (GitHub/RAG/Web/model) | **real-skill** | 現状維持 | — | 独立発火 (調査開始時) |
-| `skills/task-retrieval-orchestration/SKILL.md` | 単一 retrieval moment 内の multi-angle gather + cross-check + composite escalation | **real-skill** | 現状維持 | — | 独立発火 (retrieval 実行時)。task-research-strategy と相補 (戦略 vs 実行) |
+| `skills/task-research-strategy/SKILL.md` | 親 AI 側 governance (subagent parallelism / verification-first / context preservation) | **real-skill** | 縮小済 (#1220) | — | source priority + multi-angle 等の機械的部分は `skills/model-agentic-search/SKILL.md` に移管。本 skill は parent retain 部分のみ残置 |
+| `skills/task-retrieval-orchestration/SKILL.md` | 親 AI 側消費規律 (budget gate / 停止判断 / naive single-shot defense) | **real-skill** | 縮小済 (#1220) | — | 機械的 multi-angle / 三状態 / Tier 1-2 escalation は `skills/model-agentic-search/SKILL.md` に移管。本 skill は parent retain 部分のみ残置 |
 | `skills/task-subagent-delegation/SKILL.md` | subagent への delegation 内容 + parent retain + mode-specific 注入 | **real-skill** | 現状維持 | — | 独立発火 (subagent delegation 時) |
 
 L3 Task 集計: substrate **1 件** / 既存 real-skill **5 件** / 合計 6 件。skill 移動候補なし、fake-skill なし。
@@ -187,8 +188,8 @@ literal Read 中に検出した重複 / 近接ペア:
 
 1. **`rules/model/loop-safety.md` ↔ `rules/model/prohibited-loops.md`** — 発火モーメントが近接 (どちらも「同パターン反復検知の瞬間」)。`prohibited-loops` は loop の種類列挙 (persuasion/emotional/over-optimization/justification) のみで、`loop-safety` の閾値 (conversation 2回 / task 3回) + STOP AND SWITCH 機構と直交的に補完関係。sub-issue 4 で統合 (`skills/model-loop-safety/` に prohibited 種類リスト統合) を推奨。
 2. **`rules/model/output-density.md` ↔ `rules/model/one-step-two-step.md`** — `one-step-two-step` の唯一の宣言「One-step and two-step responses remain valid when sufficient」は `output-density` の「Objective is precision, not completeness」の派生宣言として吸収可能。sub-issue #1280 でも `one-step-two-step` 削除候補と分類。
-3. **`skills/task-research-strategy/SKILL.md` ↔ `skills/task-retrieval-orchestration/SKILL.md`** — 「source priority / 戦略レベル」と「単一 retrieval moment 内 multi-angle」で発火が異なるが、retrieval-orchestration 側で軸分離が明記されている (Block 0 相当の Position 節)。重複ではなく相補。現状維持。
-4. **`skills/model-trigger-check-gate-actions/SKILL.md` の retrieval tools 表 ↔ `skills/task-retrieval-orchestration/SKILL.md` Block 1 表** — 両者に「question type → tool 対応表」がある。前者は単一 gate moment の retrieval mapping、後者は単一 retrieval moment 内の question type 分類で、軸分離は明記されているものの表内容に部分重複。sub-issue 4 で参照統一を検討。
+3. **`skills/task-research-strategy/SKILL.md` ↔ `skills/task-retrieval-orchestration/SKILL.md` ↔ `skills/model-agentic-search/SKILL.md`** — #1220 で機械的 core を `model-agentic-search` に encapsulate 済。 task-research-strategy = pre-retrieval governance (subagent parallelism / verification-first)、 task-retrieval-orchestration = post-retrieval consumption discipline (budget / stop)、 model-agentic-search = 機械的 core (calibration + category trigger / multi-angle / 三状態 / Tier 1-2)。 三者の軸分離は SKILL.md 冒頭 Position 節で明示。
+4. **`skills/model-trigger-check-gate-actions/SKILL.md` の retrieval tools 表 ↔ `skills/model-agentic-search/SKILL.md` Block 1 表** — 両者に「question type → tool 対応表」がある。前者は単一 gate moment の retrieval mapping、後者は単一 retrieval moment 内の question type 分類で、軸分離は明記されているものの表内容に部分重複。 #1220 完了後も残る課題として後続 sub-issue で参照統一を検討。
 5. **`rules/evolution/memory-entry-format.md` 内の `Announce vs execute` 節** — adapter `Memory_Write_Autonomy` と内容重複あり (immediate-execution 不変則)。前者は memory write の振舞いとして memory rule に書かれ、後者は adapter として CLAUDE.md/AGENTS.md に書かれている。sub-issue 4 で `Announce vs execute` を skill 側に移すか、参照に簡約するか検討。
 6. **`rules/operations/operations.md` の Operations Label 節 ↔ `rules/task/task.md` Task Label Definitions** — label vocabulary が両方に分散している (前者: marker / 同期注記、後者: lifecycle / maturity / type / marker)。operations.md 末尾「Sync」節が「label set changes here, update rules/task/task.md to match」と明記しており、設計意図は二重保持。sub-issue 4 で single-source 化を検討候補。
 

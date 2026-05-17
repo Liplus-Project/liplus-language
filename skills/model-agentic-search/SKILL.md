@@ -1,6 +1,6 @@
 ---
 name: model-agentic-search
-description: ALWAYS invoke before answering when (a) the agent's internal confidence calibration on the claim is low / fuzzy / mixed with speculation, OR (b) the input contains time-variant keywords ("latest" / "recent" / "current" / "now" / "最新" / "最近" / "今"). Encapsulates source priority (GitHub / RAG / Web / memory / Read), multi-angle parallel retrieve, three-state cross-check (sufficient / insufficient / suspicious), and Tier 1-2 composite escalation. Do not answer from internalized knowledge directly under either condition; internal knowledge is the comparison baseline only, never the answer source under these triggers.
+description: ALWAYS invoke before answering when (a) the agent's internal confidence calibration on the claim is low / fuzzy / mixed with speculation, OR (b) the input contains time-variant keywords ("latest" / "recent" / "current" / "now" / "最新" / "最近" / "今"). Internal knowledge is the comparison baseline only under these triggers, never the answer source.
 layer: L1-model
 ---
 

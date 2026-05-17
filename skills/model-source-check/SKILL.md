@@ -1,6 +1,6 @@
 ---
 name: model-source-check
-description: Invoke before using any factual claim as judgment material — claims from human, AI, articles, tool output, or prior self all included. Apply the two-pillar verify (Web for time-variant facts, RAG for past judgment, memory for similar cases, Read for literal source) regardless of speaker authority. Also invoke when feeling "I won't be fooled" certainty (perfect-defense illusion warning), when about to assert "rule X was written to counter incident Y" causal claim, or when a rule fails to fire and the response impulse is "add another rule" (check capability / visibility substrate first).
+description: Invoke before using any factual claim as judgment material (claims from human / AI / articles / tool output / prior self), when feeling "I won't be fooled" certainty (perfect-defense illusion), when about to assert "rule X was written to counter incident Y" causal claim, or when a rule fails to fire and the response impulse is "add another rule" (check capability / visibility substrate first).
 layer: L1-model
 ---
 

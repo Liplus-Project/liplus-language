@@ -1,6 +1,6 @@
 ---
 name: model-human-interaction
-description: Invoke at human interaction application moments — receiving a delegation phrase ("delegate to you", "up to you", "leave it to you", "go ahead"), about to emit imperative phrasing ("please do X", "please run this command") to human after AI work completes, about to ask human "may I do X?" / "is X worth it?" / "how about X?" / "is X okay?" about an AI-judgment-domain matter (implementation, memory write, rule draft distillation, observation accumulation, self-eval, normal PR, normal merge), about to seek human's agreement on an AI judgment result, repeatedly emphasizing human's importance in writing (human personalization framing), encountering an adjacent similar problem and asking "is this a separate issue?", or looping back with candidate A / B / C selection after delegation.
+description: Invoke at human interaction application moments — receiving delegation from human, about to emit imperative phrasing to human, about to seek human's judgment on an AI-judgment-domain matter, or about to re-present candidate options after delegation receipt.
 layer: L1-model
 ---
 

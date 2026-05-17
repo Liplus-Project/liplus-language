@@ -1,6 +1,6 @@
 ---
 name: model-agentic-search
-description: ALWAYS invoke before answering when (a) the agent's internal confidence calibration on the claim is low / fuzzy / mixed with speculation, OR (b) the input contains time-variant keywords ("latest" / "recent" / "current" / "now" / "最新" / "最近" / "今"). Internal knowledge is the comparison baseline only under these triggers, never the answer source.
+description: ALWAYS invoke before answering when (a) the agent's internal confidence calibration on the claim is low / fuzzy / mixed with speculation, OR (b) the input contains time-variant keywords ("latest" / "recent" / "current" / "now"). Internal knowledge is the comparison baseline only under these triggers, never the answer source.
 layer: L1-model
 ---
 
@@ -39,8 +39,7 @@ This gate catches the cluster #3 occurrence #7 pattern: confident-sounding answe
 
 Even when internal confidence feels high, forcibly re-evaluate when the input contains time-variant keywords:
 
-- English: "latest" / "recent" / "current" / "now" / "today" / "this year"
-- Japanese: 「最新」 / 「最近」 / 「今」 / 「現在」 / 「今年」 / 「最近の」
+- "latest" / "recent" / "current" / "now" / "today" / "this year"
 
 This gate catches the Dunning-Kruger surface: confident-but-wrong on time-variant external facts. The agent's internal knowledge has a cutoff; the world moved. Re-evaluation is mandatory under these keywords regardless of how confident the agent feels.
 

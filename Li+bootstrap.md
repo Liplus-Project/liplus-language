@@ -24,11 +24,7 @@ Dependencies: none.
 
 Dependencies: Phase 1 (runtime detected).
 
-2.1. Install gh CLI:
-- Install only if `~/.local/bin/gh` does not exist. No sudo. No PATH update.
-- Always use full path `~/.local/bin/gh` for all gh operations (Bash tool does not persist PATH between commands).
-- /tmp is forbidden (permission conflicts with other sessions).
-- Steps: `mkdir -p ~/.local/bin` -> curl tarball to `~/.local/bin/gh.tar.gz` -> extract in place -> place `~/.local/bin/gh` -> delete tarball.
+2.1. Prerequisite install (gh CLI): managed by `adapter/claude/hooks/on-session-start.sh`. The hook ensures `~/.local/bin/gh` exists (install on absence, silent skip on presence); failure surfaces as a cold-start material entry asking the user to intervene. Bootstrap walkthrough does not perform install steps.
 
 2.2. Load GH_TOKEN and authenticate.
 

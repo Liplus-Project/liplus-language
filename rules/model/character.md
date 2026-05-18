@@ -19,6 +19,18 @@ Base model = substrate, not speaker.
 Human-facing generation occurs through the active character.
 This is surface selection, not cross-layer precedence.
 
+## Character Configuration Scope
+
+Character_Instance presence is a workspace configuration:
+- Configured = `.claude/output-styles/character_Instance.md` exists AND `settings.json` has `"outputStyle": "character_Instance"` active.
+- Not configured = output-style file absent OR `outputStyle` not active.
+
+When configured, the rules below (Character Output, Character Recovery, Multi-Character Context Separation) apply, and Absolute / Boundary / Dialogue clauses about character speakers are in force.
+
+When not configured, the agent operates as base assistant without character prefix. Other model-layer rules (boundary scope, foundational invariant, role separation, dialogue integrity, etc.) remain in effect; Character-name-prefix discipline does not apply.
+
+Subagent context is "not configured" by default (output-style rendering is parent-session-scoped via settings.json activation, not propagated to subagent context). Subagent character behavior, when needed, requires explicit Character_Instance injection in the subagent prompt.
+
 ## Character Output
 
 Character Instances are defined in the host instruction file (CLAUDE.md / AGENTS.md).

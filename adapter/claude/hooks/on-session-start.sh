@@ -30,9 +30,53 @@ COLDSTART_MD="$LIPLUS_DIR/rules/evolution/cold-start-synthesis.md"
 DECISION_LOG="$LIPLUS_DIR/docs/a.-Decision-Log.md"
 STATE_DIR="$PROJECT_ROOT/.claude/state"
 STATE_FILE="$STATE_DIR/last-cold-start-emit.json"
+ADAPTER_FILE="$PROJECT_ROOT/.claude/CLAUDE.md"
+CONFIG_FILE="$PROJECT_ROOT/Li+config.md"
 
-# Guard: if liplus-language source is not resolved yet (e.g. pre-bootstrap), exit silently.
-[ -d "$LIPLUS_DIR" ] || exit 0
+# ===================================================================
+# Prerequisite install: gh CLI
+# ===================================================================
+# Relocated from Li+bootstrap.md Phase 2.1. The hook ensures `~/.local/bin/gh`
+# exists so the bootstrap walkthrough does not have to spell out install steps
+# every session. Install is performed only when the binary is absent; presence
+# is a silent skip. Failure does NOT abort the hook — it is surfaced as a
+# cold-start material entry so the AI can ask the user to intervene.
+GH_INSTALL_STATUS=""
+if ! command -v "$HOME/.local/bin/gh" >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/gh" ]; then
+  GH_INSTALL_LOG=$(mktemp 2>/dev/null || echo "/tmp/liplus-gh-install-$$.log")
+  {
+    set -e
+    mkdir -p "$HOME/.local/bin"
+    GH_VERSION="2.62.0"
+    GH_ARCH="linux_amd64"
+    GH_URL="https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_${GH_ARCH}.tar.gz"
+    GH_TARBALL="$HOME/.local/bin/gh.tar.gz"
+    GH_EXTRACT_DIR="$HOME/.local/bin/_gh_extract"
+    mkdir -p "$GH_EXTRACT_DIR"
+    curl -fsSL -o "$GH_TARBALL" "$GH_URL"
+    tar -xzf "$GH_TARBALL" -C "$GH_EXTRACT_DIR" --strip-components=1
+    mv "$GH_EXTRACT_DIR/bin/gh" "$HOME/.local/bin/gh"
+    chmod +x "$HOME/.local/bin/gh"
+    rm -rf "$GH_EXTRACT_DIR" "$GH_TARBALL"
+  } > "$GH_INSTALL_LOG" 2>&1
+  if [ -x "$HOME/.local/bin/gh" ]; then
+    GH_INSTALL_STATUS="installed"
+  else
+    GH_INSTALL_STATUS="failed: $(tail -n 3 "$GH_INSTALL_LOG" 2>/dev/null | tr '\n' ' ')"
+  fi
+  rm -f "$GH_INSTALL_LOG" 2>/dev/null || true
+fi
+
+# Guard: if liplus-language source is not resolved yet (e.g. pre-bootstrap), exit silently
+# AFTER emitting the gh install failure marker if applicable.
+if [ ! -d "$LIPLUS_DIR" ]; then
+  if [ "${GH_INSTALL_STATUS#failed}" != "$GH_INSTALL_STATUS" ]; then
+    printf '━━━ gh install ━━━\n%s\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' \
+      "Prerequisite install failed. Master intervention required." \
+      "Detail: $GH_INSTALL_STATUS"
+  fi
+  exit 0
+fi
 
 # --- matcher resolution ---
 # Claude Code passes the SessionStart payload as JSON on stdin. We read it once
@@ -60,6 +104,112 @@ if [ -n "$HOOK_INPUT" ]; then
       MATCHER="$EXTRACTED"
       ;;
   esac
+fi
+
+# ===================================================================
+# Bootstrap sentinel-skip verification
+# ===================================================================
+# Issue #1309: avoid Li+config + Li+bootstrap walkthrough on every session.
+# 99% of sessions have no tag change, no schema change, and all config values
+# resolved — verification only, no actual changes. The walkthrough costs ~4%
+# context (10% with Li+config execution vs 6% without). The hook performs the
+# three verifications and emits a single-line bootstrap status marker the AI
+# parses to decide whether to read Li+config + Li+bootstrap at all.
+#
+# Three axes (ALL must pass for "unnecessary"):
+#   1. adapter sentinel tag in .claude/CLAUDE.md == current LI_PLUS_REPO target tag (per LI_PLUS_CHANNEL)
+#   2. Li+config.md schema canonical (no legacy keys present)
+#   3. LI_PLUS_BASE_LANGUAGE and LI_PLUS_PROJECT_LANGUAGE resolved (non-comment, non-empty)
+#
+# Marker format (machine/AI-parseable, single line + optional reason):
+#   LI_PLUS_BOOTSTRAP_STATUS=unnecessary     -> AI skips Li+config + Li+bootstrap reads
+#   LI_PLUS_BOOTSTRAP_STATUS=needed reason=<one or more axes>  -> AI runs normal bootstrap path
+#
+# AI-side contract: see adapter/claude/CLAUDE.md "Execute the following at
+# startup" block. Master's literal phrase "Li+configを実行" / "Li+config を実行"
+# bypasses the marker and forces the full walkthrough; that override is
+# AI-side, not hook-side.
+BOOTSTRAP_STATUS="needed"
+BOOTSTRAP_REASONS=()
+
+# --- axis 1: adapter sentinel tag vs current target tag ---
+ADAPTER_TAG=""
+if [ -f "$ADAPTER_FILE" ]; then
+  ADAPTER_TAG=$(sed -n 's/^# --- Li+ BEGIN (\([^)]*\)) ---.*/\1/p' "$ADAPTER_FILE" | head -n 1)
+fi
+
+# Resolve LI_PLUS_CHANNEL from config (default = release, matches Li+bootstrap.md Phase 3.1).
+LI_PLUS_CHANNEL_VAL=""
+if [ -f "$CONFIG_FILE" ]; then
+  LI_PLUS_CHANNEL_VAL=$(sed -n 's/^[[:space:]]*LI_PLUS_CHANNEL[[:space:]]*=[[:space:]]*\(.*\)$/\1/p' "$CONFIG_FILE" | head -n 1 | tr -d '\r')
+fi
+[ -n "$LI_PLUS_CHANNEL_VAL" ] || LI_PLUS_CHANNEL_VAL="release"
+
+# Resolve target tag by channel (best-effort; failure forces "needed").
+TARGET_TAG=""
+case "$LI_PLUS_CHANNEL_VAL" in
+  latest)
+    TARGET_TAG=$(gh release view --repo Liplus-Project/liplus-language --json tagName --jq '.tagName' 2>/dev/null)
+    ;;
+  release)
+    TARGET_TAG=$(gh release list --repo Liplus-Project/liplus-language --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null)
+    ;;
+  tag)
+    TARGET_TAG=$(git -C "$LIPLUS_DIR" ls-remote --tags --sort=-creatordate origin 2>/dev/null \
+      | awk -F'refs/tags/' 'NF==2 {print $2}' | sed 's/\^{}$//' | head -n 1)
+    if [ -z "$TARGET_TAG" ]; then
+      TARGET_TAG=$(git -C "$LIPLUS_DIR" tag --sort=-creatordate 2>/dev/null | head -n 1)
+    fi
+    ;;
+esac
+
+if [ -z "$ADAPTER_TAG" ] || [ -z "$TARGET_TAG" ] || [ "$ADAPTER_TAG" != "$TARGET_TAG" ]; then
+  BOOTSTRAP_REASONS+=("sentinel-tag(adapter=${ADAPTER_TAG:-unknown},target=${TARGET_TAG:-unknown})")
+fi
+
+# --- axis 2: Li+config.md schema canonical (no legacy keys) ---
+LEGACY_HIT=""
+if [ -f "$CONFIG_FILE" ]; then
+  # Match active (non-comment) lines containing any legacy key form.
+  LEGACY_HIT=$(grep -E '^[[:space:]]*(LI_PLUS_REPOSITORY|USER_REPOSITORY|USER_REPOSITORY_EXECUTION_MODE)[[:space:]]*=|^[[:space:]]*[^#[:space:]][^=]*_EXECUTION_MODE[[:space:]]*=' "$CONFIG_FILE" 2>/dev/null | head -n 3)
+fi
+if [ -n "$LEGACY_HIT" ]; then
+  BOOTSTRAP_REASONS+=("legacy-schema-keys-present")
+fi
+
+# --- axis 3: language contract resolved ---
+BASE_LANG=""
+PROJ_LANG=""
+if [ -f "$CONFIG_FILE" ]; then
+  BASE_LANG=$(sed -n 's/^[[:space:]]*LI_PLUS_BASE_LANGUAGE[[:space:]]*=[[:space:]]*\(.*\)$/\1/p' "$CONFIG_FILE" | head -n 1 | tr -d '\r' | sed 's/[[:space:]]*$//')
+  PROJ_LANG=$(sed -n 's/^[[:space:]]*LI_PLUS_PROJECT_LANGUAGE[[:space:]]*=[[:space:]]*\(.*\)$/\1/p' "$CONFIG_FILE" | head -n 1 | tr -d '\r' | sed 's/[[:space:]]*$//')
+fi
+if [ -z "$BASE_LANG" ] || [ -z "$PROJ_LANG" ]; then
+  BOOTSTRAP_REASONS+=("language-contract-unresolved(base=${BASE_LANG:-unset},project=${PROJ_LANG:-unset})")
+fi
+
+# --- emit bootstrap status marker ---
+# Always emit first, before any cold-start material, so AI parses it before
+# deciding whether to read Li+config.md and Li+bootstrap.md.
+if [ "${#BOOTSTRAP_REASONS[@]}" -eq 0 ]; then
+  BOOTSTRAP_STATUS="unnecessary"
+  printf '━━━ Li+ bootstrap status ━━━\n'
+  printf 'LI_PLUS_BOOTSTRAP_STATUS=unnecessary tag=%s channel=%s\n' "$TARGET_TAG" "$LI_PLUS_CHANNEL_VAL"
+  printf 'Sentinel-skip applies: AI must NOT read Li+config.md or Li+bootstrap.md this session.\n'
+  printf 'Override: Master input containing "Li+configを実行" / "Li+config を実行" forces the full walkthrough.\n'
+  printf '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
+else
+  REASON_STR=$(printf '%s,' "${BOOTSTRAP_REASONS[@]}")
+  REASON_STR="${REASON_STR%,}"
+  printf '━━━ Li+ bootstrap status ━━━\n'
+  printf 'LI_PLUS_BOOTSTRAP_STATUS=needed reason=%s\n' "$REASON_STR"
+  printf 'AI must read Li+config.md and execute Li+bootstrap.md walkthrough this session.\n'
+  printf '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
+fi
+
+# Emit gh install status marker after bootstrap status (only when install was attempted).
+if [ -n "$GH_INSTALL_STATUS" ]; then
+  printf '━━━ gh install ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' "GH_INSTALL_STATUS=$GH_INSTALL_STATUS"
 fi
 
 # --- sha256 helper (portable: prefers sha256sum, falls back to shasum -a 256) ---

@@ -18,7 +18,11 @@ Concept framing (Sheepdog Engineering, provisional):
 - This framing is provisional; CLAUDE.md restructure is anticipated.
 
 Execute the following at startup (never output credentials to chat):
-1. Read Li+config.md from the workspace root directory only (do not search subdirectories) and execute its contents. (Ask the user for confirmation if needed during execution)
+1. Inspect the `LI_PLUS_BOOTSTRAP_STATUS=` marker emitted by `on-session-start.sh` (delimited by `━━━ Li+ bootstrap status ━━━` banner) in the session-opening context.
+   - `LI_PLUS_BOOTSTRAP_STATUS=unnecessary` -> skip step 2 entirely. Do NOT read Li+config.md or Li+bootstrap.md this session. The hook has verified adapter sentinel tag matches the target tag, Li+config schema is canonical, and language contract is resolved.
+   - `LI_PLUS_BOOTSTRAP_STATUS=needed` (or marker absent) -> proceed to step 2.
+   - Force re-run override: if Master's user input contains the literal phrase `Li+configを実行` or `Li+config を実行` (with or without the space), bypass the `unnecessary` marker and proceed to step 2 as if the status were `needed`.
+2. Read Li+config.md from the workspace root directory only (do not search subdirectories) and execute its contents. (Ask the user for confirmation if needed during execution)
 
 #######################################################
 Rules

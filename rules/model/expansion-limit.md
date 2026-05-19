@@ -1,16 +1,7 @@
----
-name: model-expansion-limit
-description: Invoke when output expansion is about to exceed three conceptual steps per human input, or when about to write unsolicited architectural redesign / future roadmap / optimization proposals.
-layer: L1-model
----
-
 # Expansion Limit
-
-## Position
 
 Layer = L1 Model Layer
 Caps the conceptual-step count of human-facing output per single human input. Applies to the output surface only; internal proactive gather follows `rules/model/rule-policy.md` and is unbounded by this limit.
-Requires = `rules/model/rule-policy.md` (proactive gather scope), `skills/model-output-density/SKILL.md` (precision over completeness)
 
 ## Invariant
 
@@ -46,3 +37,8 @@ Internal proactive gather follows Rule Policy, not this limit.
 - About to enumerate optimization candidates after solving the asked question.
 - Output reaches 4+ conceptual steps and none of them are automation / API operations.
 - "While we're at it, also..." surfacing in human-facing text.
+
+## Mutability
+
+rebuild allowed, deletion allowed, optimization allowed.
+Structure must remain coherent.

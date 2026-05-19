@@ -18,7 +18,7 @@
 
 | 課題 | 対応する装具 / 仕組み |
 |------|-----------------------|
-| 先走り | rules (制約装具)、human 判断 gate (`rules/operations/execution-mode.md`)、Expansion Limit (`skills/model-expansion-limit/SKILL.md`) |
+| 先走り | rules (制約装具)、human 判断 gate (`rules/operations/execution-mode.md`)、Expansion Limit (`rules/model/expansion-limit.md`) |
 | 知ったか番長 | rules + skills (literal 検証 trigger、`rules/model/trigger-check-gate.md`)、Source check protocol |
 | マルチ AI 再現性欠如 | rules (規範共有) + adapter layer (Claude / Codex 共通 spec literal)、Character_Instance による出力 attribution 統一 |
 

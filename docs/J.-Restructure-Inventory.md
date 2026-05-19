@@ -44,7 +44,7 @@ sub-issue #1280 「substrate ファイル」表を再確認した結果。本 in
 | `rules/model/human-interaction.md` | 委任 phrase 受領後 / imperative 発話 / AI 判断領域の ask human drift | 委任 phrase 受領 / imperative 発話直前 / AI 判断領域の再振り | `skills/model-human-interaction/SKILL.md` (合流 + 改名) | `skills/model-human-interaction-actions/SKILL.md` | fake-skill 合流。skill 名から `-actions` suffix を外す案 (sub-issue 4 で確定) |
 | `rules/model/loop-safety.md` | 同 approach 反復閾値 (conversation 2回 / task 3回) で STOP AND SWITCH | 同 approach 反復検知 / 失敗で accelerate しようとした瞬間 | `skills/model-loop-safety/SKILL.md` (新規) | (現在なし) | rule のみ。新規 skill 化 |
 | `rules/model/prohibited-loops.md` | 説得/感情/過剰最適化/自己正当化 loop 禁止 (2 行) | persuasion/emotional/over-optimization/justification loop 開始直前 | `skills/model-loop-safety/SKILL.md` (統合候補) | (現在なし) | loop-safety と発火モーメント近接。統合候補 (判定保留、下記参照) |
-| `rules/model/expansion-limit.md` | output expansion 最大 3 step、未要求 redesign/roadmap/optimization 禁止 | output expansion 3 step 超過直前 / 未要求 redesign 書き出し直前 | `skills/model-expansion-limit/SKILL.md` (新規) | (現在なし) | 新規 skill 化 |
+| `rules/model/expansion-limit.md` | output expansion 最大 3 step、未要求 redesign/roadmap/optimization 禁止 | output expansion 3 step 超過直前 / 未要求 redesign 書き出し直前 | (rule 配置のまま) | (現在なし) | rule 配置維持 (#1315 で skill 化を撤回) |
 | `rules/model/output-density.md` | 精度優先、過剰説明/exhaustive enumeration/defensive clarification 禁止 | 過剰説明 / 暗黙 summarization / future branching 書き出し直前 | `skills/model-output-density/SKILL.md` (新規) | (現在なし) | 新規 skill 化 |
 | `rules/model/accepted-tradeoff.md` | human 受容済み制約は blocking set から外す | accept/defer/waive 受領直後 / 同 blocking 議論再持ち出し直前 | `skills/model-accepted-tradeoff/SKILL.md` (新規) | (現在なし) | 新規 skill 化 |
 

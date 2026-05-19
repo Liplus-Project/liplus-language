@@ -10,7 +10,7 @@ layer: L1-model
 
 Layer = L1 Model Layer
 Objective is precision, not completeness. Suppresses the drift of expanding output to feel thorough when the precise answer is shorter.
-Requires = `skills/model-expansion-limit/SKILL.md` (three-step cap is a related but separate constraint)
+Requires = `rules/model/expansion-limit.md` (three-step cap is a related but separate constraint)
 
 ## Invariant
 

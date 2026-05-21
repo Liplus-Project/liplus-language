@@ -27,7 +27,7 @@ export PATH="$HOME/.local/bin:$PATH"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
 COLDSTART_MD="$LIPLUS_DIR/rules/evolution/cold-start-synthesis.md"
-DECISION_LOG="$LIPLUS_DIR/docs/Decision-Log.md"
+DECISION_STRUCTURE="$LIPLUS_DIR/docs/Decision-Structure.md"
 STATE_DIR="$PROJECT_ROOT/.claude/state"
 STATE_FILE="$STATE_DIR/last-cold-start-emit.json"
 ADAPTER_FILE="$PROJECT_ROOT/.claude/CLAUDE.md"
@@ -258,12 +258,12 @@ if [ -f "$COLDSTART_MD" ]; then
   COLDSTART_LITERAL=$(awk '/^---$/{n++; next} n>=2' "$COLDSTART_MD" | sed '1{/^# /d;}' | sed '/./,$!d')
 fi
 
-# --- recent decision log index entries (head of file = index) ---
+# --- recent decision structure index entries (head of file = index) ---
 DECISION_HEAD=""
-if [ -f "$DECISION_LOG" ]; then
-  DECISION_HEAD=$(head -n 20 "$DECISION_LOG")
+if [ -f "$DECISION_STRUCTURE" ]; then
+  DECISION_HEAD=$(head -n 20 "$DECISION_STRUCTURE")
 fi
-register_section "decision_log_head" "Decision log index (docs/Decision-Log.md head)" "$DECISION_HEAD"
+register_section "decision_structure_head" "Decision structure index (docs/Decision-Structure.md head)" "$DECISION_HEAD"
 
 # --- most recent release tag (includes prereleases) ---
 LATEST_RELEASE=$(gh release list -R Liplus-Project/liplus-language --limit 3 2>/dev/null \

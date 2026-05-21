@@ -31,7 +31,7 @@ Persistent information has 4 promotion destinations:
 
 - **Li+ canonical rules (`rules/` / `skills/`)** = generic / structural, always-load value
 - **`docs/`** = project-level judgment / specification
-- **wiki (under `docs/Decision-Log.md` index, kebab-case `<topic>.md`)** = judgment record
+- **wiki (under `docs/Decision-Structure.md` index, kebab-case `<topic>.md`)** = judgment record (Decision Structure: state-form entries + supersede/depend/conflict edges)
 - **deletion** = withdrawn / obsolete / already promoted into Li+
 
 ## Trigger point

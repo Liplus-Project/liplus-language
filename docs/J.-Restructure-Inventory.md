@@ -89,8 +89,8 @@ L1 Model skills 集計: fake-skill **3 件** (合流対象) / real-skill **8 件
 | path | 現 1 行要約 | 現分類 | 目標分類 | 合流先 | 備考 |
 |---|---|---|---|---|---|
 | `skills/evaluation-self/SKILL.md` | 二軸自己評価 (dialogue quality / Li+ compliance) + 10 観測軸 | **real-skill** | 現状維持 | (対応 rule なし) | 独立発火 (self-eval 記録時)。rule 対なし |
-| `skills/evolution-decision-log-write/SKILL.md` | 判断成立直後の Decision Log Wiki エントリ自律追記 | **real-skill** | 現状維持 | — | 独立発火 (判断成立直後)。writer-side surface |
-| `skills/evolution-judgment-learning/SKILL.md` | 新判断形成前の過去判断 RAG 検索 | **real-skill** | 現状維持 | — | 独立発火 (判断形成直前)。reader-side surface。decision-log-write と reader/writer ペア |
+| `skills/evolution-decision-structure-write/SKILL.md` | 判断成立直後の Decision Structure Wiki エントリ自律追記 (state-form + supersede/depend/conflict edges) | **real-skill** | 現状維持 | — | 独立発火 (判断成立直後)。writer-side surface |
+| `skills/evolution-judgment-learning/SKILL.md` | 新判断形成前の過去判断 graph RAG 検索 | **real-skill** | 現状維持 | — | 独立発火 (判断形成直前)。reader-side surface。decision-structure-write と reader/writer ペア |
 | `skills/evolution-l1-update-gating/SKILL.md` | L1 Model layer change 提案時の long-horizon observation gate | **real-skill** | 現状維持 | — | 独立発火 (L1 update 提案時) |
 | `skills/evolution-loop/SKILL.md` | evolution loop stage (observe/evaluate/distill/reflect/improve/re-observe) 実行 | **real-skill** | 現状維持 | — | 独立発火 (各 stage 実行時)。`rules/evolution/evolution.md` substrate の application を補完 |
 | `skills/evolution-persistence-tiering/SKILL.md` | memory ↔ docs 二項仕分け + 永続情報 4-way axis | **real-skill** | 現状維持 | — | 独立発火 (write 先決定時) |
@@ -166,8 +166,8 @@ L6 Adapter は `adapter/claude/CLAUDE.md` / `adapter/codex/AGENTS.md` / `adapter
 
 | path | layer | 現 1 行要約 | 現分類 | 目標分類 | 合流先/改名先 | 備考 |
 |---|---|---|---|---|---|---|
-| `adapter/claude/CLAUDE.md` | L6 | Claude Code adapter entry: load 順 + Character_Instance wiring + Workspace_Language_Contract + Subagent_Delegation + Memory_Write_Autonomy + Decision_Log_Write_Autonomy + Webhook Notification Flow | **substrate (host adapter 系)** | substrate 留置 | — | host runtime にとっての常時 load entrypoint。host 別 (Claude/Codex) の wiring は本 refactor の対象外 |
-| `adapter/codex/AGENTS.md` | L6 | Codex adapter entry: load 順 + Character_Instance literal + Trigger-based skill reads 索引 + Workspace_Language_Contract + Memory_Write_Autonomy + Decision_Log_Write_Autonomy | **substrate (host adapter 系)** | substrate 留置 | — | Codex 側 host adapter。auto-invocation 不在のため Trigger-based skill reads 索引を内包 (Claude 側と差異) |
+| `adapter/claude/CLAUDE.md` | L6 | Claude Code adapter entry: load 順 + Character_Instance wiring + Workspace_Language_Contract + Subagent_Delegation + Memory_Write_Autonomy + Decision_Structure_Write_Autonomy + Webhook Notification Flow | **substrate (host adapter 系)** | substrate 留置 | — | host runtime にとっての常時 load entrypoint。host 別 (Claude/Codex) の wiring は本 refactor の対象外 |
+| `adapter/codex/AGENTS.md` | L6 | Codex adapter entry: load 順 + Character_Instance literal + Trigger-based skill reads 索引 + Workspace_Language_Contract + Memory_Write_Autonomy + Decision_Structure_Write_Autonomy | **substrate (host adapter 系)** | substrate 留置 | — | Codex 側 host adapter。auto-invocation 不在のため Trigger-based skill reads 索引を内包 (Claude 側と差異) |
 | `adapter/claude/hooks-settings.md` | L6 | `.claude/settings.json` 全内容定義 + bootstrap behavior + mcp_tool entry 仕様 | **substrate (Claude binding)** | substrate 留置 | — | Claude Code 専用 binding spec。bootstrap が読み取り、`{workspace_root}/.claude/settings.json` を render する source of truth |
 
 L6 Adapter 集計: substrate **3 件**。skill 候補なし、fake-skill なし。

@@ -158,16 +158,19 @@ Memory_Write_Autonomy:
   Human explicit "do not save X" instruction suppresses writes for that scope only.
   It does not revert the default to permission-ask mode.
 
-Decision_Log_Write_Autonomy:
-  Decision Log Wiki entry writes (kebab-case `<topic>.md` files in wiki) indexed via `docs/Decision-Log.md`
+Decision_Structure_Write_Autonomy:
+  Decision Structure Wiki entry writes (kebab-case `<topic>.md` files in wiki) indexed via `docs/Decision-Structure.md`
   are AI-autonomous decisions. Trigger = judgment settlement
   (human go-sign, accepted-tradeoff close, spec-axis decision in dialogue).
-  When the trigger fires, invoke `skills/evolution-decision-log-write` and write immediately — no permission ask.
+  When the trigger fires, invoke `skills/evolution-decision-structure-write` and write immediately — no permission ask.
+
+  Decision Structure is a semantic graph (state-form entries + supersede/depend/conflict edges), not a time-ordered log.
+  Maintenance is refactor (normal operation), not history erasure.
 
   Existing maintenance rules still apply:
   - check for duplicate or conflicting entries before writing (RAG `type: "wiki_doc"` search precedes write)
-  - prefer supersede link over overwrite when an entry is invalidated; do not silently delete
-  - delete only when `docs/Decision-Log.md` maintenance criteria are satisfied
+  - prefer supersede edge over overwrite when an entry is invalidated; do not silently delete
+  - delete only when `docs/Decision-Structure.md` maintenance criteria are satisfied
     (premise invalidated / target feature removed / requirements spec absorption)
   - verify specification literal before writing (impression-based entries fuel later impression-critique loops)
   - entry language follows LI_PLUS_PROJECT_LANGUAGE; no language mixing within an entry
@@ -178,7 +181,7 @@ Decision_Log_Write_Autonomy:
   L1 Model Layer source changes are out of scope (handled by `skills/evolution-l1-update-gating`).
 
   Explicit exclusion scope:
-  Human explicit "do not log X" instruction suppresses writes for that scope only.
+  Human explicit "do not record X" instruction suppresses writes for that scope only.
   It does not revert the default to permission-ask mode.
 
 # --- Li+ END ---

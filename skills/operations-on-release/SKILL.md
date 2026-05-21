@@ -115,8 +115,8 @@ AI proposes patch or minor; human confirms minor or major; AI executes.
 After release is published, sync docs/ to GitHub Wiki.
 
 Ownership boundary (since 2026-04-26, naming refactor 2026-05-21):
-- **docs/-owned files** (uppercase + numeric prefix + Home + _Footer): docs/ is source of truth, wiki is mirror; the wiki copy must match docs/ byte-for-byte after sync. `docs/Decision-Log.md` (the Decision Log layer index) is a regular docs/-owned uppercase file; it is read by `adapter/claude/hooks/on-session-start.sh` for cold-start synthesis on the docs/ side and visible in nav on the wiki side.
-- **Wiki-only files** (lowercase kebab-case `[a-z]*.md` judgment-record entries, plus `_Sidebar.md` and any other wiki-only navigation): wiki owns them, docs/ does not have a counterpart, sync must preserve them. Decision Log entries no longer carry a sequence prefix; ordering lives in `docs/Decision-Log.md` and `_Sidebar.md` explicitly.
+- **docs/-owned files** (uppercase + numeric prefix + Home + _Footer): docs/ is source of truth, wiki is mirror; the wiki copy must match docs/ byte-for-byte after sync. `docs/Decision-Structure.md` (the Decision Structure layer index) is a regular docs/-owned uppercase file; it is read by `adapter/claude/hooks/on-session-start.sh` for cold-start synthesis on the docs/ side and visible in nav on the wiki side.
+- **Wiki-only files** (lowercase kebab-case `[a-z]*.md` judgment-record entries, plus `_Sidebar.md` and any other wiki-only navigation): wiki owns them, docs/ does not have a counterpart, sync must preserve them. Decision Structure entries no longer carry a sequence prefix; ordering lives in `docs/Decision-Structure.md` and `_Sidebar.md` explicitly.
 
 Pre-sync verification (mandatory before step 5/6 commit):
 - Run `git -C {tmpdir} status --short` and confirm only docs/-owned paths appear in deletes (`D`) and updates (`M`).
@@ -136,9 +136,9 @@ Pre-sync verification (mandatory before step 5/6 commit):
   Rationale: with kebab-case naming (no fixed prefix), entry rename is a routine operation. Broken cross-references accumulate silently between releases. Sync is the natural recurring checkpoint to surface them. Same shape as sidebar integrity: STOP & escalate, no auto-fix.
 
 New-repo setup (one-shot, before first sync):
-- Seed initial docs/ with `Home.md` / `_Footer.md` / canonical uppercase + numeric prefix files (`docs/[A-Z]*.md`, `docs/[0-9]*.md`) including `docs/Decision-Log.md` as the Decision Log layer index.
+- Seed initial docs/ with `Home.md` / `_Footer.md` / canonical uppercase + numeric prefix files (`docs/[A-Z]*.md`, `docs/[0-9]*.md`) including `docs/Decision-Structure.md` as the Decision Structure layer index.
 - Push `_Sidebar.md` directly to wiki on the wiki repo (not via docs/).
-- Decision log entries (`<topic>.md` lowercase kebab-case, no sequence prefix) are wiki-only from creation; do not place under docs/.
+- Decision Structure entries (`<topic>.md` lowercase kebab-case, no sequence prefix) are wiki-only from creation; do not place under docs/.
 
 Steps:
   1. Clone wiki repo: git clone https://github.com/{owner}/{repo}.wiki.git {tmpdir}
@@ -152,9 +152,9 @@ Steps:
        [ -e "$f" ] && rm -f "$f"
      done
      ```
-     The pattern explicitly omits lowercase kebab-case files (`[a-z]*.md`, Decision Log entries) and `_Sidebar.md`, leaving them in place. `Decision-Log.md` (uppercase `D`) is caught by `[A-Z]*.md` as a regular docs/-owned file.
+     The pattern explicitly omits lowercase kebab-case files (`[a-z]*.md`, Decision Structure entries) and `_Sidebar.md`, leaving them in place. `Decision-Structure.md` (uppercase `D`) is caught by `[A-Z]*.md` as a regular docs/-owned file.
   4. Copy docs/ files: cp docs/*.md {tmpdir}/
-     (docs/ holds only uppercase + numeric prefix files + `Home.md` + `_Footer.md` + `Decision-Log.md`; Decision Log entries live in wiki only, so this cp does not re-introduce them.)
+     (docs/ holds only uppercase + numeric prefix files + `Home.md` + `_Footer.md` + `Decision-Structure.md`; Decision Structure entries live in wiki only, so this cp does not re-introduce them.)
   5. Stage all (including any deletes from step 3 that docs/ no longer covers): git -C {tmpdir} add -A
   6. Commit: git -C {tmpdir} commit -m "sync: docs → wiki ({release_tag})"
   7. Push: git -C {tmpdir} push

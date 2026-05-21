@@ -7,7 +7,7 @@ layer: L2-evolution
 # Evolution Loop
 
 Loop stages:
-  observe    = memory entries + docs (spec, decision log, issue history)
+  observe    = memory entries + docs (spec, decision structure, issue history)
   evaluate   = self-evaluation two-axis scoring, pattern detection
   distill    = extract spec-class signal from repeated patterns
   reflect    = update Li+ source (default target = L3 and later; L1 via gating)

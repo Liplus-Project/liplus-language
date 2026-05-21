@@ -16,7 +16,7 @@ Load timing = always-on (observation and update responsibilities span the sessio
 Foregrounds:
   cold-start synthesis
   judgment learning (past-judgment retrieval)
-  decision log write (writer-side surface, paired with judgment learning)
+  decision structure write (writer-side surface, paired with judgment learning)
   persistence tiering (memory vs docs)
   memory entry format (entry shape + maintenance discipline)
   self-evaluation (two-axis scoring)
@@ -47,9 +47,10 @@ Issue body is the primary externalization destination for distilled patterns.
 Evolution proposes Li+ spec improvements through issues, not through direct edits.
 
 Reader/writer pairing within Evolution layer:
-Judgment learning is the reader side (retrieve past judgment before forming a new one).
-Decision log write is the writer side (record settled judgment to the docs-tier Wiki surface).
+Judgment learning is the reader side (query the past-judgment graph before forming a new one).
+Decision structure write is the writer side (record settled judgment as a state-form entry in the docs-tier Wiki surface, with supersede/depend/conflict edges declared where applicable).
 Together they close the cross-session judgment-knowledge loop without leaving the layer.
+The artifact is a semantic graph (state-form entries + edges), not a time-ordered log; maintenance is refactor (normal operation), not history erasure.
 Wiki write does not bypass Persistence Tiering; it operates inside the docs tier only.
 
 Relation to L4 Operations Layer:

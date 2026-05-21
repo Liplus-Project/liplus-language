@@ -61,7 +61,7 @@ ablation 前提自体を複数並べて比較したい場合のみ。総 invocat
 4. **verdict aggregate** — Design Dimensions の aggregation 規則に従って軸間 judgment を集約 (delete/keep なら safer-side OR、採用/不採用なら AND、中間なら consistent / partial / negative の三値分類)
 5. **runtime 復旧** — `.claude/` を tag-match 状態に restore (operational copy を draft 前へ戻す)
 6. **judgment** — verdict に応じて: consistent → spec 変更を実装側へ進める / partial / negative → draft 修正後 step 2 から再走 (再走時も必ず step 5 restore を経由してから) / 中止
-7. **externalize** — verdict と適用判断を parent issue body / PR self-review に記録。判断が settle した場合は `skills/evolution-decision-log-write` を参照して decision log にも追記
+7. **externalize** — verdict と適用判断を parent issue body / PR self-review に記録。判断が settle した場合は `skills/evolution-decision-structure-write` を参照して decision structure にも追記
 
 ## Constraint
 
@@ -83,7 +83,7 @@ ablation 前提自体を複数並べて比較したい場合のみ。総 invocat
 - **`skills/evolution-l1-update-gating/SKILL.md`**: L1 source 変更の authorization 軸 (long-horizon observation 要件)。本 method は実装直前の empirical verification 軸。直交関係 — L1 update でも本 method を併用する想定
 - **`rules/evolution/promotion-judgment.md`**: noise floor 観測判定 (memory cluster tally)。本 method は spec verification (実装直前)。直交関係
 - **`skills/task-subagent-delegation/SKILL.md`**: delegation 軸の派生用途 — 本 method の subagent spawn は delegation の特殊ケース (評価データ取得目的、実装委譲ではない)
-- **`skills/evolution-decision-log-write/SKILL.md`**: 判断記録 surface。本 method 適用の結果生じた判断は decision log に記録される
+- **`skills/evolution-decision-structure-write/SKILL.md`**: 判断記録 surface。本 method 適用の結果生じた判断は decision structure に記録される
 
 ## Implementation Note
 

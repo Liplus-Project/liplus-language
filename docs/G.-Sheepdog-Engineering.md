@@ -304,8 +304,8 @@ human 明言 (Li+ design の vision integrity 判定基準):
   - `rules/evolution/evolution.md` (rebuild / delete / optimize 許容)
   - `rules/evolution/promotion-judgment.md` (memory → rules 昇格 gate)
 - 関連判断記録:
-  - `f.-sheepdog-engineering-concept` (シープドッグ命名と思想)
-  - `m.-character-instance-evolution-history` (Character_Instance pairing 原則 + 双方向制約)
-  - `n.-prompt-as-emotion-vector-controller` (Li+ rules = emotion vector engineering)
-  - `k.-current-architecture-as-concession` (現行アーキテクチャは譲歩)
-  - `i.-li-plus-long-term-vision-feedback-only` (フィードバックだけ vision、event-driven substrate)
+  - `sheepdog-engineering-concept` (シープドッグ命名と思想)
+  - `character-instance-evolution-history` (Character_Instance pairing 原則 + 双方向制約)
+  - `prompt-as-emotion-vector-controller` (Li+ rules = emotion vector engineering)
+  - `current-architecture-as-concession` (現行アーキテクチャは譲歩)
+  - `li-plus-long-term-vision-feedback-only` (フィードバックだけ vision、event-driven substrate)

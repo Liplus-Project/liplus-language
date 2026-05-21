@@ -52,13 +52,13 @@ Li+ プログラムの設計思想を軸別に蒸留した独立 docs。
 
 ---
 
-## 判断記録（抜粋）
+## 判断構造（抜粋）
 
 セッションをまたぐ判断知を蓄積する Decision Structure。設計上の分岐で選んだ理由、検証で確定した前提、外部システム依存などを kebab-case トピック名で記録する（順序 prefix なし）。判断ノード（state 形エントリ）と supersede / depend / conflict edge による意味グラフであり、時間順 append-only の履歴ではない。全エントリの index は [Decision Structure](Decision-Structure) を参照。
 
 | ページ | 内容 |
 |--------|------|
-| [Decision Structure](Decision-Structure) | 判断記録レイヤー Decision Structure の運用ルール |
+| [Decision Structure](Decision-Structure) | 判断構造レイヤー Decision Structure の運用ルール |
 | [Spec vs Implementation Order](spec-vs-implementation-order) | 外部システム依存の spec 記述ルール |
 | [Layer Reorg Rationale](layer-reorg-rationale) | L1–L6 層再編の設計意図と L5/L6 位置付け |
-| [GitHub App User-to-server Token Expiration](github-app-user-to-server-token-expiration) | GitHub App User-to-server token expiration の判断記録 |
+| [GitHub App User-to-server Token Expiration](github-app-user-to-server-token-expiration) | GitHub App User-to-server token expiration の判断構造 |

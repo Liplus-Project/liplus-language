@@ -191,5 +191,5 @@ AI が独自判断で commit に持ち込もうとするとき、対話を切ら
   - `rules/model/language-definition.md` (Li+ language / program / AI / コンパイルエラー / 成果物 / 外部記憶 の正本)
   - `rules/model/foundational-invariant.md` (正しさの定義の正本)
   - `rules/model/role-separation.md` (役割分離の正本)
-- 関連判断記録:
+- 関連判断構造:
   - `spec-vs-implementation-order` (spec / 推論が外部システム capability を claim する時の literal 検証ルール)

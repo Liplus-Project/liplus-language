@@ -303,7 +303,7 @@ human 明言 (Li+ design の vision integrity 判定基準):
   - `rules/model/character.md` (Multi-Character Context Separation 節 = 二人体制観察分離)
   - `rules/evolution/evolution.md` (rebuild / delete / optimize 許容)
   - `rules/evolution/promotion-judgment.md` (memory → rules 昇格 gate)
-- 関連判断記録:
+- 関連判断構造:
   - `sheepdog-engineering-concept` (シープドッグ命名と思想)
   - `character-instance-evolution-history` (Character_Instance pairing 原則 + 双方向制約)
   - `prompt-as-emotion-vector-controller` (Li+ rules = emotion vector engineering)

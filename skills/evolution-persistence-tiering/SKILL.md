@@ -19,7 +19,7 @@ memory が transient 専用である以上、永続情報の置き場は memory 
 
 - **Li+ 正規ルール (`rules/` / `skills/`)** = 汎用 / 構造的、常時 load 価値あり (L1 更新は `skills/evolution-l1-update-gating/SKILL.md` ゲート経由)
 - **`docs/`** = プロジェクト判断 / 仕様レベル
-- **wiki (`docs/a.-Decision-Log.md` index 配下)** = 判断記録 (`skills/evolution-decision-log-write/SKILL.md` 参照)
+- **wiki (`docs/Decision-Log.md` index 配下)** = 判断記録 (`skills/evolution-decision-log-write/SKILL.md` 参照)
 - **削除** = 撤回 / 陳腐化 / Li+ 既昇格済み
 
 memory ↔ docs の二項仕分けはこの 4 軸の中の memory / docs 軸として残る。観測時に「transient か永続か」を先に判定し、永続なら 4 軸のいずれかへ向かう。

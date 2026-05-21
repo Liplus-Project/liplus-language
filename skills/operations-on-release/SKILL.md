@@ -114,27 +114,31 @@ AI proposes patch or minor; human confirms minor or major; AI executes.
 
 After release is published, sync docs/ to GitHub Wiki.
 
-Ownership boundary (since 2026-04-26):
-- **docs/-owned files** (uppercase + numeric prefix + Home + _Footer): docs/ is source of truth, wiki is mirror; the wiki copy must match docs/ byte-for-byte after sync.
-- **Wiki-only files** (lowercase prefix `[a-z].-*.md` judgment-record entries, plus `_Sidebar.md` and any other wiki-only navigation): wiki owns them, docs/ does not have a counterpart, sync must preserve them.
-- The single exception is `docs/a.-Decision-Log.md` which exists in BOTH docs/ (read by `adapter/claude/hooks/on-session-start.sh` for cold-start synthesis) and wiki (visible in nav). It travels through the sync because docs/ has the source.
+Ownership boundary (since 2026-04-26, naming refactor 2026-05-21):
+- **docs/-owned files** (uppercase + numeric prefix + Home + _Footer): docs/ is source of truth, wiki is mirror; the wiki copy must match docs/ byte-for-byte after sync. `docs/Decision-Log.md` (the Decision Log layer index) is a regular docs/-owned uppercase file; it is read by `adapter/claude/hooks/on-session-start.sh` for cold-start synthesis on the docs/ side and visible in nav on the wiki side.
+- **Wiki-only files** (lowercase kebab-case `[a-z]*.md` judgment-record entries, plus `_Sidebar.md` and any other wiki-only navigation): wiki owns them, docs/ does not have a counterpart, sync must preserve them. Decision Log entries no longer carry a sequence prefix; ordering lives in `docs/Decision-Log.md` and `_Sidebar.md` explicitly.
 
 Pre-sync verification (mandatory before step 5/6 commit):
 - Run `git -C {tmpdir} status --short` and confirm only docs/-owned paths appear in deletes (`D`) and updates (`M`).
-- If `D` or `M` appears for any wiki-only file (lowercase non-`a` prefix `[b-z].-*.md` or `_Sidebar.md`), STOP and escalate to human. Selective wipe pattern divergence is the recurring failure mode; do not push to wiki on this signal.
+- If `D` or `M` appears for any wiki-only file (lowercase kebab-case `[a-z]*.md` or `_Sidebar.md`), STOP and escalate to human. Selective wipe pattern divergence is the recurring failure mode; do not push to wiki on this signal.
 - Sidebar integrity assertion (post-step 4, pre-step 5): verify `{tmpdir}/_Sidebar.md` references every navigable entry. Build the expected slug set from `{tmpdir}` filesystem:
   - `Home`
   - every `{tmpdir}/[A-Z]*.md` (docs/-owned uppercase + numeric prefix, slug = filename without `.md`)
   - every `{tmpdir}/[0-9]*.md`
-  - every `{tmpdir}/[a-z].-*.md` (lowercase `a.-*` plus wiki-only `[b-z].-*` judgment records)
+  - every `{tmpdir}/[a-z]*.md` (wiki-only kebab-case judgment-record entries)
   Excluded from the expected set: `_Sidebar.md`, `_Footer.md` (navigation infrastructure, not target entries).
   Extract referenced slugs by parsing `](<slug>)` link targets from `{tmpdir}/_Sidebar.md`. If `expected - referenced` is non-empty, STOP and escalate to human naming the missing slug(s). Do not push to wiki on this signal: sidebar drift means the PR that added the entry did not maintain navigation, and release sync is the wrong layer to silently auto-fix.
   Rationale: entry create / rename commits happen between releases, separated from wiki sync timing. Sync is the natural recurring checkpoint to enforce the invariant. Dogfood (2026-05-21): build-2026-05-20.1 sync left E-J + p / r / s / t / u silently absent from `_Sidebar.md`; manual recovery via wiki commit `5e47a90`.
+- Cross-reference integrity assertion (post-step 4, pre-step 5): verify every wiki-internal markdown link target in `{tmpdir}/*.md` resolves to an existing file. Build the resolution set:
+  - existing slugs = `Home` + every `{tmpdir}/[A-Z]*.md` + every `{tmpdir}/[0-9]*.md` + every `{tmpdir}/[a-z]*.md` (all slugs without `.md` extension)
+  - extracted slugs = every `](<x>)` occurrence inside `{tmpdir}/*.md` body where `<x>` does NOT contain `://`, does NOT start with `#`, and does NOT contain `/`. Strip any `#section` fragment from `<x>` before resolution. These are wiki-internal page references.
+  If any extracted slug is not in the resolution set, STOP and escalate to human naming the source file + broken target slug. Do not push to wiki on this signal: broken cross-reference means an entry was renamed without updating its referrers, and release sync is the wrong layer to silently auto-rewrite link targets.
+  Rationale: with kebab-case naming (no fixed prefix), entry rename is a routine operation. Broken cross-references accumulate silently between releases. Sync is the natural recurring checkpoint to surface them. Same shape as sidebar integrity: STOP & escalate, no auto-fix.
 
 New-repo setup (one-shot, before first sync):
-- Seed initial docs/ with Home.md / _Footer.md / canonical uppercase + numeric prefix files (`docs/[A-Z].-*.md`, `docs/[0-9].-*.md`).
+- Seed initial docs/ with `Home.md` / `_Footer.md` / canonical uppercase + numeric prefix files (`docs/[A-Z]*.md`, `docs/[0-9]*.md`) including `docs/Decision-Log.md` as the Decision Log layer index.
 - Push `_Sidebar.md` directly to wiki on the wiki repo (not via docs/).
-- Decision log entries (`[b-z].-*.md`) are wiki-only from creation; do not place under docs/.
+- Decision log entries (`<topic>.md` lowercase kebab-case, no sequence prefix) are wiki-only from creation; do not place under docs/.
 
 Steps:
   1. Clone wiki repo: git clone https://github.com/{owner}/{repo}.wiki.git {tmpdir}
@@ -144,13 +148,13 @@ Steps:
   3. Selective wipe — remove only docs/-owned files from wiki, preserving wiki-only entries:
      ```
      shopt -s nullglob
-     for f in {tmpdir}/[A-Z]*.md {tmpdir}/[0-9]*.md {tmpdir}/Home.md {tmpdir}/_Footer.md {tmpdir}/a.-*.md; do
+     for f in {tmpdir}/[A-Z]*.md {tmpdir}/[0-9]*.md {tmpdir}/Home.md {tmpdir}/_Footer.md; do
        [ -e "$f" ] && rm -f "$f"
      done
      ```
-     The pattern explicitly omits lowercase non-`a` prefixes (`[b-z].-*.md`) and `_Sidebar.md`, leaving them in place.
+     The pattern explicitly omits lowercase kebab-case files (`[a-z]*.md`, Decision Log entries) and `_Sidebar.md`, leaving them in place. `Decision-Log.md` (uppercase `D`) is caught by `[A-Z]*.md` as a regular docs/-owned file.
   4. Copy docs/ files: cp docs/*.md {tmpdir}/
-     (After migration, docs/ no longer holds `b.-` / `c.-` / ... entries, so this cp does not re-introduce them.)
+     (docs/ holds only uppercase + numeric prefix files + `Home.md` + `_Footer.md` + `Decision-Log.md`; Decision Log entries live in wiki only, so this cp does not re-introduce them.)
   5. Stage all (including any deletes from step 3 that docs/ no longer covers): git -C {tmpdir} add -A
   6. Commit: git -C {tmpdir} commit -m "sync: docs → wiki ({release_tag})"
   7. Push: git -C {tmpdir} push

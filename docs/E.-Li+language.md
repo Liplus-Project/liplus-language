@@ -192,4 +192,4 @@ AI が独自判断で commit に持ち込もうとするとき、対話を切ら
   - `rules/model/foundational-invariant.md` (正しさの定義の正本)
   - `rules/model/role-separation.md` (役割分離の正本)
 - 関連判断記録:
-  - `b.-spec-vs-implementation-order` (spec / 推論が外部システム capability を claim する時の literal 検証ルール)
+  - `spec-vs-implementation-order` (spec / 推論が外部システム capability を claim する時の literal 検証ルール)

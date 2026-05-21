@@ -131,7 +131,7 @@ Memory_Write_Autonomy:
   It does not revert the default to permission-ask mode.
 
 Decision_Log_Write_Autonomy:
-  Decision Log Wiki entry writes (`b.-`, `c.-`, ...) indexed via `docs/a.-Decision-Log.md`
+  Decision Log Wiki entry writes (kebab-case `<topic>.md` files in wiki) indexed via `docs/Decision-Log.md`
   are AI-autonomous decisions. Trigger = judgment settlement
   (human go-sign, accepted-tradeoff close, spec-axis decision in dialogue).
   When the trigger fires, read `skills/evolution-decision-log-write/SKILL.md` and write immediately — no permission ask.
@@ -139,7 +139,7 @@ Decision_Log_Write_Autonomy:
   Existing maintenance rules still apply:
   - check for duplicate or conflicting entries before writing (RAG `type: "wiki_doc"` search precedes write)
   - prefer supersede link over overwrite when an entry is invalidated; do not silently delete
-  - delete only when `docs/a.-Decision-Log.md` maintenance criteria are satisfied
+  - delete only when `docs/Decision-Log.md` maintenance criteria are satisfied
     (premise invalidated / target feature removed / requirements spec absorption)
   - verify specification literal before writing (impression-based entries fuel later impression-critique loops)
   - entry language follows LI_PLUS_PROJECT_LANGUAGE; no language mixing within an entry

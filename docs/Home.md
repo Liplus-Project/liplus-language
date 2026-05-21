@@ -54,11 +54,11 @@ Li+ プログラムの設計思想を軸別に蒸留した独立 docs。
 
 ## 判断記録（抜粋）
 
-セッションをまたぐ判断知を蓄積する decision log。設計上の分岐で選んだ理由、検証で確定した前提、外部システム依存などを小文字プレフィックス付きで記録する。全エントリの index は [a. Decision Log](a.-Decision-Log) を参照。
+セッションをまたぐ判断知を蓄積する decision log。設計上の分岐で選んだ理由、検証で確定した前提、外部システム依存などを kebab-case トピック名で記録する（順序 prefix なし）。全エントリの index は [Decision Log](Decision-Log) を参照。
 
 | ページ | 内容 |
 |--------|------|
-| [a. Decision Log](a.-Decision-Log) | 判断記録レイヤーの運用ルール |
-| [b. Spec vs Implementation Order](b.-spec-vs-implementation-order) | 外部システム依存の spec 記述ルール |
-| [d. Layer Reorg Rationale](d.-layer-reorg-rationale) | L1–L6 層再編の設計意図と L5/L6 位置付け |
-| [e. GitHub App User-to-server Token Expiration](e.-github-app-user-to-server-token-expiration) | GitHub App User-to-server token expiration の判断記録 |
+| [Decision Log](Decision-Log) | 判断記録レイヤーの運用ルール |
+| [Spec vs Implementation Order](spec-vs-implementation-order) | 外部システム依存の spec 記述ルール |
+| [Layer Reorg Rationale](layer-reorg-rationale) | L1–L6 層再編の設計意図と L5/L6 位置付け |
+| [GitHub App User-to-server Token Expiration](github-app-user-to-server-token-expiration) | GitHub App User-to-server token expiration の判断記録 |

@@ -19,17 +19,18 @@ layer: L2-evolution
 - 失敗の原因が判明し再現可能な学びとなったとき
 - セッションをまたぐと消える判断知が発生したとき
 
-`docs/a.-Decision-Log.md` の蓄積条件 (設計上の分岐、失敗の原因判明、前提検証の確定、複数セッション横断の調査反復) と整合する。
+`docs/Decision-Log.md` の蓄積条件 (設計上の分岐、失敗の原因判明、前提検証の確定、複数セッション横断の調査反復) と整合する。
 
 ## Procedure
 
-1. **トピック特定** = 判断の核心を 1 文で言語化する。タイトル候補を決める。
-2. **既存検索** = `mcp__github-rag-mcp__search` を `type: "wiki_doc"` で叩いて重複確認。`docs/a.-Decision-Log.md` index も確認する。
+1. **トピック特定** = 判断の核心を 1 文で言語化する。kebab-case のファイル名候補を決める。順序 prefix は付けない (例: `wiki-sync-sidebar-integrity-check.md`)。
+2. **既存検索** = `mcp__github-rag-mcp__search` を `type: "wiki_doc"` で叩いて重複確認。`docs/Decision-Log.md` index も確認する。
 3. **分岐判断** =
    - 完全重複 → 書かない (memory consolidation 思想を流用)
    - 関連あり既存エントリの更新で済む → 該当エントリを更新する
    - 既存エントリが無効化された → 新エントリを書き、旧エントリは削除せず supersede リンクで前方参照する
-   - 新規 → 次の letter prefix (`b.-`, `c.-`, ...) で新規作成する
+   - 既存エントリの整理 / トピック明確化 → `git mv old-slug.md new-slug.md` で rename し、全 entry の cross-reference を grep/replace で追従、`_Sidebar.md` の slug 更新、本体 repo の `docs/Decision-Log.md` index 表の更新を 1 PR にまとめる
+   - 新規 → kebab-case のトピック名で wiki に直接新規作成する
 4. **本文記述** = 以下の構成で記述する:
    - タイトル (H1)
    - 判断 = 何を決めたか (1-2 文)
@@ -37,16 +38,17 @@ layer: L2-evolution
    - 制約 = 判断に効いた前提と制約
    - 結論 = 採用案と却下案の対比
    - 関連 = 関連 issue / PR / 他 Decision Log エントリへのリンク
-5. **Wiki push** = wiki repo に直接 git push する (PR ceremony 不要、独立 git surface)。
-6. **Index 更新** = letter prefix が新たに進んだ場合のみ `docs/a.-Decision-Log.md` の運用 index を更新する (本体 repo の通常 PR フローを通す)。既存 letter の追記/更新では不要。
+5. **Wiki push** = wiki repo に直接 git push する (PR ceremony 不要、独立 git surface)。`_Sidebar.md` への新規 slug 追加も同一 commit に含める。
+6. **Index 更新** = 新規エントリ追加 / 既存エントリ rename / 既存エントリ削除のたびに `docs/Decision-Log.md` の運用 index 表を更新する (本体 repo の通常 PR フローを通す)。本文の軽微修正では不要。
 
 ## Maintenance
 
 - 重複検出は書く前に通す。RAG 検索を省略しない。
 - 仕様確認は literal で行う。impression-based entries は禁止 (後段の impression-critique loop の燃料になる)。
-- 削除条件は `docs/a.-Decision-Log.md` のメンテナンス節に従う (前提無効化、対象機能削除、要求仕様統合)。
+- 削除条件は `docs/Decision-Log.md` のメンテナンス節に従う (前提無効化、対象機能削除、要求仕様統合)。
 - 上書きより supersede リンクを優先する。git history は wiki でも保持されるが、検索路は最新 entry に集まるため前方リンクが読み手に効く。
 - エントリ言語 = `LI_PLUS_PROJECT_LANGUAGE` (workspace の Li+config.md で解決)。混在は不可。
+- rename / 削除時の broken cross-reference は次回 wiki sync の Cross-reference 整合性アサーション (`skills/operations-on-release/SKILL.md`) が検出する。人為的注意ではなく構造で閉じる。
 
 ## Non-scope
 

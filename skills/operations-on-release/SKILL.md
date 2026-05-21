@@ -195,6 +195,7 @@ Rationale for diff-targeted pattern (replaces prior wipe-and-copy):
 - End state is byte-for-byte identical to wipe-and-copy when `to_copy` covers every docs/-owned file and `to_delete` covers every removed-on-docs entry. The mirror invariant is preserved without the destructive primitive.
 - Auto-mode classifier rejection of unbounded `rm [A-Z]*.md ...` patterns is structural (`skills/task-deletion-impact/SKILL.md` blast-radius axis), not a transient block. Diff-targeted copy aligns with that axis by construction.
 - Fallback note: if drift computation fails (e.g. `cmp` unavailable, filesystem encoding mismatch), STOP and escalate to human. Do not silently fall back to the wipe pattern.
+- Empirical anchor (build-2026-05-20.1 sync, 2026-05-21): diff-targeted pattern was first applied when the prior wipe-and-copy hit the auto-mode classifier; observed drift set was 7 files, all docs/-owned, and the resulting wiki state matched the wipe-and-copy outcome exactly.
 
 Windows-specific (case-only rename hazard):
 On Windows hosts the wiki repo filesystem is case-insensitive. A rename like `Installation.md` → `installation.md` cannot be applied via a single `git mv` and leaves the old case in the index.

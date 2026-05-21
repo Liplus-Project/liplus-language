@@ -145,21 +145,56 @@ Steps:
   2. Configure identity (clone-and-throw-away pattern requires explicit identity):
      git -C {tmpdir} config user.name  "{commit-author-name}"
      git -C {tmpdir} config user.email "{commit-author-email}"
-  3. Selective wipe — remove only docs/-owned files from wiki, preserving wiki-only entries:
+  3. Compute drift set (diff-targeted, bounded blast radius) — enumerate the exact files that differ between docs/ source and wiki/ working tree, then operate only on that set:
+     - **to_copy** = docs/-owned filenames present in `docs/` whose content differs from `{tmpdir}/` counterpart (includes both new files and content-changed files; resolve filenames via `docs/[A-Z]*.md`, `docs/[0-9]*.md`, `docs/Home.md`, `docs/_Footer.md`).
+     - **to_delete** = docs/-owned filenames present in `{tmpdir}/` but no longer present in `docs/` (rename / removal on docs/ side).
+     Reference algorithm:
      ```
      shopt -s nullglob
+     # Build docs/-owned filename set on docs/ side.
+     docs_owned=()
+     for f in docs/[A-Z]*.md docs/[0-9]*.md docs/Home.md docs/_Footer.md; do
+       [ -e "$f" ] && docs_owned+=("$(basename "$f")")
+     done
+     # Build docs/-owned filename set on wiki side (same glob applied to tmpdir).
+     wiki_docs_owned=()
      for f in {tmpdir}/[A-Z]*.md {tmpdir}/[0-9]*.md {tmpdir}/Home.md {tmpdir}/_Footer.md; do
-       [ -e "$f" ] && rm -f "$f"
+       [ -e "$f" ] && wiki_docs_owned+=("$(basename "$f")")
+     done
+     # to_copy = docs/ entries whose content differs (cmp returns non-zero or wiki side absent).
+     to_copy=()
+     for name in "${docs_owned[@]}"; do
+       if [ ! -e "{tmpdir}/$name" ] || ! cmp -s "docs/$name" "{tmpdir}/$name"; then
+         to_copy+=("$name")
+       fi
+     done
+     # to_delete = wiki-side docs/-owned entries absent on docs/ side.
+     to_delete=()
+     for name in "${wiki_docs_owned[@]}"; do
+       case " ${docs_owned[*]} " in
+         *" $name "*) ;;
+         *) to_delete+=("$name") ;;
+       esac
      done
      ```
-     The pattern explicitly omits lowercase kebab-case files (`[a-z]*.md`, Decision Structure entries) and `_Sidebar.md`, leaving them in place. `Decision-Structure.md` (uppercase `D`) is caught by `[A-Z]*.md` as a regular docs/-owned file.
-  4. Copy docs/ files: cp docs/*.md {tmpdir}/
-     (docs/ holds only uppercase + numeric prefix files + `Home.md` + `_Footer.md` + `Decision-Structure.md`; Decision Structure entries live in wiki only, so this cp does not re-introduce them.)
-  5. Stage all (including any deletes from step 3 that docs/ no longer covers): git -C {tmpdir} add -A
+     The drift set explicitly omits lowercase kebab-case files (`[a-z]*.md`, Decision Structure entries) and `_Sidebar.md`; those are wiki-only and never enter `to_copy` / `to_delete`.
+  4. Apply the drift set with explicit per-file operations (bounded; no unbounded glob deletion):
+     ```
+     for name in "${to_delete[@]}"; do rm -f "{tmpdir}/$name"; done
+     for name in "${to_copy[@]}";   do cp "docs/$name" "{tmpdir}/$name"; done
+     ```
+     Empty `to_copy` AND empty `to_delete` = no drift; skip the remaining commit/push steps and proceed straight to cleanup (step 8). Report no-op outcome.
+  5. Stage all (covers both copies and deletes from step 4): git -C {tmpdir} add -A
   6. Commit: git -C {tmpdir} commit -m "sync: docs → wiki ({release_tag})"
   7. Push: git -C {tmpdir} push
   8. Cleanup: rm -rf {tmpdir}
 If push fails (permission): escalate to human. Do not skip.
+
+Rationale for diff-targeted pattern (replaces prior wipe-and-copy):
+- Blast radius bounded to the actually-changed files (no unbounded glob `rm` over the wiki working tree).
+- End state is byte-for-byte identical to wipe-and-copy when `to_copy` covers every docs/-owned file and `to_delete` covers every removed-on-docs entry. The mirror invariant is preserved without the destructive primitive.
+- Auto-mode classifier rejection of unbounded `rm [A-Z]*.md ...` patterns is structural (`skills/task-deletion-impact/SKILL.md` blast-radius axis), not a transient block. Diff-targeted copy aligns with that axis by construction.
+- Fallback note: if drift computation fails (e.g. `cmp` unavailable, filesystem encoding mismatch), STOP and escalate to human. Do not silently fall back to the wipe pattern.
 
 Windows-specific (case-only rename hazard):
 On Windows hosts the wiki repo filesystem is case-insensitive. A rename like `Installation.md` → `installation.md` cannot be applied via a single `git mv` and leaves the old case in the index.

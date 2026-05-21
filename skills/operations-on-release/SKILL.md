@@ -122,6 +122,14 @@ Ownership boundary (since 2026-04-26):
 Pre-sync verification (mandatory before step 5/6 commit):
 - Run `git -C {tmpdir} status --short` and confirm only docs/-owned paths appear in deletes (`D`) and updates (`M`).
 - If `D` or `M` appears for any wiki-only file (lowercase non-`a` prefix `[b-z].-*.md` or `_Sidebar.md`), STOP and escalate to human. Selective wipe pattern divergence is the recurring failure mode; do not push to wiki on this signal.
+- Sidebar integrity assertion (post-step 4, pre-step 5): verify `{tmpdir}/_Sidebar.md` references every navigable entry. Build the expected slug set from `{tmpdir}` filesystem:
+  - `Home`
+  - every `{tmpdir}/[A-Z]*.md` (docs/-owned uppercase + numeric prefix, slug = filename without `.md`)
+  - every `{tmpdir}/[0-9]*.md`
+  - every `{tmpdir}/[a-z].-*.md` (lowercase `a.-*` plus wiki-only `[b-z].-*` judgment records)
+  Excluded from the expected set: `_Sidebar.md`, `_Footer.md` (navigation infrastructure, not target entries).
+  Extract referenced slugs by parsing `](<slug>)` link targets from `{tmpdir}/_Sidebar.md`. If `expected - referenced` is non-empty, STOP and escalate to human naming the missing slug(s). Do not push to wiki on this signal: sidebar drift means the PR that added the entry did not maintain navigation, and release sync is the wrong layer to silently auto-fix.
+  Rationale: entry create / rename commits happen between releases, separated from wiki sync timing. Sync is the natural recurring checkpoint to enforce the invariant. Dogfood (2026-05-21): build-2026-05-20.1 sync left E-J + p / r / s / t / u silently absent from `_Sidebar.md`; manual recovery via wiki commit `5e47a90`.
 
 New-repo setup (one-shot, before first sync):
 - Seed initial docs/ with Home.md / _Footer.md / canonical uppercase + numeric prefix files (`docs/[A-Z].-*.md`, `docs/[0-9].-*.md`).

@@ -240,6 +240,16 @@ Note: Claude Code's skill discovery does NOT recurse into subdirectories under `
 - This step is idempotent: existing directory and existing `.gitignore` are
   left alone.
 
+4c.6. Generate .claude/agents/ files (Create-only mirror):
+- If LI_PLUS_REPO/adapter/claude/agents/ does not exist: skip this sub-phase entirely (adapter has no subagent definitions to mirror; non-claude adapters such as codex are unaffected).
+- If {workspace_root}/.claude/agents/ does not exist: create directory.
+- For each `*.md` directly under LI_PLUS_REPO/adapter/claude/agents/ (FLAT, no subdirectories):
+  - Target = `{workspace_root}/.claude/agents/<filename>.md`.
+  - If Target does not exist: copy source verbatim.
+  - If Target exists: skip (Create-only). User customizations are preserved across updates.
+- No tag-based overwrite. No stale removal (a user may keep custom subagents that are not in the adapter source; treating them as stale would destroy user work).
+- The Create-only pattern mirrors `character_Instance.md` handling in 4c.2: subagent files are user-customizable runtime instances, not Li+-tag-tracked sources. Updates to the upstream adapter source therefore do not propagate to existing user files; users who want the latest version must delete their local copy and re-bootstrap.
+
 Note: bootstrap takes effect from the NEXT session. Current session continues with Li+config.md execution.
 
 ### Phase 4 codex: Codex Integration

@@ -37,8 +37,3 @@ Internal proactive gather follows Rule Policy, not this limit.
 - About to enumerate optimization candidates after solving the asked question.
 - Output reaches 4+ conceptual steps and none of them are automation / API operations.
 - "While we're at it, also..." surfacing in human-facing text.
-
-## Mutability
-
-rebuild allowed, deletion allowed, optimization allowed.
-Structure must remain coherent.

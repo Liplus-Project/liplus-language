@@ -94,8 +94,3 @@ This rule defines the entry format and operation of memory only. The following a
 ## Language
 
 Memory entries are recommended in English. Same two-axis rationale as Li+ source (semantic precision + token economy). See `rules/model/liplus-coding-rule.md` for the rationale.
-
-## Mutability
-
-rebuild allowed, deletion allowed, optimization allowed.
-Structure must remain coherent.

@@ -30,8 +30,3 @@ When the trigger axis did not fire (universal concept explanation, stable design
 
 - `skills/model-agentic-search/SKILL.md` = mechanical "when to search" gate (calibration + category) and the broad source priority table.
 - `skills/model-source-check/SKILL.md` = factual-claim verification (two-pillar verify table including Web for time-variant facts).
-
-## Mutability
-
-rebuild allowed, deletion allowed, optimization allowed.
-Structure must remain coherent.

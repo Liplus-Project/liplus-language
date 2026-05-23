@@ -205,8 +205,3 @@ Single environment cannot benchmark this skill against alternatives. Observation
 - feed observations into evolution loop observe stage (`skills/evolution-loop/SKILL.md`)
 
 Promotion of recurring patterns to L1 / L2 spec follows `rules/evolution/promotion-judgment.md`.
-
-## Mutability
-
-rebuild allowed, deletion allowed, optimization allowed.
-Structure must remain coherent.

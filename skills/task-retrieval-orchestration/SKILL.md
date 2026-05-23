@@ -43,8 +43,3 @@ Naive single-shot RAG consumption fails on corpus boundary, recognition bias, an
 ## Observation and evolution
 
 Log failure cases (State C hit, escalation chosen, outcome) to `memory/feedback.md` or self-evaluation log when notable. Promotion of recurring patterns follows `rules/evolution/promotion-judgment.md`.
-
-## Mutability
-
-rebuild allowed, deletion allowed, optimization allowed.
-Structure must remain coherent.

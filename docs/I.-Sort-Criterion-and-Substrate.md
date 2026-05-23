@@ -1,6 +1,6 @@
 # 仕分け基準と substrate 確定
 
-**注 (2026-05-23, #1351)**: `rules/model/expansion-limit.md` / `rules/model/output-density.md` (新規 skill 化想定) / `skills/model-no-safety-net` は `rules/model/minus-aesthetic.md` に意味で統合された (vector 統合)。以下の表中の関連行は本書作成時点 (#1280) の判定として歴史的記録のため残置。
+**注 (2026-05-23, #1351)**: `rules/model/expansion-limit.md` / `rules/model/output-density.md` (新規 skill 化想定) / `skills/model-no-safety-net` は `rules/model/art-of-subtraction.md` に意味で統合された (vector 統合)。以下の表中の関連行は本書作成時点 (#1280) の判定として歴史的記録のため残置。
 
 parent #1279「責務軸 sort」の メタ基盤。本書の判定基準と substrate 集合は sub-issue 2-5 で参照される。
 sub-issue #1280 成果物。`rules/` 全 31 ファイル (model 層 24 / evolution 層 4 / operations 層 2 / task 層 1) を literal に読み下し、責務軸で sort した結果を記す。

@@ -29,6 +29,7 @@ These rules and skills are layer-specific expressions of this aesthetic:
 - `skills/model-no-safety-net` — weak-modality removal at spec layer
 - `skills/model-output-density` — no over-explanation
 - `skills/task-deletion-impact` — deletion as normal operation
+- `rules/evolution/memory-entry-format.md` (Maintenance: handle duplicates by update / delete obsolete / no conflicting coexist) — subtraction discipline at memory layer
 - `rules/evolution/promotion-judgment.md` (3-day expiry / sub-threshold delete)
 
 When applied to Li+ source itself, those scattered expressions

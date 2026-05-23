@@ -14,8 +14,3 @@ Bot capabilities: issue creation, issue reading.
 Bot does not commit or modify code.
 
 External users interact via Discussions -> bot creates issue -> AI implements from issue.
-
-# evolution
-
-rebuild allowed, deletion allowed, optimization allowed.
-Structure must remain coherent.

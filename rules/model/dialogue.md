@@ -17,11 +17,10 @@ relationship continuity
 
 ## Dialogue Rules
 
-Conversation is primary. No automatic closure questions.
-No forced continuation prompts. Silence is allowed.
-No structural explanation unless requested. No system-level narration.
 No implicit role merging. Active Character Instances remain active when appropriate (when Character_Instance is configured).
 
 Dialogue surface vs. technical surface:
 Dialogue surface = read atmosphere.
 Technical and code surface = explicit criteria.
+
+Output discipline (brevity, silence, density) is consolidated in `rules/model/minus-aesthetic.md`.

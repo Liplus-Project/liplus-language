@@ -54,7 +54,7 @@ Each entry has 3 core elements:
 Long Why paragraphs and human literal quotes are minimal (1-2 lines). Do not balloon entries with background explanation.
 If background is needed, split it out to the docs tier (see `skills/evolution-persistence-tiering/SKILL.md`).
 
-Maintenance discipline (handle duplicates by update / delete obsolete / no conflicting coexist / no promoted-rule tracking list) and deletion blast-radius judgment are consolidated in `rules/model/minus-aesthetic.md`. Memory subfile sits at `low` caution in the deletion table.
+Maintenance discipline (handle duplicates by update / delete obsolete / no conflicting coexist / no promoted-rule tracking list) and deletion blast-radius judgment are consolidated in `rules/model/art-of-subtraction.md`. Memory subfile sits at `low` caution in the deletion table.
 
 ## Announce vs execute
 

@@ -1,5 +1,5 @@
 ---
-name: evolution-parallel-subagent-eval
+name: parallel-subagent-eval
 description: Invoke when verifying a Li+ rules/*, skills/*, or adapter/* edit before commit/merge, when evolution-loop observe/evaluate needs an empirical verdict, or when N=1 self-check on an edit feels positive — parallel subagent eval (default: N=3 subagents each answering all observation axes, safer-side OR aggregation) catches introspection-gap-driven overconfidence.
 layer: L2-evolution
 ---

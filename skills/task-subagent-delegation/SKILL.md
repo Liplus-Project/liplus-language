@@ -65,6 +65,21 @@ The minimal "issue URL only" pattern works for `auto` and `semi_auto` because th
 
 These three are out of scope for the broader "do not convey procedure" rule because they are not procedure — they are gate-state decisions specific to trigger-mode merge timing.
 
+## Delegation prompt hygiene (ASCII-only example text)
+
+Any example text the subagent may quote into an artifact (suggested PR title / commit title / commit body / wiki entry / issue body) MUST be ASCII-only. Subagents mirror the prompt's literal style when emitting artifacts; non-ASCII typographic characters (em-dash `—` / en-dash `–` / box-drawing `─` / smart quotes `' " ' "` / JA characters in example PR titles) leak through and persist in merged artifacts because governance CI checks PR titles only — commit bodies, wiki entry bodies, and issue bodies are not byte-checked.
+
+How to apply:
+- Substitute ASCII before sending the prompt: em-dash -> `-` / `--`, en-dash -> `-`, box-drawing horizontal -> `-` / `=`, smart quotes -> ASCII `'` `"`, JA-in-example-PR-title -> romanize or omit.
+- Add an explicit instruction to the prompt: "Use ASCII characters only in PR titles, commit titles/bodies, and entry body text. Apply `od -c` byte-level verification to BOTH titles AND body content text."
+- The prompt's surrounding prose may use non-ASCII (em-dash for English reading efficiency is fine); the *example text fields* the subagent might copy must be ASCII.
+
+Detection signs:
+- About to write `—` or `──` in an example title / body field inside the delegation prompt.
+- Example PR title field contains JA characters or smart quotes.
+- Re-reading own prompt: surrounding prose mixes typographic chars freely while example fields inherit the same mix.
+- Subagent reports "pre-existing em-dash found in previously-merged artifact" — the propagation already happened.
+
 ## Memory-only knowledge does not transfer to subagent
 
 Parent-side memory (workspace memory/feedback.md, memory/project.md, in-session corrections) is NOT auto-loaded into the subagent's context. The subagent only sees the issue body, the auto-loaded Li+ rules and skills, and the delegation prompt itself.

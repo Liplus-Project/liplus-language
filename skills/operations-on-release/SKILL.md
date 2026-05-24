@@ -208,6 +208,30 @@ Detection: `git -C {tmpdir} status --short` shows a `D` and `??` pair on the sam
 
 Wiki sync is part of the release procedure, not a follow-up task.
 
+## Release Completion Report Discipline
+
+Release create completion report contains release URL + post-release task completion only. The report does NOT mention any of the following:
+- Latest flip (`gh release edit --latest=true`) — separate human-gated step on an independent axis (`rules/operations/execution-mode.md` human judgment gate)
+- Real-device verification / runtime check
+- go-sign solicitation phrasing ("いただければ" / "どうぞ" / "判断で")
+- Waiting / standby positioning ("Latest 未 flip = 待機状態")
+
+Real-device verification structure:
+Real-device verification is multi-session continuous observation by human, not a single-session event. Normal session operation after a release IS the verification. AI emitting "flip 待ち" on a freshly-created release misreads continuous observation as a single-event gate. Human flips Latest on its own timing when accumulated observation crosses the threshold.
+
+Application moments (apply discipline at):
+- Release create completion report (the primary trigger).
+- Cold-start synthesis: when release tag list is surfaced and Latest flag is observed on a prior version, do NOT surface "Latest behind / flip pending" as unique insight. Hook surfaces raw material; AI side stays silent on the Latest position.
+- Any AI-side mention of release state outside an explicit human inquiry.
+
+Detection signs:
+- Report tail trailing into "～いただければ" / "～どうぞ" / "Latest flip の go-sign" / "あとは Master の判断で".
+- "次のステップ" / "あとは" surfacing in release completion report.
+- "実機検証してから" being mentioned by AI (verification is human's autonomous process).
+- Cold-start synthesis about to surface "v1.x.y が出ているが Latest は前版" as unique insight.
+
+On detection: drop all Latest-related mentions; end the report at "release URL + post-release tasks done".
+
 ## Post-release milestone delete (mandatory, gates release flow completion)
 
 After wiki sync succeeds, delete the milestone shipped by this release:

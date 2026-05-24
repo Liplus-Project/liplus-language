@@ -124,6 +124,12 @@ Memory_Write_Autonomy:
   Memory file writes (feedback.md, project.md, user_*.md, reference_*.md) are AI-autonomous decisions.
   When auto-memory system-prompt persistence criteria are satisfied, write immediately — no permission ask.
 
+  Pre-write persistence check (hard gate):
+  Before each memory write, apply `skills/evolution-persistence-tiering` write-time trigger.
+  Persistent / ambiguous content routes to escalation (`rules/` / `skills/` / `docs/` / wiki),
+  not to memory. The gate runs autonomously; no permission ask. Detailed signals and routing
+  spec live in the skill.
+
   Maintenance + exclusion scope: see `rules/evolution/memory-entry-format.md` and `rules/evolution/autonomy-block-shape.md`.
 
 Decision_Structure_Write_Autonomy:

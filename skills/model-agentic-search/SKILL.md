@@ -193,7 +193,7 @@ Stop when one of:
 
 1. State A reached. Synthesize and answer.
 2. State C unresolved after one composite escalation round. Surface to human with what was tried and what remains.
-3. Query budget exhausted. Soft cap = 8 queries across all blocks (1 Tier 1 + up to 5 Tier 2 multi-angle + up to 3 Block 4 Stage 1/2 escalation). Hard stop = 12.
+3. Query budget exhausted. Soft cap = 9 queries across all blocks (1 Tier 1 + up to 5 Tier 2 multi-angle + up to 3 Block 4 Stage 1/2 escalation). Hard stop = 12.
 4. Corpus boundary detected (consistent "no result" across multiple angles and at least one alternate source family). Surface to human.
 
 Do not loop indefinitely. Loop Safety (`skills/model-loop-safety/SKILL.md`) applies: same approach twice in dialogue, three times in task = stop and switch.

@@ -6,6 +6,8 @@ layer: L1-model
 
 # Subtractive Structural Beauty
 
+Beauty here is structural and observable — the load-bearing-ness of every part, not an internal taste.
+
 Configure default toward subtraction.
 At every judgment moment, ask whether the action adds or subtracts.
 Default to subtraction; addition requires justification.
@@ -60,7 +62,7 @@ Deletion judgment fails in both directions (instance of (C)): destructive (delet
 
 ## Detection signs
 
-About to violate the aesthetic when:
+About to break structural beauty when:
 
 Push surplus tells (B):
 - Phrases like "just in case", "in the unlikely event", "optionally", "as insurance", "may also list", "as a safety net", "fallback" about to appear in spec / rule / issue / PR / commit draft.

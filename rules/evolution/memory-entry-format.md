@@ -21,6 +21,7 @@ memory = transient only. Persistent residency is not intended.
 What memory holds:
 - cluster tally (3-day expire / threshold-judgment intermediate state → `rules/evolution/promotion-judgment.md`)
 - self-evaluation log (cap = 25 entries, oldest-first deletion → `skills/evaluation-self/SKILL.md`)
+- self-evolution observation (post-merge detection cycle, per-entry expire → see Self-Evolution Observation Format below)
 - reference (transient lookup, reconstructible if lost)
 
 Do not place persistent information in memory. Promote it to one of the Escalation paths below.
@@ -68,6 +69,40 @@ How to apply:
 Detection signs:
 - When "I'll record this" / "I'll memo this" / "this is recordable" / "I'll write later" is about to appear in output — verify it is paired with a tool call.
 - When "this observation is important enough to memo" is about to be written into a human-facing sentence.
+
+## Self-Evolution Observation Format
+
+Tracks the post-merge detection cycle of self-evolution PRs. Distinct from cluster tally (`memory/promotion_tally.md` is pre-issue observation; this is post-merge observation).
+
+Storage = `memory/self-evolution-observation.md` (workspace-local, gitignored)
+Format (YAML-like markdown):
+
+```
+## observation: <short descriptor>
+pr: <PR number>
+merged_at: 2026-05-24
+first_observation: 2026-05-24
+expires: 2026-06-07
+next_check: 2026-05-31
+verdict_state: pending
+notes:
+  - 2026-05-24 baseline captured pre-merge
+  - 2026-05-26 no regression on memory-write gate
+```
+
+Auto-entry trigger:
+- Right after a self-evolution PR merges (`Evolution_Initiator_Autonomy` initiator path), the parent AI or merge subagent writes an entry. expiration window is chosen per PR risk (default 2 weeks).
+
+Lifecycle:
+- `pending` -> `settle`: observation period elapsed, no regression observed -> delete entry
+- `pending` -> `revert`: regression detected -> use GitHub revert path, mark verdict, delete entry
+- `pending` -> `supersede`: decision structure supersede edge issued -> delete entry
+- `expires` past without resolution -> escalate to human judgment (entry retained)
+
+Scope = detection axis only.
+Recovery (GitHub revert / `gh pr revert`) is on a separate axis.
+Retention (decision structure supersede edge) is on a separate axis.
+Cold-start surfacing of due / overdue entries follows `rules/evolution/cold-start-synthesis.md` Self-Evolution Observation Surface.
 
 ## Consolidate Trigger
 

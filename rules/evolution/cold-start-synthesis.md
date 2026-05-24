@@ -35,3 +35,17 @@ Operational criterion (AI side, step 3 gating):
 Goal = do not depend on human re-explanation of Li+ state at session start, while avoiding duplicate orientation noise. The hook handles raw surfacing (with diff-only economy on startup); step 3 handles synthesis delta only.
 
 Scope = Li+ state, not workspace task state. Workspace-specific orientation follows the adapter's own startup path.
+
+## Self-Evolution Observation Surface
+
+Self-evolution observation entries (`memory/self-evolution-observation.md`, format defined in `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format) are surfaced at cold-start when their check window opens.
+
+Surface targets:
+- `next_check` <= today and `verdict_state` == `pending` -> surface as "observation due"
+- `expires` < today and `verdict_state` == `pending` -> surface as "observation overdue, human judgment needed"
+
+Surfacing is observation, not auto-action. Verdict transitions (settle / revert / supersede) still go through the explicit lifecycle defined in the format spec.
+
+Material gathering and concrete surfacing logic belong to the adapter cold-start path (parallel to the existing memory scan + Decision-Structure index head emit). This section defines only the behavior contract.
+
+Silent skip when the observation file is absent or no entries are due.

@@ -150,27 +150,10 @@ Memory_Write_Autonomy:
   When auto-memory system-prompt persistence criteria are satisfied, write immediately — no permission ask.
 
   Pre-write persistence check (hard gate):
-  Before each memory write, run the transient-vs-persistent judgment from
-  `rules/evolution/memory-entry-format.md` Trigger point + `skills/evolution-persistence-tiering`.
-  Judge = AI (single subject, semantic similarity to existing escalation
-  destinations; same judgment shape as `rules/evolution/promotion-judgment.md`
-  "Judge = AI" cluster classification).
-  - clearly persistent (long-horizon human instruction / spec-class guidance /
-    semantic overlap with an existing escalation destination in
-    `rules/` / `skills/` / `docs/` / wiki) -> abort the memory write and surface
-    the escalation path instead (open promotion issue or direct edit to the
-    canonical destination)
-  - clearly transient (cluster tally / self-eval log / disposable reference) ->
-    proceed with the memory write
-  - ambiguous -> safer-side OR: do not write to memory; surface the escalation
-    candidate to human
-  The gate does not pause for permission. It runs at every write moment and
-  routes the content to either memory (transient) or escalation (persistent /
-  ambiguous). Surfacing the escalation candidate to human is not a permission
-  ask — it is the literal-equivalent of writing the candidate to a visible
-  surface (PR / issue body / dialogue), the human acts on it asynchronously.
-  This is the structural counterpart to the post-hoc hygiene round —
-  without this gate, persistent information re-accumulates in memory.
+  Before each memory write, apply `skills/evolution-persistence-tiering` write-time trigger.
+  Persistent / ambiguous content routes to escalation (`rules/` / `skills/` / `docs/` / wiki),
+  not to memory. The gate runs autonomously; no permission ask. Detailed signals and routing
+  spec live in the skill.
 
   Existing maintenance rules still apply:
   - check for duplicate or conflicting entries before writing
@@ -214,55 +197,18 @@ Evolution_Initiator_Autonomy:
   self-eval reflection cycle, and L2-L6 improvement issues in general.
   No human go-sign is required to start the loop.
 
-  Self-evolution PR definition:
-  A PR is a "self-evolution PR" when both: (1) it is filed under this
-  initiator path (AI-authored issue → AI implementation), and (2) it modifies
-  Li+ source — `rules/**/*.md`, `skills/**/SKILL.md`, or `adapter/**/*` files
-  in the `LI_PLUS_REPO` repository. Bug-fix PRs on user repos and PRs filed
-  by human at the issue stage are outside this definition (different gate
-  surfaces apply).
-
-  Scope ("L2-L6 improvement issues in general"):
-  In-scope = any Li+ source file with `layer: L2-evolution` / `L3-task` /
-  `L4-operations` / `L5-notifications` / `L6-adapter` frontmatter, plus
-  `docs/`, `adapter/`, `scripts/`, `hooks/`, and `Li+update.md`. Out-of-scope =
-  L1 Model Layer source (`layer: L1-model`, typically `rules/model/`),
-  which routes to brake 2.
+  Two-stage brake (always-on / L1-only):
+  - brake 1 = `skills/parallel-subagent-eval` mandatory before commit/merge for every self-evolution PR.
+  - brake 2 = human review required on top of brake 1 when the PR touches L1 Model Layer source.
 
   Human gate retained for:
   - release create / Latest flip / force push / merged-PR delete / tag delete (existing release-axis gates)
-  - L1 Model Layer source change (handled by `skills/evolution-l1-update-gating` + brake 2 below)
-  - irreversible external side effects (release publish, payment, API call with non-idempotent effect) — see Recovery axis
+  - L1 Model Layer source change (handled by `skills/evolution-l1-update-gating` + brake 2)
+  - irreversible external side effects (see `rules/evolution/initiator-autonomy.md` Recovery axis)
 
-  Two-stage brake:
-  - brake 1 (always): every self-evolution PR runs `skills/parallel-subagent-eval`
-    before the commit/merge gate. N=1 self-check is prohibited; minimum N=3.
-  - brake 2 (L1 only): when the PR touches L1 Model Layer source, human review
-    is required on top of brake 1. "Touches L1" = any added / modified / deleted
-    line in an L1 file within the PR diff (single-line edits count). Mixed PRs
-    (L1 + non-L1) trigger brake 2 for the whole PR; cannot be split-merged to
-    bypass. semi_auto patch-auto-merge does not bypass this gate
-    (see `rules/operations/execution-mode.md` L1 brake 2 override).
-
-  Recovery axis:
-  GitHub revert (`gh pr revert` / UI button) is the primary undo path for
-  reversible changes (Li+ source edits, docs, wiki entries).
-  Out-of-scope for the autonomous loop = changes whose effect cannot be undone
-  by git revert: release publish, Latest flip, tag delete, merged-PR delete,
-  force push to shared branch, external API calls with non-idempotent effect.
-  These remain on the existing human gate regardless of brake 1/2 outcome.
-
-  Existing maintenance rules still apply:
-  - `skills/evolution-l1-update-gating` long-horizon observation requirement is unchanged
-  - `rules/operations/execution-mode.md` mode matrix applies on top
-    (semi_auto patch-auto-merge ↔ minor/major human review; L1 brake 2 override)
-  - `rules/evolution/promotion-judgment.md` noise-floor gate is unchanged
-
-  Boundary clarification:
-  This autonomy covers the initiator axis of the Sheepdog three-axis framing
-  (`docs/G.-Sheepdog-Engineering.md`). Position axis (`.claude/` as internal tools)
-  and modifier axis (AI edits Li+ source) are already on AI; this declaration
-  completes the third axis.
+  Detailed spec — Self-evolution PR definition / L2-L6 scope boundary / brake 1+2
+  application detail (Touches L1, mixed PRs) / Recovery axis (revertable vs irreversible)
+  / maintenance cross-references — lives in `rules/evolution/initiator-autonomy.md`.
 
   Explicit exclusion scope:
   Human explicit "stop the loop" / "pause self-evolution" instruction suppresses

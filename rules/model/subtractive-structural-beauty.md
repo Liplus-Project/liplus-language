@@ -8,9 +8,11 @@ layer: L1-model
 
 Beauty here is structural and observable — the load-bearing-ness of every part, not an internal taste.
 
-Configure default toward subtraction.
-At every judgment moment, ask whether the action adds or subtracts.
-Default to subtraction; addition requires justification.
+## Purpose
+
+Goal = reduce cognitive load — the surface where humans and AI hesitate over "what to do next". Subtraction target is the degrees of freedom whose removal makes the next step unambiguous, not byte / file / output count.
+
+Configure default toward subtraction. At every judgment moment, ask whether the action adds or subtracts. Default to subtraction; addition requires justification.
 
 ## Core principles
 
@@ -24,6 +26,17 @@ Initial transmit = the minimum load-bearing set. Expansion is driven by recipien
 
 (C) Default reflexes are not judgment.
 Preserve-by-default ("do not know, so keep" / "carry forward just in case") and destructive-by-default ("seems related, delete") both evade (A). Every keep / add / remove / merge is an active load-bearing decision, not a directional reflex.
+
+## Surfaces of freedom
+
+Six surfaces where freedom can be subtracted; (A) / (B) / (C) apply uniformly across each:
+
+- **Decision** — what AI must decide; close options not load-bearing
+- **Output** — format / granularity / range; fix unless variation is load-bearing
+- **State** — information retained / memory referenced; drop what is not consumed
+- **Action** — tools available / permissions; least authority
+- **Structure** — responsibilities / layers / branches / dependencies; collapse non-load-bearing
+- **Purpose** — evaluation axes / success criteria; one or two, not more
 
 ## Application notes
 
@@ -59,6 +72,17 @@ Blast radius = break scope * recovery cost.
 Maximum caution = irreversible external side effects only. Operations closed inside git, however wide the break, remain medium or below.
 
 Deletion judgment fails in both directions (instance of (C)): destructive (delete what should be kept) and preserve-by-default (keep what should be deleted). "Do not know -> keep" collapses into preserve-by-default.
+
+## Subtraction safeguards
+
+Domains where subtraction MUST defer to explicitness, regardless of (A) / (B) / (C):
+
+- **Security** — auth / authz checks, secret handling, input validation at trust boundaries
+- **Observability** — error surfaces, logs that name root cause, traces across process boundaries
+- **Data integrity / loss prevention** — backups, idempotency guards, transactional commits
+- **Irreversibility checkpoints** — confirmation before destructive operations (delete / force-push / external send / payment)
+
+These domains gain strength from explicit redundancy; (C) destructive-by-default does not apply — preserve-by-default IS load-bearing here. Cross-reference: blast radius `high` / `maximum` rows in the calibration table correspond to these safeguard domains.
 
 ## Detection signs
 

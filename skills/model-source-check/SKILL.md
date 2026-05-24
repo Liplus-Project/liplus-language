@@ -44,7 +44,7 @@ Avoid "rule X was written to counter incident Y" causal assertions. Li+ rules ar
 
 ## Fixed-reference temporal separation
 
-A fixed URL / commit SHA / pinned reference (human-provided or otherwise) is historical evidence at that point, not the current state. Before constructing a claim about "now" from a pinned reference, independently retrieve main HEAD / latest wiki / related PR / adapter CLAUDE.md literal. Separate the temporal axes (pinned = past snapshot, HEAD = present) at the application moment.
+A fixed URL / commit SHA / pinned reference (human-provided or otherwise) is historical evidence at that point, not the current state. Before constructing a claim about "now" from a pinned reference, independently retrieve main HEAD / latest wiki / related PR (including deprecation / supersede status) / adapter CLAUDE.md literal. Separate the temporal axes (pinned = past snapshot, HEAD = present) at the application moment.
 
 ## External-framework projection inhibitor
 

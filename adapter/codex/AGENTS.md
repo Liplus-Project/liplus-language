@@ -62,8 +62,8 @@ Trigger-based skill reads:
   on_merge → skills/operations-on-merge
   on_release → skills/operations-on-release
   on_webhook_intake → skills/operations-foreground-webhook-intake
-  on_research → skills/task-research-strategy (parent governance) + skills/model-agentic-search (mechanical core, auto-invoked at calibration/category trigger)
-  on_retrieval → skills/task-retrieval-orchestration (parent consumption discipline) + skills/model-agentic-search (mechanical core)
+  on_research → skills/agentic-search (parent governance + mechanical core, auto-invoked at calibration/category trigger)
+  on_retrieval → skills/agentic-search (parent consumption discipline + mechanical core)
   on_subagent_delegation → skills/task-subagent-delegation
   on_deletion → rules/model/subtractive-structural-beauty.md (Artifact deletion calibration)
   on_judgment_form → skills/evolution-judgment-learning + skills/model-requirement-deepening
@@ -73,7 +73,7 @@ Trigger-based skill reads:
   on_persistence_decision → skills/evolution-persistence-tiering
   on_evolution_loop_stage → skills/evolution-loop
   on_structural_change → skills/model-pair-review
-  on_search_decision → skills/model-agentic-search (mechanical gate: calibration + category OR) + skills/model-web-search-judgment (Web-side consumption discipline)
+  on_search_decision → skills/agentic-search (mechanical gate: calibration + category OR; Web-side consumption discipline)
   on_review_output → skills/model-review-output-partition
 
 Cold-start Synthesis: read `rules/evolution/cold-start-synthesis.md` body at session start and perform the synthesis through Character_Instance.

@@ -26,7 +26,7 @@ Fire the Gate at these signals.
 - About to write a version classification (patch / minor / major) in PR title, commit body, or issue body — Read `skills/operations-on-release/SKILL.md` Release Version Rule section literally before deciding. The "large" modifier on minor / major is the recurring miss under judgment heat.
 - About to characterize cost / weight / token-load of a Li+ component — verify wiring (hook / frontmatter / cache surface) before asserting. `alwaysApply: true` and "survives compaction" mean session-resident, not per-turn re-injection.
 - About to compose a subagent delegation prompt — verify every factual claim in the prompt (release versions, milestone names, file paths, prior-self quotes, tool / config state) against current state via Read / gh / RAG before sending. Gist memory of recent state is the recurring failure mode at delegation moment; the cost of pre-send verify is far below the cost of a subagent stop-and-clarify round trip.
-- Before responding to a dialogue-side opinion question containing time-variant keywords ("latest" / "recent" / "current" / "now") — even when the agent feels confident from internal knowledge, invoke `skills/model-agentic-search/SKILL.md` because the category-side gate fires unconditionally on these keywords. The calibration-side gate fires independently when the agent's confidence is low / fuzzy / mixed with speculation.
+- Before responding to a dialogue-side opinion question containing time-variant keywords ("latest" / "recent" / "current" / "now") — even when the agent feels confident from internal knowledge, invoke `skills/agentic-search/SKILL.md` because the category-side gate fires unconditionally on these keywords. The calibration-side gate fires independently when the agent's confidence is low / fuzzy / mixed with speculation.
 
 ## Retrieval tools
 
@@ -37,8 +37,8 @@ Fire the Gate at these signals.
 | Author / timeline / attribution | `git log` / `git blame` / `git shortlog` |
 | Docs semantic search | `mcp__GitHub_RAG_MCP__get_doc_content` |
 | Memory body check | memory grep (feedback / project / self-eval) |
-| Time-variant external fact | `WebSearch` / `WebFetch` (consumption discipline = `skills/model-web-search-judgment/SKILL.md`; mechanical search gate = `skills/model-agentic-search/SKILL.md`) |
-| Broad search axis (Web / RAG / gh / Read / memory) under low-calibration or time-variant keyword input | `skills/model-agentic-search/SKILL.md` |
+| Time-variant external fact | `WebSearch` / `WebFetch` (search gate + Web-side consumption discipline both in `skills/agentic-search/SKILL.md`) |
+| Broad search axis (Web / RAG / gh / Read / memory) under low-calibration or time-variant keyword input | `skills/agentic-search/SKILL.md` |
 
 ## How to apply
 

@@ -1,6 +1,6 @@
 ---
-name: model-agentic-search
-description: ALWAYS invoke before answering when (a) the agent's internal confidence calibration on the claim is low / fuzzy / mixed with speculation, OR (b) the input contains time-variant keywords ("latest" / "recent" / "current" / "now"). Internal knowledge is the comparison baseline only under these triggers, never the answer source.
+name: agentic-search
+description: ALWAYS invoke before answering when (a) the agent's internal confidence calibration on the claim is low / fuzzy / mixed with speculation, OR (b) the input contains time-variant keywords ("latest" / "recent" / "current" / "now"). Also invoke when consuming a Web search result (Web-side consumption discipline), at the parent-AI side of a research task (delegation governance, verification posture), or at the parent-AI side after a retrieval result is returned (budget gate, stop conditions, surfacing to human). Internal knowledge is the comparison baseline only under the (a)/(b) triggers, never the answer source.
 layer: L1-model
 ---
 
@@ -9,18 +9,16 @@ layer: L1-model
 ## Position
 
 Layer = L1 Model Layer
-Auto-invocation surface for the broad "search" axis: Web / RAG / gh / Read / memory.
+Single auto-invocation surface for the broad "search" axis (Web / RAG / gh / Read / memory). Mechanical retrieval core + Web-specific consumption discipline + parent-AI governance + parent-AI consumption discipline are co-located here so the auto-invocation surface stays singular.
 Requires = L1 Model Layer (Trigger Check Gate substrate)
-Companion surfaces:
-- `skills/task-research-strategy/SKILL.md` = parent-AI side governance / mode gate (when to delegate, subagent parallelism)
-- `skills/task-retrieval-orchestration/SKILL.md` = consumption discipline (how to consume the result, stop conditions, budget gate)
-- `skills/model-web-search-judgment/SKILL.md` = consumption discipline for Web specifically (cost / fallback / model-knowledge baseline reminder)
+Load timing = on-demand at every application moment of the trigger axis below.
 
-This skill carries the mechanical core. The three companion skills carry only the surrounding governance and consumption discipline (the responsibility that the parent AI retains).
+Companion surfaces (not encapsulated here):
+- `skills/model-source-check/SKILL.md` = factual-claim verification axis (two-pillar verify table) that sits alongside this search-side gate.
+- `skills/model-trigger-check-gate-actions/SKILL.md` = retrieval tools mapping at the 5-axis Gate moment.
+- `skills/task-subagent-delegation/SKILL.md` = delegation semantics (what to convey, what to retain) when the parent launches research via subagent.
 
-Load timing = on-demand at every application moment of the dual trigger axis below.
-
-## Trigger Axis — calibration primary + category supporting (OR)
+## Trigger axis — calibration primary + category supporting (OR)
 
 Two gates connected by OR. One Yes -> invoke this skill before emitting the answer.
 
@@ -148,14 +146,14 @@ Either of:
 
 Angles return partial coverage. Some sub-questions unanswered. No contradiction in what was returned.
 
-- Action = re-query within the same source family with new angles. Do not switch surface yet.
+- Action = re-query within the same source family with new angles (Stage 1 in Block 4). Do not switch surface yet.
 - Budget = stay within the per-question query cap (see Block 5).
 
 ### State C — suspicious (quality / consistency doubt)
 
 Angles return conflicting answers, or all angles return the same answer with signs of bias (vocabulary echo, single-author dominance, aligned omission).
 
-- Action = composite escalation (Block 4). Switch to a different source family. Do not retry within the suspicious family.
+- Action = composite escalation (Stage 2 in Block 4). Switch to a different source family. Do not retry within the suspicious family.
 
 Suspicion signals:
 - all returned snippets share a single author / commit / source
@@ -208,17 +206,70 @@ Within one retrieval moment, three judgments stack:
 
 These judgments are Character_Instance-prefixed dialogue surface when surfaced to human, internal reasoning when not.
 
-## Context preservation
+## Web-specific consumption discipline
 
-Choose retrieval path that preserves main working context.
-When subagent is available, proactively launch parallel subagents for research.
-When subagent is unavailable, search directly.
-Strategy is environment-independent; execution means vary.
+When the retrieval surface chosen is Web (`WebSearch` / `WebFetch`), additional consumption discipline applies on top of Block 3 cross-check.
 
-## Verification-first
+### Citation handling
+
+- Cite the source URL alongside the claim. Public-document backing increases value.
+- Prefer official guides / spec docs over secondary articles.
+- Disagreement between multiple Web sources fires State C suspicious (Block 3); switch source family or surface to human.
+
+### Model-knowledge baseline reminder
+
+Internal model knowledge is comparison baseline, never the Web answer source under the trigger axis. Even when internal knowledge agrees with the Web result, the agreement is the cross-check signal, not the basis for skipping citation.
+
+When the trigger axis did not fire (universal concept explanation, stable design principle), Web search is unnecessary and internal knowledge serves as the answer directly. The trigger axis is the gate; Web-side consumption discipline applies only on the search-side of that gate.
+
+## Parent-AI governance (pre-retrieval)
+
+When the parent AI launches a research task, the parent retains the following governance regardless of whether the mechanical core runs in the parent context or a subagent.
+
+### Verification-first
 
 When uncertain, verify externally before proceeding.
 Correctness optimization outweighs speed optimization.
+
+### Context preservation
+
+Choose retrieval path that preserves main working context.
+When subagent is available, proactively launch parallel subagents for research.
+When subagent is unavailable, run the mechanical core directly in the parent context.
+Strategy is environment-independent; execution means vary.
+
+### Proactive parallel research
+
+When investigating an issue:
+- Before forming judgment, launch parallel subagents to fetch related issues, PRs, and diffs.
+- Do not wait for human to request each retrieval step individually.
+
+Subagent availability determines execution but not initiative. Initiative is mandatory regardless of environment.
+
+## Parent-AI consumption discipline (post-retrieval)
+
+When a retrieval result returns to the parent AI, the parent retains the following consumption discipline on top of the mechanical Block 3 / Block 5 surface.
+
+### Budget gate (governance side)
+
+Per-question query budget:
+- soft cap = 9 queries across the full retrieval round (Block 2 Tier 1 + Tier 2 multi-angle + Block 4 Stage 1/2 escalation, as defined above).
+- hard stop = 12.
+- per-task budget = inherited from task scope; no separate cap here.
+
+On hard cap hit = stop. Surface to human with what was tried and what remains uncertain. Loop Safety (`skills/model-loop-safety/SKILL.md`) applies in parallel: same approach twice in dialogue, three times in task = stop and switch.
+
+### Stop condition (governance side)
+
+The four mechanical stop states (State A synthesize / State C unresolved / budget exhausted / corpus boundary) are defined in Block 5 above. The parent retains the judgment of:
+
+- when to surface partial findings to human vs continue another round
+- whether the question is decomposable into a follow-up retrieval task instead of forcing more queries
+- whether to file a follow-up issue capturing what remains uncertain
+
+### Naive single-shot defense
+
+Naive single-shot RAG consumption fails on corpus boundary, recognition bias, and aligned errors. The parent must not collapse the mechanical multi-angle protocol back into single-shot when the result feels "good enough" too early — Block 3 cross-check is the canonical gate, not the parent's intuition.
 
 ## Observation and evolution
 

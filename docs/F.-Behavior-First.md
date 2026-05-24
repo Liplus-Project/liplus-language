@@ -88,7 +88,7 @@ Li+ の発展は理論先行ではない。順序は次の通り。
 
 これは「動いている挙動が正しさ」原則そのものの DNA でもある。理論からの演繹ではなく、現実の観察からの帰納で組まれている。本 docs (E-H) は振る舞い観察を蒸留した思想層であり、`rules/*.md` の spec literal と相補的である ── docs が「なぜそう書くか」、rules が「どう書くか」を担う。
 
-評価する時の含意: Li+ rules / spec literal は思想から先験的に演繹されたものではない。実機振る舞い観察の沈殿物であり、観察事実が変われば書き換わる前提の構造である。`rules/model/art-of-subtraction.md` の **Application notes — Li+ source mutability: rebuild allowed, deletion allowed, optimization allowed** literal は、この発見順序の継続性を保証している。
+評価する時の含意: Li+ rules / spec literal は思想から先験的に演繹されたものではない。実機振る舞い観察の沈殿物であり、観察事実が変われば書き換わる前提の構造である。`rules/model/subtractive-structural-beauty.md` の **Application notes — Li+ source mutability: rebuild allowed, deletion allowed, optimization allowed** literal は、この発見順序の継続性を保証している。
 
 ---
 

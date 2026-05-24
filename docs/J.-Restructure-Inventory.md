@@ -1,6 +1,6 @@
 # Restructure Inventory
 
-**注 (2026-05-23, #1351)**: `rules/model/expansion-limit.md` / `skills/model-output-density` / `skills/model-no-safety-net` / `skills/task-deletion-impact` は `rules/model/art-of-subtraction.md` に意味で統合された (vector 統合)。以下の関連行 (L47 expansion-limit / L48 output-density / L65 no-safety-net / L114 task-deletion-impact) は本書作成時点 (#1282) の判定として歴史的記録のため残置。
+**注 (2026-05-23, #1351)**: `rules/model/expansion-limit.md` / `skills/model-output-density` / `skills/model-no-safety-net` / `skills/task-deletion-impact` は `rules/model/subtractive-structural-beauty.md` に意味で統合された (vector 統合)。以下の関連行 (L47 expansion-limit / L48 output-density / L65 no-safety-net / L114 task-deletion-impact) は本書作成時点 (#1282) の判定として歴史的記録のため残置。
 
 parent #1279「責務軸 sort」sub-issue 2 (#1282) 成果物。
 sub-issue #1280 確定の判定基準を、`rules/` 外を含む全 Li+ source ファイルに適用した全件 inventory。sub-issue 4 (個別マイグレーション) の planning 入力。

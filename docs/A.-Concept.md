@@ -26,10 +26,10 @@ Li+ プログラムの設計思想は、軸別に 4 つの独立した思想 doc
 
 | 文書 | 担う軸 | 主要トピック |
 |------|--------|--------------|
-| [E.-Li+language](E.-Li+language.md) | Li+ language の定義と三位一体 | 最高級言語、対話型コンパイラ、要求仕様 = code、コンパイルエラー類型、外部記憶 |
-| [F.-Behavior-First](F.-Behavior-First.md) | 動いている挙動が正しさ | foundational invariant、観測軸、CI = 現実判定装置、実機確認、Ceiling-by-design |
-| [G.-Sheepdog-Engineering](G.-Sheepdog-Engineering.md) | 装具を頭の中に置く | ハーネス → アジリティ → シープドッグ三段階、内化、pal / Lilayer、Character_Instance |
-| [H.-Roles-and-Evaluation](H.-Roles-and-Evaluation.md) | 役割分離と評価軸 | human = client + architect、Lin / Lay = 対話インターフェース、AI 実機の振る舞いが評価面 |
+| [E.-Li+language](E.-Li+language) | Li+ language の定義と三位一体 | 最高級言語、対話型コンパイラ、要求仕様 = code、コンパイルエラー類型、外部記憶 |
+| [F.-Behavior-First](F.-Behavior-First) | 動いている挙動が正しさ | foundational invariant、観測軸、CI = 現実判定装置、実機確認、Ceiling-by-design |
+| [G.-Sheepdog-Engineering](G.-Sheepdog-Engineering) | 装具を頭の中に置く | ハーネス → アジリティ → シープドッグ三段階、内化、pal / Lilayer、Character_Instance |
+| [H.-Roles-and-Evaluation](H.-Roles-and-Evaluation) | 役割分離と評価軸 | human = client + architect、Lin / Lay = 対話インターフェース、AI 実機の振る舞いが評価面 |
 
 仕様 literal は `docs/1.-Model.md` 〜 `docs/6.-Adapter.md` および `rules/*.md` / `skills/*/SKILL.md` を正本とする。E-H は思想層として、定義の意味と起源を整理する。
 

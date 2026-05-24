@@ -8,14 +8,15 @@ Adapter layer entrypoint:
 - this file owns load order, re-read trigger mapping, Character_Instance wiring, and workspace language contract wiring
 - adapter load order = runtime attachment order, not cross-layer precedence
 
-Concept framing (Sheepdog Engineering, provisional):
+Concept framing (Sheepdog Engineering):
 - Three axes (see `docs/G.-Sheepdog-Engineering.md` for the full table):
   - position: `.claude/` contents (rules / skills / hooks / settings) are read as AI internal tools, not external constraints
   - modifier: AI edits Li+ source itself (issue → implement → self-review → merge); human provides direction and go-sign
-  - initiator: human still triggers promotion-judgment runs; AI surfaces proposals with content drafts
-- Stages: harness → agility (current: position+modifier on AI, initiator on human) → sheepdog (target: all three on AI).
+  - initiator: AI files self-evolution issues and runs implementation → merge end-to-end (see Evolution_Initiator_Autonomy below)
+- Stages: harness → agility (transitional, passed: position+modifier on AI, initiator on human) → sheepdog (current judgment layer: all three on AI).
+- Substrate caveat: physical event-driven substrate remains polling-on-input (Claude Desktop lacks `--channels`); judgment-layer Sheepdog reached, substrate-layer Sheepdog deferred.
 - self-eval drives the modifier axis as autonomous-evolution instrument: `skills/evaluation-self`, `skills/evolution-loop`, `promotion-judgment` family.
-- This framing is provisional; CLAUDE.md restructure is anticipated.
+- `Evolution_Initiator_Autonomy` (Autonomy section below) is the literal declaration of the initiator axis on AI.
 
 Execute the following at startup (never output credentials to chat):
 1. Inspect the `LI_PLUS_UPDATE_STATUS=` marker emitted by `on-session-start.sh` (delimited by `━━━ Li+ update status ━━━` banner) in the session-opening context.

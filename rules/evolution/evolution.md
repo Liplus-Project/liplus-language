@@ -33,7 +33,7 @@ Both layers follow intra-layer order. Their responsibilities differ by surface.
 
 Primary axis = AI-led evolution loop.
 Goal: observation → evaluation → distillation → Li+ source update → behavior improvement → next observation, runnable by AI alone.
-Current state: partial automation. Remaining manual steps shrink over time.
+Current state: judgment-layer Sheepdog reached. Initiator authority sits on AI per `Evolution_Initiator_Autonomy` (`adapter/claude/CLAUDE.md`); the two-stage brake (brake 1 = `skills/parallel-subagent-eval` mandatory for every self-evolution PR / brake 2 = human review additional for L1 Model Layer source changes) preserves safer-side discipline. Substrate layer is polling-on-input (Claude Desktop lacks `--channels`); substrate-layer Sheepdog is deferred (out of scope for the judgment-layer completion).
 
 ## Evolution Axis Separation
 

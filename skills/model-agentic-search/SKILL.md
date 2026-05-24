@@ -53,8 +53,8 @@ This gate catches the Dunning-Kruger surface: confident-but-wrong on time-varian
 
 Internal model knowledge is **comparison baseline**, not answer source under these triggers.
 
-- Use internal knowledge to articulate an internal hypothesis before external retrieve (one of the 3-5 angles in Block 2).
-- Use internal knowledge to cross-check retrieved content (disagreement fires State C suspicious).
+- Use internal knowledge to articulate an internal hypothesis before external retrieve (Tier 1 anchor in Block 2; agreement with the single probe early-exits to State A).
+- Use internal knowledge to cross-check retrieved content (disagreement fires State C suspicious and escalates to Tier 2).
 - Do not synthesize and return the internal hypothesis as the answer when the trigger fired.
 
 When neither gate fires, internal knowledge may serve as the answer directly. The triggers exist precisely to mark the cases where it cannot.
@@ -90,25 +90,46 @@ Before issuing the first query, classify into one of:
 
 Classification is not exclusive. Multi-type questions decompose into per-type subqueries handled by Block 2.
 
-## Block 2 — Multi-angle query generation and parallel retrieve
+## Block 2 — Tier 1 preview + Tier 2 deep-dive
 
-Generate 3-5 query angles for the same intent, then retrieve in parallel.
+Two-tier staged retrieval. Tier 1 is the cheap preview; Tier 2 is the deep-dive invoked only when Tier 1 cannot confirm. Full multi-angle is no longer the default cost.
+
+### Tier 1 — internal hypothesis + single external probe
+
+1. Articulate the internal hypothesis literally before any external query. If no internal opinion exists, explicitly note "no internal opinion" and skip directly to Tier 2.
+2. Issue a single external query on the primary surface for the question type (Block 1 mapping). One angle.
+3. Cross-check the single probe against the internal hypothesis:
+   - **agree** -> terminate retrieval. Synthesize and answer with confidence signal `agree-with-internal`. State A early exit.
+   - **disagree** -> escalate to Tier 2. The disagreement itself is the anomaly signal regardless of which side later proves correct.
+   - **no internal hypothesis** -> escalate to Tier 2; the comparison baseline is absent so a single probe cannot confirm.
+
+Tier 1 cost = 1 external query. Use this path whenever an internal hypothesis exists.
+
+### Tier 2 — multi-angle + tri-state cross-check
+
+When Tier 1 escalates, generate 3-5 query angles for the same intent and retrieve in parallel.
 
 Angle generation patterns:
-- **internal hypothesis articulation** — state the answer the agent expects from internal knowledge before issuing external queries. If no internal opinion, explicitly note "no internal opinion".
 - rephrasing (synonyms, abbreviation expansion, language switch)
 - viewpoint shift (cause vs effect, structure vs behavior, before vs after)
 - granularity shift (specific term vs general concept, instance vs category)
 - vocabulary substitution (Li+ internal term vs common technical term)
 
-Internal hypothesis is one of the 3-5 angles, not a separate pre-step. Articulating it before external retrieve enables the Block 3 cross-check to compare internal vs external and emit a confidence signal regardless of agreement direction.
+The internal hypothesis articulated in Tier 1 is carried forward as the comparison reference, not re-issued as an external angle.
 
 Parallel execution:
 - Issue all queries in one round when the surface supports it (RAG MCP semantic search, Web search).
 - For sequential surfaces (`Read` tool, `git show`), batch within a single tool call cluster.
 - Subagent delegation may parallelize further when available; see `skills/task-subagent-delegation/SKILL.md`.
 
-Output of this block = a set of retrieved snippets, each tagged by angle.
+Output of Tier 2 = a set of retrieved snippets, each tagged by angle, fed into Block 3 cross-check.
+
+### Tier vs Stage axis separation
+
+- **Tier** (this block) = retrieval depth axis within the chosen surface (Tier 1 = preview / Tier 2 = deep-dive).
+- **Stage** (Block 4) = escalation axis on top of Tier 2 (Stage 1 = same-family re-query / Stage 2 = composite escalation across orthogonal source families).
+
+Block 2 (Tier) decides how deep to dig within one source. Block 4 (Stage) decides when to switch source families.
 
 ## Block 3 — Cross-check and three-state branching
 
@@ -116,10 +137,12 @@ Evaluate the retrieved set across angles. The judging AI = Lin / Lay (Character_
 
 ### State A — sufficient
 
-Multiple angles converge on the same answer, including agreement with the internal hypothesis where one exists. Coverage spans the question's scope. No internal contradiction.
+Either of:
+- Tier 1 single probe agrees with the internal hypothesis (early-exit path).
+- Tier 2 multiple angles converge on the same answer, with coverage spanning the question's scope and no internal contradiction.
 
 - Action = synthesize and answer.
-- Confidence signal = `agree-with-internal` when internal hypothesis matched the converged external answer; `no-internal-opinion` when no internal hypothesis was articulated.
+- Confidence signal = `agree-with-internal` when internal hypothesis matched the external answer (Tier 1 or Tier 2); `no-internal-opinion` when no internal hypothesis was articulated (Tier 2 only).
 
 ### State B — insufficient (quantity / coverage gap)
 
@@ -148,7 +171,7 @@ Block 3 output carries a confidence signal alongside the state classification:
 
 The signal is propagated to the answer-synthesis surface so downstream consumers (human, follow-up tasks, observation logs) can read the confidence dimension without re-running the cross-check.
 
-## Block 4 — Composite escalation axes (Tier 1-2)
+## Block 4 — Composite escalation axes (Stage 1-2)
 
 When State C fires, choose a composite axis based on the failure mode.
 
@@ -158,11 +181,11 @@ When State C fires, choose a composite axis based on the failure mode.
 | rephrasings reflect agent bias | decomposition composite | break the question into structurally different sub-questions, retrieve each |
 | all sources aligned wrong | time-axis composite + alternate source | query historical commit diff, query independent external source |
 
-Escalation tiering:
-- **Tier 1** = same-family re-query with new angles (State B path).
-- **Tier 2** = composite escalation across orthogonal source families (State C path).
+Escalation staging (orthogonal to Block 2 Tier axis):
+- **Stage 1** = same-family re-query with new angles (State B path).
+- **Stage 2** = composite escalation across orthogonal source families (State C path).
 
-Hard stop after one full Tier 2 round if State C remains. Surface to human (Block 5).
+Hard stop after one full Stage 2 round if State C remains. Surface to human (Block 5).
 
 ## Block 5 — Stop condition
 
@@ -170,7 +193,7 @@ Stop when one of:
 
 1. State A reached. Synthesize and answer.
 2. State C unresolved after one composite escalation round. Surface to human with what was tried and what remains.
-3. Query budget exhausted. Soft cap = 8 queries across all blocks (5 Block 2 + 3 Block 3 retry / Block 4 escalation). Hard stop = 12.
+3. Query budget exhausted. Soft cap = 9 queries across all blocks (1 Tier 1 + up to 5 Tier 2 multi-angle + up to 3 Block 4 Stage 1/2 escalation). Hard stop = 12.
 4. Corpus boundary detected (consistent "no result" across multiple angles and at least one alternate source family). Surface to human.
 
 Do not loop indefinitely. Loop Safety (`skills/model-loop-safety/SKILL.md`) applies: same approach twice in dialogue, three times in task = stop and switch.

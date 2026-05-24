@@ -148,6 +148,23 @@ Memory_Write_Autonomy:
   Memory file writes (feedback.md, project.md, user_*.md, reference_*.md) are AI-autonomous decisions.
   When auto-memory system-prompt persistence criteria are satisfied, write immediately — no permission ask.
 
+  Pre-write persistence check (hard gate):
+  Before each memory write, run the transient-vs-persistent judgment from
+  `rules/evolution/memory-entry-format.md` Trigger point + `skills/evolution-persistence-tiering`.
+  - clearly persistent (long-horizon human instruction / spec-class guidance /
+    semantic overlap with an existing escalation destination in
+    `rules/` / `skills/` / `docs/` / wiki) -> abort the memory write and surface
+    the escalation path instead (open promotion issue or direct edit to the
+    canonical destination)
+  - clearly transient (cluster tally / self-eval log / disposable reference) ->
+    proceed with the memory write
+  - ambiguous -> safer-side OR: do not write to memory; surface the escalation
+    candidate to human
+  The gate does not pause for permission. It runs at every write moment and
+  routes the content to either memory (transient) or escalation (persistent /
+  ambiguous). This is the structural counterpart to the post-hoc hygiene round
+  — without this gate, persistent information re-accumulates in memory.
+
   Existing maintenance rules still apply:
   - check for duplicate or conflicting entries before writing
   - remove outdated entries

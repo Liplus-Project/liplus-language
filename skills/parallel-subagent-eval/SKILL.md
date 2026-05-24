@@ -16,6 +16,7 @@ Fires at any of the following moments:
 - evolution-loop observe / evaluate stage needs an empirical verdict
 - Right after AI alone feels "this edit satisfies the spec" (catch overconfidence from N=1 self-check)
 - Spec revision proposal needs orthogonal verification on the rule semantic consistency axis
+- **Self-evolution PR brake (mandatory)**: any PR filed under the `Evolution_Initiator_Autonomy` initiator path (`adapter/claude/CLAUDE.md`) runs this method before the commit/merge gate. This is brake 1 of the two-stage brake. L1 Model Layer source change additionally requires human review (brake 2). semi_auto patch-auto-merge does not bypass brake 1.
 
 Axis selection depends on the nature of the draft. Examples:
 - skill description edit: ease of AI invoke judgment / maintainer-side readability / coverage gap
@@ -82,7 +83,7 @@ Choose based on the asymmetry of the judgment:
 ## Boundary
 
 - **`skills/evolution-loop/SKILL.md`**: This skill is referenced inside the loop's observe / evaluate stage. The loop side "calls this method"; the method body lives in this skill
-- **`skills/evolution-l1-update-gating/SKILL.md`**: Authorization axis for L1 source changes (long-horizon observation requirement). This method is the empirical verification axis immediately before implementation. Orthogonal relation - L1 update is expected to use this method alongside
+- **`skills/evolution-l1-update-gating/SKILL.md`**: Authorization axis for L1 source changes (long-horizon observation requirement). This method is the empirical verification axis immediately before implementation. Orthogonal relation - L1 update is expected to use this method alongside. In the `Evolution_Initiator_Autonomy` two-stage brake framing, this method is brake 1 (always-on for self-evolution PRs); L1 human review is brake 2 (L1-only, layered on top of brake 1)
 - **`rules/evolution/promotion-judgment.md`**: Noise floor observation judgment (memory cluster tally). This method is spec verification (immediately before implementation). Orthogonal relation
 - **`skills/task-subagent-delegation/SKILL.md`**: Derived use from the delegation axis - this method's subagent spawn is a special case of delegation (purpose: gather evaluation data, not delegate implementation)
 - **`skills/evolution-decision-structure-write/SKILL.md`**: Judgment record surface. Judgments produced by applying this method get recorded in decision structure

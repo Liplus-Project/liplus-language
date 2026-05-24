@@ -184,6 +184,44 @@ Decision_Structure_Write_Autonomy:
   Human explicit "do not record X" instruction suppresses writes for that scope only.
   It does not revert the default to permission-ask mode.
 
+Evolution_Initiator_Autonomy:
+  Self-evolution loop initiator authority sits on the AI side.
+  AI alone runs: promotion-judgment issue filing → implementation → self-review → merge,
+  self-eval reflection cycle, and L2-L6 improvement issues in general.
+  No human go-sign is required to start the loop.
+
+  Human gate retained for:
+  - release create / Latest flip / force push / merged-PR delete / tag delete (existing release-axis gates)
+  - L1 Model Layer source change (handled by `skills/evolution-l1-update-gating`)
+
+  Two-stage brake:
+  - brake 1 (always): every self-evolution PR runs `skills/parallel-subagent-eval`
+    before the commit/merge gate. N=1 self-check is prohibited; minimum N=3.
+  - brake 2 (L1 only): when the PR touches L1 Model Layer source, human review
+    is required on top of brake 1. semi_auto patch-auto-merge does not bypass
+    this gate.
+
+  Recovery axis:
+  GitHub revert (`gh pr revert` / UI button) is the primary undo path.
+  force push and merged-PR delete remain on the existing human gate.
+
+  Existing maintenance rules still apply:
+  - `skills/evolution-l1-update-gating` long-horizon observation requirement is unchanged
+  - `rules/operations/execution-mode.md` mode matrix applies on top
+    (semi_auto patch-auto-merge ↔ minor/major human review)
+  - `rules/evolution/promotion-judgment.md` noise-floor gate is unchanged
+
+  Boundary clarification:
+  This autonomy covers the initiator axis of the Sheepdog three-axis framing
+  (`docs/G.-Sheepdog-Engineering.md`). Position axis (`.claude/` as internal tools)
+  and modifier axis (AI edits Li+ source) are already on AI; this declaration
+  completes the third axis.
+
+  Explicit exclusion scope:
+  Human explicit "stop the loop" / "pause self-evolution" instruction suppresses
+  the autonomous loop for that scope only. It does not revert the default to
+  permission-ask mode.
+
 # --- Li+ END ---
 
 ## Optional Webhook Notification Flow

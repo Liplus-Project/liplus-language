@@ -3,7 +3,7 @@
 Li+のセットアップは、ワークスペースに設定ファイルを1つ配置するだけです。
 初回セッションでAIが環境を自動検出し、必要なファイルを生成します。
 
-このページは **Quickstart** です。各設定値の詳細は [B. Configuration](B.-Configuration)、起動フローの詳細は [C. Bootstrap](C.-Bootstrap) を参照します。
+このページは **Quickstart** です。各設定値の詳細は [B. Configuration](B.-Configuration)、更新同期手続きの詳細は [C. Update](C.-Update) を参照します。
 
 `Li+config.md` は各リリースに添付されています。→ [最新リリース](https://github.com/Liplus-Project/liplus-language/releases/latest)
 
@@ -122,7 +122,7 @@ AIが自動的に：
 8. `rules/**/*.md` を読み込み（L1–L4 の常時ロード分、subdir 含む常に必須。L5 Notifications と L6 Adapter は `rules/<layer>/` を持たない予約スロット。詳細は [判断構造 layer-reorg-rationale](layer-reorg-rationale)）。`skills/**/SKILL.md` はトリガー時に読み込み（hookが無い環境では Codex adapter のトリガー表に従って手動読み込み）
 9. 環境に応じた設定ファイルを自動生成
 
-詳細な起動ステップ定義は [C. Bootstrap](C.-Bootstrap) を参照します。
+詳細な更新同期ステップ定義は [C. Update](C.-Update) を参照します。
 
 | 環境 | 生成されるファイル |
 |------|------------------|
@@ -178,5 +178,5 @@ Li+ clone mode bootstrap は毎セッション、tag 差分があれば `.claude
 ## 関連ページ
 
 - [B. Configuration](B.-Configuration) — 設定リファレンス
-- [C. Bootstrap](C.-Bootstrap) — セッション起動フロー
+- [C. Update](C.-Update) — アダプター / 設定の更新同期手続き
 - [1. Model](1.-Model) — Li+の中核仕様

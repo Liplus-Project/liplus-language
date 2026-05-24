@@ -1,8 +1,8 @@
-# Li+ Bootstrap
+# Li+ Update
 
-Session startup procedure for Li+.
-Execute at session start. Never output credentials to chat.
-Read Li+config.md first to resolve all settings before executing this file.
+Adapter / configuration sync procedure for Li+.
+Invoked when the adapter sentinel tag, Li+config schema, or workspace language contract drifts from the target state (the on-session-start.sh hook emits `LI_PLUS_UPDATE_STATUS=needed` in that case). Most sessions skip this file because the hook reports `LI_PLUS_UPDATE_STATUS=unnecessary`.
+Never output credentials to chat. Read Li+config.md first to resolve all settings before executing this file.
 
 Phases execute in order. Each phase declares its dependencies.
 

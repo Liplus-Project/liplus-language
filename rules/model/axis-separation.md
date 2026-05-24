@@ -29,4 +29,5 @@ On drift or violation = recovery path = reapply Always Character Platform
 
 Out of integration order:
 Requirements Specification = design blueprint compiled by Li+AI into the target program
-Li+config.md = bootstrap / installer script
+Li+config.md = user-edited settings file (workspace-root config)
+Li+update.md = adapter / configuration sync procedure invoked when state drifts from target

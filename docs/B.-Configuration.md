@@ -2,7 +2,7 @@
 
 **Li+config.md** は、Li+のユーザー設定ファイルです。ワークスペース直下に配置し、ユーザーが直接編集します。
 
-セッション起動ロジックは **Li+bootstrap.md** に分離されており、本ファイルは設定値の保持のみを担います。起動フローの詳細は [C. Bootstrap](C.-Bootstrap) を参照します。
+アダプター / 設定の同期手続きは **Li+update.md** に分離されており、本ファイルは設定値の保持のみを担います。同期フローの詳細は [C. Update](C.-Update) を参照します。
 
 このページは **設定リファレンス** です。Quickstart は [D. Installation](D.-Installation) を参照します。
 
@@ -37,7 +37,7 @@ gh CLI integration が必要な機能（issue / PR / release / webhook intake）
 
 Li+ 本体リポジトリを URL 形式で指定します。デフォルト値は `https://github.com/Liplus-Project/liplus-language` です。
 
-Li+ファイル（`rules/**/*.md`、`skills/**/SKILL.md`、Li+bootstrap.md 等）の取得先として使用されます。フォークや組織内プライベートコピーを使う場合はここを変更します。受容する host 形式は `USER_REPOn` と同じです。
+Li+ファイル（`rules/**/*.md`、`skills/**/SKILL.md`、Li+update.md 等）の取得先として使用されます。フォークや組織内プライベートコピーを使う場合はここを変更します。受容する host 形式は `USER_REPOn` と同じです。
 
 ### LI_PLUS_MODE
 
@@ -150,9 +150,9 @@ webhook 通知がセッションへ届く方法を指定します。`mcp__github
 
 ---
 
-## セッション起動フロー
+## 更新同期フロー
 
-セッション起動フローの詳細は [C. Bootstrap](C.-Bootstrap) を参照します。
+アダプター / 設定の更新同期手続きの詳細は [C. Update](C.-Update) を参照します。
 
 ---
 

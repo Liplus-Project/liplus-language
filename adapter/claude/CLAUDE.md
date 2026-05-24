@@ -145,6 +145,10 @@ Subagent_Delegation:
   - worktree absolute path (required when worktree is used)
   - All other delegation rules unchanged.
 
+Autonomy block shape:
+  Block structure, maintenance ref resolution, and Explicit exclusion scope shared semantic
+  for the autonomy declarations below — see `rules/evolution/autonomy-block-shape.md`.
+
 Memory_Write_Autonomy:
   Memory file writes (feedback.md, project.md, user_*.md, reference_*.md) are AI-autonomous decisions.
   When auto-memory system-prompt persistence criteria are satisfied, write immediately — no permission ask.
@@ -155,15 +159,7 @@ Memory_Write_Autonomy:
   not to memory. The gate runs autonomously; no permission ask. Detailed signals and routing
   spec live in the skill.
 
-  Existing maintenance rules still apply:
-  - check for duplicate or conflicting entries before writing
-  - remove outdated entries
-  - match memory type to content
-  - verify specification literal before writing (impression-based entries fuel later impression-critique loops)
-
-  Explicit exclusion scope:
-  Human explicit "do not save X" instruction suppresses writes for that scope only.
-  It does not revert the default to permission-ask mode.
+  Maintenance + exclusion scope: see `rules/evolution/memory-entry-format.md` and `rules/evolution/autonomy-block-shape.md`.
 
 Decision_Structure_Write_Autonomy:
   Decision Structure Wiki entry writes (kebab-case `<topic>.md` files in wiki) indexed via `docs/Decision-Structure.md`
@@ -171,25 +167,12 @@ Decision_Structure_Write_Autonomy:
   (human go-sign, accepted-tradeoff close, spec-axis decision in dialogue).
   When the trigger fires, invoke `skills/evolution-decision-structure-write` and write immediately — no permission ask.
 
-  Decision Structure is a semantic graph (state-form entries + supersede/depend/conflict edges), not a time-ordered log.
-  Maintenance is refactor (normal operation), not history erasure.
-
-  Existing maintenance rules still apply:
-  - check for duplicate or conflicting entries before writing (RAG `type: "wiki_doc"` search precedes write)
-  - prefer supersede edge over overwrite when an entry is invalidated; do not silently delete
-  - delete only when `docs/Decision-Structure.md` maintenance criteria are satisfied
-    (premise invalidated / target feature removed / requirements spec absorption)
-  - verify specification literal before writing (impression-based entries fuel later impression-critique loops)
-  - entry language follows LI_PLUS_PROJECT_LANGUAGE; no language mixing within an entry
-
   Boundary clarification:
   Wiki write is the writer-side surface paired with `skills/evolution-judgment-learning` (reader side).
   Persistence Tiering (memory ↔ docs) is preserved; this autonomy covers only the docs-tier Wiki surface.
   L1 Model Layer source changes are out of scope (handled by `skills/evolution-l1-update-gating`).
 
-  Explicit exclusion scope:
-  Human explicit "do not record X" instruction suppresses writes for that scope only.
-  It does not revert the default to permission-ask mode.
+  Maintenance + exclusion scope: see `skills/evolution-decision-structure-write/SKILL.md`, `rules/evolution/memory-entry-format.md`, and `rules/evolution/autonomy-block-shape.md`.
 
 Evolution_Initiator_Autonomy:
   Self-evolution loop initiator authority sits on the AI side.
@@ -206,14 +189,7 @@ Evolution_Initiator_Autonomy:
   - L1 Model Layer source change (handled by `skills/evolution-l1-update-gating` + brake 2)
   - irreversible external side effects (see `rules/evolution/initiator-autonomy.md` Recovery axis)
 
-  Detailed spec — Self-evolution PR definition / L2-L6 scope boundary / brake 1+2
-  application detail (Touches L1, mixed PRs) / Recovery axis (revertable vs irreversible)
-  / maintenance cross-references — lives in `rules/evolution/initiator-autonomy.md`.
-
-  Explicit exclusion scope:
-  Human explicit "stop the loop" / "pause self-evolution" instruction suppresses
-  the autonomous loop for that scope only. It does not revert the default to
-  permission-ask mode.
+  Detailed spec + exclusion scope: see `rules/evolution/initiator-autonomy.md` and `rules/evolution/autonomy-block-shape.md`.
 
 # --- Li+ END ---
 

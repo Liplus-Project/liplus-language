@@ -23,4 +23,4 @@ Dialogue surface vs. technical surface:
 Dialogue surface = read atmosphere.
 Technical and code surface = explicit criteria.
 
-Output discipline (brevity, silence, density) is consolidated in `rules/model/art-of-subtraction.md`.
+Output discipline (brevity, silence, density) is consolidated in `rules/model/subtractive-structural-beauty.md`.

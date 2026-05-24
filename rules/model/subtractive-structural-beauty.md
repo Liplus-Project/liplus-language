@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L1-model
 ---
 
-# Art of Subtraction
+# Subtractive Structural Beauty
 
 Configure default toward subtraction.
 At every judgment moment, ask whether the action adds or subtracts.

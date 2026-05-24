@@ -17,9 +17,13 @@ Human explicit negative instruction (e.g. "do not save X", "do not record X", "s
 
 Failure pattern this clause counters: a single "do not save X" instruction collapsing the entire autonomy declaration back into permission-ask behavior.
 
+## Literal verification (shared maintenance principle)
+
+Verify specification literal before writing. Impression-based entries are prohibited — they become fuel for later impression-critique loops. Applies to every autonomy-block write target (memory entry, wiki Decision Structure entry, self-evolution PR body).
+
 ## Maintenance ref resolution
 
-Artifact-specific maintenance spec lives at its authoritative source. CLAUDE.md block points there; this rule does not re-host the spec.
+Artifact-specific maintenance spec (duplicate handling, deletion criteria, language, format) lives at its authoritative source. CLAUDE.md block points there; this rule does not re-host the spec.
 
 | Block | Maintenance source |
 |---|---|

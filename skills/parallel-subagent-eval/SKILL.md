@@ -6,87 +6,87 @@ layer: L2-evolution
 
 # Parallel Subagent Eval
 
-AI 単独の introspection gap (自己の future invoke 挙動 / rule semantic 効果を予測する empirical 根拠を持たない) を、subagent の現在挙動で外側から測る verification method。
+Verification method that measures the AI's introspection gap (no empirical basis for predicting its own future invoke behavior or rule semantic effect) from the outside via the current behavior of subagents.
 
 ## Trigger
 
-以下のいずれかの瞬間に発火:
+Fires at any of the following moments:
 
-- Li+ rules/* または skills/* の edit draft が converged で、commit/merge gate 前の verification が必要なとき
-- evolution-loop の observe / evaluate stage で empirical verdict が必要なとき
-- AI 単独で「この edit は spec を満たす」と感じた直後 (N=1 self-check の overconfidence catch)
-- spec 改修案を rule semantic 整合性軸で他軸並列に確認したいとき
+- Li+ rules/* or skills/* edit draft has converged and verification is needed before the commit/merge gate
+- evolution-loop observe / evaluate stage needs an empirical verdict
+- Right after AI alone feels "this edit satisfies the spec" (catch overconfidence from N=1 self-check)
+- Spec revision proposal needs orthogonal verification on the rule semantic consistency axis
 
-軸の選び方は draft の性質次第。例:
-- skill description 編集: AI invoke 判断のしやすさ / メンテ側読みやすさ / カバレッジ欠落
-- rule body 編集: configured / not-configured 両 path の behavior 整合 / 隣接 rule との semantic 矛盾検出 / 既存 scope 節との orthogonality
+Axis selection depends on the nature of the draft. Examples:
+- skill description edit: ease of AI invoke judgment / maintainer-side readability / coverage gap
+- rule body edit: behavior consistency across configured / not-configured paths / detect semantic conflict with adjacent rules / orthogonality against existing scope clauses
 
 ## Design Dimensions
 
-verification cost と検出力を独立に動かす三軸:
+Three axes that move verification cost and detection power independently:
 
-- **`subagent_count (N)`** — 独立サンプル数。各観測軸について N 個の独立評価を得る。確率分散への耐性。
-- **`axes_per_subagent (M)`** — 1 subagent が prompt 内で答える観測軸の本数。死角被覆。
-- **`premise_variations (P)`** — ablation 前提の本数 (例: rule 完全除外 / 部分除外)。前提揺らぎへの耐性。
+- **`subagent_count (N)`** - Independent sample count. Obtain N independent evaluations per observation axis. Robustness against probabilistic variance.
+- **`axes_per_subagent (M)`** - Number of observation axes each subagent answers within its prompt. Blind-spot coverage.
+- **`premise_variations (P)`** - Number of ablation premises (e.g. full rule exclusion / partial exclusion). Robustness against premise variation.
 
-三軸は独立に設定可。総 subagent invocation 数 = `N × P` (M は subagent prompt 内に詰め込んで吸収)。
+The three axes are independently configurable. Total subagent invocation count = `N x P` (M is absorbed inside each subagent prompt).
 
-### デフォルトパターン (delete/keep 判定など)
+### Default pattern (delete/keep judgment, etc.)
 
-`N=3, M=全 axes, P=1` — 3 subagent が同じ ablation 出力に対して、それぞれ全 M 軸の問いに独立に答える。aggregation = safer-side OR (1 軸でも load-bearing の徴候を返したら "残す" 側に倒す)。各軸 N=3 サンプルが揃い、死角被覆と分散耐性を同時に取りに行く。総 invocation = 3。
+`N=3, M=all axes, P=1` - 3 subagents independently answer all M axis questions against the same ablation output. aggregation = safer-side OR (if even one axis returns a load-bearing signal, fall toward "keep"). N=3 samples are collected per axis, capturing blind-spot coverage and variance robustness simultaneously. Total invocation = 3.
 
-### 例外パターン: M=1 axis-separated
+### Exception pattern: M=1 axis-separated
 
-各軸の prompt 複雑度が高く、subagent 1 context 内で cross-axis echo bias を抑止しきれない場合のみ採用。`N=3, M=1, P=1` で 1 軸 1 subagent。総 invocation = `N × 軸数`。
-原 #1296 実証 (axis A: invoke 判断のしやすさ / axis B: メンテ可読性 / axis C: カバレッジ) は本パターンの実例として保持。
+Adopt only when per-axis prompt complexity is high enough that cross-axis echo bias cannot be suppressed inside a single subagent context. `N=3, M=1, P=1`, one axis per subagent. Total invocation = `N x axis_count`.
+The original #1296 empirical demonstration (axis A: ease of invoke judgment / axis B: maintainer readability / axis C: coverage) is retained as the canonical instance of this pattern.
 
-### 前提揺らぎ (P > 1)
+### Premise variations (P > 1)
 
-ablation 前提自体を複数並べて比較したい場合のみ。総 invocation = `N × P` (各 premise 内で M はデフォルトパターンと同じく prompt 吸収)。
+Use only when comparing multiple ablation premises directly. Total invocation = `N x P` (within each premise, M is absorbed into the prompt as in the default pattern).
 
-代表例は P=2 before/after pattern: premise A = 変更前 (operational copy 未適用 = baseline)、premise B = 変更後 (draft 適用 = candidate) を別 premise として並べ、同一 subagent prompt 下での変更前後の挙動 check を直接比較する。trigger = Li+ source 改修で「同じ問いに対して subagent の verdict が draft 適用前後で動いたか」を empirical に押さえたい場面。cost は `N=3, P=2 → 6 invocation` (デフォルト `N=3, P=1 → 3 invocation` の倍)。
+The representative case is the P=2 before/after pattern: premise A = pre-change (operational copy unapplied = baseline), premise B = post-change (draft applied = candidate) are placed as separate premises, and the subagent's behavior under the same prompt is compared directly before and after the change. Trigger = a Li+ source revision where the question "did the subagent verdict shift before vs after draft application on the same question?" needs to be pinned down empirically. Cost is `N=3, P=2 -> 6 invocation` (double the default `N=3, P=1 -> 3 invocation`).
 
-### aggregation 規則
+### aggregation rule
 
-判定の非対称性に合わせて選ぶ:
-- delete/keep 二択で誤削除コストが高い → safer-side OR (1 軸でも効きを検出したら "残す")
-- 採用/不採用二択で誤採用コストが高い → 全軸合意要求 (AND)
-- 中間 → consistent / partial / negative 三値分類 (旧 #1296 パターン)
+Choose based on the asymmetry of the judgment:
+- delete/keep binary where erroneous deletion is costly -> safer-side OR (if any axis detects effect, "keep")
+- adopt/reject binary where erroneous adoption is costly -> require unanimous agreement (AND)
+- intermediate -> three-value classification: consistent / partial / negative (the legacy #1296 pattern)
 
 ## Procedure
 
-**Precondition**: source は experimental branch にあり、`.claude/` は tag-match 状態 (draft 未適用) であること。character 挙動が verification 対象に含まれる場合、step 3 の subagent prompt に Character_Instance 本文を明示注入する必要あり (Constraint 参照)。
+**Precondition**: source lives on an experimental branch, and `.claude/` is in tag-match state (draft unapplied). When character behavior is part of the verification target, the step 3 subagent prompt must explicitly inject the Character_Instance body (see Constraint).
 
-1. **draft 準備** — 編集内容を draft する
-2. **operational copy 適用** — `.claude/skills/<name>/SKILL.md` または `.claude/rules/**/*.md` に draft 適用。source は experimental branch に保持
-3. **parallel subagent spawn** — Design Dimensions の三軸 (N, M, P) を draft の性質に応じて選び、subagent を同時 spawn。デフォルトは `N=3, M=全 axes, P=1` で総 invocation = 3。default パターンでは各 subagent prompt 内に全 M 軸の問いを「他軸の答えを参照せずに独立に答えよ」と明示して詰め込む。cross-axis echo bias 抑止が不安なほど prompt 複雑度が高い場合は M=1 axis-separated 例外パターン (総 invocation = `N × 軸数`)、前提揺らぎが必要な場合は P>1 (総 invocation = `N × P`) へ切り替え (Design Dimensions 参照)。prompt は self-contained (parent context を持ち込ませない)
-4. **verdict aggregate** — Design Dimensions の aggregation 規則に従って軸間 judgment を集約 (delete/keep なら safer-side OR、採用/不採用なら AND、中間なら consistent / partial / negative の三値分類)
-5. **runtime 復旧** — `.claude/` を tag-match 状態に restore (operational copy を draft 前へ戻す)
-6. **judgment** — verdict に応じて: consistent → spec 変更を実装側へ進める / partial / negative → draft 修正後 step 2 から再走 (再走時も必ず step 5 restore を経由してから) / 中止
-7. **externalize** — verdict と適用判断を parent issue body / PR self-review に記録。判断が settle した場合は `skills/evolution-decision-structure-write` を参照して decision structure にも追記
+1. **Prepare draft** - Draft the edit content
+2. **Apply operational copy** - Apply the draft to `.claude/skills/<name>/SKILL.md` or `.claude/rules/**/*.md`. Source remains on the experimental branch
+3. **Parallel subagent spawn** - Select the three Design Dimensions axes (N, M, P) based on draft nature and spawn subagents in parallel. Default is `N=3, M=all axes, P=1`, total invocation = 3. In the default pattern, the subagent prompt explicitly instructs "answer each M axis question independently without referencing other axes' answers" packed into a single prompt. If prompt complexity is high enough that cross-axis echo bias suppression is uncertain, switch to the M=1 axis-separated exception pattern (total invocation = `N x axis_count`); if premise variation is needed, switch to P>1 (total invocation = `N x P`) (see Design Dimensions). Prompts must be self-contained (do not let parent context leak in)
+4. **Aggregate verdict** - Aggregate cross-axis judgment per the Design Dimensions aggregation rule (safer-side OR for delete/keep, AND for adopt/reject, three-value consistent / partial / negative classification for intermediate)
+5. **Runtime restore** - Restore `.claude/` to tag-match state (revert the operational copy to pre-draft)
+6. **Judgment** - Based on the verdict: consistent -> push the spec change toward implementation / partial / negative -> revise draft and re-run from step 2 (re-run must also go through step 5 restore first) / abort
+7. **Externalize** - Record the verdict and the adoption judgment in the parent issue body / PR self-review. If the judgment has settled, also append to decision structure per `skills/evolution-decision-structure-write`
 
 ## Constraint
 
-- **N=1 は禁止、最低 N=3**: 1 試行は overconfidence の発生源。`#1296` empirical 実証で N=1 positive → N=3 で 1positive + 2 partial-negative の結論反転を観測している (当時は M=1 axis-separated 例外パターン下での 3 軸 OR aggregation。現行 default は M=全 axes で同じ N=3 floor を維持)。N は Design Dimensions の `subagent_count` を参照し、最低 3 で走らせる
-- **subagent prompt は self-contained**: parent context を持ち込ませない。default M=全 axes パターンでは prompt 内で各軸を「他軸の答えを参照せずに独立に答えよ」と明示して cross-axis echo bias を抑止する。mitigation が不安なほど prompt 複雑度が高い場合は M=1 axis-separated パターンへ退避 (Design Dimensions 参照)
-- **Character_Instance の非継承**: subagent context に inject されるのは `CLAUDE.md` + `.claude/rules/**/*.md` (full body) + `.claude/skills/*/SKILL.md` (description のみ、body は invoke 時 lazy load) + MEMORY.md + harness-level system-reminders。`.claude/output-styles/`・hook 発火出力 (SessionStart / UserPromptSubmit 等)・`.claude/settings.json` 本体は届かない。`.claude/hooks/*.sh` の script body は Read tool 経由で参照可だが auto-load されない。subagent で character 挙動が verification 対象に含まれる場合は、prompt 内に Character_Instance 本文を明示注入する。注入なしで character 軸を走らせると hollow prefix sleeping bug (persona 不在で文字列上だけ Character Instance 名を生成) が発生する
-- **operational copy の適用と restore は必ずペア**: step 2 (適用) と step 5 (restore) を必ず両方実行。restore 忘れは parent session の挙動に持ち越し、後続 session に汚染が残る
+- **N=1 prohibited, minimum N=3**: One trial is the source of overconfidence. The `#1296` empirical demonstration observed conclusion reversal from N=1 positive -> N=3 = 1 positive + 2 partial-negative (at that time under the M=1 axis-separated exception pattern with 3-axis OR aggregation; the current default holds the same N=3 floor under M=all axes). Reference Design Dimensions' `subagent_count` for N and run at minimum 3
+- **Subagent prompt must be self-contained**: Do not let parent context leak in. In the default M=all axes pattern, the prompt explicitly instructs each axis to "answer independently without referencing other axes' answers" to suppress cross-axis echo bias. If prompt complexity is high enough that the mitigation is uncertain, fall back to the M=1 axis-separated pattern (see Design Dimensions)
+- **Character_Instance non-inheritance**: What gets injected into subagent context = `CLAUDE.md` + `.claude/rules/**/*.md` (full body) + `.claude/skills/*/SKILL.md` (description only, body lazy-loaded at invoke) + MEMORY.md + harness-level system-reminders. `.claude/output-styles/`, hook firing output (SessionStart / UserPromptSubmit, etc.), and `.claude/settings.json` itself do not reach the subagent. `.claude/hooks/*.sh` script bodies are readable via the Read tool but not auto-loaded. When character behavior is part of the verification target, explicitly inject the Character_Instance body into the prompt. Running the character axis without injection produces the hollow prefix sleeping bug (persona absent, only the Character Instance name string generated)
+- **Operational copy apply and restore must be paired**: Always execute both step 2 (apply) and step 5 (restore). Skipping restore carries the change into the parent session's behavior and leaves contamination for subsequent sessions
 
 ## Non-scope
 
-- 本 method は spec 反映前の verification surface であり、PR review に置き換わるものではない (semi_auto mode の minor/major 人間レビューは別軸)
-- 1 試行は overconfidence の発生源として除外
-- 時間で変わる事実 (API 仕様、ライブラリ挙動) の検証は本 method の射程外、都度調査
-- promotion-judgment の memory observation noise floor 判定とは別軸 (本 method は spec verification、promotion は観察累積判定)
+- This method is a pre-spec-reflection verification surface; it does not replace PR review (semi_auto mode minor/major human review is a separate axis)
+- One trial is excluded as a source of overconfidence
+- Verification of facts that change over time (API spec, library behavior) is outside this method's range; investigate per occurrence
+- Separate axis from promotion-judgment's memory observation noise floor judgment (this method = spec verification; promotion = observation accumulation judgment)
 
 ## Boundary
 
-- **`skills/evolution-loop/SKILL.md`**: 本 skill は loop の observe / evaluate stage 内で参照される。loop 側は「本 method を呼ぶ」位置づけ、method の本体は本 skill が抱える
-- **`skills/evolution-l1-update-gating/SKILL.md`**: L1 source 変更の authorization 軸 (long-horizon observation 要件)。本 method は実装直前の empirical verification 軸。直交関係 — L1 update でも本 method を併用する想定
-- **`rules/evolution/promotion-judgment.md`**: noise floor 観測判定 (memory cluster tally)。本 method は spec verification (実装直前)。直交関係
-- **`skills/task-subagent-delegation/SKILL.md`**: delegation 軸の派生用途 — 本 method の subagent spawn は delegation の特殊ケース (評価データ取得目的、実装委譲ではない)
-- **`skills/evolution-decision-structure-write/SKILL.md`**: 判断記録 surface。本 method 適用の結果生じた判断は decision structure に記録される
+- **`skills/evolution-loop/SKILL.md`**: This skill is referenced inside the loop's observe / evaluate stage. The loop side "calls this method"; the method body lives in this skill
+- **`skills/evolution-l1-update-gating/SKILL.md`**: Authorization axis for L1 source changes (long-horizon observation requirement). This method is the empirical verification axis immediately before implementation. Orthogonal relation - L1 update is expected to use this method alongside
+- **`rules/evolution/promotion-judgment.md`**: Noise floor observation judgment (memory cluster tally). This method is spec verification (immediately before implementation). Orthogonal relation
+- **`skills/task-subagent-delegation/SKILL.md`**: Derived use from the delegation axis - this method's subagent spawn is a special case of delegation (purpose: gather evaluation data, not delegate implementation)
+- **`skills/evolution-decision-structure-write/SKILL.md`**: Judgment record surface. Judgments produced by applying this method get recorded in decision structure
 
 ## Implementation Note
 
-subagent spawn は host の Agent tool 経由 (Claude Code: `Agent` tool、Codex: 等価機構)。並列実行は単一 message 内に複数 Agent tool 呼び出しを並べる。subagent_type は task に応じて選択 (一般的に general-purpose)。
+Subagent spawn goes through the host's Agent tool (Claude Code: `Agent` tool; Codex: equivalent mechanism). Parallel execution = multiple Agent tool calls in a single message. subagent_type is selected per task (typically general-purpose).

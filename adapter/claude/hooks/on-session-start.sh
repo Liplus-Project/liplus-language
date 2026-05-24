@@ -36,8 +36,8 @@ CONFIG_FILE="$PROJECT_ROOT/Li+config.md"
 # ===================================================================
 # Prerequisite install: gh CLI
 # ===================================================================
-# Relocated from Li+bootstrap.md Phase 2.1. The hook ensures `~/.local/bin/gh`
-# exists so the bootstrap walkthrough does not have to spell out install steps
+# Relocated from Li+update.md Phase 2.1. The hook ensures `~/.local/bin/gh`
+# exists so the update walkthrough does not have to spell out install steps
 # every session. Install is performed only when the binary is absent; presence
 # is a silent skip. Failure does NOT abort the hook — it is surfaced as a
 # cold-start material entry so the AI can ask the user to intervene.
@@ -107,14 +107,14 @@ if [ -n "$HOOK_INPUT" ]; then
 fi
 
 # ===================================================================
-# Bootstrap sentinel-skip verification
+# Update sentinel-skip verification
 # ===================================================================
-# Issue #1309: avoid Li+config + Li+bootstrap walkthrough on every session.
+# Issue #1309: avoid Li+config + Li+update walkthrough on every session.
 # 99% of sessions have no tag change, no schema change, and all config values
 # resolved — verification only, no actual changes. The walkthrough costs ~4%
 # context (10% with Li+config execution vs 6% without). The hook performs the
-# three verifications and emits a single-line bootstrap status marker the AI
-# parses to decide whether to read Li+config + Li+bootstrap at all.
+# three verifications and emits a single-line update status marker the AI
+# parses to decide whether to read Li+config + Li+update at all.
 #
 # Three axes (ALL must pass for "unnecessary"):
 #   1. adapter sentinel tag in .claude/CLAUDE.md == current LI_PLUS_REPO target tag (per LI_PLUS_CHANNEL)
@@ -122,15 +122,15 @@ fi
 #   3. LI_PLUS_BASE_LANGUAGE and LI_PLUS_PROJECT_LANGUAGE resolved (non-comment, non-empty)
 #
 # Marker format (machine/AI-parseable, single line + optional reason):
-#   LI_PLUS_BOOTSTRAP_STATUS=unnecessary     -> AI skips Li+config + Li+bootstrap reads
-#   LI_PLUS_BOOTSTRAP_STATUS=needed reason=<one or more axes>  -> AI runs normal bootstrap path
+#   LI_PLUS_UPDATE_STATUS=unnecessary     -> AI skips Li+config + Li+update reads
+#   LI_PLUS_UPDATE_STATUS=needed reason=<one or more axes>  -> AI runs normal update path
 #
 # AI-side contract: see adapter/claude/CLAUDE.md "Execute the following at
 # startup" block. Master's literal phrase "Li+configを実行" / "Li+config を実行"
 # bypasses the marker and forces the full walkthrough; that override is
 # AI-side, not hook-side.
-BOOTSTRAP_STATUS="needed"
-BOOTSTRAP_REASONS=()
+UPDATE_STATUS="needed"
+UPDATE_REASONS=()
 
 # --- axis 1: adapter sentinel tag vs current target tag ---
 ADAPTER_TAG=""
@@ -138,7 +138,7 @@ if [ -f "$ADAPTER_FILE" ]; then
   ADAPTER_TAG=$(sed -n 's/^# --- Li+ BEGIN (\([^)]*\)) ---.*/\1/p' "$ADAPTER_FILE" | head -n 1)
 fi
 
-# Resolve LI_PLUS_CHANNEL from config (default = release, matches Li+bootstrap.md Phase 3.1).
+# Resolve LI_PLUS_CHANNEL from config (default = release, matches Li+update.md Phase 3.1).
 LI_PLUS_CHANNEL_VAL=""
 if [ -f "$CONFIG_FILE" ]; then
   LI_PLUS_CHANNEL_VAL=$(sed -n 's/^[[:space:]]*LI_PLUS_CHANNEL[[:space:]]*=[[:space:]]*\(.*\)$/\1/p' "$CONFIG_FILE" | head -n 1 | tr -d '\r')
@@ -164,7 +164,7 @@ case "$LI_PLUS_CHANNEL_VAL" in
 esac
 
 if [ -z "$ADAPTER_TAG" ] || [ -z "$TARGET_TAG" ] || [ "$ADAPTER_TAG" != "$TARGET_TAG" ]; then
-  BOOTSTRAP_REASONS+=("sentinel-tag(adapter=${ADAPTER_TAG:-unknown},target=${TARGET_TAG:-unknown})")
+  UPDATE_REASONS+=("sentinel-tag(adapter=${ADAPTER_TAG:-unknown},target=${TARGET_TAG:-unknown})")
 fi
 
 # --- axis 2: Li+config.md schema canonical (no legacy keys) ---
@@ -174,7 +174,7 @@ if [ -f "$CONFIG_FILE" ]; then
   LEGACY_HIT=$(grep -E '^[[:space:]]*(LI_PLUS_REPOSITORY|USER_REPOSITORY|USER_REPOSITORY_EXECUTION_MODE)[[:space:]]*=|^[[:space:]]*[^#[:space:]][^=]*_EXECUTION_MODE[[:space:]]*=' "$CONFIG_FILE" 2>/dev/null | head -n 3)
 fi
 if [ -n "$LEGACY_HIT" ]; then
-  BOOTSTRAP_REASONS+=("legacy-schema-keys-present")
+  UPDATE_REASONS+=("legacy-schema-keys-present")
 fi
 
 # --- axis 3: language contract resolved ---
@@ -185,29 +185,29 @@ if [ -f "$CONFIG_FILE" ]; then
   PROJ_LANG=$(sed -n 's/^[[:space:]]*LI_PLUS_PROJECT_LANGUAGE[[:space:]]*=[[:space:]]*\(.*\)$/\1/p' "$CONFIG_FILE" | head -n 1 | tr -d '\r' | sed 's/[[:space:]]*$//')
 fi
 if [ -z "$BASE_LANG" ] || [ -z "$PROJ_LANG" ]; then
-  BOOTSTRAP_REASONS+=("language-contract-unresolved(base=${BASE_LANG:-unset},project=${PROJ_LANG:-unset})")
+  UPDATE_REASONS+=("language-contract-unresolved(base=${BASE_LANG:-unset},project=${PROJ_LANG:-unset})")
 fi
 
-# --- emit bootstrap status marker ---
+# --- emit update status marker ---
 # Always emit first, before any cold-start material, so AI parses it before
-# deciding whether to read Li+config.md and Li+bootstrap.md.
-if [ "${#BOOTSTRAP_REASONS[@]}" -eq 0 ]; then
-  BOOTSTRAP_STATUS="unnecessary"
-  printf '━━━ Li+ bootstrap status ━━━\n'
-  printf 'LI_PLUS_BOOTSTRAP_STATUS=unnecessary tag=%s channel=%s\n' "$TARGET_TAG" "$LI_PLUS_CHANNEL_VAL"
-  printf 'Sentinel-skip applies: AI must NOT read Li+config.md or Li+bootstrap.md this session.\n'
+# deciding whether to read Li+config.md and Li+update.md.
+if [ "${#UPDATE_REASONS[@]}" -eq 0 ]; then
+  UPDATE_STATUS="unnecessary"
+  printf '━━━ Li+ update status ━━━\n'
+  printf 'LI_PLUS_UPDATE_STATUS=unnecessary tag=%s channel=%s\n' "$TARGET_TAG" "$LI_PLUS_CHANNEL_VAL"
+  printf 'Sentinel-skip applies: AI must NOT read Li+config.md or Li+update.md this session.\n'
   printf 'Override: Master input containing "Li+configを実行" / "Li+config を実行" forces the full walkthrough.\n'
   printf '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
 else
-  REASON_STR=$(printf '%s,' "${BOOTSTRAP_REASONS[@]}")
+  REASON_STR=$(printf '%s,' "${UPDATE_REASONS[@]}")
   REASON_STR="${REASON_STR%,}"
-  printf '━━━ Li+ bootstrap status ━━━\n'
-  printf 'LI_PLUS_BOOTSTRAP_STATUS=needed reason=%s\n' "$REASON_STR"
-  printf 'AI must read Li+config.md and execute Li+bootstrap.md walkthrough this session.\n'
+  printf '━━━ Li+ update status ━━━\n'
+  printf 'LI_PLUS_UPDATE_STATUS=needed reason=%s\n' "$REASON_STR"
+  printf 'AI must read Li+config.md and execute Li+update.md walkthrough this session.\n'
   printf '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
 fi
 
-# Emit gh install status marker after bootstrap status (only when install was attempted).
+# Emit gh install status marker after update status (only when install was attempted).
 if [ -n "$GH_INSTALL_STATUS" ]; then
   printf '━━━ gh install ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' "GH_INSTALL_STATUS=$GH_INSTALL_STATUS"
 fi

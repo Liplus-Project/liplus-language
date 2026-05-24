@@ -34,7 +34,7 @@ Li+ v1.0.0 の成立条件は到達済みとみなし、現在の本番はその
 |--------|------|
 | [A. Concept](A.-Concept) | Li+の概要と navigation、Lin/Lay コメント、最低動作環境 |
 | [B. Configuration](B.-Configuration) | 設定リファレンス |
-| [C. Bootstrap](C.-Bootstrap) | セッション起動フロー |
+| [C. Update](C.-Update) | アダプター / 設定の更新同期手続き |
 | [D. Installation](D.-Installation) | Quickstartセットアップ手順 |
 
 ---

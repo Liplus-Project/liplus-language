@@ -136,7 +136,7 @@ Minimum: roughly Claude Sonnet 4.6 equivalent or above.
 | [6. Adapter](https://github.com/Liplus-Project/liplus-language/wiki/6.-Adapter) | Adapter layer specification |
 | [A. Concept](https://github.com/Liplus-Project/liplus-language/wiki/A.-Concept) | Overview, navigation, Lin/Lay comments, minimum environment |
 | [B. Configuration](https://github.com/Liplus-Project/liplus-language/wiki/B.-Configuration) | Configuration reference |
-| [C. Bootstrap](https://github.com/Liplus-Project/liplus-language/wiki/C.-Bootstrap) | Session startup flow |
+| [C. Update](https://github.com/Liplus-Project/liplus-language/wiki/C.-Update) | Adapter / configuration sync procedure |
 | [D. Installation](https://github.com/Liplus-Project/liplus-language/wiki/D.-Installation) | Quickstart setup |
 | [E. Li+language](https://github.com/Liplus-Project/liplus-language/wiki/E.-Li+language) | Design theory: Li+ language definition and trinity |
 | [F. Behavior-First](https://github.com/Liplus-Project/liplus-language/wiki/F.-Behavior-First) | Design theory: foundational invariant and behavior axis |

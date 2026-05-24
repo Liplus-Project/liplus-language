@@ -44,6 +44,8 @@ verification cost と検出力を独立に動かす三軸:
 
 ablation 前提自体を複数並べて比較したい場合のみ。総 invocation = `N × P` (各 premise 内で M はデフォルトパターンと同じく prompt 吸収)。
 
+代表例は P=2 before/after pattern: premise A = 変更前 (operational copy 未適用 = baseline)、premise B = 変更後 (draft 適用 = candidate) を別 premise として並べ、同一 subagent prompt 下での変更前後の挙動 check を直接比較する。trigger = Li+ source 改修で「同じ問いに対して subagent の verdict が draft 適用前後で動いたか」を empirical に押さえたい場面。cost は `N=3, P=2 → 6 invocation` (デフォルト `N=3, P=1 → 3 invocation` の倍)。
+
 ### aggregation 規則
 
 判定の非対称性に合わせて選ぶ:

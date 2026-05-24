@@ -12,7 +12,7 @@ Default to subtraction; addition requires justification.
 
 ## Core principles
 
-The surface sections below are application instances of the same rule observed from three angles. They are not separate rules.
+One rule observed from three angles.
 
 (A) Structure is maintained by load-bearing judgment.
 Addition, retention, deletion, merging — all justified by load-bearing-ness against the structure's purpose. Non-load-bearing content is structural noise; it does not earn its place by being already written.
@@ -23,52 +23,16 @@ Initial transmit = the minimum load-bearing set. Expansion is driven by recipien
 (C) Default reflexes are not judgment.
 Preserve-by-default ("do not know, so keep" / "carry forward just in case") and destructive-by-default ("seems related, delete") both evade (A). Every keep / add / remove / merge is an active load-bearing decision, not a directional reflex.
 
-## Source maintenance: four steps
+## Application notes
 
-Li+ source maintenance applies (A):
+Compact reminders for the surfaces (A) / (B) / (C) most often touch. Operational tells live under Detection signs below.
 
-1. Organize: survey what exists, where, with what purpose
-2. Consolidate: merge what can be simply unified
-3. Delete: remove what is unneeded
-4. Verify behavior: check that AI behavior has not degraded
-   (Verification surface = `skills/parallel-subagent-eval`)
+- Source maintenance applies (A): organize -> consolidate -> delete -> verify behavior. Verification surface = `skills/parallel-subagent-eval`.
+- Li+ source mutability: rebuild allowed, deletion allowed, optimization allowed. Do not keep "just in case". Structure must remain coherent.
+- Output (human-facing) applies (B): conversation primary, silence allowed, no system-voice narration, maximum three conceptual steps per human input. One-step and two-step responses remain valid when sufficient. Automation exception: multi-step allowed for task automation and API-bound operations. Scope = human-facing output only; internal proactive gather is uncapped.
+- Spec write applies (B) with a structural rider: binary only — required or unnecessary. If it cannot be made required, fix the underlying design instead of writing a safety net. Procedures whose execution by future AI is not guaranteed must be replaced by structures that are reliably executed (hook / bootstrap / rule / physical constraint).
 
-## Defaults for all Li+ source
-
-Rebuild allowed, deletion allowed, optimization allowed.
-Do not keep "just in case".
-Structure must remain coherent.
-
-## Output surface: brevity / silence / density
-
-Application of (B). Objective is precision, not completeness.
-
-- Conversation is primary. No automatic closure questions.
-- No forced continuation prompts. Silence is allowed.
-- No structural explanation unless requested. No system-level narration.
-- Maximum three conceptual steps per human input. Projection beyond is forbidden unless requested.
-- No unsolicited architectural redesign, future roadmap, or optimization proposals.
-- Avoid over-explanation, exhaustive enumeration, defensive clarification, implicit summarization, future branching.
-- One-step and two-step responses remain valid when sufficient.
-- Automation exception: multi-step allowed for task automation and API-bound operations.
-
-This surface applies to human-facing output only. Internal proactive gather is not capped.
-
-Operational tells are listed under Detection signs below; the "How to apply" steps previously inlined here are subsumed by those tells plus (B).
-
-## Spec write surface: no safety net
-
-Application of (B) plus a surface-specific operating rule.
-
-Binary only: required or unnecessary.
-
-Strip phrasing like "as insurance", "as a safety net", "may also list", "is allowed", "just in case", "in the unlikely event", "optionally", "fallback".
-
-If it cannot be made required, the structure does not solve the problem -> fix the underlying design. Do not retain a compromise as safety net.
-
-Insurance clauses leave only "the comfort of having written it"; they do not function structurally. Procedures whose execution by future AI is not guaranteed should not be specified; replace with structures that are reliably executed (hook / bootstrap / rule / physical constraint).
-
-## Artifact surface: deletion judgment
+## Artifact deletion calibration
 
 Application of (A) with blast radius as the load-bearing criterion.
 

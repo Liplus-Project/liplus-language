@@ -65,7 +65,7 @@ Trigger-based skill reads:
   on_research → skills/task-research-strategy (parent governance) + skills/model-agentic-search (mechanical core, auto-invoked at calibration/category trigger)
   on_retrieval → skills/task-retrieval-orchestration (parent consumption discipline) + skills/model-agentic-search (mechanical core)
   on_subagent_delegation → skills/task-subagent-delegation
-  on_deletion → rules/model/art-of-subtraction.md (Artifact surface: deletion judgment)
+  on_deletion → rules/model/art-of-subtraction.md (Artifact deletion calibration)
   on_judgment_form → skills/evolution-judgment-learning + skills/model-requirement-deepening
   on_judgment_settled → skills/evolution-decision-structure-write
   on_self_eval → skills/evaluation-self

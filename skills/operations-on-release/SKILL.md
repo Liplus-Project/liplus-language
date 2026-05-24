@@ -193,7 +193,7 @@ If push fails (permission): escalate to human. Do not skip.
 Rationale for diff-targeted pattern (replaces prior wipe-and-copy):
 - Blast radius bounded to the actually-changed files (no unbounded glob `rm` over the wiki working tree).
 - End state is byte-for-byte identical to wipe-and-copy when `to_copy` covers every docs/-owned file and `to_delete` covers every removed-on-docs entry. The mirror invariant is preserved without the destructive primitive.
-- Auto-mode classifier rejection of unbounded `rm [A-Z]*.md ...` patterns is structural (`rules/model/art-of-subtraction.md` Artifact surface blast-radius axis), not a transient block. Diff-targeted copy aligns with that axis by construction.
+- Auto-mode classifier rejection of unbounded `rm [A-Z]*.md ...` patterns is structural (`rules/model/art-of-subtraction.md` Artifact deletion calibration's blast-radius axis), not a transient block. Diff-targeted copy aligns with that axis by construction.
 - Fallback note: if drift computation fails (e.g. `cmp` unavailable, filesystem encoding mismatch), STOP and escalate to human. Do not silently fall back to the wipe pattern.
 - Empirical anchor (build-2026-05-20.1 sync, 2026-05-21): diff-targeted pattern was first applied when the prior wipe-and-copy hit the auto-mode classifier; observed drift set was 7 files, all docs/-owned, and the resulting wiki state matched the wipe-and-copy outcome exactly.
 

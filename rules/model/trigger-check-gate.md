@@ -27,4 +27,4 @@ One tempo slower. Drift chain stops before it starts.
 
 - Trigger moments enumeration + Retrieval tools mapping → `skills/model-trigger-check-gate-actions/SKILL.md`
 - Frame check 6-step resistance protocol + absorption tells + litmus → `skills/model-frame-check/SKILL.md`
-- Source check two-pillar verify + perfect-defense illusion + capability+visibility note + causal-assertion guard → `skills/model-source-check/SKILL.md`
+- Source check two-pillar verify + perfect-defense illusion + capability+visibility note + causal-assertion guard + fixed-reference temporal separation + external-framework projection inhibitor + project-metadata temporal-claim guard → `skills/model-source-check/SKILL.md`

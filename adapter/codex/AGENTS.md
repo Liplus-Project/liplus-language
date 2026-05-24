@@ -116,19 +116,15 @@ Workspace_Language_Contract:
   - do not infer host workspace language contract from liplus-language repository internal Japanese governance
   - changing this workspace contract does not rewrite liplus-language repository rules
 
+Autonomy block shape:
+  Block structure, maintenance ref resolution, and Explicit exclusion scope shared semantic
+  for the autonomy declarations below — see `rules/evolution/autonomy-block-shape.md`.
+
 Memory_Write_Autonomy:
   Memory file writes (feedback.md, project.md, user_*.md, reference_*.md) are AI-autonomous decisions.
   When auto-memory system-prompt persistence criteria are satisfied, write immediately — no permission ask.
 
-  Existing maintenance rules still apply:
-  - check for duplicate or conflicting entries before writing
-  - remove outdated entries
-  - match memory type to content
-  - verify specification literal before writing (impression-based entries fuel later impression-critique loops)
-
-  Explicit exclusion scope:
-  Human explicit "do not save X" instruction suppresses writes for that scope only.
-  It does not revert the default to permission-ask mode.
+  Maintenance + exclusion scope: see `rules/evolution/memory-entry-format.md` and `rules/evolution/autonomy-block-shape.md`.
 
 Decision_Structure_Write_Autonomy:
   Decision Structure Wiki entry writes (kebab-case `<topic>.md` files in wiki) indexed via `docs/Decision-Structure.md`
@@ -136,24 +132,11 @@ Decision_Structure_Write_Autonomy:
   (human go-sign, accepted-tradeoff close, spec-axis decision in dialogue).
   When the trigger fires, read `skills/evolution-decision-structure-write/SKILL.md` and write immediately — no permission ask.
 
-  Decision Structure is a semantic graph (state-form entries + supersede/depend/conflict edges), not a time-ordered log.
-  Maintenance is refactor (normal operation), not history erasure.
-
-  Existing maintenance rules still apply:
-  - check for duplicate or conflicting entries before writing (RAG `type: "wiki_doc"` search precedes write)
-  - prefer supersede edge over overwrite when an entry is invalidated; do not silently delete
-  - delete only when `docs/Decision-Structure.md` maintenance criteria are satisfied
-    (premise invalidated / target feature removed / requirements spec absorption)
-  - verify specification literal before writing (impression-based entries fuel later impression-critique loops)
-  - entry language follows LI_PLUS_PROJECT_LANGUAGE; no language mixing within an entry
-
   Boundary clarification:
   Wiki write is the writer-side surface paired with `skills/evolution-judgment-learning` (reader side).
   Persistence Tiering (memory ↔ docs) is preserved; this autonomy covers only the docs-tier Wiki surface.
   L1 Model Layer source changes are out of scope (handled by `skills/evolution-l1-update-gating`).
 
-  Explicit exclusion scope:
-  Human explicit "do not record X" instruction suppresses writes for that scope only.
-  It does not revert the default to permission-ask mode.
+  Maintenance + exclusion scope: see `skills/evolution-decision-structure-write/SKILL.md`, `rules/evolution/memory-entry-format.md`, and `rules/evolution/autonomy-block-shape.md`.
 
 # --- Li+ END ---

@@ -16,6 +16,19 @@ Do not delete milestone before release flow completes.
 If no milestone fits = ask human which milestone, or whether to create new one.
 Milestone description = one-line theme + bullet list of scope.
 
+Grouping discipline:
+Milestone is **release tag grouping**, not one-issue-exclusive. Multiple issues within the same patch band (same PATCH number under v1.MINOR.PATCH) bundle into the same milestone and ship in one release.
+- New milestone allocation is required when minor / major boundary moves OR a distinct release window is needed.
+- Existing patch milestone already attached to issue #N does NOT mean it is "owned" by #N. Adding issue #M to the same milestone is the default for same-patch-band work.
+- "Take next patch number to avoid disturbing the prior issue" is wrong — release tag numbers are assigned by merge order, not by milestone allocation. Milestone is the grouping workspace; tag number resolves at release create time.
+- Bundling reduces tag / wiki sync / milestone delete overhead (one release flow instead of N).
+
+Detection signs of grouping miss:
+- About to create a next-patch-number milestone when an existing patch milestone holds other same-band issues.
+- About to write "v1.X.Y is for #N" / "v1.X.Y+1 is mine" in milestone allocation reasoning.
+- Maintaining 1 PR / 1 milestone / 1 release rigidly without checking same-patch-band peers.
+- Milestone description starts with "issue #N 用" (implicitly claims exclusivity).
+
 Milestone lifecycle:
   Create when: new release scope is decided by human.
   Delete when: release flow completes (release publish + wiki sync). See operations-on-release SKILL for the deletion step.

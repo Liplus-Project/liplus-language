@@ -16,7 +16,7 @@ Fires at any of the following moments:
 - evolution-loop observe / evaluate stage needs an empirical verdict
 - Right after AI alone feels "this edit satisfies the spec" (catch overconfidence from N=1 self-check)
 - Spec revision proposal needs orthogonal verification on the rule semantic consistency axis
-- **Self-evolution PR brake (mandatory)**: any PR filed under the `Evolution_Initiator_Autonomy` initiator path (`adapter/claude/CLAUDE.md`) runs this method before the commit/merge gate. This is brake 1 of the two-stage brake. L1 Model Layer source change additionally requires human review (brake 2). semi_auto patch-auto-merge does not bypass brake 1.
+- **Self-evolution PR brake (mandatory)**: any self-evolution PR (per `Evolution_Initiator_Autonomy` definition: AI-filed issue + AI implementation + modifies Li+ source under `LI_PLUS_REPO`) runs this method before the commit/merge gate. This is brake 1 of the two-stage brake. L1 Model Layer source change additionally requires human review (brake 2; see `rules/operations/execution-mode.md` L1 brake 2 override). semi_auto patch-auto-merge does not bypass brake 1.
 
 Axis selection depends on the nature of the draft. Examples:
 - skill description edit: ease of AI invoke judgment / maintainer-side readability / coverage gap

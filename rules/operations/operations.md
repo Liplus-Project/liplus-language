@@ -112,8 +112,8 @@ Active label meanings belong to rules/task/task.md.
 
 ### Marker
 
-promotion = 観測機構が noise floor (3日以内に同種クラスタ 3 回以上観測 / もしくは 3日以内 5 回到達で即昇格) を越えて起票した昇格判断 issue。type 軸とは別軸の marker label。
-判定機構と tally 仕様の authoritative spec は `rules/evolution/promotion-judgment.md`。本ファイルの記述は要約であり、閾値・期間の真の出典は promotion-judgment.md に従う。
+promotion = promotion-judgment issue filed by the observation mechanism after crossing the noise floor (same-kind cluster observed >=3 times within 3 days, or 5 times reached within 3 days for immediate promotion). Marker label on a separate axis from the type axis.
+Authoritative spec for the judgment mechanism and tally format = `rules/evolution/promotion-judgment.md`. The description in this file is a summary; the true source for thresholds and durations follows promotion-judgment.md.
 
 ### Sync
 

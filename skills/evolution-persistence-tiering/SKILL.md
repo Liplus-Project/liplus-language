@@ -6,7 +6,7 @@ layer: L2-evolution
 
 # Persistence Tiering
 
-memory = workspace-local personal notes. Not repo-committed. Not RAG-indexed. **Transient only** (詳細: `rules/evolution/memory-entry-format.md` の Scope / Trigger point)
+memory = workspace-local personal notes. Not repo-committed. Not RAG-indexed. **Transient only** (details: `rules/evolution/memory-entry-format.md` Scope / Trigger point sections)
 docs  = project information. Repo-committed. RAG-indexed (wiki Decision Structure entries and other indexed content).
 Before writing = decide destination.
 Design judgment, requirements, spec-class content -> docs.
@@ -15,26 +15,26 @@ Do not cross tiers silently. Promotion from memory to docs requires explicit int
 
 ## Persistent destinations (4-way axis)
 
-memory が transient 専用である以上、永続情報の置き場は memory ではない。下記 4 系統で振り分ける。詳細仕様は `rules/evolution/memory-entry-format.md` の Escalation paths を参照。
+Since memory is transient-only, persistent information does not live in memory. Sort across the following 4 destinations. Detailed spec = `rules/evolution/memory-entry-format.md` Escalation paths.
 
-- **Li+ 正規ルール (`rules/` / `skills/`)** = 汎用 / 構造的、常時 load 価値あり (L1 更新は `skills/evolution-l1-update-gating/SKILL.md` ゲート経由)
-- **`docs/`** = プロジェクト判断 / 仕様レベル
-- **wiki (`docs/Decision-Structure.md` index 配下)** = 判断記録 (state-form entries + supersede/depend/conflict edges、`skills/evolution-decision-structure-write/SKILL.md` 参照)
-- **削除** = 撤回 / 陳腐化 / Li+ 既昇格済み
+- **Li+ canonical rules (`rules/` / `skills/`)** = generic / structural, always-load value (L1 updates route through the `skills/evolution-l1-update-gating/SKILL.md` gate)
+- **`docs/`** = project judgment / spec level
+- **wiki (under the `docs/Decision-Structure.md` index)** = judgment records (state-form entries + supersede/depend/conflict edges; see `skills/evolution-decision-structure-write/SKILL.md`)
+- **deletion** = withdrawn / obsolete / already promoted into Li+
 
-memory ↔ docs の二項仕分けはこの 4 軸の中の memory / docs 軸として残る。観測時に「transient か永続か」を先に判定し、永続なら 4 軸のいずれかへ向かう。
+The memory ↔ docs binary sorting remains as the memory / docs axis within these 4 destinations. At observation time, judge "transient or persistent" first; if persistent, route to one of the 4 destinations.
 
 ## Write-time trigger (hard gate)
 
-memory write 直前の判定 trigger。`Memory_Write_Autonomy` (adapter/claude/CLAUDE.md) の "Pre-write persistence check (hard gate)" を担う。
+Pre-write judgment trigger immediately before a memory write. Carries the "Pre-write persistence check (hard gate)" of `Memory_Write_Autonomy` (adapter/claude/CLAUDE.md).
 
-判定 signal:
-- **明らかに persistent**: Master の長期 instruction / spec 級 guidance / `rules/` / `skills/` / `docs/` / wiki 既存箇所と semantic 重複
-- **明らかに transient**: cluster tally / self-eval log / disposable reference (再構築可能な lookup)
-- **曖昧**: safer-side OR で persistent 扱い (memory には書かず、escalation 候補として surface)
+Judgment signals:
+- **Clearly persistent**: Master's long-horizon instruction / spec-class guidance / semantic duplicate of existing entries in `rules/` / `skills/` / `docs/` / wiki
+- **Clearly transient**: cluster tally / self-eval log / disposable reference (a lookup that can be reconstructed)
+- **Ambiguous**: safer-side OR → treat as persistent (do not write to memory; surface as an escalation candidate)
 
-判定後の routing:
-- transient -> memory 書き込み実行
-- persistent / 曖昧 -> memory 書き込み abort、escalation path (`rules/` / `skills/` / `docs/` / wiki) を提示
+Routing after judgment:
+- transient -> execute the memory write
+- persistent / ambiguous -> abort the memory write; present an escalation path (`rules/` / `skills/` / `docs/` / wiki)
 
-この gate は permission ask を伴わない自動 routing。判定は AI 単独で完結する。post-hoc な memory hygiene round (e.g. parent issue #1344 → #1347) の構造的予防として作動し、persistent 情報が memory に再蓄積する経路を塞ぐ。
+This gate is automatic routing without a permission ask; judgment is closed by AI alone. It acts as structural prevention against the post-hoc memory hygiene round (e.g. parent issue #1344 → #1347), blocking persistent information from re-accumulating in memory.

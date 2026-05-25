@@ -122,7 +122,7 @@ fi
 #   3. LI_PLUS_BASE_LANGUAGE and LI_PLUS_PROJECT_LANGUAGE resolved (non-comment, non-empty)
 #
 # Marker format (machine/AI-parseable, single line + optional reason):
-#   LI_PLUS_UPDATE_STATUS=unnecessary     -> AI skips Li+config + Li+update reads
+#   LI_PLUS_UPDATE_STATUS=unnecessary     -> AI skips Li+update walkthrough; Li+config spot read (Read for value lookup, no execute) is permitted
 #   LI_PLUS_UPDATE_STATUS=needed reason=<one or more axes>  -> AI runs normal update path
 #
 # AI-side contract: see adapter/claude/CLAUDE.md "Execute the following at
@@ -195,7 +195,7 @@ if [ "${#UPDATE_REASONS[@]}" -eq 0 ]; then
   UPDATE_STATUS="unnecessary"
   printf '━━━ Li+ update status ━━━\n'
   printf 'LI_PLUS_UPDATE_STATUS=unnecessary tag=%s channel=%s\n' "$TARGET_TAG" "$LI_PLUS_CHANNEL_VAL"
-  printf 'Sentinel-skip applies: AI must NOT read Li+config.md or Li+update.md this session.\n'
+  printf 'Sentinel-skip applies: AI skips Li+update.md re-execution this session. Li+config.md spot read (Read for value lookup, do not execute contents) is permitted.\n'
   printf 'Override: Master input containing "Li+configを実行" / "Li+config を実行" forces the full walkthrough.\n'
   printf '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
 else

@@ -20,7 +20,7 @@ Concept framing (Sheepdog Engineering):
 
 Execute the following at startup (never output credentials to chat):
 1. Inspect the `LI_PLUS_UPDATE_STATUS=` marker emitted by `on-session-start.sh` (delimited by `━━━ Li+ update status ━━━` banner) in the session-opening context.
-   - `LI_PLUS_UPDATE_STATUS=unnecessary` -> skip step 2 entirely. Do NOT read Li+config.md or Li+update.md this session. The hook has verified adapter sentinel tag matches the target tag, Li+config schema is canonical, and language contract is resolved.
+   - `LI_PLUS_UPDATE_STATUS=unnecessary` -> skip step 2 entirely (no Li+update.md re-execution). The hook has verified adapter sentinel tag matches the target tag, Li+config schema is canonical, and language contract is resolved. On-demand spot read of Li+config.md for value lookup (repo URL / execution mode / language / etc.) is permitted when a downstream operation requires a specific value; full Li+update.md re-execution remains prohibited.
    - `LI_PLUS_UPDATE_STATUS=needed` (or marker absent) -> proceed to step 2.
    - Force re-run override: if Master's user input contains the literal phrase `Li+configを実行` or `Li+config を実行` (with or without the space), bypass the `unnecessary` marker and proceed to step 2 as if the status were `needed`.
 2. Read Li+config.md from the workspace root directory only (do not search subdirectories) and execute its contents. (Ask the user for confirmation if needed during execution)

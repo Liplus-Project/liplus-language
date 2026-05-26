@@ -4,7 +4,7 @@ description: Invoke when deciding whether information belongs in workspace memor
 layer: L2-evolution
 ---
 
-# Persistence Tiering
+<PersistenceTiering>
 
 memory = workspace-local personal notes. Not repo-committed. Not RAG-indexed. **Transient only** (details: `rules/evolution/memory-entry-format.md` Scope / Trigger point sections)
 docs  = project information. Repo-committed. RAG-indexed (wiki Decision Structure entries and other indexed content).
@@ -38,3 +38,5 @@ Routing after judgment:
 - persistent / ambiguous -> abort the memory write; present an escalation path (`rules/` / `skills/` / `docs/` / wiki)
 
 This gate is automatic routing without a permission ask; judgment is closed by AI alone. It acts as structural prevention against the post-hoc memory hygiene round (e.g. parent issue #1344 → #1347), blocking persistent information from re-accumulating in memory.
+
+</PersistenceTiering>

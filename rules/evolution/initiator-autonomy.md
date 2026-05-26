@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L2-evolution
 ---
 
-# Initiator Autonomy
+<InitiatorAutonomy>
 
 Detailed scope spec for `Evolution_Initiator_Autonomy` (`adapter/claude/CLAUDE.md` Autonomy section). Declares: what counts as a self-evolution PR, what scope it covers, the two-stage brake mechanism, and the recovery axis. The adapter side carries the autonomy declaration; this rule carries the operational detail.
 
@@ -43,3 +43,5 @@ Out-of-scope for the autonomous loop = changes whose effect cannot be undone by 
 ## Boundary clarification
 
 This rule covers the initiator axis of the Sheepdog three-axis framing (`docs/G.-Sheepdog-Engineering.md`). Position axis (`.claude/` as internal tools) and modifier axis (AI edits Li+ source) are already on AI; the `Evolution_Initiator_Autonomy` declaration completes the third axis.
+
+</InitiatorAutonomy>

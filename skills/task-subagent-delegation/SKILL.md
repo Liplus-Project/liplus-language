@@ -4,7 +4,7 @@ description: Invoke when delegating implementation or operations to a subagent; 
 layer: L3-task
 ---
 
-# Subagent Delegation
+<SubagentDelegation>
 
 ## Rules
 
@@ -87,3 +87,5 @@ Parent-side memory (workspace memory/feedback.md, memory/project.md, in-session 
 If subagent behavior depends on memory content, the parent MUST inject the relevant literal into the delegation prompt. "Memory has it, so subagent will pick it up" has failed multiple times in past sessions; pattern-match this assumption and reject it at delegation-construction time.
 
 The cure is to either (i) inject the literal text into the prompt, or (ii) escalate the memory entry through promotion to Li+ rules so it auto-loads — promotion is the durable fix; injection is the per-task workaround.
+
+</SubagentDelegation>

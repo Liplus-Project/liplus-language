@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L2-evolution
 ---
 
-# Evolution
+<Evolution>
 
 ## Evolution Layer
 
@@ -73,3 +73,5 @@ Surface requirements:
 Downstream responsibility:
 - Surfacing is observation, not promotion. Decision to promote still flows through distill → reflect → L1 Update Gating (if applicable).
 - Surfaced candidates inform the AI's observe-stage judgment at session start; they do not bypass Persistence Tiering or L1 gate.
+
+</Evolution>

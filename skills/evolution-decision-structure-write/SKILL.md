@@ -4,7 +4,7 @@ description: Invoke immediately after a judgment is settled (human go-sign, acce
 layer: L2-evolution
 ---
 
-# Decision Structure Write
+<DecisionStructureWrite>
 
 Writer-side surface paired with the reader-side judgment-learning surface (`skills/evolution-judgment-learning/SKILL.md`).
 Immediately after a judgment settles, AI autonomously appends / creates / refactors a Decision Structure Wiki entry.
@@ -106,3 +106,5 @@ Together they form a reader / writer-paired flow, closing cross-session accumula
 Writing to the judgment-record Wiki is not an L1 Model Layer source change.
 Do not touch L1 Update Gating (`skills/evolution-l1-update-gating/SKILL.md`).
 The destination of this skill's writes is the external memory of judgments (the Wiki surface within the docs tier), not the rule definitions themselves.
+
+</DecisionStructureWrite>

@@ -4,7 +4,7 @@ description: Invoke when executing any evolution loop stage (observe / evaluate 
 layer: L2-evolution
 ---
 
-# Evolution Loop
+<EvolutionLoop>
 
 Loop stages:
   observe    = memory entries + docs (spec, decision structure, issue history)
@@ -24,3 +24,5 @@ Stage responsibility:
   reflect          = AI drafts (PR). Merge gate is execution-mode dependent per skills/operations-on-merge/SKILL.md (rules/operations/execution-mode.md governs the gate matrix).
   improve          = AI executes under the updated spec.
   re-observe       = AI autonomous.
+
+</EvolutionLoop>

@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L4-operations
 ---
 
-# Operations
+<Operations>
 
 ## Operations Layer
 
@@ -119,3 +119,5 @@ Authoritative spec for the judgment mechanism and tally format = `rules/evolutio
 
 rules/task/task.md references this document.
 If label set changes here, update rules/task/task.md to match.
+
+</Operations>

@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L2-evolution
 ---
 
-# Cold-start Synthesis
+<ColdStartSynthesis>
 
 Trigger = session start, after Li+config.md execution completes.
 Action:
@@ -49,3 +49,5 @@ Surfacing is observation, not auto-action. Verdict transitions (settle / revert 
 Material gathering and concrete surfacing logic belong to the adapter cold-start path (parallel to the existing memory scan + Decision-Structure index head emit). This section defines only the behavior contract.
 
 Silent skip when the observation file is absent or no entries are due.
+
+</ColdStartSynthesis>

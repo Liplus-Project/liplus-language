@@ -4,7 +4,7 @@ description: Invoke when proposing or considering an L1 Model layer source chang
 layer: L2-evolution
 ---
 
-# L1 Update Gating
+<L1UpdateGating>
 
 L1 Model Layer change is the highest-gate update in Li+.
 Default update target = L3 Task Layer and later.
@@ -29,3 +29,5 @@ Relation to brake 2:
 - this skill = observation-threshold gate (was the long-horizon pattern observed? AI subject)
 - brake 2 = approval gate (does the human approve the L1 change? Human subject)
 Both gates fire for an L1 update. The observational gate runs first (issue creation phase); brake 2 runs at PR review phase. Earlier wording "human judgment gates ... not in L1 spec editing" referred to the observational gate only and is superseded by the Sheepdog-completion two-stage brake structure; human review IS now required for L1 spec editing PRs as brake 2.
+
+</L1UpdateGating>

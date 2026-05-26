@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L3-task
 ---
 
-# Task
+<Task>
 
 ## Task Layer
 
@@ -99,3 +99,5 @@ tips        = operational know-how memo not tied to a release milestone
 
 Marker:
 promotion   = path flag for an issue filed by the promotion-judgment mechanism (separate axis from type). See rules/operations/operations.md and rules/evolution/promotion-judgment.md for details.
+
+</Task>

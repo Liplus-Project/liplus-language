@@ -4,7 +4,7 @@ description: Invoke when creating a PR; enforces one PR per parent issue, Closes
 layer: L4-operations
 ---
 
-# PR Creation
+<PRCreation>
 
 One PR per parent issue (see Sub-issue Rules#Single parent PR flow).
 Parent issue with sub-issues = single PR that closes all sub-issues + the parent on merge.
@@ -37,3 +37,5 @@ On PR created:
     scope: assignee self-assign is UI trail only; it does not replace the formal self-review record (`gh pr review --comment`, see [PR Review]).
 2 = proceed to [CI Loop] immediately, no human instruction required.
 Merge execution is unified to AI across all modes (see [Merge]). GitHub auto-merge handoff is no longer used.
+
+</PRCreation>

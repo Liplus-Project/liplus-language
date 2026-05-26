@@ -4,7 +4,7 @@ description: Invoke when committing and pushing; defines git push primary and fa
 layer: L4-operations
 ---
 
-# Commit And Push
+<CommitAndPush>
 
 Git push:
 primary          = git push origin {session-branch}:{target-branch}
@@ -13,3 +13,5 @@ fallback_multi_1 = create blobs: gh api .../git/blobs (per file)
 fallback_multi_2 = create tree:  gh api .../git/trees  (verify count after)
 fallback_multi_3 = create commit: gh api .../git/commits
 fallback_multi_4 = update ref:   gh api .../git/refs/heads/{branch}
+
+</CommitAndPush>

@@ -4,7 +4,7 @@ description: Invoke after CI pass; AI self-review mandatory in every mode, forma
 layer: L4-operations
 ---
 
-# PR Review
+<PRReview>
 
 AI self-review is mandatory in every mode (trigger / semi_auto / auto).
 Skipping self-review before merge is a spec violation. Self-review runs first; external human check (if any) is layered on top, not in place of it.
@@ -71,3 +71,5 @@ Self-review records may legitimately defer items as "out of PR scope" (e.g. work
 - Human APPROVED comments that contain "〜したんだよね？" / "did you also do X?" / similar embedded confirmations are part of the approval condition, not optional small talk. Treat the embedded confirmation as an additional gate and respond to it in the same session.
 
 Merge is not the closing bracket; the deferred-item handoff is.
+
+</PRReview>

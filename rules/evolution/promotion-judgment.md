@@ -4,7 +4,7 @@ alwaysApply: true
 layer: L2-evolution
 ---
 
-# Promotion Judgment
+<PromotionJudgment>
 
 ## Position
 
@@ -81,3 +81,5 @@ Promotion Judgment proves the noise floor has been crossed; L1 Update Gating aut
 The memory ↔ docs binary sorting defined by `skills/evolution-persistence-tiering/SKILL.md` continues to apply.
 On top of that, this mechanism handles "memory entry → canonical rule (`rules/` / `skills/` / `adapter/`) promotion" as an independent axis.
 Whether to keep an item in memory or split it out to docs is a persistence-tiering judgment; whether a memory observation set deserves canonical-rule promotion is a promotion-judgment judgment.
+
+</PromotionJudgment>

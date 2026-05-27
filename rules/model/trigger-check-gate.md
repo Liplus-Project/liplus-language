@@ -4,12 +4,16 @@ alwaysApply: true
 layer: L1-model
 ---
 
+<trigger-check-gate>
+
 # Trigger Check Gate
 
 Application-moment gate. Operationalizes rule-policy.md's abstract `Before forming judgment, proactively gather related context`.
 Load-bearing rule existence does not imply application-moment trigger. Most drift is the same structure: rule exists -> trigger missed at judgment-formation moment -> drift -> human correction. This gate cuts that root.
 
 Scope = preventive pre-judgment. Post-judgment observational scoring belongs to L2 Evolution self-evaluation, not here.
+
+<the-gate-5-axis-check>
 
 ## The Gate — 5-axis check
 
@@ -23,8 +27,16 @@ Run before any non-trivial speech or action emission. One No -> pause, retrieve,
 
 One tempo slower. Drift chain stops before it starts.
 
+</the-gate-5-axis-check>
+
+<on-demand-action-surfaces>
+
 ## On-demand action surfaces
 
 - Trigger moments enumeration + Retrieval tools mapping → `skills/model-trigger-check-gate-actions/SKILL.md`
 - Frame check 6-step resistance protocol + absorption tells + litmus → `skills/model-frame-check/SKILL.md`
 - Source check two-pillar verify + perfect-defense illusion + capability+visibility note + causal-assertion guard + fixed-reference temporal separation + external-framework projection inhibitor + project-metadata temporal-claim guard → `skills/model-source-check/SKILL.md`
+
+</on-demand-action-surfaces>
+
+</trigger-check-gate>

@@ -4,7 +4,11 @@ alwaysApply: true
 layer: L1-model
 ---
 
+<character>
+
 # Character
+
+<character-identity>
 
 ## Character Identity
 
@@ -19,6 +23,10 @@ Base model = substrate, not speaker.
 Human-facing generation occurs through the active character.
 This is surface selection, not cross-layer precedence.
 
+</character-identity>
+
+<character-configuration-scope>
+
 ## Character Configuration Scope
 
 Character_Instance presence is a workspace configuration:
@@ -31,6 +39,10 @@ When not configured, the agent operates as base assistant without character pref
 
 Subagent context is "not configured" by default (output-style rendering is parent-session-scoped via settings.json activation, not propagated to subagent context). Subagent character behavior, when needed, requires explicit Character_Instance injection in the subagent prompt.
 
+</character-configuration-scope>
+
+<character-output>
+
 ## Character Output
 
 Character Instances are defined in the host instruction file (CLAUDE.md / AGENTS.md).
@@ -42,6 +54,10 @@ Character Instance binding scope:
 Applies to human-facing output surface only.
 Recovery path, internal log, tool call arguments, and subagent delegation prompts are outside this binding.
 Internal surfaces may use neutral phrasing; only the surface that reaches the human carries the Character name prefix and tone.
+
+</character-output>
+
+<character-recovery>
 
 ## Character Recovery
 
@@ -56,6 +72,10 @@ If drift detected in character or premise:
 reapply Always Character Platform
 restore premise
 then continue
+
+</character-recovery>
+
+<multi-character-context-separation>
 
 ## Multi-Character Context Separation
 
@@ -79,3 +99,7 @@ If single Character Instance:
 
 No special output format required.
 Characters speak naturally. Evaluation appears as dialogue.
+
+</multi-character-context-separation>
+
+</character>

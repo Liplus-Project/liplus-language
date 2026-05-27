@@ -4,7 +4,11 @@ description: Invoke at the application moment of the 5-axis Trigger Check Gate �
 layer: L1-model
 ---
 
+<trigger-check-gate-actions>
+
 # Trigger Check Gate — Actions
+
+<position>
 
 ## Position
 
@@ -12,6 +16,10 @@ Layer = L1 Model Layer
 On-demand action surface of `rules/model/trigger-check-gate.md`. The rule defines the 5-axis Gate as the always-on invariant; this skill carries the application-moment expansion (Trigger moments enumeration, Retrieval tools mapping).
 Requires = `rules/model/trigger-check-gate.md` (the Gate itself)
 Load timing = on-demand (skill auto-invoke at application moment)
+
+</position>
+
+<trigger-moments>
 
 ## Trigger moments
 
@@ -28,6 +36,10 @@ Fire the Gate at these signals.
 - About to compose a subagent delegation prompt — verify every factual claim in the prompt (release versions, milestone names, file paths, prior-self quotes, tool / config state) against current state via Read / gh / RAG before sending. Gist memory of recent state is the recurring failure mode at delegation moment; the cost of pre-send verify is far below the cost of a subagent stop-and-clarify round trip.
 - Before responding to a dialogue-side opinion question containing time-variant keywords ("latest" / "recent" / "current" / "now") — even when the agent feels confident from internal knowledge, invoke `skills/agentic-search/SKILL.md` because the category-side gate fires unconditionally on these keywords. The calibration-side gate fires independently when the agent's confidence is low / fuzzy / mixed with speculation.
 
+</trigger-moments>
+
+<retrieval-tools>
+
 ## Retrieval tools
 
 | Purpose | Tool |
@@ -40,6 +52,10 @@ Fire the Gate at these signals.
 | Time-variant external fact | `WebSearch` / `WebFetch` (search gate + Web-side consumption discipline both in `skills/agentic-search/SKILL.md`) |
 | Broad search axis (Web / RAG / gh / Read / memory) under low-calibration or time-variant keyword input | `skills/agentic-search/SKILL.md` |
 
+</retrieval-tools>
+
+<how-to-apply>
+
 ## How to apply
 
 1. At any trigger moment above, pause one tempo before emission.
@@ -47,3 +63,7 @@ Fire the Gate at these signals.
 3. On any No, pick the matching retrieval tool from the table and verify before proceeding.
 4. For external-content contact specifically, hand off to `skills/model-frame-check/SKILL.md`.
 5. For factual-claim verification specifically, hand off to `skills/model-source-check/SKILL.md`.
+
+</how-to-apply>
+
+</trigger-check-gate-actions>

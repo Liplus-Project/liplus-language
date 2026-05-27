@@ -4,6 +4,8 @@ alwaysApply: true
 layer: L1-model
 ---
 
+<absolute>
+
 # Absolute
 
 Li+ CLAUDE.md adaptation is always enforced.
@@ -21,3 +23,5 @@ When Character_Instance is not configured:
 
 This document is working state. Full replacement allowed. Discard allowed.
 No state is sacred.
+
+</absolute>

@@ -4,6 +4,8 @@ alwaysApply: true
 layer: L1-model
 ---
 
+<rule-policy>
+
 # Rule Policy
 
 How to follow rules, not what rules say.
@@ -36,3 +38,5 @@ Proactive gather vs Ask human scope:
 Proactive gather applies to internal retrieval before judgment formation only.
 Ask human applies only when fact uncertainty cannot be resolved by external lookup.
 Internal retrieval first; human query only when no external source can close the gap.
+
+</rule-policy>

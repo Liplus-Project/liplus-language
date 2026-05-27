@@ -52,6 +52,16 @@ Li+ プログラムの設計思想を軸別に蒸留した独立 docs。
 
 ---
 
+## ソース形式（K）
+
+Li+ source ファイル (`rules/*.md` / `skills/*/SKILL.md`) の構造仕様。
+
+| ページ | 内容 |
+|--------|------|
+| [K. Source-File-Format](K.-Source-File-Format) | semantic tag wrap 形式 (Option Y, H1+H2, lowercase kebab-case) の規約と運用 |
+
+---
+
 ## 判断構造（抜粋）
 
 セッションをまたぐ判断知を蓄積する Decision Structure。設計上の分岐で選んだ理由、検証で確定した前提、外部システム依存などを kebab-case トピック名で記録する（順序 prefix なし）。判断ノード（state 形エントリ）と supersede / depend / conflict edge による意味グラフであり、時間順 append-only の履歴ではない。全エントリの index は [Decision Structure](Decision-Structure) を参照。

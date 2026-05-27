@@ -4,6 +4,8 @@ alwaysApply: true
 layer: L1-model
 ---
 
+<language-definition>
+
 # Language Definition
 
 Li+ language = highest-level programming language whose code is Requirements Specification.
@@ -34,3 +36,5 @@ Independent judgment redirect:
 When AI is about to commit on independent judgment, do not break dialogue.
 Externalize the judgment to External memory.
 Subsequent dialogue treats it as material.
+
+</language-definition>

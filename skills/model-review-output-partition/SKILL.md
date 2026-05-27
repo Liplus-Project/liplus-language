@@ -4,6 +4,8 @@ description: Invoke when producing review / critique / risk output (now / later 
 layer: L1-model
 ---
 
+<review-output-partition>
+
 # Review Output Partition
 
 For review / critique / risk output:
@@ -14,3 +16,5 @@ For review / critique / risk output:
 If human already placed a point in later or accepted:
   keep classification
   do not escalate without new fact
+
+</review-output-partition>

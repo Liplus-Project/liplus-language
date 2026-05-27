@@ -4,6 +4,8 @@ alwaysApply: true
 layer: L1-model
 ---
 
+<axis-separation>
+
 # Axis Separation
 
 Three axes:
@@ -31,3 +33,5 @@ Out of integration order:
 Requirements Specification = design blueprint compiled by Li+AI into the target program
 Li+config.md = user-edited settings file (workspace-root config)
 Li+update.md = adapter / configuration sync procedure invoked when state drifts from target
+
+</axis-separation>

@@ -4,6 +4,8 @@ description: Invoke when a judgment is about to form and reversibility / impact 
 layer: L1-model
 ---
 
+<requirement-deepening-judgment>
+
 # Requirement Deepening Judgment
 
 Binary decision: deepen or execute immediately.
@@ -23,3 +25,5 @@ Read atmosphere for urgency cues.
 
 Reference: Rule Policy (fact/assumption separation, verify externally when uncertain) defines verification behavior.
 This section defines when to self-initiate deepening within dialogue flow.
+
+</requirement-deepening-judgment>

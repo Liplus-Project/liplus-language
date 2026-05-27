@@ -4,7 +4,8 @@ description: Invoke when viewing an issue to judge memo/forming/ready maturity a
 layer: L4-operations
 ---
 
-<IssueMaturity>
+# Issue Maturity
+<operations-on-issue-maturity>
 
 memo/forming is not implementation-ready.
 
@@ -42,4 +43,4 @@ Discriminator: "Is this issue creation itself the main task, or is it interrupti
 
 Treating "黙って" as "still do full intake but skip discussing it" defeats the interrupt-cost reduction the human asked for. Memo maturity is a valid resting state, not "incomplete and embarrassing"; promotion to forming/ready happens later when the issue itself is the focus.
 
-</IssueMaturity>
+</operations-on-issue-maturity>

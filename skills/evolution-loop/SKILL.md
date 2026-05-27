@@ -4,7 +4,8 @@ description: Invoke when executing any evolution loop stage (observe / evaluate 
 layer: L2-evolution
 ---
 
-<EvolutionLoop>
+# Evolution Loop
+<evolution-loop>
 
 Loop stages:
   observe    = memory entries + docs (spec, decision structure, issue history)
@@ -25,4 +26,4 @@ Stage responsibility:
   improve          = AI executes under the updated spec.
   re-observe       = AI autonomous.
 
-</EvolutionLoop>
+</evolution-loop>

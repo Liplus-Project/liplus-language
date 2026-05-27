@@ -4,7 +4,8 @@ description: Invoke when delegating implementation or operations to a subagent; 
 layer: L3-task
 ---
 
-<SubagentDelegation>
+# Subagent Delegation
+<task-subagent-delegation>
 
 ## Rules
 
@@ -88,4 +89,4 @@ If subagent behavior depends on memory content, the parent MUST inject the relev
 
 The cure is to either (i) inject the literal text into the prompt, or (ii) escalate the memory entry through promotion to Li+ rules so it auto-loads — promotion is the durable fix; injection is the per-task workaround.
 
-</SubagentDelegation>
+</task-subagent-delegation>

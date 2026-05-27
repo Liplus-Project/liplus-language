@@ -4,7 +4,8 @@ description: Invoke after CI pass; AI self-review mandatory in every mode, forma
 layer: L4-operations
 ---
 
-<PRReview>
+# PR Review
+<operations-on-pr-review>
 
 AI self-review is mandatory in every mode (trigger / semi_auto / auto).
 Skipping self-review before merge is a spec violation. Self-review runs first; external human check (if any) is layered on top, not in place of it.
@@ -72,4 +73,4 @@ Self-review records may legitimately defer items as "out of PR scope" (e.g. work
 
 Merge is not the closing bracket; the deferred-item handoff is.
 
-</PRReview>
+</operations-on-pr-review>

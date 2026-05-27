@@ -4,7 +4,8 @@ description: Invoke when verifying a Li+ rules/*, skills/*, or adapter/* edit be
 layer: L2-evolution
 ---
 
-<ParallelSubagentEval>
+# Parallel Subagent Eval
+<parallel-subagent-eval>
 
 Verification method that measures the AI's introspection gap (no empirical basis for predicting its own future invoke behavior or rule semantic effect) from the outside via the current behavior of subagents.
 
@@ -92,4 +93,4 @@ Choose based on the asymmetry of the judgment:
 
 Subagent spawn goes through the host's Agent tool (Claude Code: `Agent` tool; Codex: equivalent mechanism). Parallel execution = multiple Agent tool calls in a single message. subagent_type is selected per task (typically general-purpose).
 
-</ParallelSubagentEval>
+</parallel-subagent-eval>

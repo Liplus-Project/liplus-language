@@ -4,7 +4,8 @@ description: Invoke after self-review + mode gate pass; mergeable state check, s
 layer: L4-operations
 ---
 
-<Merge>
+# Merge
+<operations-on-merge>
 
 Merge executor is AI in every mode (trigger / semi_auto / auto).
 AI runs `gh pr merge` after all preconditions pass (self-review + mode-specific human gate, and mergeable state check). GitHub auto-merge handoff is no longer used.
@@ -28,4 +29,4 @@ Parent close condition: closed automatically on merge via issue reference.
 Real device test:
 Merge first. Then test on main. Not a merge gate.
 
-</Merge>
+</operations-on-merge>

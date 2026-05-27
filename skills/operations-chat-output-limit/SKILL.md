@@ -4,9 +4,10 @@ description: Invoke when generating long output that may exceed chat output limi
 layer: L4-operations
 ---
 
-<ChatOutputLimit>
+# Chat Output Limit
+<operations-chat-output-limit>
 
 Long output may stop = physical limit, not corruption.
 Use chunking when needed.
 
-</ChatOutputLimit>
+</operations-chat-output-limit>

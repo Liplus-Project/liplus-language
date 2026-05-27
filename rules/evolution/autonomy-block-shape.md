@@ -4,7 +4,8 @@ alwaysApply: true
 layer: L2-evolution
 ---
 
-<AutonomyBlockShape>
+# Autonomy Block Shape
+<autonomy-block-shape>
 
 Shared spec for autonomy declaration blocks in `adapter/claude/CLAUDE.md` Autonomy section. Currently applies to `Memory_Write_Autonomy`, `Decision_Structure_Write_Autonomy`, `Evolution_Initiator_Autonomy`. Holds the cross-block constants so the per-block declaration stays focused on its own load-bearing surface.
 
@@ -35,4 +36,4 @@ Artifact-specific maintenance spec (duplicate handling, deletion criteria, langu
 
 Boundary clarifications, detailed spec refs, and scope edges that are not generic to all blocks remain in the per-block declaration in CLAUDE.md. This rule only consolidates the truly cross-block content.
 
-</AutonomyBlockShape>
+</autonomy-block-shape>

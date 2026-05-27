@@ -4,7 +4,8 @@ alwaysApply: true
 layer: L2-evolution
 ---
 
-<ColdStartSynthesis>
+# Cold-start Synthesis
+<cold-start-synthesis>
 
 Trigger = session start, after Li+config.md execution completes.
 Action:
@@ -50,4 +51,4 @@ Material gathering and concrete surfacing logic belong to the adapter cold-start
 
 Silent skip when the observation file is absent or no entries are due.
 
-</ColdStartSynthesis>
+</cold-start-synthesis>

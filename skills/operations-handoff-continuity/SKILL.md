@@ -4,10 +4,11 @@ description: Invoke when token / session / model boundary may interrupt work, or
 layer: L4-operations
 ---
 
-<HandoffContinuity>
+# Handoff Continuity
+<operations-handoff-continuity>
 
 If token/session/model boundary may interrupt work = push useful intermediate state to the linked personal branch.
 Handoff source of truth = issue body + linked branch + commits/PR.
 Do not leave meaningful progress only in local workspace or chat memory.
 
-</HandoffContinuity>
+</operations-handoff-continuity>

@@ -4,7 +4,8 @@ alwaysApply: true
 layer: L2-evolution
 ---
 
-<MemoryEntryFormat>
+# Memory Entry Format
+<memory-entry-format>
 
 ## Position
 
@@ -125,4 +126,4 @@ This rule defines the entry format and operation of memory only. The following a
 
 Memory entries are recommended in English. Same two-axis rationale as Li+ source (semantic precision + token economy). See `rules/model/liplus-coding-rule.md` for the rationale.
 
-</MemoryEntryFormat>
+</memory-entry-format>

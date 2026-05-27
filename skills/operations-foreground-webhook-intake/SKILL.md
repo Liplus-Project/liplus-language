@@ -4,7 +4,8 @@ description: Invoke at each user turn start; inspect pending webhook events via 
 layer: L4-operations
 ---
 
-<ForegroundWebhookNotificationIntake>
+# Foreground Webhook Notification Intake
+<operations-foreground-webhook-intake>
 
 Purpose:
 Keep the active foreground thread lightweight.
@@ -67,4 +68,4 @@ own-operation arrival confirmation:
   do not accumulate own-operation events for bulk clearing later.
   external events (other users, bots) = preserve for foreground reporting or explicit handling.
 
-</ForegroundWebhookNotificationIntake>
+</operations-foreground-webhook-intake>

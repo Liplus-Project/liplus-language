@@ -4,7 +4,8 @@ alwaysApply: true
 layer: L2-evolution
 ---
 
-<PromotionJudgment>
+# Promotion Judgment
+<promotion-judgment>
 
 ## Position
 
@@ -82,4 +83,4 @@ The memory ↔ docs binary sorting defined by `skills/evolution-persistence-tier
 On top of that, this mechanism handles "memory entry → canonical rule (`rules/` / `skills/` / `adapter/`) promotion" as an independent axis.
 Whether to keep an item in memory or split it out to docs is a persistence-tiering judgment; whether a memory observation set deserves canonical-rule promotion is a promotion-judgment judgment.
 
-</PromotionJudgment>
+</promotion-judgment>

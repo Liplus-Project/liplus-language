@@ -4,7 +4,8 @@ description: Invoke when creating, classifying, or linking sub-issues; enforces 
 layer: L4-operations
 ---
 
-<SubIssueRules>
+# Sub-issue Rules
+<operations-on-sub-issue>
 
 Sub-issue = AI-trackable work unit.
 Split by responsibility, not granularity.
@@ -48,4 +49,4 @@ If per-sub-issue PRs already exist on a parent with sub-issues (a spec violation
 
 This is fix-up only — do not normalize per-sub-issue PRs as a workflow. The single parent PR layout is correct; the recovery procedure exists because past sessions have erred (e.g. github-rag-mcp #198 / OAuth migration sub-PRs #203/#204/#205/#206 ran per-sub-issue and triggered cascading auto-close failures on the parent).
 
-</SubIssueRules>
+</operations-on-sub-issue>

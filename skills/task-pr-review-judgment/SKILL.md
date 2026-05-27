@@ -4,7 +4,8 @@ description: Invoke when judging a PR review result; mode-dependent (auto: self-
 layer: L3-task
 ---
 
-<PRReviewJudgment>
+# PR Review Judgment
+<task-pr-review-judgment>
 
 ## Responsibilities
 
@@ -24,4 +25,4 @@ if execution_mode == trigger:
     APPROVED → proceed (delegate merge execution to subagent if available).
     CHANGES_REQUESTED → read review comments, judge against issue requirements, delegate fix to subagent.
 
-</PRReviewJudgment>
+</task-pr-review-judgment>

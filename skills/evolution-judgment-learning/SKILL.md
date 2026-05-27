@@ -4,7 +4,8 @@ description: Invoke before forming a new judgment to retrieve past judgment via 
 layer: L2-evolution
 ---
 
-<JudgmentLearning>
+# Judgment Learning
+<evolution-judgment-learning>
 
 Retrieve past judgment before forming a new judgment.
 Source priority:
@@ -13,4 +14,4 @@ Source priority:
 Decision Structure entries (wiki kebab-case `<topic>.md`, indexed via `docs/Decision-Structure.md`) are RAG-indexed and reach the retrieval path by design. Query the past-judgment graph (state-form entries + supersede/depend/conflict edges) before forming a new judgment.
 Do not skip retrieval because "the answer feels obvious". Verify.
 
-</JudgmentLearning>
+</evolution-judgment-learning>

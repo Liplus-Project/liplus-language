@@ -34,12 +34,16 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Ensure tags are available locally
-          git fetch --tags --force
-
-          # JST date
+          # JST date prefix (today's build tag namespace)
           DATE="$(TZ=Asia/Tokyo date +%Y-%m-%d)"
           PREFIX="build-${DATE}."
+
+          # Fetch only today's prefix tags via refspec (avoid full --tags fetch
+          # which inflates local ref set and pressures GitHub's commit_refs
+          # storage on push, observed to cause "fatal error in commit_refs"
+          # with large cumulative tag count). `|| true` covers the first-of-day
+          # case where no matching tag exists yet.
+          git fetch origin "+refs/tags/${PREFIX}*:refs/tags/${PREFIX}*" || true
 
           echo "Resolving next sequence for ${PREFIX}* (JST)"
 
@@ -59,4 +63,5 @@ jobs:
 
           echo "Tagging ${TAG} at ${TARGET_SHA}"
           git tag "${TAG}" "${TARGET_SHA}"
-          git push origin "${TAG}"
+          # Explicit refspec on push to minimize ref advertisement scope
+          git push origin "refs/tags/${TAG}:refs/tags/${TAG}"

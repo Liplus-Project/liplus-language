@@ -34,6 +34,16 @@ Both rationales converge on English; the choice is overdetermined and stable.
 
 </source-language>
 
+<source-file-format>
+
+## Source File Format
+
+Source files (`rules/*.md` / `skills/*/SKILL.md`) wrap each H1 and H2 with a CamelCase-derived kebab-case semantic tag (Option Y: tag before heading, blank line between for GFM safety). Tag derived from heading text via slugify.
+
+Detailed spec: [docs/K.-Source-File-Format](../../docs/K.-Source-File-Format.md).
+
+</source-file-format>
+
 <out-of-scope>
 
 ## Out of Scope

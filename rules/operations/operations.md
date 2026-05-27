@@ -11,7 +11,6 @@ layer: L4-operations
 <operations-layer>
 
 ### Layer Position
-<layer-position>
 
 Layer = L4 Operations Layer
 Event-driven operations surface over the shared Li+ program
@@ -27,10 +26,7 @@ Reads through:
   issue semantics and label vocabulary from rules/task/task.md (and skills/*/SKILL.md)
   execution mode from Li+config.md
 
-</layer-position>
-
 ### Event-Driven Operations
-<event-driven-operations>
 
   [TRIGGER_INDEX]
   act_now      -> Branch And Label Flow
@@ -44,8 +40,6 @@ Reads through:
   on_review    -> PR Review
   on_merge     -> Merge
   on_release   -> Human Confirmation Required
-
-</event-driven-operations>
 
 </operations-layer>
 
@@ -117,37 +111,25 @@ Detection signs that the stop condition is being misapplied:
 <operations-label>
 
 ### Rules
-<rules>
 
 Every issue must have at least one type label at creation time.
 Every issue must have one maturity label at creation time.
 
-</rules>
-
 ### Responsibilities
-<responsibilities>
 
 Lifecycle labels are applied when state changes.
 Labels are for AI readability and filtering.
 Active label meanings belong to rules/task/task.md.
 
-</responsibilities>
-
 ### Marker
-<marker>
 
 promotion = promotion-judgment issue filed by the observation mechanism after crossing the noise floor (same-kind cluster observed >=3 times within 3 days, or 5 times reached within 3 days for immediate promotion). Marker label on a separate axis from the type axis.
 Authoritative spec for the judgment mechanism and tally format = `rules/evolution/promotion-judgment.md`. The description in this file is a summary; the true source for thresholds and durations follows promotion-judgment.md.
 
-</marker>
-
 ### Sync
-<sync>
 
 rules/task/task.md references this document.
 If label set changes here, update rules/task/task.md to match.
-
-</sync>
 
 </operations-label>
 

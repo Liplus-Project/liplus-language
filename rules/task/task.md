@@ -28,7 +28,6 @@ Backgrounded here:
 <task-issue-rules>
 
 ### Rules
-<rules>
 
 All work starts from issue.
 No commit or PR without issue number.
@@ -39,18 +38,11 @@ Issue is primarily authored by AI. Human may also create issues, but default aut
 Comments are secondary. Fold durable information back into body.
 Current source of truth = issue body + labels.
 
-</rules>
-
 ### Responsibilities
-<responsibilities>
 
 #### Working with Issues
-<working-with-issues>
-
-</working-with-issues>
 
 #### Source of Truth
-<source-of-truth>
 
 Issue is internal TODO = assignee manages without waiting for instruction.
 Independent judgment redirect: primary externalization destination = issue.
@@ -60,10 +52,7 @@ Applies to externalization of independent judgment only.
 Dialogue context itself is outside this scope.
 Issue body = judgment record (what was decided). Dialogue message = history (how the decision emerged). Do not transcribe dialogue messages into issue body.
 
-</source-of-truth>
-
 #### Issue Management
-<issue-management>
 
 Create issue when: bug found, spec gap found, task split needed, dialogue yields durable work memo, or Li+ spec improvement noticed during dialogue.
 Li+ spec improvement issue threshold = same as memory-level observation. Do not overthink. Use memo label.
@@ -75,17 +64,10 @@ Keep open when: operational testing in progress.
 Do not touch: issues marked as permanent reference.
 Ask human when required information is missing.
 
-</issue-management>
-
-</responsibilities>
-
 ### Autonomy
-<autonomy>
 
 Label evolves over time. Label is for AI readability.
 Full label policy and retired labels: see rules/operations/operations.md
-
-</autonomy>
 
 </task-issue-rules>
 
@@ -93,14 +75,10 @@ Full label policy and retired labels: see rules/operations/operations.md
 <task-label-definitions>
 
 ### Rules
-<rules>
 
 Description required on creation.
 
-</rules>
-
 ### Responsibilities
-<responsibilities>
 
 Lifecycle:
 in-progress = work started, implementation ongoing
@@ -129,8 +107,6 @@ tips        = operational know-how memo not tied to a release milestone
 
 Marker:
 promotion   = path flag for an issue filed by the promotion-judgment mechanism (separate axis from type). See rules/operations/operations.md and rules/evolution/promotion-judgment.md for details.
-
-</responsibilities>
 
 </task-label-definitions>
 

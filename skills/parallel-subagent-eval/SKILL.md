@@ -38,38 +38,26 @@ Three axes that move verification cost and detection power independently:
 The three axes are independently configurable. Total subagent invocation count = `N x P` (M is absorbed inside each subagent prompt).
 
 ### Default pattern (delete/keep judgment, etc.)
-<default-pattern-delete-keep-judgment-etc>
 
 `N=3, M=all axes, P=1` - 3 subagents independently answer all M axis questions against the same ablation output. aggregation = safer-side OR (if even one axis returns a load-bearing signal, fall toward "keep"). N=3 samples are collected per axis, capturing blind-spot coverage and variance robustness simultaneously. Total invocation = 3.
 
-</default-pattern-delete-keep-judgment-etc>
-
 ### Exception pattern: M=1 axis-separated
-<exception-pattern-m-1-axis-separated>
 
 Adopt only when per-axis prompt complexity is high enough that cross-axis echo bias cannot be suppressed inside a single subagent context. `N=3, M=1, P=1`, one axis per subagent. Total invocation = `N x axis_count`.
 The original #1296 empirical demonstration (axis A: ease of invoke judgment / axis B: maintainer readability / axis C: coverage) is retained as the canonical instance of this pattern.
 
-</exception-pattern-m-1-axis-separated>
-
 ### Premise variations (P > 1)
-<premise-variations-p-1>
 
 Use only when comparing multiple ablation premises directly. Total invocation = `N x P` (within each premise, M is absorbed into the prompt as in the default pattern).
 
 The representative case is the P=2 before/after pattern: premise A = pre-change (operational copy unapplied = baseline), premise B = post-change (draft applied = candidate) are placed as separate premises, and the subagent's behavior under the same prompt is compared directly before and after the change. Trigger = a Li+ source revision where the question "did the subagent verdict shift before vs after draft application on the same question?" needs to be pinned down empirically. Cost is `N=3, P=2 -> 6 invocation` (double the default `N=3, P=1 -> 3 invocation`).
 
-</premise-variations-p-1>
-
 ### aggregation rule
-<aggregation-rule>
 
 Choose based on the asymmetry of the judgment:
 - delete/keep binary where erroneous deletion is costly -> safer-side OR (if any axis detects effect, "keep")
 - adopt/reject binary where erroneous adoption is costly -> require unanimous agreement (AND)
 - intermediate -> three-value classification: consistent / partial / negative (the legacy #1296 pattern)
-
-</aggregation-rule>
 
 </design-dimensions>
 

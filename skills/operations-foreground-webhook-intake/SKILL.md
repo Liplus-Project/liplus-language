@@ -5,7 +5,7 @@ layer: L4-operations
 ---
 
 # Foreground Webhook Notification Intake
-<operations-foreground-webhook-intake>
+<foreground-webhook-notification-intake>
 
 Purpose:
 Keep the active foreground thread lightweight.
@@ -68,4 +68,4 @@ own-operation arrival confirmation:
   do not accumulate own-operation events for bulk clearing later.
   external events (other users, bots) = preserve for foreground reporting or explicit handling.
 
-</operations-foreground-webhook-intake>
+</foreground-webhook-notification-intake>

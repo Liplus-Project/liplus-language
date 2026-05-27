@@ -5,7 +5,7 @@ layer: L2-evolution
 ---
 
 # Persistence Tiering
-<evolution-persistence-tiering>
+<persistence-tiering>
 
 memory = workspace-local personal notes. Not repo-committed. Not RAG-indexed. **Transient only** (details: `rules/evolution/memory-entry-format.md` Scope / Trigger point sections)
 docs  = project information. Repo-committed. RAG-indexed (wiki Decision Structure entries and other indexed content).
@@ -15,6 +15,7 @@ Personal behavior notes, session-local preferences -> memory.
 Do not cross tiers silently. Promotion from memory to docs requires explicit intent.
 
 ## Persistent destinations (4-way axis)
+<persistent-destinations-4-way-axis>
 
 Since memory is transient-only, persistent information does not live in memory. Sort across the following 4 destinations. Detailed spec = `rules/evolution/memory-entry-format.md` Escalation paths.
 
@@ -25,7 +26,10 @@ Since memory is transient-only, persistent information does not live in memory. 
 
 The memory ↔ docs binary sorting remains as the memory / docs axis within these 4 destinations. At observation time, judge "transient or persistent" first; if persistent, route to one of the 4 destinations.
 
+</persistent-destinations-4-way-axis>
+
 ## Write-time trigger (hard gate)
+<write-time-trigger-hard-gate>
 
 Pre-write judgment trigger immediately before a memory write. Carries the "Pre-write persistence check (hard gate)" of `Memory_Write_Autonomy` (adapter/claude/CLAUDE.md).
 
@@ -40,4 +44,6 @@ Routing after judgment:
 
 This gate is automatic routing without a permission ask; judgment is closed by AI alone. It acts as structural prevention against the post-hoc memory hygiene round (e.g. parent issue #1344 → #1347), blocking persistent information from re-accumulating in memory.
 
-</evolution-persistence-tiering>
+</write-time-trigger-hard-gate>
+
+</persistence-tiering>

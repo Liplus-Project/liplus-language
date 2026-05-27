@@ -5,7 +5,7 @@ layer: L4-operations
 ---
 
 # CI Loop
-<operations-on-ci>
+<ci-loop>
 
 CI loop starts immediately after PR creation or after fix-and-recommit.
 CI loop is a separate task from PR creation. Do not skip.
@@ -29,4 +29,4 @@ CI fail -> fix and recommit (restart CI loop from step1).
 CI loop safety (ref: Li+core.md#Loop Safety task/debug threshold):
 If still failing = externalize to issue comment, escalate to human.
 
-</operations-on-ci>
+</ci-loop>

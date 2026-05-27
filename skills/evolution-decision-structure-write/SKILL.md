@@ -5,7 +5,7 @@ layer: L2-evolution
 ---
 
 # Decision Structure Write
-<evolution-decision-structure-write>
+<decision-structure-write>
 
 Writer-side surface paired with the reader-side judgment-learning surface (`skills/evolution-judgment-learning/SKILL.md`).
 Immediately after a judgment settles, AI autonomously appends / creates / refactors a Decision Structure Wiki entry.
@@ -15,6 +15,7 @@ supersede / depend / conflict edges; volume stabilizes through refine / replace.
 Maintenance is refactor (normal operation): deletion or consolidation updates the structure rather than erasing history.
 
 ## Trigger
+<trigger>
 
 Fires immediately after a judgment settles. Concretely:
 
@@ -26,7 +27,10 @@ Fires immediately after a judgment settles. Concretely:
 
 Aligns with the accumulation conditions in `docs/Decision-Structure.md` (design branching, failure root cause identified, premise verification confirmed, multi-session-spanning investigation repetition).
 
+</trigger>
+
 ## Procedure
+<procedure>
 
 1. **Identify the topic** = articulate the judgment's core in one sentence. Decide a kebab-case filename candidate. Do not prefix with an ordering number (e.g. `wiki-sync-sidebar-integrity-check.md`).
 2. **Search existing entries** = call `mcp__github-rag-mcp__search` with `type: "wiki_doc"` to check for duplicates. Also check the `docs/Decision-Structure.md` index.
@@ -48,7 +52,10 @@ Aligns with the accumulation conditions in `docs/Decision-Structure.md` (design 
 5. **Wiki push** = git push directly to the wiki repo (no PR ceremony; independent git surface). Include the `_Sidebar.md` slug addition in the same commit.
 6. **Index update** = update the operational index table in `docs/Decision-Structure.md` on every new entry addition / existing entry rename / existing entry deletion (route through the regular main-repo PR flow). Not required for minor body edits.
 
+</procedure>
+
 ## Entry shape: state-form vs event-form
+<entry-shape-state-form-vs-event-form>
 
 state-form (recommended) = the subject is the current judgment state, e.g. "Question Q: current resolution = X, supersedes <link>".
 event-form (formerly recommended, not recommended for new entries) = the subject is a point-in-time event, e.g. "YYYY-MM-DD: decided X for reason Y".
@@ -61,7 +68,10 @@ Reasons for recommending state-form:
 
 forward guidance: do not retroactively rewrite existing entries. Use state-form when adding new entries or when updating the meaning of existing entries.
 
+</entry-shape-state-form-vs-event-form>
+
 ## Relation taxonomy (primary edge vocabulary)
+<relation-taxonomy-primary-edge-vocabulary>
 
 State-form entries are recommended to declare applicable edges. Primary edges = 3 kinds:
 
@@ -71,7 +81,10 @@ State-form entries are recommended to declare applicable edges. Primary edges = 
 
 Edges are written as forward links (links from this entry to the target entry). Reverse links are observed for consistency by the cross-reference integrity check at the next wiki sync.
 
+</relation-taxonomy-primary-edge-vocabulary>
+
 ## Maintenance (refactor framing)
+<maintenance-refactor-framing>
 
 Judgment records are a structure. Deletion or consolidation is not "erasing history" but "refactoring the structure", positioned within normal operation.
 
@@ -82,7 +95,10 @@ Judgment records are a structure. Deletion or consolidation is not "erasing hist
 - Entry language = `LI_PLUS_PROJECT_LANGUAGE` (resolved from the workspace's Li+config.md). Mixing is not allowed.
 - Broken cross-references on rename / deletion are detected by the Cross-reference integrity assertion at the next wiki sync (`skills/operations-on-release/SKILL.md`). Closure is by structure, not by manual attention.
 
+</maintenance-refactor-framing>
+
 ## Non-scope
+<non-scope>
 
 - A knowledge wiki is not adopted (judgment confirmed in the 2026-05-04 session). This skill's range is the "judgment record (decision structure)" surface only.
 - Do not paste dialogue transcripts as entry body. An entry is a surface that records the judgment state (what is currently resolved); the dialogue messages from which a judgment emerged belong to a separate surface.
@@ -90,22 +106,33 @@ Judgment records are a structure. Deletion or consolidation is not "erasing hist
 - Do not write judgments already documented in issues or commit bodies. Avoid duplication.
 - Do not write self-evident choices (where there is effectively only one option).
 
+</non-scope>
+
 ## Boundary with Persistence Tiering
+<boundary-with-persistence-tiering>
 
 The memory ↔ docs binary sorting defined by `skills/evolution-persistence-tiering/SKILL.md` continues to apply.
 This skill handles writing into the Decision Structure Wiki surface within the docs tier; writing into memory remains under `Memory_Write_Autonomy`'s range.
 Cross-tier promotion (memory → docs) is not triggered by this skill but routes through the persistence-tiering judgment.
 
+</boundary-with-persistence-tiering>
+
 ## Boundary with Judgment Learning
+<boundary-with-judgment-learning>
 
 `skills/evolution-judgment-learning/SKILL.md` is the reader side (query the past-judgment graph before forming a new judgment).
 This skill is the writer side (add / update a state entry in Decision Structure immediately after a judgment settles).
 Together they form a reader / writer-paired flow, closing cross-session accumulation and reuse of judgment knowledge under AI alone.
 
+</boundary-with-judgment-learning>
+
 ## Boundary with L1 Update Gating
+<boundary-with-l1-update-gating>
 
 Writing to the judgment-record Wiki is not an L1 Model Layer source change.
 Do not touch L1 Update Gating (`skills/evolution-l1-update-gating/SKILL.md`).
 The destination of this skill's writes is the external memory of judgments (the Wiki surface within the docs tier), not the rule definitions themselves.
 
-</evolution-decision-structure-write>
+</boundary-with-l1-update-gating>
+
+</decision-structure-write>

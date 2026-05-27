@@ -8,6 +8,7 @@ layer: L2-evolution
 <memory-entry-format>
 
 ## Position
+<position>
 
 Layer = L2 Evolution Layer
 Entry format and maintenance discipline for the memory file set (`feedback.md` / `project.md` / `MEMORY.md` / `promotion_tally.md` / `self-evaluation_log.md` etc.).
@@ -15,7 +16,10 @@ Requires = L2 Evolution Layer (persistence-tiering / promotion-judgment surround
 Load timing = always-on (memory writes occur across the entire session)
 Single source. Replace the operational note at the head of each memory file with a reference to this rule (avoid double-holding drift).
 
+</position>
+
 ## Scope
+<scope>
 
 memory = transient only. Persistent residency is not intended.
 
@@ -27,7 +31,10 @@ What memory holds:
 
 Do not place persistent information in memory. Promote it to one of the Escalation paths below.
 
+</scope>
+
 ## Escalation paths
+<escalation-paths>
 
 Persistent information has 4 promotion destinations:
 
@@ -36,7 +43,10 @@ Persistent information has 4 promotion destinations:
 - **wiki (under `docs/Decision-Structure.md` index, kebab-case `<topic>.md`)** = judgment record (Decision Structure: state-form entries + supersede/depend/conflict edges)
 - **deletion** = withdrawn / obsolete / already promoted into Li+
 
+</escalation-paths>
+
 ## Trigger point
+<trigger-point>
 
 Ask at observation time: "is this transient or persistent?"
 - transient → write to memory under the Entry Format below
@@ -44,7 +54,10 @@ Ask at observation time: "is this transient or persistent?"
 
 Placing the judgment trigger at every observation moment cuts the structural defect of persistent information settling in memory.
 
+</trigger-point>
+
 ## Entry Format
+<entry-format>
 
 This format applies to **transient memory entries** only. It does not apply to persistent information (the Trigger point above routes that elsewhere).
 
@@ -58,7 +71,10 @@ If background is needed, split it out to the docs tier (see `skills/evolution-pe
 
 Maintenance discipline (handle duplicates by update / delete obsolete / no conflicting coexist / no promoted-rule tracking list) and deletion blast-radius judgment are consolidated in `rules/model/subtractive-structural-beauty.md`. Memory subfile sits at `low` caution in the deletion table.
 
+</entry-format>
+
 ## Announce vs execute
+<announce-vs-execute>
 
 `Memory_Write_Autonomy` (CLAUDE.md adapter) defines memory write as AI-autonomous + immediate-execution. Speaking "I'll record this later" / "this is recordable" is a sincerity performance disconnected from action — observationally a verbal-only placeholder with nothing actually written.
 
@@ -71,7 +87,10 @@ Detection signs:
 - When "I'll record this" / "I'll memo this" / "this is recordable" / "I'll write later" is about to appear in output — verify it is paired with a tool call.
 - When "this observation is important enough to memo" is about to be written into a human-facing sentence.
 
+</announce-vs-execute>
+
 ## Self-Evolution Observation Format
+<self-evolution-observation-format>
 
 Tracks the post-merge detection cycle of self-evolution PRs. Distinct from cluster tally (`memory/promotion_tally.md` is pre-issue observation; this is post-merge observation).
 
@@ -105,7 +124,10 @@ Recovery (GitHub revert / `gh pr revert`) is on a separate axis.
 Retention (decision structure supersede edge) is on a separate axis.
 Cold-start surfacing of due / overdue entries follows `rules/evolution/cold-start-synthesis.md` Self-Evolution Observation Surface.
 
+</self-evolution-observation-format>
+
 ## Consolidate Trigger
+<consolidate-trigger>
 
 Periodic cleanup via the `anthropic-skills:consolidate-memory` skill.
 
@@ -115,15 +137,23 @@ Firing condition (whichever is earlier):
 
 After running the skill, update the `**Last consolidate run:**` line in each memory file.
 
+</consolidate-trigger>
+
 ## Out of scope
+<out-of-scope>
 
 This rule defines the entry format and operation of memory only. The following are separate surfaces:
 - cluster tally 3-day expire / sub-threshold deletion → `rules/evolution/promotion-judgment.md`
 - memory ↔ docs / wiki / rules sorting → `skills/evolution-persistence-tiering/SKILL.md`
 - self-evaluation 10-axis scoring → `skills/evaluation-self/SKILL.md`
 
+</out-of-scope>
+
 ## Language
+<language>
 
 Memory entries are recommended in English. Same two-axis rationale as Li+ source (semantic precision + token economy). See `rules/model/liplus-coding-rule.md` for the rationale.
+
+</language>
 
 </memory-entry-format>

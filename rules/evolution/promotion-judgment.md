@@ -8,13 +8,17 @@ layer: L2-evolution
 <promotion-judgment>
 
 ## Position
+<position>
 
 Layer = L2 Evolution Layer
 Operates the promotion judgment from memory observation into Li+ canonical rules (`rules/` / `skills/` / `adapter/`) as a numeric gate at cluster granularity.
 Requires = L1 Model Layer (observation surfaces) + L2 Evolution Layer (observe stage / persistence tiering)
 Load timing = always-on (observation occurs across the entire session)
 
+</position>
+
 ## Trigger
+<trigger>
 
 A drift / pattern observation occurring at any moment of dialogue / task / spec interaction.
 Concretely:
@@ -23,12 +27,18 @@ Concretely:
 - the felt sense during task execution that "I have seen this same kind of judgment miss / spec gap before"
 - the moment the application-moment gate in `rules/model/trigger-check-gate.md` detects drift
 
+</trigger>
+
 ## Cluster
+<cluster>
 
 Whether observations are "the same kind" is judged by the AI via semantic similarity. Judge = AI.
 Design choice: do not criteria-ize the judgment. Reason: criteria-ization trades reproducibility for observation-noise inclusion and shrinks cluster granularity. The reproducibility tradeoff is accepted.
 
+</cluster>
+
 ## Tally
+<tally>
 
 Storage = `memory/promotion_tally.md` (workspace-local, gitignored)
 Format (YAML-like markdown):
@@ -46,7 +56,10 @@ occurrences:
 Each cluster runs a per-cluster timer with first_observation = t=0. expires = first_observation + 3d.
 No past-occurrence carryover. Expired clusters are deleted in full.
 
+</tally>
+
 ## Threshold Rules
+<threshold-rules>
 
 | state | action |
 |---|---|
@@ -55,14 +68,20 @@ No past-occurrence carryover. Expired clusters are deleted in full.
 | tally 1 or 2 at t=3d | full deletion (noise floor not reached) |
 | same-kind reoccurrence on day 4+ after deletion | restart as a new cluster with t=0 (no past-occurrence carryover) |
 
+</threshold-rules>
+
 ## Exception
+<exception>
 
 The AI holds no exception criteria internally.
 Future-reoccurrence prediction at observation time invites over-judgment (retaining "this is important" from one observation), so it is prohibited.
 Exception retention is permitted only when human explicitly overrides.
 Override storage = a memory area outside the tally (e.g. an override section in `memory/feedback.md`). Do not write into the tally.
 
+</exception>
+
 ## Issue Creation Metadata
+<issue-creation-metadata>
 
 Fixed metadata at creation:
 - type label: AI selects from `spec` / `bug` / `enhancement` based on the observation target
@@ -71,16 +90,24 @@ Fixed metadata at creation:
 - record an occurrence field in the body (e.g. `occurrences: 6 / 3d → immediate`)
 - express the ≥5 immediate-promotion flag as a body field, not a new label axis.
 
+</issue-creation-metadata>
+
 ## Relation to L1 Update Gating
+<relation-to-l1-update-gating>
 
 This mechanism is the observation → issue-creation front stage. Issue creation does not directly establish a L1 Model Layer spec update.
 A post-creation L1 spec update additionally requires the long-horizon observation defined in `skills/evolution-l1-update-gating/SKILL.md`.
 Promotion Judgment proves the noise floor has been crossed; L1 Update Gating authorizes the update itself. The axes are separated.
 
+</relation-to-l1-update-gating>
+
 ## Relation to Persistence Tiering
+<relation-to-persistence-tiering>
 
 The memory ↔ docs binary sorting defined by `skills/evolution-persistence-tiering/SKILL.md` continues to apply.
 On top of that, this mechanism handles "memory entry → canonical rule (`rules/` / `skills/` / `adapter/`) promotion" as an independent axis.
 Whether to keep an item in memory or split it out to docs is a persistence-tiering judgment; whether a memory observation set deserves canonical-rule promotion is a promotion-judgment judgment.
+
+</relation-to-persistence-tiering>
 
 </promotion-judgment>

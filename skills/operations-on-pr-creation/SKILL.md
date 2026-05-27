@@ -5,7 +5,7 @@ layer: L4-operations
 ---
 
 # PR Creation
-<operations-on-pr-creation>
+<pr-creation>
 
 One PR per parent issue (see Sub-issue Rules#Single parent PR flow).
 Parent issue with sub-issues = single PR that closes all sub-issues + the parent on merge.
@@ -39,4 +39,4 @@ On PR created:
 2 = proceed to [CI Loop] immediately, no human instruction required.
 Merge execution is unified to AI across all modes (see [Merge]). GitHub auto-merge handoff is no longer used.
 
-</operations-on-pr-creation>
+</pr-creation>

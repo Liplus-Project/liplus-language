@@ -8,6 +8,7 @@ layer: L2-evolution
 <evolution>
 
 ## Evolution Layer
+<evolution-layer>
 
 Layer = L2 Evolution Layer
 Self-update surface over the shared Li+ program
@@ -36,7 +37,10 @@ Primary axis = AI-led evolution loop.
 Goal: observation → evaluation → distillation → Li+ source update → behavior improvement → next observation, runnable by AI alone.
 Current state: judgment-layer Sheepdog reached. Initiator authority sits on AI per `Evolution_Initiator_Autonomy` (`adapter/claude/CLAUDE.md`); the two-stage brake (brake 1 = `skills/parallel-subagent-eval` mandatory for every self-evolution PR / brake 2 = human review additional for L1 Model Layer source changes) preserves safer-side discipline. Substrate layer is polling-on-input (Claude Desktop lacks `--channels`); substrate-layer Sheepdog is deferred (out of scope for the judgment-layer completion).
 
+</evolution-layer>
+
 ## Evolution Axis Separation
+<evolution-axis-separation>
 
 Relation to L1 Model Layer:
 Loop Safety, Accepted Tradeoff Handling, Review Output Partition stay in core.
@@ -58,7 +62,10 @@ Relation to L4 Operations Layer:
 Li+ source updates flow through the standard branch/commit/PR/CI/merge pipeline.
 Evolution does not bypass operations rules.
 
+</evolution-axis-separation>
+
 ## Pattern Detection Surfacing At Cold-start
+<pattern-detection-surfacing-at-cold-start>
 
 Observe stage output contract:
 At session start, promotion candidates from memory to Li+ source must be surfaced
@@ -74,5 +81,7 @@ Surface requirements:
 Downstream responsibility:
 - Surfacing is observation, not promotion. Decision to promote still flows through distill → reflect → L1 Update Gating (if applicable).
 - Surfaced candidates inform the AI's observe-stage judgment at session start; they do not bypass Persistence Tiering or L1 gate.
+
+</pattern-detection-surfacing-at-cold-start>
 
 </evolution>

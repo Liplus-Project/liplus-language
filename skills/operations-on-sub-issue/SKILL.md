@@ -5,7 +5,7 @@ layer: L4-operations
 ---
 
 # Sub-issue Rules
-<operations-on-sub-issue>
+<sub-issue-rules>
 
 Sub-issue = AI-trackable work unit.
 Split by responsibility, not granularity.
@@ -36,11 +36,15 @@ Integration sub-issue executes after parallel sub-issues complete (serialized de
 Analysis basis = target files field in issue body. If absent, infer from issue purpose and premise.
 
 ## CI visibility — single parent PR with draft early open
+<ci-visibility-single-parent-pr-with-draft-early-open>
 
 Sub-issue implementations land as commits on the parent branch (one branch per parent issue). Open a draft PR on the parent branch immediately after the first commit so each subsequent push triggers `pull_request.synchronize` for per-commit CI.
 This satisfies per-commit CI visibility without splitting into per-sub-issue PRs. The single parent PR + draft early open pattern is the correct CI strategy; per-sub-issue PR splitting for "CI visibility" reasons is misdiagnosis.
 
+</ci-visibility-single-parent-pr-with-draft-early-open>
+
 ## Recovery from accidental per-sub-issue PR runs
+<recovery-from-accidental-per-sub-issue-pr-runs>
 
 If per-sub-issue PRs already exist on a parent with sub-issues (a spec violation that may have shipped before discovery), the post-hoc recovery is:
 1. Consolidate sub-issue branches into a single parent branch via cherry-pick or rebase.
@@ -49,4 +53,6 @@ If per-sub-issue PRs already exist on a parent with sub-issues (a spec violation
 
 This is fix-up only — do not normalize per-sub-issue PRs as a workflow. The single parent PR layout is correct; the recovery procedure exists because past sessions have erred (e.g. github-rag-mcp #198 / OAuth migration sub-PRs #203/#204/#205/#206 ran per-sub-issue and triggered cascading auto-close failures on the parent).
 
-</operations-on-sub-issue>
+</recovery-from-accidental-per-sub-issue-pr-runs>
+
+</sub-issue-rules>

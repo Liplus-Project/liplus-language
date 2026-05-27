@@ -5,7 +5,7 @@ layer: L4-operations
 ---
 
 # Issue Maturity
-<operations-on-issue-maturity>
+<issue-maturity>
 
 memo/forming is not implementation-ready.
 
@@ -27,6 +27,7 @@ A premise is verified only when external evidence (docs, spec, source, runtime p
 "feels correct" is not verification.
 
 ## Memo-mode rapid intake (interrupt-minimal path)
+<memo-mode-rapid-intake-interrupt-minimal-path>
 
 Triggered by human signaling "黙って" / "silent" / "quick memo" / equivalent intent: minimize the cognitive cost of issue creation while the human's main task continues.
 
@@ -43,4 +44,6 @@ Discriminator: "Is this issue creation itself the main task, or is it interrupti
 
 Treating "黙って" as "still do full intake but skip discussing it" defeats the interrupt-cost reduction the human asked for. Memo maturity is a valid resting state, not "incomplete and embarrassing"; promotion to forming/ready happens later when the issue itself is the focus.
 
-</operations-on-issue-maturity>
+</memo-mode-rapid-intake-interrupt-minimal-path>
+
+</issue-maturity>

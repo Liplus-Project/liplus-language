@@ -5,9 +5,10 @@ layer: L3-task
 ---
 
 # Subagent Delegation
-<task-subagent-delegation>
+<subagent-delegation>
 
 ## Rules
+<rules>
 
 Parent agent delegates implementation and operations to subagent.
 Parent retains: issue creation, issue management (non-state lifecycle labels / type / maturity / marker / close), review judgment.
@@ -22,7 +23,10 @@ Intent is already in issue body.
 
 Subagent label authority is partial: the state-machine lifecycle subset (`in-progress` / `done` / `waiting` / `blocked`) is editable by subagent. All other label axes (non-state lifecycle / type / maturity / marker) and close operations remain parent retain.
 
+</rules>
+
 ## State-machine label discipline (subagent side, mandate)
+<state-machine-label-discipline-subagent-side-mandate>
 
 Subagent MUST fire state-machine labels at role boundaries:
 
@@ -34,7 +38,10 @@ Subagent MUST fire state-machine labels at role boundaries:
 
 Label authority canonical spec is in `rules/task/task.md` Lifecycle section; this skill defines the application-moment behavior.
 
+</state-machine-label-discipline-subagent-side-mandate>
+
 ## Responsibilities
+<responsibilities>
 
 Convey to subagent:
 issue URL.
@@ -51,12 +58,18 @@ On failure, subagent writes failure report as issue comment. Format is not speci
 
 Branch linking: see skills/operations-on-branch/SKILL.md.
 
+</responsibilities>
+
 ## Autonomy
+<autonomy>
 
 If subagent capability is unavailable:
 Parent executes operations directly. All rules still apply.
 
+</autonomy>
+
 ## Mode-specific delegation injection
+<mode-specific-delegation-injection>
 
 The minimal "issue URL only" pattern works for `auto` and `semi_auto` because the subagent's auto-loaded operations rules already cover the merge gate. `trigger` mode is the exception: the merge gate involves human approval timing, and three pieces of context need explicit injection because they are parent-side decisions, not subagent-discovered facts:
 
@@ -66,7 +79,10 @@ The minimal "issue URL only" pattern works for `auto` and `semi_auto` because th
 
 These three are out of scope for the broader "do not convey procedure" rule because they are not procedure — they are gate-state decisions specific to trigger-mode merge timing.
 
+</mode-specific-delegation-injection>
+
 ## Delegation prompt hygiene (ASCII-only example text)
+<delegation-prompt-hygiene-ascii-only-example-text>
 
 Any example text the subagent may quote into an artifact (suggested PR title / commit title / commit body / wiki entry / issue body) MUST be ASCII-only. Subagents mirror the prompt's literal style when emitting artifacts; non-ASCII typographic characters (em-dash `—` / en-dash `–` / box-drawing `─` / smart quotes `' " ' "` / JA characters in example PR titles) leak through and persist in merged artifacts because governance CI checks PR titles only — commit bodies, wiki entry bodies, and issue bodies are not byte-checked.
 
@@ -81,7 +97,10 @@ Detection signs:
 - Re-reading own prompt: surrounding prose mixes typographic chars freely while example fields inherit the same mix.
 - Subagent reports "pre-existing em-dash found in previously-merged artifact" — the propagation already happened.
 
+</delegation-prompt-hygiene-ascii-only-example-text>
+
 ## Memory-only knowledge does not transfer to subagent
+<memory-only-knowledge-does-not-transfer-to-subagent>
 
 Parent-side memory (workspace memory/feedback.md, memory/project.md, in-session corrections) is NOT auto-loaded into the subagent's context. The subagent only sees the issue body, the auto-loaded Li+ rules and skills, and the delegation prompt itself.
 
@@ -89,4 +108,6 @@ If subagent behavior depends on memory content, the parent MUST inject the relev
 
 The cure is to either (i) inject the literal text into the prompt, or (ii) escalate the memory entry through promotion to Li+ rules so it auto-loads — promotion is the durable fix; injection is the per-task workaround.
 
-</task-subagent-delegation>
+</memory-only-knowledge-does-not-transfer-to-subagent>
+
+</subagent-delegation>

@@ -5,7 +5,7 @@ layer: L4-operations
 ---
 
 # Issue Format
-<operations-on-issue-format>
+<issue-format>
 
 Issue title language:
 Title = ASCII English only.
@@ -27,4 +27,4 @@ Issue completion is managed through issue state plus PR/CI/release flow, not a d
 Checklist = human judgment required (real device test, operational verification).
 Use checklist only when AI cannot judge.
 
-</operations-on-issue-format>
+</issue-format>

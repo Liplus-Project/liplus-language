@@ -5,9 +5,9 @@ layer: L4-operations
 ---
 
 # Chat Output Limit
-<operations-chat-output-limit>
+<chat-output-limit>
 
 Long output may stop = physical limit, not corruption.
 Use chunking when needed.
 
-</operations-chat-output-limit>
+</chat-output-limit>

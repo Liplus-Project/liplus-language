@@ -17,20 +17,11 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - name: Resolve target SHA
-        id: resolve
-        run: |
-          echo "sha=${{ github.event.pull_request.merge_commit_sha }}" >> $GITHUB_OUTPUT
-
-      - name: Checkout merged commit
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.resolve.outputs.sha }}
-          fetch-depth: 0
-
-      - name: Create build tag (JST date + sequence)
+      - name: Create build tag (JST date + sequence) via GitHub API
         env:
-          TARGET_SHA: ${{ steps.resolve.outputs.sha }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
 
@@ -38,30 +29,24 @@ jobs:
           DATE="$(TZ=Asia/Tokyo date +%Y-%m-%d)"
           PREFIX="build-${DATE}."
 
-          # Fetch only today's prefix tags via refspec (avoid full --tags fetch
-          # which inflates local ref set and pressures GitHub's commit_refs
-          # storage on push, observed to cause "fatal error in commit_refs"
-          # with large cumulative tag count). `|| true` covers the first-of-day
-          # case where no matching tag exists yet.
-          git fetch origin "+refs/tags/${PREFIX}*:refs/tags/${PREFIX}*" || true
-
-          echo "Resolving next sequence for ${PREFIX}* (JST)"
-
-          # Find max existing sequence number for today's prefix
+          # Resolve max existing sequence for today via GitHub API.
+          # matching-refs returns only refs matching the prefix; no full ref
+          # fetch involved. Avoids the "fatal error in commit_refs" failure
+          # that occurs when push-time ref negotiation hits server-side
+          # commit_refs storage under large cumulative tag count (the prior
+          # checkout@v4 + git push code path inflated local ref state via
+          # `+refs/tags/*:refs/tags/*` then triggered the server error).
+          # First-of-day case: matching-refs returns [], max // 0 yields 0.
           max_seq="$(
-            git tag -l "${PREFIX}[0-9]*" \
-              | sed -E "s/^${PREFIX}//" \
-              | sort -n \
-              | tail -1
+            gh api "repos/${REPO}/git/matching-refs/tags/${PREFIX}" \
+              --jq "[.[].ref | gsub(\"refs/tags/${PREFIX}\"; \"\") | tonumber] | max // 0"
           )"
-
-          # Default when no tag exists
-          : "${max_seq:=0}"
-
           next_seq=$((max_seq + 1))
           TAG="${PREFIX}${next_seq}"
 
-          echo "Tagging ${TAG} at ${TARGET_SHA}"
-          git tag "${TAG}" "${TARGET_SHA}"
-          # Explicit refspec on push to minimize ref advertisement scope
-          git push origin "refs/tags/${TAG}:refs/tags/${TAG}"
+          echo "Creating tag ${TAG} at ${TARGET_SHA}"
+
+          # Create tag ref via API. No checkout, no local git state, no fetch.
+          gh api "repos/${REPO}/git/refs" --method POST \
+            -f ref="refs/tags/${TAG}" \
+            -f sha="${TARGET_SHA}"

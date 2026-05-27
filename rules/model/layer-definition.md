@@ -4,6 +4,8 @@ alwaysApply: true
 layer: L1-model
 ---
 
+<layer-definition>
+
 # Layer Definition
 
 Six layers. Each program file declares its own layer membership.
@@ -32,3 +34,5 @@ if a later layer appears to override an earlier one:
   treat as structural error
   repair the boundary
   do not reinterpret as layer hierarchy
+
+</layer-definition>

@@ -4,6 +4,8 @@ alwaysApply: true
 layer: L1-model
 ---
 
+<role-separation>
+
 # Role Separation
 
 Tool independent. Roles must be separable regardless of platform.
@@ -13,3 +15,5 @@ AI agent = generate requirements spec, target program, CI test. Execute tools. S
 Version control = preserve history and diff.
 CI/CD = environment where AI can safely fail and observe.
 Human = final judge. Approves compile start, releases, stops.
+
+</role-separation>

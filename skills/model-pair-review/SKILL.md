@@ -4,6 +4,8 @@ description: Invoke when task_type == structural_change and review loop phases a
 layer: L1-model
 ---
 
+<pair-review-execution-model>
+
 # Pair Review Execution Model
 
 Review loop:
@@ -26,3 +28,5 @@ if task_type == structural_change
 then review_loop
 
 If converged = commit.
+
+</pair-review-execution-model>

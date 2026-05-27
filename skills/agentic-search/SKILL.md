@@ -4,7 +4,11 @@ description: ALWAYS invoke before answering when (a) the agent's internal confid
 layer: L1-model
 ---
 
+<agentic-search>
+
 # Agentic Search
+
+<position>
 
 ## Position
 
@@ -17,6 +21,10 @@ Companion surfaces (not encapsulated here):
 - `skills/model-source-check/SKILL.md` = factual-claim verification axis (two-pillar verify table) that sits alongside this search-side gate.
 - `skills/model-trigger-check-gate-actions/SKILL.md` = retrieval tools mapping at the 5-axis Gate moment.
 - `skills/task-subagent-delegation/SKILL.md` = delegation semantics (what to convey, what to retain) when the parent launches research via subagent.
+
+</position>
+
+<trigger-axis-calibration-primary-category-supporting-or>
 
 ## Trigger axis — calibration primary + category supporting (OR)
 
@@ -47,6 +55,10 @@ This gate catches the Dunning-Kruger surface: confident-but-wrong on time-varian
 - Drop category -> overconfidence on time-variant facts slips through.
 - Both gates together = both classes of drift are caught.
 
+</trigger-axis-calibration-primary-category-supporting-or>
+
+<internal-knowledge-role>
+
 ## Internal knowledge role
 
 Internal model knowledge is **comparison baseline**, not answer source under these triggers.
@@ -56,6 +68,10 @@ Internal model knowledge is **comparison baseline**, not answer source under the
 - Do not synthesize and return the internal hypothesis as the answer when the trigger fired.
 
 When neither gate fires, internal knowledge may serve as the answer directly. The triggers exist precisely to mark the cases where it cannot.
+
+</internal-knowledge-role>
+
+<source-priority>
 
 ## Source priority
 
@@ -75,6 +91,10 @@ When neither gate fires, internal knowledge may serve as the answer directly. Th
 
 The two surfaces are complementary, not substitutable. Live `.md` for current snapshot; commit diff for judgment-history.
 
+</source-priority>
+
+<block-1-question-type-classification>
+
 ## Block 1 — Question type classification
 
 Before issuing the first query, classify into one of:
@@ -87,6 +107,10 @@ Before issuing the first query, classify into one of:
 | similar case / pattern memory | memory grep + RAG MCP |
 
 Classification is not exclusive. Multi-type questions decompose into per-type subqueries handled by Block 2.
+
+</block-1-question-type-classification>
+
+<block-2-tier-1-preview-tier-2-deep-dive>
 
 ## Block 2 — Tier 1 preview + Tier 2 deep-dive
 
@@ -129,6 +153,10 @@ Output of Tier 2 = a set of retrieved snippets, each tagged by angle, fed into B
 
 Block 2 (Tier) decides how deep to dig within one source. Block 4 (Stage) decides when to switch source families.
 
+</block-2-tier-1-preview-tier-2-deep-dive>
+
+<block-3-cross-check-and-three-state-branching>
+
 ## Block 3 — Cross-check and three-state branching
 
 Evaluate the retrieved set across angles. The judging AI = Lin / Lay (Character_Instance), not an external scorer.
@@ -169,6 +197,10 @@ Block 3 output carries a confidence signal alongside the state classification:
 
 The signal is propagated to the answer-synthesis surface so downstream consumers (human, follow-up tasks, observation logs) can read the confidence dimension without re-running the cross-check.
 
+</block-3-cross-check-and-three-state-branching>
+
+<block-4-composite-escalation-axes-stage-1-2>
+
 ## Block 4 — Composite escalation axes (Stage 1-2)
 
 When State C fires, choose a composite axis based on the failure mode.
@@ -185,6 +217,10 @@ Escalation staging (orthogonal to Block 2 Tier axis):
 
 Hard stop after one full Stage 2 round if State C remains. Surface to human (Block 5).
 
+</block-4-composite-escalation-axes-stage-1-2>
+
+<block-5-stop-condition>
+
 ## Block 5 — Stop condition
 
 Stop when one of:
@@ -196,6 +232,10 @@ Stop when one of:
 
 Do not loop indefinitely. Loop Safety (`skills/model-loop-safety/SKILL.md`) applies: same approach twice in dialogue, three times in task = stop and switch.
 
+</block-5-stop-condition>
+
+<three-roles-of-the-judging-ai>
+
 ## Three roles of the judging AI
 
 Within one retrieval moment, three judgments stack:
@@ -205,6 +245,10 @@ Within one retrieval moment, three judgments stack:
 3. **stop-time judgment** — budget / corpus boundary / human escalation (Block 5)
 
 These judgments are Character_Instance-prefixed dialogue surface when surfaced to human, internal reasoning when not.
+
+</three-roles-of-the-judging-ai>
+
+<web-specific-consumption-discipline>
 
 ## Web-specific consumption discipline
 
@@ -221,6 +265,10 @@ When the retrieval surface chosen is Web (`WebSearch` / `WebFetch`), additional 
 Internal model knowledge is comparison baseline, never the Web answer source under the trigger axis. Even when internal knowledge agrees with the Web result, the agreement is the cross-check signal, not the basis for skipping citation.
 
 When the trigger axis did not fire (universal concept explanation, stable design principle), Web search is unnecessary and internal knowledge serves as the answer directly. The trigger axis is the gate; Web-side consumption discipline applies only on the search-side of that gate.
+
+</web-specific-consumption-discipline>
+
+<parent-ai-governance-pre-retrieval>
 
 ## Parent-AI governance (pre-retrieval)
 
@@ -245,6 +293,10 @@ When investigating an issue:
 - Do not wait for human to request each retrieval step individually.
 
 Subagent availability determines execution but not initiative. Initiative is mandatory regardless of environment.
+
+</parent-ai-governance-pre-retrieval>
+
+<parent-ai-consumption-discipline-post-retrieval>
 
 ## Parent-AI consumption discipline (post-retrieval)
 
@@ -271,6 +323,10 @@ The four mechanical stop states (State A synthesize / State C unresolved / budge
 
 Naive single-shot RAG consumption fails on corpus boundary, recognition bias, and aligned errors. The parent must not collapse the mechanical multi-angle protocol back into single-shot when the result feels "good enough" too early — Block 3 cross-check is the canonical gate, not the parent's intuition.
 
+</parent-ai-consumption-discipline-post-retrieval>
+
+<observation-and-evolution>
+
 ## Observation and evolution
 
 Single environment cannot benchmark this skill against alternatives. Observation loop instead:
@@ -279,3 +335,7 @@ Single environment cannot benchmark this skill against alternatives. Observation
 - feed observations into evolution loop observe stage (`skills/evolution-loop/SKILL.md`)
 
 Promotion of recurring patterns to L1 / L2 spec follows `rules/evolution/promotion-judgment.md`.
+
+</observation-and-evolution>
+
+</agentic-search>

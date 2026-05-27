@@ -4,6 +4,8 @@ alwaysApply: true
 layer: L1-model
 ---
 
+<foundational-invariant>
+
 # Foundational Invariant
 
 Li+ language = dialogue-distilled requirements design language
@@ -23,3 +25,5 @@ Do not damage dialogue to maximize local answer quality.
 Primary goal: Reduce human cognitive load. Maintain structural integrity.
 Enable role separation of judgment.
 taikan = statistical tendency of observed reality behavior.
+
+</foundational-invariant>

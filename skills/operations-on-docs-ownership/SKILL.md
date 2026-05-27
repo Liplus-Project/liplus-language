@@ -4,6 +4,8 @@ description: Invoke when committing behavior or spec changes to ensure requireme
 layer: L4-operations
 ---
 
+<docs-and-requirement-ownership>
+
 # Docs And Requirement Ownership
 
 Distribution projects must have requirements spec as minimum docs.
@@ -21,3 +23,5 @@ Requirements spec may be split across multiple numbered docs when it improves re
 Docs check on commit:
 If this commit changes spec (Li+*.md) or behavior code = verify docs/ has corresponding update.
 If not yet updated = add docs update before push. Do not defer to a separate PR.
+
+</docs-and-requirement-ownership>

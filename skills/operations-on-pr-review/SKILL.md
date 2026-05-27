@@ -4,6 +4,8 @@ description: Invoke after CI pass; AI self-review mandatory in every mode, forma
 layer: L4-operations
 ---
 
+<pr-review>
+
 # PR Review
 
 AI self-review is mandatory in every mode (trigger / semi_auto / auto).
@@ -62,6 +64,8 @@ if execution_mode == trigger:
   reviewDecision=="APPROVED" -> proceed to [Merge].
   reviewDecision=="CHANGES_REQUESTED" -> read review comments -> fix and recommit (restart [CI Loop]).
 
+<follow-through-on-deferred-items>
+
 ## Follow-through on deferred items
 
 Self-review records may legitimately defer items as "out of PR scope" (e.g. workspace memory cleanup, follow-up issue filing, doc-only follow-up). Deferred ≠ ignored:
@@ -71,3 +75,7 @@ Self-review records may legitimately defer items as "out of PR scope" (e.g. work
 - Human APPROVED comments that contain "〜したんだよね？" / "did you also do X?" / similar embedded confirmations are part of the approval condition, not optional small talk. Treat the embedded confirmation as an additional gate and respond to it in the same session.
 
 Merge is not the closing bracket; the deferred-item handoff is.
+
+</follow-through-on-deferred-items>
+
+</pr-review>

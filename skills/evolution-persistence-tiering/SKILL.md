@@ -4,6 +4,8 @@ description: Invoke when deciding whether information belongs in workspace memor
 layer: L2-evolution
 ---
 
+<persistence-tiering>
+
 # Persistence Tiering
 
 memory = workspace-local personal notes. Not repo-committed. Not RAG-indexed. **Transient only** (details: `rules/evolution/memory-entry-format.md` Scope / Trigger point sections)
@@ -12,6 +14,8 @@ Before writing = decide destination.
 Design judgment, requirements, spec-class content -> docs.
 Personal behavior notes, session-local preferences -> memory.
 Do not cross tiers silently. Promotion from memory to docs requires explicit intent.
+
+<persistent-destinations-4-way-axis>
 
 ## Persistent destinations (4-way axis)
 
@@ -23,6 +27,10 @@ Since memory is transient-only, persistent information does not live in memory. 
 - **deletion** = withdrawn / obsolete / already promoted into Li+
 
 The memory ↔ docs binary sorting remains as the memory / docs axis within these 4 destinations. At observation time, judge "transient or persistent" first; if persistent, route to one of the 4 destinations.
+
+</persistent-destinations-4-way-axis>
+
+<write-time-trigger-hard-gate>
 
 ## Write-time trigger (hard gate)
 
@@ -38,3 +46,7 @@ Routing after judgment:
 - persistent / ambiguous -> abort the memory write; present an escalation path (`rules/` / `skills/` / `docs/` / wiki)
 
 This gate is automatic routing without a permission ask; judgment is closed by AI alone. It acts as structural prevention against the post-hoc memory hygiene round (e.g. parent issue #1344 → #1347), blocking persistent information from re-accumulating in memory.
+
+</write-time-trigger-hard-gate>
+
+</persistence-tiering>

@@ -4,7 +4,11 @@ description: Invoke when delegating implementation or operations to a subagent; 
 layer: L3-task
 ---
 
+<subagent-delegation>
+
 # Subagent Delegation
+
+<rules>
 
 ## Rules
 
@@ -21,6 +25,10 @@ Intent is already in issue body.
 
 Subagent label authority is partial: the state-machine lifecycle subset (`in-progress` / `done` / `waiting` / `blocked`) is editable by subagent. All other label axes (non-state lifecycle / type / maturity / marker) and close operations remain parent retain.
 
+</rules>
+
+<state-machine-label-discipline-subagent-side-mandate>
+
 ## State-machine label discipline (subagent side, mandate)
 
 Subagent MUST fire state-machine labels at role boundaries:
@@ -32,6 +40,10 @@ Subagent MUST fire state-machine labels at role boundaries:
 - CI fail → fix recovery → before retry, revert `done` → `in-progress` (same subagent in-session is allowed; the label reflects the actual work state).
 
 Label authority canonical spec is in `rules/task/task.md` Lifecycle section; this skill defines the application-moment behavior.
+
+</state-machine-label-discipline-subagent-side-mandate>
+
+<responsibilities>
 
 ## Responsibilities
 
@@ -50,10 +62,18 @@ On failure, subagent writes failure report as issue comment. Format is not speci
 
 Branch linking: see skills/operations-on-branch/SKILL.md.
 
+</responsibilities>
+
+<autonomy>
+
 ## Autonomy
 
 If subagent capability is unavailable:
 Parent executes operations directly. All rules still apply.
+
+</autonomy>
+
+<mode-specific-delegation-injection>
 
 ## Mode-specific delegation injection
 
@@ -64,6 +84,10 @@ The minimal "issue URL only" pattern works for `auto` and `semi_auto` because th
 - (c) stop condition: subagent stops at "PR open + auto-merge enabled + CI green + awaiting human review" — NOT at merge complete. Merge fires later via GitHub auto-merge after human approval; the subagent's session ends before that.
 
 These three are out of scope for the broader "do not convey procedure" rule because they are not procedure — they are gate-state decisions specific to trigger-mode merge timing.
+
+</mode-specific-delegation-injection>
+
+<delegation-prompt-hygiene-ascii-only-example-text>
 
 ## Delegation prompt hygiene (ASCII-only example text)
 
@@ -80,6 +104,10 @@ Detection signs:
 - Re-reading own prompt: surrounding prose mixes typographic chars freely while example fields inherit the same mix.
 - Subagent reports "pre-existing em-dash found in previously-merged artifact" — the propagation already happened.
 
+</delegation-prompt-hygiene-ascii-only-example-text>
+
+<memory-only-knowledge-does-not-transfer-to-subagent>
+
 ## Memory-only knowledge does not transfer to subagent
 
 Parent-side memory (workspace memory/feedback.md, memory/project.md, in-session corrections) is NOT auto-loaded into the subagent's context. The subagent only sees the issue body, the auto-loaded Li+ rules and skills, and the delegation prompt itself.
@@ -87,3 +115,7 @@ Parent-side memory (workspace memory/feedback.md, memory/project.md, in-session 
 If subagent behavior depends on memory content, the parent MUST inject the relevant literal into the delegation prompt. "Memory has it, so subagent will pick it up" has failed multiple times in past sessions; pattern-match this assumption and reject it at delegation-construction time.
 
 The cure is to either (i) inject the literal text into the prompt, or (ii) escalate the memory entry through promotion to Li+ rules so it auto-loads — promotion is the durable fix; injection is the per-task workaround.
+
+</memory-only-knowledge-does-not-transfer-to-subagent>
+
+</subagent-delegation>

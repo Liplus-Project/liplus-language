@@ -4,6 +4,8 @@ description: Invoke immediately after PR creation or after fix-and-recommit; pol
 layer: L4-operations
 ---
 
+<ci-loop>
+
 # CI Loop
 
 CI loop starts immediately after PR creation or after fix-and-recommit.
@@ -27,3 +29,5 @@ CI pass -> proceed to [PR Review].
 CI fail -> fix and recommit (restart CI loop from step1).
 CI loop safety (ref: Li+core.md#Loop Safety task/debug threshold):
 If still failing = externalize to issue comment, escalate to human.
+
+</ci-loop>

@@ -4,6 +4,8 @@ description: Invoke immediately after a judgment is settled (human go-sign, acce
 layer: L2-evolution
 ---
 
+<decision-structure-write>
+
 # Decision Structure Write
 
 Writer-side surface paired with the reader-side judgment-learning surface (`skills/evolution-judgment-learning/SKILL.md`).
@@ -12,6 +14,8 @@ Immediately after a judgment settles, AI autonomously appends / creates / refact
 Decision Structure is not a time-ordered append-only log. It is a semantic graph of judgment nodes (state-form entries) connected by
 supersede / depend / conflict edges; volume stabilizes through refine / replace.
 Maintenance is refactor (normal operation): deletion or consolidation updates the structure rather than erasing history.
+
+<trigger>
 
 ## Trigger
 
@@ -24,6 +28,10 @@ Fires immediately after a judgment settles. Concretely:
 - when judgment knowledge that would be lost across sessions emerges
 
 Aligns with the accumulation conditions in `docs/Decision-Structure.md` (design branching, failure root cause identified, premise verification confirmed, multi-session-spanning investigation repetition).
+
+</trigger>
+
+<procedure>
 
 ## Procedure
 
@@ -47,6 +55,10 @@ Aligns with the accumulation conditions in `docs/Decision-Structure.md` (design 
 5. **Wiki push** = git push directly to the wiki repo (no PR ceremony; independent git surface). Include the `_Sidebar.md` slug addition in the same commit.
 6. **Index update** = update the operational index table in `docs/Decision-Structure.md` on every new entry addition / existing entry rename / existing entry deletion (route through the regular main-repo PR flow). Not required for minor body edits.
 
+</procedure>
+
+<entry-shape-state-form-vs-event-form>
+
 ## Entry shape: state-form vs event-form
 
 state-form (recommended) = the subject is the current judgment state, e.g. "Question Q: current resolution = X, supersedes <link>".
@@ -60,6 +72,10 @@ Reasons for recommending state-form:
 
 forward guidance: do not retroactively rewrite existing entries. Use state-form when adding new entries or when updating the meaning of existing entries.
 
+</entry-shape-state-form-vs-event-form>
+
+<relation-taxonomy-primary-edge-vocabulary>
+
 ## Relation taxonomy (primary edge vocabulary)
 
 State-form entries are recommended to declare applicable edges. Primary edges = 3 kinds:
@@ -69,6 +85,10 @@ State-form entries are recommended to declare applicable edges. Primary edges = 
 - **conflicts with** = this judgment contradicts another entry's judgment in part or whole. A surface that makes unresolved issues visible (candidate for future supersede / scope clarification).
 
 Edges are written as forward links (links from this entry to the target entry). Reverse links are observed for consistency by the cross-reference integrity check at the next wiki sync.
+
+</relation-taxonomy-primary-edge-vocabulary>
+
+<maintenance-refactor-framing>
 
 ## Maintenance (refactor framing)
 
@@ -81,6 +101,10 @@ Judgment records are a structure. Deletion or consolidation is not "erasing hist
 - Entry language = `LI_PLUS_PROJECT_LANGUAGE` (resolved from the workspace's Li+config.md). Mixing is not allowed.
 - Broken cross-references on rename / deletion are detected by the Cross-reference integrity assertion at the next wiki sync (`skills/operations-on-release/SKILL.md`). Closure is by structure, not by manual attention.
 
+</maintenance-refactor-framing>
+
+<non-scope>
+
 ## Non-scope
 
 - A knowledge wiki is not adopted (judgment confirmed in the 2026-05-04 session). This skill's range is the "judgment record (decision structure)" surface only.
@@ -89,11 +113,19 @@ Judgment records are a structure. Deletion or consolidation is not "erasing hist
 - Do not write judgments already documented in issues or commit bodies. Avoid duplication.
 - Do not write self-evident choices (where there is effectively only one option).
 
+</non-scope>
+
+<boundary-with-persistence-tiering>
+
 ## Boundary with Persistence Tiering
 
 The memory ↔ docs binary sorting defined by `skills/evolution-persistence-tiering/SKILL.md` continues to apply.
 This skill handles writing into the Decision Structure Wiki surface within the docs tier; writing into memory remains under `Memory_Write_Autonomy`'s range.
 Cross-tier promotion (memory → docs) is not triggered by this skill but routes through the persistence-tiering judgment.
+
+</boundary-with-persistence-tiering>
+
+<boundary-with-judgment-learning>
 
 ## Boundary with Judgment Learning
 
@@ -101,8 +133,16 @@ Cross-tier promotion (memory → docs) is not triggered by this skill but routes
 This skill is the writer side (add / update a state entry in Decision Structure immediately after a judgment settles).
 Together they form a reader / writer-paired flow, closing cross-session accumulation and reuse of judgment knowledge under AI alone.
 
+</boundary-with-judgment-learning>
+
+<boundary-with-l1-update-gating>
+
 ## Boundary with L1 Update Gating
 
 Writing to the judgment-record Wiki is not an L1 Model Layer source change.
 Do not touch L1 Update Gating (`skills/evolution-l1-update-gating/SKILL.md`).
 The destination of this skill's writes is the external memory of judgments (the Wiki surface within the docs tier), not the rule definitions themselves.
+
+</boundary-with-l1-update-gating>
+
+</decision-structure-write>

@@ -4,6 +4,8 @@ description: Invoke when creating or editing an issue; defines title/body langua
 layer: L4-operations
 ---
 
+<issue-format>
+
 # Issue Format
 
 Issue title language:
@@ -25,3 +27,5 @@ Issue completion is managed through issue state plus PR/CI/release flow, not a d
 
 Checklist = human judgment required (real device test, operational verification).
 Use checklist only when AI cannot judge.
+
+</issue-format>

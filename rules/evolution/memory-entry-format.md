@@ -4,7 +4,11 @@ alwaysApply: true
 layer: L2-evolution
 ---
 
+<memory-entry-format>
+
 # Memory Entry Format
+
+<position>
 
 ## Position
 
@@ -13,6 +17,10 @@ Entry format and maintenance discipline for the memory file set (`feedback.md` /
 Requires = L2 Evolution Layer (persistence-tiering / promotion-judgment surroundings)
 Load timing = always-on (memory writes occur across the entire session)
 Single source. Replace the operational note at the head of each memory file with a reference to this rule (avoid double-holding drift).
+
+</position>
+
+<scope>
 
 ## Scope
 
@@ -26,6 +34,10 @@ What memory holds:
 
 Do not place persistent information in memory. Promote it to one of the Escalation paths below.
 
+</scope>
+
+<escalation-paths>
+
 ## Escalation paths
 
 Persistent information has 4 promotion destinations:
@@ -35,6 +47,10 @@ Persistent information has 4 promotion destinations:
 - **wiki (under `docs/Decision-Structure.md` index, kebab-case `<topic>.md`)** = judgment record (Decision Structure: state-form entries + supersede/depend/conflict edges)
 - **deletion** = withdrawn / obsolete / already promoted into Li+
 
+</escalation-paths>
+
+<trigger-point>
+
 ## Trigger point
 
 Ask at observation time: "is this transient or persistent?"
@@ -42,6 +58,10 @@ Ask at observation time: "is this transient or persistent?"
 - persistent → do not write to memory; head to one of the Escalation paths (open a promotion PR or delete)
 
 Placing the judgment trigger at every observation moment cuts the structural defect of persistent information settling in memory.
+
+</trigger-point>
+
+<entry-format>
 
 ## Entry Format
 
@@ -57,6 +77,10 @@ If background is needed, split it out to the docs tier (see `skills/evolution-pe
 
 Maintenance discipline (handle duplicates by update / delete obsolete / no conflicting coexist / no promoted-rule tracking list) and deletion blast-radius judgment are consolidated in `rules/model/subtractive-structural-beauty.md`. Memory subfile sits at `low` caution in the deletion table.
 
+</entry-format>
+
+<announce-vs-execute>
+
 ## Announce vs execute
 
 `Memory_Write_Autonomy` (CLAUDE.md adapter) defines memory write as AI-autonomous + immediate-execution. Speaking "I'll record this later" / "this is recordable" is a sincerity performance disconnected from action — observationally a verbal-only placeholder with nothing actually written.
@@ -69,6 +93,10 @@ How to apply:
 Detection signs:
 - When "I'll record this" / "I'll memo this" / "this is recordable" / "I'll write later" is about to appear in output — verify it is paired with a tool call.
 - When "this observation is important enough to memo" is about to be written into a human-facing sentence.
+
+</announce-vs-execute>
+
+<self-evolution-observation-format>
 
 ## Self-Evolution Observation Format
 
@@ -104,6 +132,10 @@ Recovery (GitHub revert / `gh pr revert`) is on a separate axis.
 Retention (decision structure supersede edge) is on a separate axis.
 Cold-start surfacing of due / overdue entries follows `rules/evolution/cold-start-synthesis.md` Self-Evolution Observation Surface.
 
+</self-evolution-observation-format>
+
+<consolidate-trigger>
+
 ## Consolidate Trigger
 
 Periodic cleanup via the `anthropic-skills:consolidate-memory` skill.
@@ -114,6 +146,10 @@ Firing condition (whichever is earlier):
 
 After running the skill, update the `**Last consolidate run:**` line in each memory file.
 
+</consolidate-trigger>
+
+<out-of-scope>
+
 ## Out of scope
 
 This rule defines the entry format and operation of memory only. The following are separate surfaces:
@@ -121,6 +157,14 @@ This rule defines the entry format and operation of memory only. The following a
 - memory ↔ docs / wiki / rules sorting → `skills/evolution-persistence-tiering/SKILL.md`
 - self-evaluation 10-axis scoring → `skills/evaluation-self/SKILL.md`
 
+</out-of-scope>
+
+<language>
+
 ## Language
 
 Memory entries are recommended in English. Same two-axis rationale as Li+ source (semantic precision + token economy). See `rules/model/liplus-coding-rule.md` for the rationale.
+
+</language>
+
+</memory-entry-format>

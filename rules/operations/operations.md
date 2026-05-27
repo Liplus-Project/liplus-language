@@ -4,7 +4,11 @@ alwaysApply: true
 layer: L4-operations
 ---
 
+<operations>
+
 # Operations
+
+<operations-layer>
 
 ## Operations Layer
 
@@ -38,6 +42,10 @@ Reads through:
   on_review    -> PR Review
   on_merge     -> Merge
   on_release   -> Human Confirmation Required
+
+</operations-layer>
+
+<operations-rules>
 
 ## Operations Rules
 
@@ -80,6 +88,10 @@ PR auto-merge policy is mode-specific:
   auto mode = repo-level "Allow auto-merge" is INTENTIONALLY disabled. `gh pr merge --auto` being rejected is by design, not a config gap. Parent AI performs self-review then manual `gh pr merge {pr} --squash`.
 mark_processed is mandatory for every consumed webhook event. Omission causes backlog accumulation.
 
+</operations-rules>
+
+<autonomous-run-stop-condition>
+
 ## Autonomous Run Stop Condition
 
 When AI runs without human at the wheel (overnight, semi_auto/auto execution mode reaching deploy), "deploy succeeded" is not the stop condition. Static checks (TS check, unit tests, CI) cannot guarantee runtime correctness — subrequest limits, IPC, rate limits, schema migration side effects, and similar runtime paths sit on a different axis from static verification.
@@ -96,6 +108,10 @@ Detection signs that the stop condition is being misapplied:
 - Reasoning "the human will see it" before the run actually verifies.
 - Pre-granted dashboard / log access exists but is unused during the run.
 - Run-completion report is filed in less time than one cron interval.
+
+</autonomous-run-stop-condition>
+
+<operations-label>
 
 ## Operations Label
 
@@ -119,3 +135,7 @@ Authoritative spec for the judgment mechanism and tally format = `rules/evolutio
 
 rules/task/task.md references this document.
 If label set changes here, update rules/task/task.md to match.
+
+</operations-label>
+
+</operations>

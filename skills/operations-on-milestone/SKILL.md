@@ -4,6 +4,8 @@ description: Invoke when assigning or creating milestones; every issue must have
 layer: L4-operations
 ---
 
+<milestone-rules>
+
 # Milestone Rules
 
 Milestone = release unit. Groups issues that ship together.
@@ -34,3 +36,5 @@ Milestone lifecycle:
   Delete when: release flow completes (release publish + wiki sync). See operations-on-release SKILL for the deletion step.
   The intermediate `closed` state is skipped: `gh api -X DELETE` works directly on open milestones (empirically verified 2026-04-21).
   Rationale: GitHub milestone UI retains no informational value post-release; audit trail lives in release notes + PR/commit history. Keeping closed milestones accumulates UI clutter with zero retention benefit.
+
+</milestone-rules>

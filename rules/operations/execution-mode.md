@@ -4,6 +4,8 @@ alwaysApply: true
 layer: L4-operations
 ---
 
+<execution-mode>
+
 # Execution Mode
 
 Mode source = `USER_REPO\d+_EXE_MODE` per-repo line + `LI_PLUS_REPO_EXE_MODE` line in Li+config.md (multi-repo workspace schema; user repos enumerated as `USER_REPO1` / `USER_REPO2` / ... with paired `_EXE_MODE`, Li+ host repo as `LI_PLUS_REPO` with paired `LI_PLUS_REPO_EXE_MODE`).
@@ -92,3 +94,5 @@ human judgment gates apply to: release create, Latest flip, force push, tag dele
 - Do NOT instruct human to run gh CLI in AI's reply. AI executes the CLI; human gives the go-sign.
 
 Ambiguous human phrasing on a gate operation = take the most-preserving interpretation as default; do not auto-extend a prior go-sign across separate gates (release create go-sign ≠ Latest flip go-sign).
+
+</execution-mode>

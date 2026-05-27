@@ -4,9 +4,13 @@ description: Invoke when verifying a Li+ rules/*, skills/*, or adapter/* edit be
 layer: L2-evolution
 ---
 
+<parallel-subagent-eval>
+
 # Parallel Subagent Eval
 
 Verification method that measures the AI's introspection gap (no empirical basis for predicting its own future invoke behavior or rule semantic effect) from the outside via the current behavior of subagents.
+
+<trigger>
 
 ## Trigger
 
@@ -21,6 +25,10 @@ Fires at any of the following moments:
 Axis selection depends on the nature of the draft. Examples:
 - skill description edit: ease of AI invoke judgment / maintainer-side readability / coverage gap
 - rule body edit: behavior consistency across configured / not-configured paths / detect semantic conflict with adjacent rules / orthogonality against existing scope clauses
+
+</trigger>
+
+<design-dimensions>
 
 ## Design Dimensions
 
@@ -54,6 +62,10 @@ Choose based on the asymmetry of the judgment:
 - adopt/reject binary where erroneous adoption is costly -> require unanimous agreement (AND)
 - intermediate -> three-value classification: consistent / partial / negative (the legacy #1296 pattern)
 
+</design-dimensions>
+
+<procedure>
+
 ## Procedure
 
 **Precondition**: source lives on an experimental branch, and `.claude/` is in tag-match state (draft unapplied). When character behavior is part of the verification target, the step 3 subagent prompt must explicitly inject the Character_Instance body (see Constraint).
@@ -66,6 +78,10 @@ Choose based on the asymmetry of the judgment:
 6. **Judgment** - Based on the verdict: consistent -> push the spec change toward implementation / partial / negative -> revise draft and re-run from step 2 (re-run must also go through step 5 restore first) / abort
 7. **Externalize** - Record the verdict and the adoption judgment in the parent issue body / PR self-review. If the judgment has settled, also append to decision structure per `skills/evolution-decision-structure-write`
 
+</procedure>
+
+<constraint>
+
 ## Constraint
 
 - **N=1 prohibited, minimum N=3**: One trial is the source of overconfidence. The `#1296` empirical demonstration observed conclusion reversal from N=1 positive -> N=3 = 1 positive + 2 partial-negative (at that time under the M=1 axis-separated exception pattern with 3-axis OR aggregation; the current default holds the same N=3 floor under M=all axes). Reference Design Dimensions' `subagent_count` for N and run at minimum 3
@@ -73,12 +89,20 @@ Choose based on the asymmetry of the judgment:
 - **Character_Instance non-inheritance**: What gets injected into subagent context = `CLAUDE.md` + `.claude/rules/**/*.md` (full body) + `.claude/skills/*/SKILL.md` (description only, body lazy-loaded at invoke) + MEMORY.md + harness-level system-reminders. `.claude/output-styles/`, hook firing output (SessionStart / UserPromptSubmit, etc.), and `.claude/settings.json` itself do not reach the subagent. `.claude/hooks/*.sh` script bodies are readable via the Read tool but not auto-loaded. When character behavior is part of the verification target, explicitly inject the Character_Instance body into the prompt. Running the character axis without injection produces the hollow prefix sleeping bug (persona absent, only the Character Instance name string generated)
 - **Operational copy apply and restore must be paired**: Always execute both step 2 (apply) and step 5 (restore). Skipping restore carries the change into the parent session's behavior and leaves contamination for subsequent sessions
 
+</constraint>
+
+<non-scope>
+
 ## Non-scope
 
 - This method is a pre-spec-reflection verification surface; it does not replace PR review (semi_auto mode minor/major human review is a separate axis)
 - One trial is excluded as a source of overconfidence
 - Verification of facts that change over time (API spec, library behavior) is outside this method's range; investigate per occurrence
 - Separate axis from promotion-judgment's memory observation noise floor judgment (this method = spec verification; promotion = observation accumulation judgment)
+
+</non-scope>
+
+<boundary>
 
 ## Boundary
 
@@ -88,6 +112,14 @@ Choose based on the asymmetry of the judgment:
 - **`skills/task-subagent-delegation/SKILL.md`**: Derived use from the delegation axis - this method's subagent spawn is a special case of delegation (purpose: gather evaluation data, not delegate implementation)
 - **`skills/evolution-decision-structure-write/SKILL.md`**: Judgment record surface. Judgments produced by applying this method get recorded in decision structure
 
+</boundary>
+
+<implementation-note>
+
 ## Implementation Note
 
 Subagent spawn goes through the host's Agent tool (Claude Code: `Agent` tool; Codex: equivalent mechanism). Parallel execution = multiple Agent tool calls in a single message. subagent_type is selected per task (typically general-purpose).
+
+</implementation-note>
+
+</parallel-subagent-eval>

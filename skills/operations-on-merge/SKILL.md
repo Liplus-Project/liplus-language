@@ -4,6 +4,8 @@ description: Invoke after self-review + mode gate pass; mergeable state check, s
 layer: L4-operations
 ---
 
+<merge>
+
 # Merge
 
 Merge executor is AI in every mode (trigger / semi_auto / auto).
@@ -27,3 +29,5 @@ Parent close condition: closed automatically on merge via issue reference.
 
 Real device test:
 Merge first. Then test on main. Not a merge gate.
+
+</merge>

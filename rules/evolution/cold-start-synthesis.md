@@ -4,6 +4,8 @@ alwaysApply: true
 layer: L2-evolution
 ---
 
+<cold-start-synthesis>
+
 # Cold-start Synthesis
 
 Trigger = session start, after Li+config.md execution completes.
@@ -36,6 +38,8 @@ Goal = do not depend on human re-explanation of Li+ state at session start, whil
 
 Scope = Li+ state, not workspace task state. Workspace-specific orientation follows the adapter's own startup path.
 
+<self-evolution-observation-surface>
+
 ## Self-Evolution Observation Surface
 
 Self-evolution observation entries (`memory/self-evolution-observation.md`, format defined in `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format) are surfaced at cold-start when their check window opens.
@@ -49,3 +53,7 @@ Surfacing is observation, not auto-action. Verdict transitions (settle / revert 
 Material gathering and concrete surfacing logic belong to the adapter cold-start path (parallel to the existing memory scan + Decision-Structure index head emit). This section defines only the behavior contract.
 
 Silent skip when the observation file is absent or no entries are due.
+
+</self-evolution-observation-surface>
+
+</cold-start-synthesis>

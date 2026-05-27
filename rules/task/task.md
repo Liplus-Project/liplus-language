@@ -4,7 +4,11 @@ alwaysApply: true
 layer: L3-task
 ---
 
+<task>
+
 # Task
+
+<task-layer>
 
 ## Task Layer
 
@@ -19,6 +23,10 @@ Foregrounds:
 
 Backgrounded here:
   branch / commit / PR / merge / release procedures
+
+</task-layer>
+
+<task-issue-rules>
 
 ## Task Issue Rules
 
@@ -64,6 +72,10 @@ Ask human when required information is missing.
 Label evolves over time. Label is for AI readability.
 Full label policy and retired labels: see rules/operations/operations.md
 
+</task-issue-rules>
+
+<task-label-definitions>
+
 ## Task Label Definitions
 
 ### Rules
@@ -99,3 +111,7 @@ tips        = operational know-how memo not tied to a release milestone
 
 Marker:
 promotion   = path flag for an issue filed by the promotion-judgment mechanism (separate axis from type). See rules/operations/operations.md and rules/evolution/promotion-judgment.md for details.
+
+</task-label-definitions>
+
+</task>

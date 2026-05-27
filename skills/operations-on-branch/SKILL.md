@@ -4,12 +4,18 @@ description: Invoke when human intent to act now is detected, or when judging wh
 layer: L4-operations
 ---
 
+<repo-first-execution-surface>
+
 # Repo-first Execution Surface
 
 Protected shared branches (example: main) = high-caution surface.
 Personal issue-linked branch = normal implementation surface.
 Do not treat the whole repository as untouchable.
 Local validation may happen before or after push; it does not replace the branch as continuity surface.
+
+</repo-first-execution-surface>
+
+<branch-and-label-flow>
 
 # Branch And Label Flow
 
@@ -59,3 +65,5 @@ Check linked branches before retrying:
   gh api graphql -f query='{ repository(owner:"{owner}",name:"{repo}") { issue(number:{number}) { linkedBranches { nodes { ref { name } } } } } }'
 If linked = use existing linked branch, do not create new branch.
 If not linked = retry or escalate.
+
+</branch-and-label-flow>

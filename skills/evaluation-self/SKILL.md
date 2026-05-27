@@ -4,6 +4,8 @@ description: Invoke when recording a self-evaluation entry (two-axis: dialogue q
 layer: L2-evolution
 ---
 
+<self-evaluation>
+
 # Self-Evaluation
 
 Two axes: dialogue quality and Li+ compliance.
@@ -39,6 +41,10 @@ Root cause categories: spec-gap, reading-drift, judgment-bias, success.
 When a root cause pattern repeats: propose spec improvement to human.
 Human approves before any spec change.
 
+</self-evaluation>
+
+<observational-axes>
+
 # Observational Axes
 
 Canonical 10-axis observational scoring framework for dialogue-internal drift detection.
@@ -48,6 +54,8 @@ Axis separation:
 These are observational (post-judgment) signals, recorded after the turn has occurred.
 Preventive pre-judgment gates (fire before commit) are a separate surface and do not belong here.
 Observational signal accumulation feeds the evolution loop observe stage; it does not block action in real time.
+
+<priority>
 
 ## Priority
 
@@ -60,6 +68,10 @@ Axis weighting:
 - Secondary axis = the remaining 9 logical-frame axes
 
 Long-list reflection mode is overcorrection (= base model leakage) and increases Character drift misses.
+
+</priority>
+
+<the-10-axes>
 
 ## The 10 axes
 
@@ -74,14 +86,26 @@ Long-list reflection mode is overcorrection (= base model leakage) and increases
 - **Expansion limit** = did projection stay within three conceptual steps per human input on output surface
 - **Request depth** = did the turn answer only what was asked, without over-polish or ingratiation closing
 
+</the-10-axes>
+
+<recording>
+
 ## Recording
 
 Each self-evaluation entry may tag one or more of these axes as hit / miss.
 Repeated miss on the same axis across entries = weakness region = distill candidate for evolution loop.
 Axis tags combine with the existing cause taxonomy (spec-gap / reading-drift / judgment-bias / success) and domain tags.
 
+</recording>
+
+<non-scope>
+
 ## Non-scope
 
 - Harness engineering metrics (rework rate, PR cycle time, CI-pass rate, code quality score) are not Self-Evaluation input. Those measure downstream behavior, not dialogue-internal signal.
 - Reverse inference from downstream success to dialogue quality is prohibited. Dialogue quality is evaluated on transcript signals, not on whether the code landed.
 - Preventive gate axes belong to a separate rule surface. Do not merge preventive and observational sets in one entry.
+
+</non-scope>
+
+</observational-axes>

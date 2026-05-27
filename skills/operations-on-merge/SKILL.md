@@ -4,8 +4,9 @@ description: Invoke after self-review + mode gate pass; mergeable state check, s
 layer: L4-operations
 ---
 
-# Merge
 <merge>
+
+# Merge
 
 Merge executor is AI in every mode (trigger / semi_auto / auto).
 AI runs `gh pr merge` after all preconditions pass (self-review + mode-specific human gate, and mergeable state check). GitHub auto-merge handoff is no longer used.

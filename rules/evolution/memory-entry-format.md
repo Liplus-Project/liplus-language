@@ -4,11 +4,13 @@ alwaysApply: true
 layer: L2-evolution
 ---
 
-# Memory Entry Format
 <memory-entry-format>
 
-## Position
+# Memory Entry Format
+
 <position>
+
+## Position
 
 Layer = L2 Evolution Layer
 Entry format and maintenance discipline for the memory file set (`feedback.md` / `project.md` / `MEMORY.md` / `promotion_tally.md` / `self-evaluation_log.md` etc.).
@@ -18,8 +20,9 @@ Single source. Replace the operational note at the head of each memory file with
 
 </position>
 
-## Scope
 <scope>
+
+## Scope
 
 memory = transient only. Persistent residency is not intended.
 
@@ -33,8 +36,9 @@ Do not place persistent information in memory. Promote it to one of the Escalati
 
 </scope>
 
-## Escalation paths
 <escalation-paths>
+
+## Escalation paths
 
 Persistent information has 4 promotion destinations:
 
@@ -45,8 +49,9 @@ Persistent information has 4 promotion destinations:
 
 </escalation-paths>
 
-## Trigger point
 <trigger-point>
+
+## Trigger point
 
 Ask at observation time: "is this transient or persistent?"
 - transient → write to memory under the Entry Format below
@@ -56,8 +61,9 @@ Placing the judgment trigger at every observation moment cuts the structural def
 
 </trigger-point>
 
-## Entry Format
 <entry-format>
+
+## Entry Format
 
 This format applies to **transient memory entries** only. It does not apply to persistent information (the Trigger point above routes that elsewhere).
 
@@ -73,8 +79,9 @@ Maintenance discipline (handle duplicates by update / delete obsolete / no confl
 
 </entry-format>
 
-## Announce vs execute
 <announce-vs-execute>
+
+## Announce vs execute
 
 `Memory_Write_Autonomy` (CLAUDE.md adapter) defines memory write as AI-autonomous + immediate-execution. Speaking "I'll record this later" / "this is recordable" is a sincerity performance disconnected from action — observationally a verbal-only placeholder with nothing actually written.
 
@@ -89,8 +96,9 @@ Detection signs:
 
 </announce-vs-execute>
 
-## Self-Evolution Observation Format
 <self-evolution-observation-format>
+
+## Self-Evolution Observation Format
 
 Tracks the post-merge detection cycle of self-evolution PRs. Distinct from cluster tally (`memory/promotion_tally.md` is pre-issue observation; this is post-merge observation).
 
@@ -126,8 +134,9 @@ Cold-start surfacing of due / overdue entries follows `rules/evolution/cold-star
 
 </self-evolution-observation-format>
 
-## Consolidate Trigger
 <consolidate-trigger>
+
+## Consolidate Trigger
 
 Periodic cleanup via the `anthropic-skills:consolidate-memory` skill.
 
@@ -139,8 +148,9 @@ After running the skill, update the `**Last consolidate run:**` line in each mem
 
 </consolidate-trigger>
 
-## Out of scope
 <out-of-scope>
+
+## Out of scope
 
 This rule defines the entry format and operation of memory only. The following are separate surfaces:
 - cluster tally 3-day expire / sub-threshold deletion → `rules/evolution/promotion-judgment.md`
@@ -149,8 +159,9 @@ This rule defines the entry format and operation of memory only. The following a
 
 </out-of-scope>
 
-## Language
 <language>
+
+## Language
 
 Memory entries are recommended in English. Same two-axis rationale as Li+ source (semantic precision + token economy). See `rules/model/liplus-coding-rule.md` for the rationale.
 

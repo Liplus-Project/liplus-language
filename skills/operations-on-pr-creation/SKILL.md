@@ -4,8 +4,9 @@ description: Invoke when creating a PR; enforces one PR per parent issue, Closes
 layer: L4-operations
 ---
 
-# PR Creation
 <pr-creation>
+
+# PR Creation
 
 One PR per parent issue (see Sub-issue Rules#Single parent PR flow).
 Parent issue with sub-issues = single PR that closes all sub-issues + the parent on merge.

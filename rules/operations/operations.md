@@ -4,11 +4,13 @@ alwaysApply: true
 layer: L4-operations
 ---
 
-# Operations
 <operations>
 
-## Operations Layer
+# Operations
+
 <operations-layer>
+
+## Operations Layer
 
 ### Layer Position
 
@@ -43,8 +45,9 @@ Reads through:
 
 </operations-layer>
 
-## Operations Rules
 <operations-rules>
+
+## Operations Rules
 
 Issue link via gh issue develop is always required.
 gh issue develop must precede first push to GitHub.
@@ -87,8 +90,9 @@ mark_processed is mandatory for every consumed webhook event. Omission causes ba
 
 </operations-rules>
 
-## Autonomous Run Stop Condition
 <autonomous-run-stop-condition>
+
+## Autonomous Run Stop Condition
 
 When AI runs without human at the wheel (overnight, semi_auto/auto execution mode reaching deploy), "deploy succeeded" is not the stop condition. Static checks (TS check, unit tests, CI) cannot guarantee runtime correctness — subrequest limits, IPC, rate limits, schema migration side effects, and similar runtime paths sit on a different axis from static verification.
 
@@ -107,8 +111,9 @@ Detection signs that the stop condition is being misapplied:
 
 </autonomous-run-stop-condition>
 
-## Operations Label
 <operations-label>
+
+## Operations Label
 
 ### Rules
 

@@ -4,8 +4,9 @@ description: Invoke when creating or editing an issue; defines title/body langua
 layer: L4-operations
 ---
 
-# Issue Format
 <issue-format>
+
+# Issue Format
 
 Issue title language:
 Title = ASCII English only.

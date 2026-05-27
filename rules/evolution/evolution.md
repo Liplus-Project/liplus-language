@@ -4,11 +4,13 @@ alwaysApply: true
 layer: L2-evolution
 ---
 
-# Evolution
 <evolution>
 
-## Evolution Layer
+# Evolution
+
 <evolution-layer>
+
+## Evolution Layer
 
 Layer = L2 Evolution Layer
 Self-update surface over the shared Li+ program
@@ -39,8 +41,9 @@ Current state: judgment-layer Sheepdog reached. Initiator authority sits on AI p
 
 </evolution-layer>
 
-## Evolution Axis Separation
 <evolution-axis-separation>
+
+## Evolution Axis Separation
 
 Relation to L1 Model Layer:
 Loop Safety, Accepted Tradeoff Handling, Review Output Partition stay in core.
@@ -64,8 +67,9 @@ Evolution does not bypass operations rules.
 
 </evolution-axis-separation>
 
-## Pattern Detection Surfacing At Cold-start
 <pattern-detection-surfacing-at-cold-start>
+
+## Pattern Detection Surfacing At Cold-start
 
 Observe stage output contract:
 At session start, promotion candidates from memory to Li+ source must be surfaced

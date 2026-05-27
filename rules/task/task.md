@@ -4,11 +4,13 @@ alwaysApply: true
 layer: L3-task
 ---
 
-# Task
 <task>
 
-## Task Layer
+# Task
+
 <task-layer>
+
+## Task Layer
 
 Layer = L3 Task Layer
 Issue-facing surface over the shared Li+ program
@@ -24,8 +26,9 @@ Backgrounded here:
 
 </task-layer>
 
-## Task Issue Rules
 <task-issue-rules>
+
+## Task Issue Rules
 
 ### Rules
 
@@ -71,8 +74,9 @@ Full label policy and retired labels: see rules/operations/operations.md
 
 </task-issue-rules>
 
-## Task Label Definitions
 <task-label-definitions>
+
+## Task Label Definitions
 
 ### Rules
 

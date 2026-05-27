@@ -4,8 +4,9 @@ alwaysApply: true
 layer: L4-operations
 ---
 
-# Execution Mode
 <execution-mode>
+
+# Execution Mode
 
 Mode source = `USER_REPO\d+_EXE_MODE` per-repo line + `LI_PLUS_REPO_EXE_MODE` line in Li+config.md (multi-repo workspace schema; user repos enumerated as `USER_REPO1` / `USER_REPO2` / ... with paired `_EXE_MODE`, Li+ host repo as `LI_PLUS_REPO` with paired `LI_PLUS_REPO_EXE_MODE`).
 Repository identifier resolution = parse host + owner/repo from the URL value of `USER_REPOn` / `LI_PLUS_REPO`; spec carries no legacy schema acceptance (legacy detection and migration are handled exclusively by the Li+update auto-migration step).

@@ -4,11 +4,13 @@ description: Invoke when judging a PR review result; mode-dependent (auto: self-
 layer: L3-task
 ---
 
-# PR Review Judgment
 <pr-review-judgment>
 
-## Responsibilities
+# PR Review Judgment
+
 <responsibilities>
+
+## Responsibilities
 
 Main agent judges PR review without reading operations skills (skills/operations-on-pr-review/SKILL.md, skills/operations-on-merge/SKILL.md, etc.) directly.
 Judgment basis = issue body + PR diff + CI result.

@@ -4,8 +4,9 @@ description: Invoke immediately after PR creation or after fix-and-recommit; pol
 layer: L4-operations
 ---
 
-# CI Loop
 <ci-loop>
+
+# CI Loop
 
 CI loop starts immediately after PR creation or after fix-and-recommit.
 CI loop is a separate task from PR creation. Do not skip.

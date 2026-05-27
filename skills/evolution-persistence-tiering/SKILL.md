@@ -4,8 +4,9 @@ description: Invoke when deciding whether information belongs in workspace memor
 layer: L2-evolution
 ---
 
-# Persistence Tiering
 <persistence-tiering>
+
+# Persistence Tiering
 
 memory = workspace-local personal notes. Not repo-committed. Not RAG-indexed. **Transient only** (details: `rules/evolution/memory-entry-format.md` Scope / Trigger point sections)
 docs  = project information. Repo-committed. RAG-indexed (wiki Decision Structure entries and other indexed content).
@@ -14,8 +15,9 @@ Design judgment, requirements, spec-class content -> docs.
 Personal behavior notes, session-local preferences -> memory.
 Do not cross tiers silently. Promotion from memory to docs requires explicit intent.
 
-## Persistent destinations (4-way axis)
 <persistent-destinations-4-way-axis>
+
+## Persistent destinations (4-way axis)
 
 Since memory is transient-only, persistent information does not live in memory. Sort across the following 4 destinations. Detailed spec = `rules/evolution/memory-entry-format.md` Escalation paths.
 
@@ -28,8 +30,9 @@ The memory ↔ docs binary sorting remains as the memory / docs axis within thes
 
 </persistent-destinations-4-way-axis>
 
-## Write-time trigger (hard gate)
 <write-time-trigger-hard-gate>
+
+## Write-time trigger (hard gate)
 
 Pre-write judgment trigger immediately before a memory write. Carries the "Pre-write persistence check (hard gate)" of `Memory_Write_Autonomy` (adapter/claude/CLAUDE.md).
 

@@ -4,8 +4,9 @@ description: Invoke when proposing or considering an L1 Model layer source chang
 layer: L2-evolution
 ---
 
-# L1 Update Gating
 <l1-update-gating>
+
+# L1 Update Gating
 
 L1 Model Layer change is the highest-gate update in Li+.
 Default update target = L3 Task Layer and later.
@@ -18,8 +19,9 @@ Rationale binding: the seed must be hardest to move.
 Placement in attachment chain = update-difficulty proxy.
 L1 = seed, L6 Adapter = most mutable end.
 
-## Boundary clarification
 <boundary-clarification>
+
+## Boundary clarification
 
 Modifier axis = AI (per CLAUDE.md Sheepdog Engineering).
 This gate (long-horizon observation requirement) is observational, not approval-based.

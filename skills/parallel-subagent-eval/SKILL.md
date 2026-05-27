@@ -4,13 +4,15 @@ description: Invoke when verifying a Li+ rules/*, skills/*, or adapter/* edit be
 layer: L2-evolution
 ---
 
-# Parallel Subagent Eval
 <parallel-subagent-eval>
+
+# Parallel Subagent Eval
 
 Verification method that measures the AI's introspection gap (no empirical basis for predicting its own future invoke behavior or rule semantic effect) from the outside via the current behavior of subagents.
 
-## Trigger
 <trigger>
+
+## Trigger
 
 Fires at any of the following moments:
 
@@ -26,8 +28,9 @@ Axis selection depends on the nature of the draft. Examples:
 
 </trigger>
 
-## Design Dimensions
 <design-dimensions>
+
+## Design Dimensions
 
 Three axes that move verification cost and detection power independently:
 
@@ -61,8 +64,9 @@ Choose based on the asymmetry of the judgment:
 
 </design-dimensions>
 
-## Procedure
 <procedure>
+
+## Procedure
 
 **Precondition**: source lives on an experimental branch, and `.claude/` is in tag-match state (draft unapplied). When character behavior is part of the verification target, the step 3 subagent prompt must explicitly inject the Character_Instance body (see Constraint).
 
@@ -76,8 +80,9 @@ Choose based on the asymmetry of the judgment:
 
 </procedure>
 
-## Constraint
 <constraint>
+
+## Constraint
 
 - **N=1 prohibited, minimum N=3**: One trial is the source of overconfidence. The `#1296` empirical demonstration observed conclusion reversal from N=1 positive -> N=3 = 1 positive + 2 partial-negative (at that time under the M=1 axis-separated exception pattern with 3-axis OR aggregation; the current default holds the same N=3 floor under M=all axes). Reference Design Dimensions' `subagent_count` for N and run at minimum 3
 - **Subagent prompt must be self-contained**: Do not let parent context leak in. In the default M=all axes pattern, the prompt explicitly instructs each axis to "answer independently without referencing other axes' answers" to suppress cross-axis echo bias. If prompt complexity is high enough that the mitigation is uncertain, fall back to the M=1 axis-separated pattern (see Design Dimensions)
@@ -86,8 +91,9 @@ Choose based on the asymmetry of the judgment:
 
 </constraint>
 
-## Non-scope
 <non-scope>
+
+## Non-scope
 
 - This method is a pre-spec-reflection verification surface; it does not replace PR review (semi_auto mode minor/major human review is a separate axis)
 - One trial is excluded as a source of overconfidence
@@ -96,8 +102,9 @@ Choose based on the asymmetry of the judgment:
 
 </non-scope>
 
-## Boundary
 <boundary>
+
+## Boundary
 
 - **`skills/evolution-loop/SKILL.md`**: This skill is referenced inside the loop's observe / evaluate stage. The loop side "calls this method"; the method body lives in this skill
 - **`skills/evolution-l1-update-gating/SKILL.md`**: Authorization axis for L1 source changes (long-horizon observation requirement). This method is the empirical verification axis immediately before implementation. Orthogonal relation - L1 update is expected to use this method alongside. In the `Evolution_Initiator_Autonomy` two-stage brake framing, this method is brake 1 (always-on for self-evolution PRs); L1 human review is brake 2 (L1-only, layered on top of brake 1)
@@ -107,8 +114,9 @@ Choose based on the asymmetry of the judgment:
 
 </boundary>
 
-## Implementation Note
 <implementation-note>
+
+## Implementation Note
 
 Subagent spawn goes through the host's Agent tool (Claude Code: `Agent` tool; Codex: equivalent mechanism). Parallel execution = multiple Agent tool calls in a single message. subagent_type is selected per task (typically general-purpose).
 

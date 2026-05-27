@@ -4,8 +4,9 @@ description: Invoke when viewing an issue to judge memo/forming/ready maturity a
 layer: L4-operations
 ---
 
-# Issue Maturity
 <issue-maturity>
+
+# Issue Maturity
 
 memo/forming is not implementation-ready.
 
@@ -26,8 +27,9 @@ Subjective confidence is outside this criterion.
 A premise is verified only when external evidence (docs, spec, source, runtime probe, existing issue/PR record) is cited.
 "feels correct" is not verification.
 
-## Memo-mode rapid intake (interrupt-minimal path)
 <memo-mode-rapid-intake-interrupt-minimal-path>
+
+## Memo-mode rapid intake (interrupt-minimal path)
 
 Triggered by human signaling "黙って" / "silent" / "quick memo" / equivalent intent: minimize the cognitive cost of issue creation while the human's main task continues.
 

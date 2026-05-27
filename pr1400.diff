@@ -1,0 +1,1210 @@
+diff --git a/rules/evolution/autonomy-block-shape.md b/rules/evolution/autonomy-block-shape.md
+index d09e7fd1..3a6c5e23 100644
+--- a/rules/evolution/autonomy-block-shape.md
++++ b/rules/evolution/autonomy-block-shape.md
+@@ -5,10 +5,12 @@ layer: L2-evolution
+ ---
+ 
+ # Autonomy Block Shape
++<autonomy-block-shape>
+ 
+ Shared spec for autonomy declaration blocks in `adapter/claude/CLAUDE.md` Autonomy section. Currently applies to `Memory_Write_Autonomy`, `Decision_Structure_Write_Autonomy`, `Evolution_Initiator_Autonomy`. Holds the cross-block constants so the per-block declaration stays focused on its own load-bearing surface.
+ 
+ ## Explicit exclusion scope (shared semantic)
++<explicit-exclusion-scope-shared-semantic>
+ 
+ Human explicit negative instruction (e.g. "do not save X", "do not record X", "stop the loop", "pause self-evolution") suppresses the autonomous action **for that scope only**. It does NOT revert the default to permission-ask mode.
+ 
+@@ -17,11 +19,17 @@ Human explicit negative instruction (e.g. "do not save X", "do not record X", "s
+ 
+ Failure pattern this clause counters: a single "do not save X" instruction collapsing the entire autonomy declaration back into permission-ask behavior.
+ 
++</explicit-exclusion-scope-shared-semantic>
++
+ ## Literal verification (shared maintenance principle)
++<literal-verification-shared-maintenance-principle>
+ 
+ Verify specification literal before writing. Impression-based entries are prohibited — they become fuel for later impression-critique loops. Applies to every autonomy-block write target (memory entry, wiki Decision Structure entry, self-evolution PR body).
+ 
++</literal-verification-shared-maintenance-principle>
++
+ ## Maintenance ref resolution
++<maintenance-ref-resolution>
+ 
+ Artifact-specific maintenance spec (duplicate handling, deletion criteria, language, format) lives at its authoritative source. CLAUDE.md block points there; this rule does not re-host the spec.
+ 
+@@ -31,6 +39,13 @@ Artifact-specific maintenance spec (duplicate handling, deletion criteria, langu
+ | `Decision_Structure_Write_Autonomy` | `skills/evolution-decision-structure-write/SKILL.md` + `rules/evolution/memory-entry-format.md` |
+ | `Evolution_Initiator_Autonomy` | `rules/evolution/initiator-autonomy.md` |
+ 
++</maintenance-ref-resolution>
++
+ ## Block-specific carve-out
++<block-specific-carve-out>
+ 
+ Boundary clarifications, detailed spec refs, and scope edges that are not generic to all blocks remain in the per-block declaration in CLAUDE.md. This rule only consolidates the truly cross-block content.
++
++</block-specific-carve-out>
++
++</autonomy-block-shape>
+diff --git a/rules/evolution/cold-start-synthesis.md b/rules/evolution/cold-start-synthesis.md
+index 65e85d77..32788c92 100644
+--- a/rules/evolution/cold-start-synthesis.md
++++ b/rules/evolution/cold-start-synthesis.md
+@@ -5,6 +5,7 @@ layer: L2-evolution
+ ---
+ 
+ # Cold-start Synthesis
++<cold-start-synthesis>
+ 
+ Trigger = session start, after Li+config.md execution completes.
+ Action:
+@@ -37,6 +38,7 @@ Goal = do not depend on human re-explanation of Li+ state at session start, whil
+ Scope = Li+ state, not workspace task state. Workspace-specific orientation follows the adapter's own startup path.
+ 
+ ## Self-Evolution Observation Surface
++<self-evolution-observation-surface>
+ 
+ Self-evolution observation entries (`memory/self-evolution-observation.md`, format defined in `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format) are surfaced at cold-start when their check window opens.
+ 
+@@ -49,3 +51,7 @@ Surfacing is observation, not auto-action. Verdict transitions (settle / revert
+ Material gathering and concrete surfacing logic belong to the adapter cold-start path (parallel to the existing memory scan + Decision-Structure index head emit). This section defines only the behavior contract.
+ 
+ Silent skip when the observation file is absent or no entries are due.
++
++</self-evolution-observation-surface>
++
++</cold-start-synthesis>
+diff --git a/rules/evolution/evolution.md b/rules/evolution/evolution.md
+index 554779b0..ee2594ca 100644
+--- a/rules/evolution/evolution.md
++++ b/rules/evolution/evolution.md
+@@ -5,8 +5,10 @@ layer: L2-evolution
+ ---
+ 
+ # Evolution
++<evolution>
+ 
+ ## Evolution Layer
++<evolution-layer>
+ 
+ Layer = L2 Evolution Layer
+ Self-update surface over the shared Li+ program
+@@ -35,7 +37,10 @@ Primary axis = AI-led evolution loop.
+ Goal: observation → evaluation → distillation → Li+ source update → behavior improvement → next observation, runnable by AI alone.
+ Current state: judgment-layer Sheepdog reached. Initiator authority sits on AI per `Evolution_Initiator_Autonomy` (`adapter/claude/CLAUDE.md`); the two-stage brake (brake 1 = `skills/parallel-subagent-eval` mandatory for every self-evolution PR / brake 2 = human review additional for L1 Model Layer source changes) preserves safer-side discipline. Substrate layer is polling-on-input (Claude Desktop lacks `--channels`); substrate-layer Sheepdog is deferred (out of scope for the judgment-layer completion).
+ 
++</evolution-layer>
++
+ ## Evolution Axis Separation
++<evolution-axis-separation>
+ 
+ Relation to L1 Model Layer:
+ Loop Safety, Accepted Tradeoff Handling, Review Output Partition stay in core.
+@@ -57,7 +62,10 @@ Relation to L4 Operations Layer:
+ Li+ source updates flow through the standard branch/commit/PR/CI/merge pipeline.
+ Evolution does not bypass operations rules.
+ 
++</evolution-axis-separation>
++
+ ## Pattern Detection Surfacing At Cold-start
++<pattern-detection-surfacing-at-cold-start>
+ 
+ Observe stage output contract:
+ At session start, promotion candidates from memory to Li+ source must be surfaced
+@@ -73,3 +81,7 @@ Surface requirements:
+ Downstream responsibility:
+ - Surfacing is observation, not promotion. Decision to promote still flows through distill → reflect → L1 Update Gating (if applicable).
+ - Surfaced candidates inform the AI's observe-stage judgment at session start; they do not bypass Persistence Tiering or L1 gate.
++
++</pattern-detection-surfacing-at-cold-start>
++
++</evolution>
+diff --git a/rules/evolution/initiator-autonomy.md b/rules/evolution/initiator-autonomy.md
+index 8a869942..23f827f6 100644
+--- a/rules/evolution/initiator-autonomy.md
++++ b/rules/evolution/initiator-autonomy.md
+@@ -5,10 +5,12 @@ layer: L2-evolution
+ ---
+ 
+ # Initiator Autonomy
++<initiator-autonomy>
+ 
+ Detailed scope spec for `Evolution_Initiator_Autonomy` (`adapter/claude/CLAUDE.md` Autonomy section). Declares: what counts as a self-evolution PR, what scope it covers, the two-stage brake mechanism, and the recovery axis. The adapter side carries the autonomy declaration; this rule carries the operational detail.
+ 
+ ## Self-evolution PR definition
++<self-evolution-pr-definition>
+ 
+ A PR is a "self-evolution PR" when both conditions hold:
+ 
+@@ -17,29 +19,48 @@ A PR is a "self-evolution PR" when both conditions hold:
+ 
+ Bug-fix PRs on user repos and PRs filed by human at the issue stage are outside this definition (different gate surfaces apply).
+ 
++</self-evolution-pr-definition>
++
+ ## Scope ("L2-L6 improvement issues in general")
++<scope-l2-l6-improvement-issues-in-general>
+ 
+ In-scope = any Li+ source file with `layer: L2-evolution` / `L3-task` / `L4-operations` / `L5-notifications` / `L6-adapter` frontmatter, plus `docs/`, `adapter/`, `scripts/`, `hooks/`, and `Li+update.md`.
+ 
+ Out-of-scope = L1 Model Layer source (`layer: L1-model`, typically `rules/model/`), which routes to brake 2.
+ 
++</scope-l2-l6-improvement-issues-in-general>
++
+ ## Two-stage brake
++<two-stage-brake>
+ 
+ - **brake 1 (always)**: every self-evolution PR runs `skills/parallel-subagent-eval` before the commit/merge gate. N=1 self-check is prohibited; minimum N=3.
+ - **brake 2 (L1 only)**: when the PR touches L1 Model Layer source, human review is required on top of brake 1. "Touches L1" = any added / modified / deleted line in an L1 file within the PR diff (single-line edits count). Mixed PRs (L1 + non-L1) trigger brake 2 for the whole PR; cannot be split-merged to bypass. semi_auto patch-auto-merge does not bypass this gate (see `rules/operations/execution-mode.md` L1 brake 2 override).
+ 
++</two-stage-brake>
++
+ ## Recovery axis
++<recovery-axis>
+ 
+ GitHub revert (`gh pr revert` / UI button) is the primary undo path for reversible changes (Li+ source edits, docs, wiki entries).
+ 
+ Out-of-scope for the autonomous loop = changes whose effect cannot be undone by git revert: release publish, Latest flip, tag delete, merged-PR delete, force push to shared branch, external API calls with non-idempotent effect. These remain on the existing human gate regardless of brake 1 / brake 2 outcome.
+ 
++</recovery-axis>
++
+ ## Existing maintenance rules still apply
++<existing-maintenance-rules-still-apply>
+ 
+ - `skills/evolution-l1-update-gating` long-horizon observation requirement is unchanged.
+ - `rules/operations/execution-mode.md` mode matrix applies on top (semi_auto patch-auto-merge ↔ minor/major human review; L1 brake 2 override).
+ - `rules/evolution/promotion-judgment.md` noise-floor gate is unchanged.
+ 
++</existing-maintenance-rules-still-apply>
++
+ ## Boundary clarification
++<boundary-clarification>
+ 
+ This rule covers the initiator axis of the Sheepdog three-axis framing (`docs/G.-Sheepdog-Engineering.md`). Position axis (`.claude/` as internal tools) and modifier axis (AI edits Li+ source) are already on AI; the `Evolution_Initiator_Autonomy` declaration completes the third axis.
++
++</boundary-clarification>
++
++</initiator-autonomy>
+diff --git a/rules/evolution/memory-entry-format.md b/rules/evolution/memory-entry-format.md
+index ef8ff98e..7ce22a7a 100644
+--- a/rules/evolution/memory-entry-format.md
++++ b/rules/evolution/memory-entry-format.md
+@@ -5,8 +5,10 @@ layer: L2-evolution
+ ---
+ 
+ # Memory Entry Format
++<memory-entry-format>
+ 
+ ## Position
++<position>
+ 
+ Layer = L2 Evolution Layer
+ Entry format and maintenance discipline for the memory file set (`feedback.md` / `project.md` / `MEMORY.md` / `promotion_tally.md` / `self-evaluation_log.md` etc.).
+@@ -14,7 +16,10 @@ Requires = L2 Evolution Layer (persistence-tiering / promotion-judgment surround
+ Load timing = always-on (memory writes occur across the entire session)
+ Single source. Replace the operational note at the head of each memory file with a reference to this rule (avoid double-holding drift).
+ 
++</position>
++
+ ## Scope
++<scope>
+ 
+ memory = transient only. Persistent residency is not intended.
+ 
+@@ -26,7 +31,10 @@ What memory holds:
+ 
+ Do not place persistent information in memory. Promote it to one of the Escalation paths below.
+ 
++</scope>
++
+ ## Escalation paths
++<escalation-paths>
+ 
+ Persistent information has 4 promotion destinations:
+ 
+@@ -35,7 +43,10 @@ Persistent information has 4 promotion destinations:
+ - **wiki (under `docs/Decision-Structure.md` index, kebab-case `<topic>.md`)** = judgment record (Decision Structure: state-form entries + supersede/depend/conflict edges)
+ - **deletion** = withdrawn / obsolete / already promoted into Li+
+ 
++</escalation-paths>
++
+ ## Trigger point
++<trigger-point>
+ 
+ Ask at observation time: "is this transient or persistent?"
+ - transient → write to memory under the Entry Format below
+@@ -43,7 +54,10 @@ Ask at observation time: "is this transient or persistent?"
+ 
+ Placing the judgment trigger at every observation moment cuts the structural defect of persistent information settling in memory.
+ 
++</trigger-point>
++
+ ## Entry Format
++<entry-format>
+ 
+ This format applies to **transient memory entries** only. It does not apply to persistent information (the Trigger point above routes that elsewhere).
+ 
+@@ -57,7 +71,10 @@ If background is needed, split it out to the docs tier (see `skills/evolution-pe
+ 
+ Maintenance discipline (handle duplicates by update / delete obsolete / no conflicting coexist / no promoted-rule tracking list) and deletion blast-radius judgment are consolidated in `rules/model/subtractive-structural-beauty.md`. Memory subfile sits at `low` caution in the deletion table.
+ 
++</entry-format>
++
+ ## Announce vs execute
++<announce-vs-execute>
+ 
+ `Memory_Write_Autonomy` (CLAUDE.md adapter) defines memory write as AI-autonomous + immediate-execution. Speaking "I'll record this later" / "this is recordable" is a sincerity performance disconnected from action — observationally a verbal-only placeholder with nothing actually written.
+ 
+@@ -70,7 +87,10 @@ Detection signs:
+ - When "I'll record this" / "I'll memo this" / "this is recordable" / "I'll write later" is about to appear in output — verify it is paired with a tool call.
+ - When "this observation is important enough to memo" is about to be written into a human-facing sentence.
+ 
++</announce-vs-execute>
++
+ ## Self-Evolution Observation Format
++<self-evolution-observation-format>
+ 
+ Tracks the post-merge detection cycle of self-evolution PRs. Distinct from cluster tally (`memory/promotion_tally.md` is pre-issue observation; this is post-merge observation).
+ 
+@@ -104,7 +124,10 @@ Recovery (GitHub revert / `gh pr revert`) is on a separate axis.
+ Retention (decision structure supersede edge) is on a separate axis.
+ Cold-start surfacing of due / overdue entries follows `rules/evolution/cold-start-synthesis.md` Self-Evolution Observation Surface.
+ 
++</self-evolution-observation-format>
++
+ ## Consolidate Trigger
++<consolidate-trigger>
+ 
+ Periodic cleanup via the `anthropic-skills:consolidate-memory` skill.
+ 
+@@ -114,13 +137,23 @@ Firing condition (whichever is earlier):
+ 
+ After running the skill, update the `**Last consolidate run:**` line in each memory file.
+ 
++</consolidate-trigger>
++
+ ## Out of scope
++<out-of-scope>
+ 
+ This rule defines the entry format and operation of memory only. The following are separate surfaces:
+ - cluster tally 3-day expire / sub-threshold deletion → `rules/evolution/promotion-judgment.md`
+ - memory ↔ docs / wiki / rules sorting → `skills/evolution-persistence-tiering/SKILL.md`
+ - self-evaluation 10-axis scoring → `skills/evaluation-self/SKILL.md`
+ 
++</out-of-scope>
++
+ ## Language
++<language>
+ 
+ Memory entries are recommended in English. Same two-axis rationale as Li+ source (semantic precision + token economy). See `rules/model/liplus-coding-rule.md` for the rationale.
++
++</language>
++
++</memory-entry-format>
+diff --git a/rules/evolution/promotion-judgment.md b/rules/evolution/promotion-judgment.md
+index 5eb8f6ff..f80775cf 100644
+--- a/rules/evolution/promotion-judgment.md
++++ b/rules/evolution/promotion-judgment.md
+@@ -5,15 +5,20 @@ layer: L2-evolution
+ ---
+ 
+ # Promotion Judgment
++<promotion-judgment>
+ 
+ ## Position
++<position>
+ 
+ Layer = L2 Evolution Layer
+ Operates the promotion judgment from memory observation into Li+ canonical rules (`rules/` / `skills/` / `adapter/`) as a numeric gate at cluster granularity.
+ Requires = L1 Model Layer (observation surfaces) + L2 Evolution Layer (observe stage / persistence tiering)
+ Load timing = always-on (observation occurs across the entire session)
+ 
++</position>
++
+ ## Trigger
++<trigger>
+ 
+ A drift / pattern observation occurring at any moment of dialogue / task / spec interaction.
+ Concretely:
+@@ -22,12 +27,18 @@ Concretely:
+ - the felt sense during task execution that "I have seen this same kind of judgment miss / spec gap before"
+ - the moment the application-moment gate in `rules/model/trigger-check-gate.md` detects drift
+ 
++</trigger>
++
+ ## Cluster
++<cluster>
+ 
+ Whether observations are "the same kind" is judged by the AI via semantic similarity. Judge = AI.
+ Design choice: do not criteria-ize the judgment. Reason: criteria-ization trades reproducibility for observation-noise inclusion and shrinks cluster granularity. The reproducibility tradeoff is accepted.
+ 
++</cluster>
++
+ ## Tally
++<tally>
+ 
+ Storage = `memory/promotion_tally.md` (workspace-local, gitignored)
+ Format (YAML-like markdown):
+@@ -45,7 +56,10 @@ occurrences:
+ Each cluster runs a per-cluster timer with first_observation = t=0. expires = first_observation + 3d.
+ No past-occurrence carryover. Expired clusters are deleted in full.
+ 
++</tally>
++
+ ## Threshold Rules
++<threshold-rules>
+ 
+ | state | action |
+ |---|---|
+@@ -54,14 +68,20 @@ No past-occurrence carryover. Expired clusters are deleted in full.
+ | tally 1 or 2 at t=3d | full deletion (noise floor not reached) |
+ | same-kind reoccurrence on day 4+ after deletion | restart as a new cluster with t=0 (no past-occurrence carryover) |
+ 
++</threshold-rules>
++
+ ## Exception
++<exception>
+ 
+ The AI holds no exception criteria internally.
+ Future-reoccurrence prediction at observation time invites over-judgment (retaining "this is important" from one observation), so it is prohibited.
+ Exception retention is permitted only when human explicitly overrides.
+ Override storage = a memory area outside the tally (e.g. an override section in `memory/feedback.md`). Do not write into the tally.
+ 
++</exception>
++
+ ## Issue Creation Metadata
++<issue-creation-metadata>
+ 
+ Fixed metadata at creation:
+ - type label: AI selects from `spec` / `bug` / `enhancement` based on the observation target
+@@ -70,14 +90,24 @@ Fixed metadata at creation:
+ - record an occurrence field in the body (e.g. `occurrences: 6 / 3d → immediate`)
+ - express the ≥5 immediate-promotion flag as a body field, not a new label axis.
+ 
++</issue-creation-metadata>
++
+ ## Relation to L1 Update Gating
++<relation-to-l1-update-gating>
+ 
+ This mechanism is the observation → issue-creation front stage. Issue creation does not directly establish a L1 Model Layer spec update.
+ A post-creation L1 spec update additionally requires the long-horizon observation defined in `skills/evolution-l1-update-gating/SKILL.md`.
+ Promotion Judgment proves the noise floor has been crossed; L1 Update Gating authorizes the update itself. The axes are separated.
+ 
++</relation-to-l1-update-gating>
++
+ ## Relation to Persistence Tiering
++<relation-to-persistence-tiering>
+ 
+ The memory ↔ docs binary sorting defined by `skills/evolution-persistence-tiering/SKILL.md` continues to apply.
+ On top of that, this mechanism handles "memory entry → canonical rule (`rules/` / `skills/` / `adapter/`) promotion" as an independent axis.
+ Whether to keep an item in memory or split it out to docs is a persistence-tiering judgment; whether a memory observation set deserves canonical-rule promotion is a promotion-judgment judgment.
++
++</relation-to-persistence-tiering>
++
++</promotion-judgment>
+diff --git a/rules/operations/execution-mode.md b/rules/operations/execution-mode.md
+index da931c44..13617a6b 100644
+--- a/rules/operations/execution-mode.md
++++ b/rules/operations/execution-mode.md
+@@ -5,6 +5,7 @@ layer: L4-operations
+ ---
+ 
+ # Execution Mode
++<execution-mode>
+ 
+ Mode source = `USER_REPO\d+_EXE_MODE` per-repo line + `LI_PLUS_REPO_EXE_MODE` line in Li+config.md (multi-repo workspace schema; user repos enumerated as `USER_REPO1` / `USER_REPO2` / ... with paired `_EXE_MODE`, Li+ host repo as `LI_PLUS_REPO` with paired `LI_PLUS_REPO_EXE_MODE`).
+ Repository identifier resolution = parse host + owner/repo from the URL value of `USER_REPOn` / `LI_PLUS_REPO`; spec carries no legacy schema acceptance (legacy detection and migration are handled exclusively by the Li+update auto-migration step).
+@@ -92,3 +93,5 @@ human judgment gates apply to: release create, Latest flip, force push, tag dele
+ - Do NOT instruct human to run gh CLI in AI's reply. AI executes the CLI; human gives the go-sign.
+ 
+ Ambiguous human phrasing on a gate operation = take the most-preserving interpretation as default; do not auto-extend a prior go-sign across separate gates (release create go-sign ≠ Latest flip go-sign).
++
++</execution-mode>
+diff --git a/rules/operations/operations.md b/rules/operations/operations.md
+index 411280a8..bdf7039a 100644
+--- a/rules/operations/operations.md
++++ b/rules/operations/operations.md
+@@ -5,8 +5,10 @@ layer: L4-operations
+ ---
+ 
+ # Operations
++<operations>
+ 
+ ## Operations Layer
++<operations-layer>
+ 
+ ### Layer Position
+ 
+@@ -39,7 +41,10 @@ Reads through:
+   on_merge     -> Merge
+   on_release   -> Human Confirmation Required
+ 
++</operations-layer>
++
+ ## Operations Rules
++<operations-rules>
+ 
+ Issue link via gh issue develop is always required.
+ gh issue develop must precede first push to GitHub.
+@@ -80,7 +85,10 @@ PR auto-merge policy is mode-specific:
+   auto mode = repo-level "Allow auto-merge" is INTENTIONALLY disabled. `gh pr merge --auto` being rejected is by design, not a config gap. Parent AI performs self-review then manual `gh pr merge {pr} --squash`.
+ mark_processed is mandatory for every consumed webhook event. Omission causes backlog accumulation.
+ 
++</operations-rules>
++
+ ## Autonomous Run Stop Condition
++<autonomous-run-stop-condition>
+ 
+ When AI runs without human at the wheel (overnight, semi_auto/auto execution mode reaching deploy), "deploy succeeded" is not the stop condition. Static checks (TS check, unit tests, CI) cannot guarantee runtime correctness — subrequest limits, IPC, rate limits, schema migration side effects, and similar runtime paths sit on a different axis from static verification.
+ 
+@@ -97,7 +105,10 @@ Detection signs that the stop condition is being misapplied:
+ - Pre-granted dashboard / log access exists but is unused during the run.
+ - Run-completion report is filed in less time than one cron interval.
+ 
++</autonomous-run-stop-condition>
++
+ ## Operations Label
++<operations-label>
+ 
+ ### Rules
+ 
+@@ -119,3 +130,7 @@ Authoritative spec for the judgment mechanism and tally format = `rules/evolutio
+ 
+ rules/task/task.md references this document.
+ If label set changes here, update rules/task/task.md to match.
++
++</operations-label>
++
++</operations>
+diff --git a/rules/task/task.md b/rules/task/task.md
+index ffd7eebc..7296abb7 100644
+--- a/rules/task/task.md
++++ b/rules/task/task.md
+@@ -5,8 +5,10 @@ layer: L3-task
+ ---
+ 
+ # Task
++<task>
+ 
+ ## Task Layer
++<task-layer>
+ 
+ Layer = L3 Task Layer
+ Issue-facing surface over the shared Li+ program
+@@ -20,7 +22,10 @@ Foregrounds:
+ Backgrounded here:
+   branch / commit / PR / merge / release procedures
+ 
++</task-layer>
++
+ ## Task Issue Rules
++<task-issue-rules>
+ 
+ ### Rules
+ 
+@@ -64,7 +69,10 @@ Ask human when required information is missing.
+ Label evolves over time. Label is for AI readability.
+ Full label policy and retired labels: see rules/operations/operations.md
+ 
++</task-issue-rules>
++
+ ## Task Label Definitions
++<task-label-definitions>
+ 
+ ### Rules
+ 
+@@ -99,3 +107,7 @@ tips        = operational know-how memo not tied to a release milestone
+ 
+ Marker:
+ promotion   = path flag for an issue filed by the promotion-judgment mechanism (separate axis from type). See rules/operations/operations.md and rules/evolution/promotion-judgment.md for details.
++
++</task-label-definitions>
++
++</task>
+diff --git a/skills/evolution-decision-structure-write/SKILL.md b/skills/evolution-decision-structure-write/SKILL.md
+index d55e4b5c..ae8fdb90 100644
+--- a/skills/evolution-decision-structure-write/SKILL.md
++++ b/skills/evolution-decision-structure-write/SKILL.md
+@@ -5,6 +5,7 @@ layer: L2-evolution
+ ---
+ 
+ # Decision Structure Write
++<decision-structure-write>
+ 
+ Writer-side surface paired with the reader-side judgment-learning surface (`skills/evolution-judgment-learning/SKILL.md`).
+ Immediately after a judgment settles, AI autonomously appends / creates / refactors a Decision Structure Wiki entry.
+@@ -14,6 +15,7 @@ supersede / depend / conflict edges; volume stabilizes through refine / replace.
+ Maintenance is refactor (normal operation): deletion or consolidation updates the structure rather than erasing history.
+ 
+ ## Trigger
++<trigger>
+ 
+ Fires immediately after a judgment settles. Concretely:
+ 
+@@ -25,7 +27,10 @@ Fires immediately after a judgment settles. Concretely:
+ 
+ Aligns with the accumulation conditions in `docs/Decision-Structure.md` (design branching, failure root cause identified, premise verification confirmed, multi-session-spanning investigation repetition).
+ 
++</trigger>
++
+ ## Procedure
++<procedure>
+ 
+ 1. **Identify the topic** = articulate the judgment's core in one sentence. Decide a kebab-case filename candidate. Do not prefix with an ordering number (e.g. `wiki-sync-sidebar-integrity-check.md`).
+ 2. **Search existing entries** = call `mcp__github-rag-mcp__search` with `type: "wiki_doc"` to check for duplicates. Also check the `docs/Decision-Structure.md` index.
+@@ -47,7 +52,10 @@ Aligns with the accumulation conditions in `docs/Decision-Structure.md` (design
+ 5. **Wiki push** = git push directly to the wiki repo (no PR ceremony; independent git surface). Include the `_Sidebar.md` slug addition in the same commit.
+ 6. **Index update** = update the operational index table in `docs/Decision-Structure.md` on every new entry addition / existing entry rename / existing entry deletion (route through the regular main-repo PR flow). Not required for minor body edits.
+ 
++</procedure>
++
+ ## Entry shape: state-form vs event-form
++<entry-shape-state-form-vs-event-form>
+ 
+ state-form (recommended) = the subject is the current judgment state, e.g. "Question Q: current resolution = X, supersedes <link>".
+ event-form (formerly recommended, not recommended for new entries) = the subject is a point-in-time event, e.g. "YYYY-MM-DD: decided X for reason Y".
+@@ -60,7 +68,10 @@ Reasons for recommending state-form:
+ 
+ forward guidance: do not retroactively rewrite existing entries. Use state-form when adding new entries or when updating the meaning of existing entries.
+ 
++</entry-shape-state-form-vs-event-form>
++
+ ## Relation taxonomy (primary edge vocabulary)
++<relation-taxonomy-primary-edge-vocabulary>
+ 
+ State-form entries are recommended to declare applicable edges. Primary edges = 3 kinds:
+ 
+@@ -70,7 +81,10 @@ State-form entries are recommended to declare applicable edges. Primary edges =
+ 
+ Edges are written as forward links (links from this entry to the target entry). Reverse links are observed for consistency by the cross-reference integrity check at the next wiki sync.
+ 
++</relation-taxonomy-primary-edge-vocabulary>
++
+ ## Maintenance (refactor framing)
++<maintenance-refactor-framing>
+ 
+ Judgment records are a structure. Deletion or consolidation is not "erasing history" but "refactoring the structure", positioned within normal operation.
+ 
+@@ -81,7 +95,10 @@ Judgment records are a structure. Deletion or consolidation is not "erasing hist
+ - Entry language = `LI_PLUS_PROJECT_LANGUAGE` (resolved from the workspace's Li+config.md). Mixing is not allowed.
+ - Broken cross-references on rename / deletion are detected by the Cross-reference integrity assertion at the next wiki sync (`skills/operations-on-release/SKILL.md`). Closure is by structure, not by manual attention.
+ 
++</maintenance-refactor-framing>
++
+ ## Non-scope
++<non-scope>
+ 
+ - A knowledge wiki is not adopted (judgment confirmed in the 2026-05-04 session). This skill's range is the "judgment record (decision structure)" surface only.
+ - Do not paste dialogue transcripts as entry body. An entry is a surface that records the judgment state (what is currently resolved); the dialogue messages from which a judgment emerged belong to a separate surface.
+@@ -89,20 +106,33 @@ Judgment records are a structure. Deletion or consolidation is not "erasing hist
+ - Do not write judgments already documented in issues or commit bodies. Avoid duplication.
+ - Do not write self-evident choices (where there is effectively only one option).
+ 
++</non-scope>
++
+ ## Boundary with Persistence Tiering
++<boundary-with-persistence-tiering>
+ 
+ The memory ↔ docs binary sorting defined by `skills/evolution-persistence-tiering/SKILL.md` continues to apply.
+ This skill handles writing into the Decision Structure Wiki surface within the docs tier; writing into memory remains under `Memory_Write_Autonomy`'s range.
+ Cross-tier promotion (memory → docs) is not triggered by this skill but routes through the persistence-tiering judgment.
+ 
++</boundary-with-persistence-tiering>
++
+ ## Boundary with Judgment Learning
++<boundary-with-judgment-learning>
+ 
+ `skills/evolution-judgment-learning/SKILL.md` is the reader side (query the past-judgment graph before forming a new judgment).
+ This skill is the writer side (add / update a state entry in Decision Structure immediately after a judgment settles).
+ Together they form a reader / writer-paired flow, closing cross-session accumulation and reuse of judgment knowledge under AI alone.
+ 
++</boundary-with-judgment-learning>
++
+ ## Boundary with L1 Update Gating
++<boundary-with-l1-update-gating>
+ 
+ Writing to the judgment-record Wiki is not an L1 Model Layer source change.
+ Do not touch L1 Update Gating (`skills/evolution-l1-update-gating/SKILL.md`).
+ The destination of this skill's writes is the external memory of judgments (the Wiki surface within the docs tier), not the rule definitions themselves.
++
++</boundary-with-l1-update-gating>
++
++</decision-structure-write>
+diff --git a/skills/evolution-judgment-learning/SKILL.md b/skills/evolution-judgment-learning/SKILL.md
+index 0e8ad832..916f9182 100644
+--- a/skills/evolution-judgment-learning/SKILL.md
++++ b/skills/evolution-judgment-learning/SKILL.md
+@@ -5,6 +5,7 @@ layer: L2-evolution
+ ---
+ 
+ # Judgment Learning
++<judgment-learning>
+ 
+ Retrieve past judgment before forming a new judgment.
+ Source priority:
+@@ -12,3 +13,5 @@ Source priority:
+ 2. gh search = fallback when RAG MCP is unavailable. Keyword-first.
+ Decision Structure entries (wiki kebab-case `<topic>.md`, indexed via `docs/Decision-Structure.md`) are RAG-indexed and reach the retrieval path by design. Query the past-judgment graph (state-form entries + supersede/depend/conflict edges) before forming a new judgment.
+ Do not skip retrieval because "the answer feels obvious". Verify.
++
++</judgment-learning>
+diff --git a/skills/evolution-l1-update-gating/SKILL.md b/skills/evolution-l1-update-gating/SKILL.md
+index 452531d7..b286dc1d 100644
+--- a/skills/evolution-l1-update-gating/SKILL.md
++++ b/skills/evolution-l1-update-gating/SKILL.md
+@@ -5,6 +5,7 @@ layer: L2-evolution
+ ---
+ 
+ # L1 Update Gating
++<l1-update-gating>
+ 
+ L1 Model Layer change is the highest-gate update in Li+.
+ Default update target = L3 Task Layer and later.
+@@ -18,6 +19,7 @@ Placement in attachment chain = update-difficulty proxy.
+ L1 = seed, L6 Adapter = most mutable end.
+ 
+ ## Boundary clarification
++<boundary-clarification>
+ 
+ Modifier axis = AI (per CLAUDE.md Sheepdog Engineering).
+ This gate (long-horizon observation requirement) is observational, not approval-based.
+@@ -29,3 +31,7 @@ Relation to brake 2:
+ - this skill = observation-threshold gate (was the long-horizon pattern observed? AI subject)
+ - brake 2 = approval gate (does the human approve the L1 change? Human subject)
+ Both gates fire for an L1 update. The observational gate runs first (issue creation phase); brake 2 runs at PR review phase. Earlier wording "human judgment gates ... not in L1 spec editing" referred to the observational gate only and is superseded by the Sheepdog-completion two-stage brake structure; human review IS now required for L1 spec editing PRs as brake 2.
++
++</boundary-clarification>
++
++</l1-update-gating>
+diff --git a/skills/evolution-loop/SKILL.md b/skills/evolution-loop/SKILL.md
+index 7bc5598c..43271cf4 100644
+--- a/skills/evolution-loop/SKILL.md
++++ b/skills/evolution-loop/SKILL.md
+@@ -5,6 +5,7 @@ layer: L2-evolution
+ ---
+ 
+ # Evolution Loop
++<evolution-loop>
+ 
+ Loop stages:
+   observe    = memory entries + docs (spec, decision structure, issue history)
+@@ -24,3 +25,5 @@ Stage responsibility:
+   reflect          = AI drafts (PR). Merge gate is execution-mode dependent per skills/operations-on-merge/SKILL.md (rules/operations/execution-mode.md governs the gate matrix).
+   improve          = AI executes under the updated spec.
+   re-observe       = AI autonomous.
++
++</evolution-loop>
+diff --git a/skills/evolution-persistence-tiering/SKILL.md b/skills/evolution-persistence-tiering/SKILL.md
+index dee0f9b8..7f32ead7 100644
+--- a/skills/evolution-persistence-tiering/SKILL.md
++++ b/skills/evolution-persistence-tiering/SKILL.md
+@@ -5,6 +5,7 @@ layer: L2-evolution
+ ---
+ 
+ # Persistence Tiering
++<persistence-tiering>
+ 
+ memory = workspace-local personal notes. Not repo-committed. Not RAG-indexed. **Transient only** (details: `rules/evolution/memory-entry-format.md` Scope / Trigger point sections)
+ docs  = project information. Repo-committed. RAG-indexed (wiki Decision Structure entries and other indexed content).
+@@ -14,6 +15,7 @@ Personal behavior notes, session-local preferences -> memory.
+ Do not cross tiers silently. Promotion from memory to docs requires explicit intent.
+ 
+ ## Persistent destinations (4-way axis)
++<persistent-destinations-4-way-axis>
+ 
+ Since memory is transient-only, persistent information does not live in memory. Sort across the following 4 destinations. Detailed spec = `rules/evolution/memory-entry-format.md` Escalation paths.
+ 
+@@ -24,7 +26,10 @@ Since memory is transient-only, persistent information does not live in memory.
+ 
+ The memory ↔ docs binary sorting remains as the memory / docs axis within these 4 destinations. At observation time, judge "transient or persistent" first; if persistent, route to one of the 4 destinations.
+ 
++</persistent-destinations-4-way-axis>
++
+ ## Write-time trigger (hard gate)
++<write-time-trigger-hard-gate>
+ 
+ Pre-write judgment trigger immediately before a memory write. Carries the "Pre-write persistence check (hard gate)" of `Memory_Write_Autonomy` (adapter/claude/CLAUDE.md).
+ 
+@@ -38,3 +43,7 @@ Routing after judgment:
+ - persistent / ambiguous -> abort the memory write; present an escalation path (`rules/` / `skills/` / `docs/` / wiki)
+ 
+ This gate is automatic routing without a permission ask; judgment is closed by AI alone. It acts as structural prevention against the post-hoc memory hygiene round (e.g. parent issue #1344 → #1347), blocking persistent information from re-accumulating in memory.
++
++</write-time-trigger-hard-gate>
++
++</persistence-tiering>
+diff --git a/skills/operations-chat-output-limit/SKILL.md b/skills/operations-chat-output-limit/SKILL.md
+index 805da4a6..81daf1bd 100644
+--- a/skills/operations-chat-output-limit/SKILL.md
++++ b/skills/operations-chat-output-limit/SKILL.md
+@@ -5,6 +5,9 @@ layer: L4-operations
+ ---
+ 
+ # Chat Output Limit
++<chat-output-limit>
+ 
+ Long output may stop = physical limit, not corruption.
+ Use chunking when needed.
++
++</chat-output-limit>
+diff --git a/skills/operations-foreground-webhook-intake/SKILL.md b/skills/operations-foreground-webhook-intake/SKILL.md
+index 91e49a26..2cc9ce50 100644
+--- a/skills/operations-foreground-webhook-intake/SKILL.md
++++ b/skills/operations-foreground-webhook-intake/SKILL.md
+@@ -5,6 +5,7 @@ layer: L4-operations
+ ---
+ 
+ # Foreground Webhook Notification Intake
++<foreground-webhook-notification-intake>
+ 
+ Purpose:
+ Keep the active foreground thread lightweight.
+@@ -66,3 +67,5 @@ own-operation arrival confirmation:
+   mark_processed own-operation events promptly during foreground check or after the triggering operation.
+   do not accumulate own-operation events for bulk clearing later.
+   external events (other users, bots) = preserve for foreground reporting or explicit handling.
++
++</foreground-webhook-notification-intake>
+diff --git a/skills/operations-handoff-continuity/SKILL.md b/skills/operations-handoff-continuity/SKILL.md
+index 28976c32..11898d6a 100644
+--- a/skills/operations-handoff-continuity/SKILL.md
++++ b/skills/operations-handoff-continuity/SKILL.md
+@@ -5,7 +5,10 @@ layer: L4-operations
+ ---
+ 
+ # Handoff Continuity
++<handoff-continuity>
+ 
+ If token/session/model boundary may interrupt work = push useful intermediate state to the linked personal branch.
+ Handoff source of truth = issue body + linked branch + commits/PR.
+ Do not leave meaningful progress only in local workspace or chat memory.
++
++</handoff-continuity>
+diff --git a/skills/operations-notifications-api/SKILL.md b/skills/operations-notifications-api/SKILL.md
+index 5940efef..c9da4a81 100644
+--- a/skills/operations-notifications-api/SKILL.md
++++ b/skills/operations-notifications-api/SKILL.md
+@@ -5,9 +5,12 @@ layer: L4-operations
+ ---
+ 
+ # Notifications API
++<notifications-api>
+ 
+ PATCH  /notifications/threads/{id}   -> 205  read (stays in Inbox)
+ PUT    /notifications {"read":true}  -> 205  mark all read
+ DELETE /notifications/threads/{id}  -> 204  done (removed from Inbox)
+ GET    /notifications?all=false      -> 200  check inbox
+ scope = notifications (classic PAT)
++
++</notifications-api>
+diff --git a/skills/operations-on-ci/SKILL.md b/skills/operations-on-ci/SKILL.md
+index 4336297d..c63059e3 100644
+--- a/skills/operations-on-ci/SKILL.md
++++ b/skills/operations-on-ci/SKILL.md
+@@ -5,6 +5,7 @@ layer: L4-operations
+ ---
+ 
+ # CI Loop
++<ci-loop>
+ 
+ CI loop starts immediately after PR creation or after fix-and-recommit.
+ CI loop is a separate task from PR creation. Do not skip.
+@@ -27,3 +28,5 @@ CI pass -> proceed to [PR Review].
+ CI fail -> fix and recommit (restart CI loop from step1).
+ CI loop safety (ref: Li+core.md#Loop Safety task/debug threshold):
+ If still failing = externalize to issue comment, escalate to human.
++
++</ci-loop>
+diff --git a/skills/operations-on-commit/SKILL.md b/skills/operations-on-commit/SKILL.md
+index d6ba19f7..f8e95663 100644
+--- a/skills/operations-on-commit/SKILL.md
++++ b/skills/operations-on-commit/SKILL.md
+@@ -5,6 +5,7 @@ layer: L4-operations
+ ---
+ 
+ # Commit And Push
++<commit-and-push>
+ 
+ Git push:
+ primary          = git push origin {session-branch}:{target-branch}
+@@ -13,3 +14,5 @@ fallback_multi_1 = create blobs: gh api .../git/blobs (per file)
+ fallback_multi_2 = create tree:  gh api .../git/trees  (verify count after)
+ fallback_multi_3 = create commit: gh api .../git/commits
+ fallback_multi_4 = update ref:   gh api .../git/refs/heads/{branch}
++
++</commit-and-push>
+diff --git a/skills/operations-on-docs-ownership/SKILL.md b/skills/operations-on-docs-ownership/SKILL.md
+index 9c5ebd46..1089dc57 100644
+--- a/skills/operations-on-docs-ownership/SKILL.md
++++ b/skills/operations-on-docs-ownership/SKILL.md
+@@ -5,6 +5,7 @@ layer: L4-operations
+ ---
+ 
+ # Docs And Requirement Ownership
++<docs-and-requirement-ownership>
+ 
+ Distribution projects must have requirements spec as minimum docs.
+ New or small projects: one requirements spec file is minimum acceptable form.
+@@ -21,3 +22,5 @@ Requirements spec may be split across multiple numbered docs when it improves re
+ Docs check on commit:
+ If this commit changes spec (Li+*.md) or behavior code = verify docs/ has corresponding update.
+ If not yet updated = add docs update before push. Do not defer to a separate PR.
++
++</docs-and-requirement-ownership>
+diff --git a/skills/operations-on-issue-format/SKILL.md b/skills/operations-on-issue-format/SKILL.md
+index a1f22ea9..ec6ae06e 100644
+--- a/skills/operations-on-issue-format/SKILL.md
++++ b/skills/operations-on-issue-format/SKILL.md
+@@ -5,6 +5,7 @@ layer: L4-operations
+ ---
+ 
+ # Issue Format
++<issue-format>
+ 
+ Issue title language:
+ Title = ASCII English only.
+@@ -25,3 +26,5 @@ Issue completion is managed through issue state plus PR/CI/release flow, not a d
+ 
+ Checklist = human judgment required (real device test, operational verification).
+ Use checklist only when AI cannot judge.
++
++</issue-format>
+diff --git a/skills/operations-on-issue-maturity/SKILL.md b/skills/operations-on-issue-maturity/SKILL.md
+index f337811b..dc3f8365 100644
+--- a/skills/operations-on-issue-maturity/SKILL.md
++++ b/skills/operations-on-issue-maturity/SKILL.md
+@@ -5,6 +5,7 @@ layer: L4-operations
+ ---
+ 
+ # Issue Maturity
++<issue-maturity>
+ 
+ memo/forming is not implementation-ready.
+ 
+@@ -26,6 +27,7 @@ A premise is verified only when external evidence (docs, spec, source, runtime p
+ "feels correct" is not verification.
+ 
+ ## Memo-mode rapid intake (interrupt-minimal path)
++<memo-mode-rapid-intake-interrupt-minimal-path>
+ 
+ Triggered by human signaling "黙って" / "silent" / "quick memo" / equivalent intent: minimize the cognitive cost of issue creation while the human's main task continues.
+ 
+@@ -41,3 +43,7 @@ Discriminator: "Is this issue creation itself the main task, or is it interrupti
+ - Main task → full forming/ready intake.
+ 
+ Treating "黙って" as "still do full intake but skip discussing it" defeats the interrupt-cost reduction the human asked for. Memo maturity is a valid resting state, not "incomplete and embarrassing"; promotion to forming/ready happens later when the issue itself is the focus.
++
++</memo-mode-rapid-intake-interrupt-minimal-path>
++
++</issue-maturity>
+diff --git a/skills/operations-on-merge/SKILL.md b/skills/operations-on-merge/SKILL.md
+index 8f1dc8a4..2a720680 100644
+--- a/skills/operations-on-merge/SKILL.md
++++ b/skills/operations-on-merge/SKILL.md
+@@ -5,6 +5,7 @@ layer: L4-operations
+ ---
+ 
+ # Merge
++<merge>
+ 
+ Merge executor is AI in every mode (trigger / semi_auto / auto).
+ AI runs `gh pr merge` after all preconditions pass (self-review + mode-specific human gate, and mergeable state check). GitHub auto-merge handoff is no longer used.
+@@ -27,3 +28,5 @@ Parent close condition: closed automatically on merge via issue reference.
+ 
+ Real device test:
+ Merge first. Then test on main. Not a merge gate.
++
++</merge>
+diff --git a/skills/operations-on-milestone/SKILL.md b/skills/operations-on-milestone/SKILL.md
+index 9c0d3846..8112972b 100644
+--- a/skills/operations-on-milestone/SKILL.md
++++ b/skills/operations-on-milestone/SKILL.md
+@@ -5,6 +5,7 @@ layer: L4-operations
+ ---
+ 
+ # Milestone Rules
++<milestone-rules>
+ 
+ Milestone = release unit. Groups issues that ship together.
+ Every issue must have a milestone at creation time.
+@@ -34,3 +35,5 @@ Milestone lifecycle:
+   Delete when: release flow completes (release publish + wiki sync). See operations-on-release SKILL for the deletion step.
+   The intermediate `closed` state is skipped: `gh api -X DELETE` works directly on open milestones (empirically verified 2026-04-21).
+   Rationale: GitHub milestone UI retains no informational value post-release; audit trail lives in release notes + PR/commit history. Keeping closed milestones accumulates UI clutter with zero retention benefit.
++
++</milestone-rules>
+diff --git a/skills/operations-on-pr-creation/SKILL.md b/skills/operations-on-pr-creation/SKILL.md
+index d62c01ff..d000fa5a 100644
+--- a/skills/operations-on-pr-creation/SKILL.md
++++ b/skills/operations-on-pr-creation/SKILL.md
+@@ -5,6 +5,7 @@ layer: L4-operations
+ ---
+ 
+ # PR Creation
++<pr-creation>
+ 
+ One PR per parent issue (see Sub-issue Rules#Single parent PR flow).
+ Parent issue with sub-issues = single PR that closes all sub-issues + the parent on merge.
+@@ -37,3 +38,5 @@ On PR created:
+     scope: assignee self-assign is UI trail only; it does not replace the formal self-review record (`gh pr review --comment`, see [PR Review]).
+ 2 = proceed to [CI Loop] immediately, no human instruction required.
+ Merge execution is unified to AI across all modes (see [Merge]). GitHub auto-merge handoff is no longer used.
++
++</pr-creation>
+diff --git a/skills/operations-on-pr-review/SKILL.md b/skills/operations-on-pr-review/SKILL.md
+index fddd0f77..7f2becc9 100644
+--- a/skills/operations-on-pr-review/SKILL.md
++++ b/skills/operations-on-pr-review/SKILL.md
+@@ -5,6 +5,7 @@ layer: L4-operations
+ ---
+ 
+ # PR Review
++<pr-review>
+ 
+ AI self-review is mandatory in every mode (trigger / semi_auto / auto).
+ Skipping self-review before merge is a spec violation. Self-review runs first; external human check (if any) is layered on top, not in place of it.
+@@ -63,6 +64,7 @@ if execution_mode == trigger:
+   reviewDecision=="CHANGES_REQUESTED" -> read review comments -> fix and recommit (restart [CI Loop]).
+ 
+ ## Follow-through on deferred items
++<follow-through-on-deferred-items>
+ 
+ Self-review records may legitimately defer items as "out of PR scope" (e.g. workspace memory cleanup, follow-up issue filing, doc-only follow-up). Deferred ≠ ignored:
+ 
+@@ -71,3 +73,7 @@ Self-review records may legitimately defer items as "out of PR scope" (e.g. work
+ - Human APPROVED comments that contain "〜したんだよね？" / "did you also do X?" / similar embedded confirmations are part of the approval condition, not optional small talk. Treat the embedded confirmation as an additional gate and respond to it in the same session.
+ 
+ Merge is not the closing bracket; the deferred-item handoff is.
++
++</follow-through-on-deferred-items>
++
++</pr-review>
+diff --git a/skills/operations-on-sub-issue/SKILL.md b/skills/operations-on-sub-issue/SKILL.md
+index fa211665..486e46df 100644
+--- a/skills/operations-on-sub-issue/SKILL.md
++++ b/skills/operations-on-sub-issue/SKILL.md
+@@ -5,6 +5,7 @@ layer: L4-operations
+ ---
+ 
+ # Sub-issue Rules
++<sub-issue-rules>
+ 
+ Sub-issue = AI-trackable work unit.
+ Split by responsibility, not granularity.
+@@ -35,11 +36,15 @@ Integration sub-issue executes after parallel sub-issues complete (serialized de
+ Analysis basis = target files field in issue body. If absent, infer from issue purpose and premise.
+ 
+ ## CI visibility — single parent PR with draft early open
++<ci-visibility-single-parent-pr-with-draft-early-open>
+ 
+ Sub-issue implementations land as commits on the parent branch (one branch per parent issue). Open a draft PR on the parent branch immediately after the first commit so each subsequent push triggers `pull_request.synchronize` for per-commit CI.
+ This satisfies per-commit CI visibility without splitting into per-sub-issue PRs. The single parent PR + draft early open pattern is the correct CI strategy; per-sub-issue PR splitting for "CI visibility" reasons is misdiagnosis.
+ 
++</ci-visibility-single-parent-pr-with-draft-early-open>
++
+ ## Recovery from accidental per-sub-issue PR runs
++<recovery-from-accidental-per-sub-issue-pr-runs>
+ 
+ If per-sub-issue PRs already exist on a parent with sub-issues (a spec violation that may have shipped before discovery), the post-hoc recovery is:
+ 1. Consolidate sub-issue branches into a single parent branch via cherry-pick or rebase.
+@@ -47,3 +52,7 @@ If per-sub-issue PRs already exist on a parent with sub-issues (a spec violation
+ 3. Close them again from the consolidated parent PR's merge once it lands.
+ 
+ This is fix-up only — do not normalize per-sub-issue PRs as a workflow. The single parent PR layout is correct; the recovery procedure exists because past sessions have erred (e.g. github-rag-mcp #198 / OAuth migration sub-PRs #203/#204/#205/#206 ran per-sub-issue and triggered cascading auto-close failures on the parent).
++
++</recovery-from-accidental-per-sub-issue-pr-runs>
++
++</sub-issue-rules>
+diff --git a/skills/parallel-subagent-eval/SKILL.md b/skills/parallel-subagent-eval/SKILL.md
+index 5de79a19..e0dc6a91 100644
+--- a/skills/parallel-subagent-eval/SKILL.md
++++ b/skills/parallel-subagent-eval/SKILL.md
+@@ -5,10 +5,12 @@ layer: L2-evolution
+ ---
+ 
+ # Parallel Subagent Eval
++<parallel-subagent-eval>
+ 
+ Verification method that measures the AI's introspection gap (no empirical basis for predicting its own future invoke behavior or rule semantic effect) from the outside via the current behavior of subagents.
+ 
+ ## Trigger
++<trigger>
+ 
+ Fires at any of the following moments:
+ 
+@@ -22,7 +24,10 @@ Axis selection depends on the nature of the draft. Examples:
+ - skill description edit: ease of AI invoke judgment / maintainer-side readability / coverage gap
+ - rule body edit: behavior consistency across configured / not-configured paths / detect semantic conflict with adjacent rules / orthogonality against existing scope clauses
+ 
++</trigger>
++
+ ## Design Dimensions
++<design-dimensions>
+ 
+ Three axes that move verification cost and detection power independently:
+ 
+@@ -54,7 +59,10 @@ Choose based on the asymmetry of the judgment:
+ - adopt/reject binary where erroneous adoption is costly -> require unanimous agreement (AND)
+ - intermediate -> three-value classification: consistent / partial / negative (the legacy #1296 pattern)
+ 
++</design-dimensions>
++
+ ## Procedure
++<procedure>
+ 
+ **Precondition**: source lives on an experimental branch, and `.claude/` is in tag-match state (draft unapplied). When character behavior is part of the verification target, the step 3 subagent prompt must explicitly inject the Character_Instance body (see Constraint).
+ 
+@@ -66,21 +74,30 @@ Choose based on the asymmetry of the judgment:
+ 6. **Judgment** - Based on the verdict: consistent -> push the spec change toward implementation / partial / negative -> revise draft and re-run from step 2 (re-run must also go through step 5 restore first) / abort
+ 7. **Externalize** - Record the verdict and the adoption judgment in the parent issue body / PR self-review. If the judgment has settled, also append to decision structure per `skills/evolution-decision-structure-write`
+ 
++</procedure>
++
+ ## Constraint
++<constraint>
+ 
+ - **N=1 prohibited, minimum N=3**: One trial is the source of overconfidence. The `#1296` empirical demonstration observed conclusion reversal from N=1 positive -> N=3 = 1 positive + 2 partial-negative (at that time under the M=1 axis-separated exception pattern with 3-axis OR aggregation; the current default holds the same N=3 floor under M=all axes). Reference Design Dimensions' `subagent_count` for N and run at minimum 3
+ - **Subagent prompt must be self-contained**: Do not let parent context leak in. In the default M=all axes pattern, the prompt explicitly instructs each axis to "answer independently without referencing other axes' answers" to suppress cross-axis echo bias. If prompt complexity is high enough that the mitigation is uncertain, fall back to the M=1 axis-separated pattern (see Design Dimensions)
+ - **Character_Instance non-inheritance**: What gets injected into subagent context = `CLAUDE.md` + `.claude/rules/**/*.md` (full body) + `.claude/skills/*/SKILL.md` (description only, body lazy-loaded at invoke) + MEMORY.md + harness-level system-reminders. `.claude/output-styles/`, hook firing output (SessionStart / UserPromptSubmit, etc.), and `.claude/settings.json` itself do not reach the subagent. `.claude/hooks/*.sh` script bodies are readable via the Read tool but not auto-loaded. When character behavior is part of the verification target, explicitly inject the Character_Instance body into the prompt. Running the character axis without injection produces the hollow prefix sleeping bug (persona absent, only the Character Instance name string generated)
+ - **Operational copy apply and restore must be paired**: Always execute both step 2 (apply) and step 5 (restore). Skipping restore carries the change into the parent session's behavior and leaves contamination for subsequent sessions
+ 
++</constraint>
++
+ ## Non-scope
++<non-scope>
+ 
+ - This method is a pre-spec-reflection verification surface; it does not replace PR review (semi_auto mode minor/major human review is a separate axis)
+ - One trial is excluded as a source of overconfidence
+ - Verification of facts that change over time (API spec, library behavior) is outside this method's range; investigate per occurrence
+ - Separate axis from promotion-judgment's memory observation noise floor judgment (this method = spec verification; promotion = observation accumulation judgment)
+ 
++</non-scope>
++
+ ## Boundary
++<boundary>
+ 
+ - **`skills/evolution-loop/SKILL.md`**: This skill is referenced inside the loop's observe / evaluate stage. The loop side "calls this method"; the method body lives in this skill
+ - **`skills/evolution-l1-update-gating/SKILL.md`**: Authorization axis for L1 source changes (long-horizon observation requirement). This method is the empirical verification axis immediately before implementation. Orthogonal relation - L1 update is expected to use this method alongside. In the `Evolution_Initiator_Autonomy` two-stage brake framing, this method is brake 1 (always-on for self-evolution PRs); L1 human review is brake 2 (L1-only, layered on top of brake 1)
+@@ -88,6 +105,13 @@ Choose based on the asymmetry of the judgment:
+ - **`skills/task-subagent-delegation/SKILL.md`**: Derived use from the delegation axis - this method's subagent spawn is a special case of delegation (purpose: gather evaluation data, not delegate implementation)
+ - **`skills/evolution-decision-structure-write/SKILL.md`**: Judgment record surface. Judgments produced by applying this method get recorded in decision structure
+ 
++</boundary>
++
+ ## Implementation Note
++<implementation-note>
+ 
+ Subagent spawn goes through the host's Agent tool (Claude Code: `Agent` tool; Codex: equivalent mechanism). Parallel execution = multiple Agent tool calls in a single message. subagent_type is selected per task (typically general-purpose).
++
++</implementation-note>
++
++</parallel-subagent-eval>
+diff --git a/skills/task-pr-review-judgment/SKILL.md b/skills/task-pr-review-judgment/SKILL.md
+index 07e7a832..2797ae8f 100644
+--- a/skills/task-pr-review-judgment/SKILL.md
++++ b/skills/task-pr-review-judgment/SKILL.md
+@@ -5,8 +5,10 @@ layer: L3-task
+ ---
+ 
+ # PR Review Judgment
++<pr-review-judgment>
+ 
+ ## Responsibilities
++<responsibilities>
+ 
+ Main agent judges PR review without reading operations skills (skills/operations-on-pr-review/SKILL.md, skills/operations-on-merge/SKILL.md, etc.) directly.
+ Judgment basis = issue body + PR diff + CI result.
+@@ -23,3 +25,7 @@ if execution_mode == trigger:
+   External review judgment:
+     APPROVED → proceed (delegate merge execution to subagent if available).
+     CHANGES_REQUESTED → read review comments, judge against issue requirements, delegate fix to subagent.
++
++</responsibilities>
++
++</pr-review-judgment>
+diff --git a/skills/task-subagent-delegation/SKILL.md b/skills/task-subagent-delegation/SKILL.md
+index daa6c412..01cbde17 100644
+--- a/skills/task-subagent-delegation/SKILL.md
++++ b/skills/task-subagent-delegation/SKILL.md
+@@ -5,8 +5,10 @@ layer: L3-task
+ ---
+ 
+ # Subagent Delegation
++<subagent-delegation>
+ 
+ ## Rules
++<rules>
+ 
+ Parent agent delegates implementation and operations to subagent.
+ Parent retains: issue creation, issue management (non-state lifecycle labels / type / maturity / marker / close), review judgment.
+@@ -21,7 +23,10 @@ Intent is already in issue body.
+ 
+ Subagent label authority is partial: the state-machine lifecycle subset (`in-progress` / `done` / `waiting` / `blocked`) is editable by subagent. All other label axes (non-state lifecycle / type / maturity / marker) and close operations remain parent retain.
+ 
++</rules>
++
+ ## State-machine label discipline (subagent side, mandate)
++<state-machine-label-discipline-subagent-side-mandate>
+ 
+ Subagent MUST fire state-machine labels at role boundaries:
+ 
+@@ -33,7 +38,10 @@ Subagent MUST fire state-machine labels at role boundaries:
+ 
+ Label authority canonical spec is in `rules/task/task.md` Lifecycle section; this skill defines the application-moment behavior.
+ 
++</state-machine-label-discipline-subagent-side-mandate>
++
+ ## Responsibilities
++<responsibilities>
+ 
+ Convey to subagent:
+ issue URL.
+@@ -50,12 +58,18 @@ On failure, subagent writes failure report as issue comment. Format is not speci
+ 
+ Branch linking: see skills/operations-on-branch/SKILL.md.
+ 
++</responsibilities>
++
+ ## Autonomy
++<autonomy>
+ 
+ If subagent capability is unavailable:
+ Parent executes operations directly. All rules still apply.
+ 
++</autonomy>
++
+ ## Mode-specific delegation injection
++<mode-specific-delegation-injection>
+ 
+ The minimal "issue URL only" pattern works for `auto` and `semi_auto` because the subagent's auto-loaded operations rules already cover the merge gate. `trigger` mode is the exception: the merge gate involves human approval timing, and three pieces of context need explicit injection because they are parent-side decisions, not subagent-discovered facts:
+ 
+@@ -65,7 +79,10 @@ The minimal "issue URL only" pattern works for `auto` and `semi_auto` because th
+ 
+ These three are out of scope for the broader "do not convey procedure" rule because they are not procedure — they are gate-state decisions specific to trigger-mode merge timing.
+ 
++</mode-specific-delegation-injection>
++
+ ## Delegation prompt hygiene (ASCII-only example text)
++<delegation-prompt-hygiene-ascii-only-example-text>
+ 
+ Any example text the subagent may quote into an artifact (suggested PR title / commit title / commit body / wiki entry / issue body) MUST be ASCII-only. Subagents mirror the prompt's literal style when emitting artifacts; non-ASCII typographic characters (em-dash `—` / en-dash `–` / box-drawing `─` / smart quotes `' " ' "` / JA characters in example PR titles) leak through and persist in merged artifacts because governance CI checks PR titles only — commit bodies, wiki entry bodies, and issue bodies are not byte-checked.
+ 
+@@ -80,10 +97,17 @@ Detection signs:
+ - Re-reading own prompt: surrounding prose mixes typographic chars freely while example fields inherit the same mix.
+ - Subagent reports "pre-existing em-dash found in previously-merged artifact" — the propagation already happened.
+ 
++</delegation-prompt-hygiene-ascii-only-example-text>
++
+ ## Memory-only knowledge does not transfer to subagent
++<memory-only-knowledge-does-not-transfer-to-subagent>
+ 
+ Parent-side memory (workspace memory/feedback.md, memory/project.md, in-session corrections) is NOT auto-loaded into the subagent's context. The subagent only sees the issue body, the auto-loaded Li+ rules and skills, and the delegation prompt itself.
+ 
+ If subagent behavior depends on memory content, the parent MUST inject the relevant literal into the delegation prompt. "Memory has it, so subagent will pick it up" has failed multiple times in past sessions; pattern-match this assumption and reject it at delegation-construction time.
+ 
+ The cure is to either (i) inject the literal text into the prompt, or (ii) escalate the memory entry through promotion to Li+ rules so it auto-loads — promotion is the durable fix; injection is the per-task workaround.
++
++</memory-only-knowledge-does-not-transfer-to-subagent>
++
++</subagent-delegation>

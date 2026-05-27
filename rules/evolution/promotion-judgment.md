@@ -4,11 +4,13 @@ alwaysApply: true
 layer: L2-evolution
 ---
 
-# Promotion Judgment
 <promotion-judgment>
 
-## Position
+# Promotion Judgment
+
 <position>
+
+## Position
 
 Layer = L2 Evolution Layer
 Operates the promotion judgment from memory observation into Li+ canonical rules (`rules/` / `skills/` / `adapter/`) as a numeric gate at cluster granularity.
@@ -17,8 +19,9 @@ Load timing = always-on (observation occurs across the entire session)
 
 </position>
 
-## Trigger
 <trigger>
+
+## Trigger
 
 A drift / pattern observation occurring at any moment of dialogue / task / spec interaction.
 Concretely:
@@ -29,16 +32,18 @@ Concretely:
 
 </trigger>
 
-## Cluster
 <cluster>
+
+## Cluster
 
 Whether observations are "the same kind" is judged by the AI via semantic similarity. Judge = AI.
 Design choice: do not criteria-ize the judgment. Reason: criteria-ization trades reproducibility for observation-noise inclusion and shrinks cluster granularity. The reproducibility tradeoff is accepted.
 
 </cluster>
 
-## Tally
 <tally>
+
+## Tally
 
 Storage = `memory/promotion_tally.md` (workspace-local, gitignored)
 Format (YAML-like markdown):
@@ -58,8 +63,9 @@ No past-occurrence carryover. Expired clusters are deleted in full.
 
 </tally>
 
-## Threshold Rules
 <threshold-rules>
+
+## Threshold Rules
 
 | state | action |
 |---|---|
@@ -70,8 +76,9 @@ No past-occurrence carryover. Expired clusters are deleted in full.
 
 </threshold-rules>
 
-## Exception
 <exception>
+
+## Exception
 
 The AI holds no exception criteria internally.
 Future-reoccurrence prediction at observation time invites over-judgment (retaining "this is important" from one observation), so it is prohibited.
@@ -80,8 +87,9 @@ Override storage = a memory area outside the tally (e.g. an override section in 
 
 </exception>
 
-## Issue Creation Metadata
 <issue-creation-metadata>
+
+## Issue Creation Metadata
 
 Fixed metadata at creation:
 - type label: AI selects from `spec` / `bug` / `enhancement` based on the observation target
@@ -92,8 +100,9 @@ Fixed metadata at creation:
 
 </issue-creation-metadata>
 
-## Relation to L1 Update Gating
 <relation-to-l1-update-gating>
+
+## Relation to L1 Update Gating
 
 This mechanism is the observation → issue-creation front stage. Issue creation does not directly establish a L1 Model Layer spec update.
 A post-creation L1 spec update additionally requires the long-horizon observation defined in `skills/evolution-l1-update-gating/SKILL.md`.
@@ -101,8 +110,9 @@ Promotion Judgment proves the noise floor has been crossed; L1 Update Gating aut
 
 </relation-to-l1-update-gating>
 
-## Relation to Persistence Tiering
 <relation-to-persistence-tiering>
+
+## Relation to Persistence Tiering
 
 The memory ↔ docs binary sorting defined by `skills/evolution-persistence-tiering/SKILL.md` continues to apply.
 On top of that, this mechanism handles "memory entry → canonical rule (`rules/` / `skills/` / `adapter/`) promotion" as an independent axis.

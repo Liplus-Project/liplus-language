@@ -4,8 +4,9 @@ description: Invoke when committing and pushing; defines git push primary and fa
 layer: L4-operations
 ---
 
-# Commit And Push
 <commit-and-push>
+
+# Commit And Push
 
 Git push:
 primary          = git push origin {session-branch}:{target-branch}

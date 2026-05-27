@@ -4,8 +4,9 @@ description: Invoke when calling GitHub notifications API directly (PATCH / PUT 
 layer: L4-operations
 ---
 
-# Notifications API
 <notifications-api>
+
+# Notifications API
 
 PATCH  /notifications/threads/{id}   -> 205  read (stays in Inbox)
 PUT    /notifications {"read":true}  -> 205  mark all read

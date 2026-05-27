@@ -4,8 +4,9 @@ description: Invoke when committing behavior or spec changes to ensure requireme
 layer: L4-operations
 ---
 
-# Docs And Requirement Ownership
 <docs-and-requirement-ownership>
+
+# Docs And Requirement Ownership
 
 Distribution projects must have requirements spec as minimum docs.
 New or small projects: one requirements spec file is minimum acceptable form.

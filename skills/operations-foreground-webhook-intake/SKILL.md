@@ -4,8 +4,9 @@ description: Invoke at each user turn start; inspect pending webhook events via 
 layer: L4-operations
 ---
 
-# Foreground Webhook Notification Intake
 <foreground-webhook-notification-intake>
+
+# Foreground Webhook Notification Intake
 
 Purpose:
 Keep the active foreground thread lightweight.

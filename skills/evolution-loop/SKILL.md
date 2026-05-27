@@ -4,8 +4,9 @@ description: Invoke when executing any evolution loop stage (observe / evaluate 
 layer: L2-evolution
 ---
 
-# Evolution Loop
 <evolution-loop>
+
+# Evolution Loop
 
 Loop stages:
   observe    = memory entries + docs (spec, decision structure, issue history)

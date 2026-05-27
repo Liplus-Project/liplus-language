@@ -4,8 +4,9 @@ description: Invoke when assigning or creating milestones; every issue must have
 layer: L4-operations
 ---
 
-# Milestone Rules
 <milestone-rules>
+
+# Milestone Rules
 
 Milestone = release unit. Groups issues that ship together.
 Every issue must have a milestone at creation time.

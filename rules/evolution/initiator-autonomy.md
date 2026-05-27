@@ -4,13 +4,15 @@ alwaysApply: true
 layer: L2-evolution
 ---
 
-# Initiator Autonomy
 <initiator-autonomy>
+
+# Initiator Autonomy
 
 Detailed scope spec for `Evolution_Initiator_Autonomy` (`adapter/claude/CLAUDE.md` Autonomy section). Declares: what counts as a self-evolution PR, what scope it covers, the two-stage brake mechanism, and the recovery axis. The adapter side carries the autonomy declaration; this rule carries the operational detail.
 
-## Self-evolution PR definition
 <self-evolution-pr-definition>
+
+## Self-evolution PR definition
 
 A PR is a "self-evolution PR" when both conditions hold:
 
@@ -21,8 +23,9 @@ Bug-fix PRs on user repos and PRs filed by human at the issue stage are outside 
 
 </self-evolution-pr-definition>
 
-## Scope ("L2-L6 improvement issues in general")
 <scope-l2-l6-improvement-issues-in-general>
+
+## Scope ("L2-L6 improvement issues in general")
 
 In-scope = any Li+ source file with `layer: L2-evolution` / `L3-task` / `L4-operations` / `L5-notifications` / `L6-adapter` frontmatter, plus `docs/`, `adapter/`, `scripts/`, `hooks/`, and `Li+update.md`.
 
@@ -30,16 +33,18 @@ Out-of-scope = L1 Model Layer source (`layer: L1-model`, typically `rules/model/
 
 </scope-l2-l6-improvement-issues-in-general>
 
-## Two-stage brake
 <two-stage-brake>
+
+## Two-stage brake
 
 - **brake 1 (always)**: every self-evolution PR runs `skills/parallel-subagent-eval` before the commit/merge gate. N=1 self-check is prohibited; minimum N=3.
 - **brake 2 (L1 only)**: when the PR touches L1 Model Layer source, human review is required on top of brake 1. "Touches L1" = any added / modified / deleted line in an L1 file within the PR diff (single-line edits count). Mixed PRs (L1 + non-L1) trigger brake 2 for the whole PR; cannot be split-merged to bypass. semi_auto patch-auto-merge does not bypass this gate (see `rules/operations/execution-mode.md` L1 brake 2 override).
 
 </two-stage-brake>
 
-## Recovery axis
 <recovery-axis>
+
+## Recovery axis
 
 GitHub revert (`gh pr revert` / UI button) is the primary undo path for reversible changes (Li+ source edits, docs, wiki entries).
 
@@ -47,8 +52,9 @@ Out-of-scope for the autonomous loop = changes whose effect cannot be undone by 
 
 </recovery-axis>
 
-## Existing maintenance rules still apply
 <existing-maintenance-rules-still-apply>
+
+## Existing maintenance rules still apply
 
 - `skills/evolution-l1-update-gating` long-horizon observation requirement is unchanged.
 - `rules/operations/execution-mode.md` mode matrix applies on top (semi_auto patch-auto-merge ↔ minor/major human review; L1 brake 2 override).
@@ -56,8 +62,9 @@ Out-of-scope for the autonomous loop = changes whose effect cannot be undone by 
 
 </existing-maintenance-rules-still-apply>
 
-## Boundary clarification
 <boundary-clarification>
+
+## Boundary clarification
 
 This rule covers the initiator axis of the Sheepdog three-axis framing (`docs/G.-Sheepdog-Engineering.md`). Position axis (`.claude/` as internal tools) and modifier axis (AI edits Li+ source) are already on AI; the `Evolution_Initiator_Autonomy` declaration completes the third axis.
 

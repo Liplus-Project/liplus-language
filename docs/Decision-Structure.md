@@ -17,7 +17,7 @@
 
 **履歴 (log) ではなく構造 (structure) である**: Decision Structure は時間順 append-only の log ではない。判断ノード (state 形エントリ) と supersede / depend / conflict edge による意味グラフであり、volume は refine / replace で安定する。維持運用は refactor (normal operation) として扱う。
 
-実体エントリは GitHub Wiki にあり、`github-rag-mcp >= v0.8.4` の wiki indexing 経由で RAG-MCP のセマンティック検索対象に入る（書くだけで検索される）。
+実体エントリは GitHub Wiki にあり、`github-rag-mcp >= v0.8.5` の wiki indexing 経由で RAG-MCP のセマンティック検索対象に入る（書くだけで検索される）。
 
 書き味は wiki の casual write（PR ceremony 不要、git push 直接）に乗る。仕様書（1-6 / A-D）の write は重い PR フローに残し、判断構造の write は軽量に保つ非対称設計。
 

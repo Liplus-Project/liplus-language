@@ -20,9 +20,6 @@ Step 3 is conditional output gating, not unconditional report.
 Hook coordination:
 `on-session-start.sh` persists and surfaces at session open: recent release tags, decision structure index head, rules/ tree (fetch address table for cold-start-loaded rules cache), self-evaluation log head, cold-start rule literal. Since build-2026-05-11 the hook emits material in diff-only mode (matcher = startup): only sections whose body changed since the previous startup invocation are re-emitted. The cold-start rule literal is always re-anchored regardless of diff state.
 
-Filename discipline side effect:
-The rules tree above acts as the in-context index for cold-start-loaded rule literals. AI looks up "which rule path should I read at this judgment moment" against this tree, so filename semantic resolution directly drives cache-invalidation precision. Adding / renaming a `rules/*.md` file therefore raises the operational weight of the kebab-case slugify discipline in `rules/model/liplus-coding-rule.md` Source File Format — a low-signal filename degrades the index for every subsequent session.
-
 Hook emission states (matcher = startup):
 - full emit = first session after install, fail-safe (state missing / unreadable / sha256 unavailable), or every section changed. All sections shown.
 - diff-only = some sections changed since prior session. Only changed sections shown.

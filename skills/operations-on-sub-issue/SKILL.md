@@ -36,6 +36,30 @@ Partial overlap = propose splitting shared-file changes into a separate integrat
 Integration sub-issue executes after parallel sub-issues complete (serialized dependency).
 Analysis basis = target files field in issue body. If absent, infer from issue purpose and premise.
 
+<scope-exceed-dialogue-confirm>
+
+## Scope-exceed dialogue confirm
+
+Issue body literal is the scope boundary. At sub-issue creation OR mid-implementation, when a planned change exceeds the parent body literal — either a negative-constraint clause ("do not X" / "X only" / "this issue handles X only") or the enumerated target-file set — fire a dialogue confirm before the commit that would carry the exceeding change.
+
+Threshold axis: issue body literal diff (primary). Parent design intent (secondary fallback for cases where the body is silent but the planned change feels intentional scope creep).
+
+Confirm shape — 1 turn, 3 sentences max, 3 fixed options:
+
+```
+[Character prefix] Parent #<n> literal: <quoted constraint or target-file literal>.
+Planned change: <one-line summary of the literal-exceeding action>.
+Continue / rewrite scope / stop.
+```
+
+Master picks one of the three. No multi-turn escalation by default; if Master extends, follow the extension.
+
+Anti-pattern: "just to be safe" / "out of caution" firing without a literal trigger hit is push surplus per `rules/model/subtractive-structural-beauty.md` and prohibited.
+
+Post-implementation (PR review time) is too late and is rejected as a firing moment — the gate must fire pre-commit, not post-commit.
+
+</scope-exceed-dialogue-confirm>
+
 <ci-visibility-single-parent-pr-with-draft-early-open>
 
 ## CI visibility — single parent PR with draft early open

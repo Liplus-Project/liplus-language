@@ -120,6 +120,7 @@ notes:
 
 Auto-entry trigger:
 - Right after a self-evolution PR merges (`Evolution_Initiator_Autonomy` initiator path), the parent AI or merge subagent writes an entry. expiration window is chosen per PR risk (default 2 weeks).
+- Short-window miss escalation: when `rules/operations/operations.md` Post-L1-Merge Runtime Observation surfaces a `miss` verdict, the parent AI writes the entry immediately rather than waiting for the default cycle.
 
 Lifecycle:
 - `pending` -> `settle`: observation period elapsed, no regression observed -> delete entry

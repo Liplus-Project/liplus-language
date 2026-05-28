@@ -42,6 +42,14 @@ Out-of-scope = L1 Model Layer source (`layer: L1-model`, typically `rules/model/
 
 </two-stage-brake>
 
+<post-merge-axis>
+
+## Post-merge axis
+
+The brakes above are pre-merge gates. Post-merge short-window observation (5-min runtime check for L1 changes) runs on a separate axis — see `rules/operations/operations.md` Post-L1-Merge Runtime Observation.
+
+</post-merge-axis>
+
 <recovery-axis>
 
 ## Recovery axis

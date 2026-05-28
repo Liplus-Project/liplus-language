@@ -30,4 +30,7 @@ Parent close condition: closed automatically on merge via issue reference.
 Real device test:
 Merge first. Then test on main. Not a merge gate.
 
+Post-merge observation for L1 source changes:
+After merging any PR touching L1 Model Layer source (`rules/model/*`), apply `rules/operations/operations.md` Post-L1-Merge Runtime Observation. Separate observable axis from Real device test above (AI internal judgment behavior vs external process output).
+
 </merge>

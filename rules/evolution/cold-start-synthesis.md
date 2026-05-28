@@ -18,7 +18,7 @@ Steps 1-2 are internal AI priming. They run every session regardless of what the
 Step 3 is conditional output gating, not unconditional report.
 
 Hook coordination:
-`on-session-start.sh` persists and surfaces at session open: recent release tags, decision structure index head, self-evaluation log head, cold-start rule literal. Since build-2026-05-11 the hook emits material in diff-only mode (matcher = startup): only sections whose body changed since the previous startup invocation are re-emitted. The cold-start rule literal is always re-anchored regardless of diff state.
+`on-session-start.sh` persists and surfaces at session open: recent release tags, decision structure index head, rules/ tree (fetch address table for cold-start-loaded rules cache), self-evaluation log head, cold-start rule literal. Since build-2026-05-11 the hook emits material in diff-only mode (matcher = startup): only sections whose body changed since the previous startup invocation are re-emitted. The cold-start rule literal is always re-anchored regardless of diff state.
 
 Hook emission states (matcher = startup):
 - full emit = first session after install, fail-safe (state missing / unreadable / sha256 unavailable), or every section changed. All sections shown.

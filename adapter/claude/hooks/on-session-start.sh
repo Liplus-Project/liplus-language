@@ -265,6 +265,27 @@ if [ -f "$DECISION_STRUCTURE" ]; then
 fi
 register_section "decision_structure_head" "Decision structure index (docs/Decision-Structure.md head)" "$DECISION_HEAD"
 
+# --- rules/ tree (fetch address table for cold-start-loaded rules cache) ---
+# Issue #1422: cold-start loads the rule literal text into context, but at the
+# judgment moment AI's attention does not always reach back to the underlying
+# rule. Emitting the path tree of rules/ as an in-context index lets the AI
+# resolve "which rule path should I read" without scanning loose headers across
+# the prior emission. Filename = semantic identifier (kebab-case slugify of the
+# heading topic) per rules/model/liplus-coding-rule.md Source File Format, so
+# the path alone carries enough signal; no description extraction needed here.
+#
+# Generation is dynamic (per session), not a static artifact, to avoid stale
+# cache after rule add / rename. Sits inside the diff-only mode via
+# register_section, so unchanged trees do not re-emit.
+#
+# Scope = rules/ only. skills/ is handled by the host auto-invoke router on a
+# separate axis; adapter/ is not a judgment-time fetch target.
+RULES_TREE=""
+if [ -d "$LIPLUS_DIR/rules" ]; then
+  RULES_TREE=$(cd "$LIPLUS_DIR" && find rules -type f -name '*.md' 2>/dev/null | sort)
+fi
+register_section "rules_tree" "Rules tree (fetch address table for rules/ cache)" "$RULES_TREE"
+
 # --- most recent release tag (includes prereleases) ---
 LATEST_RELEASE=$(gh release list -R Liplus-Project/liplus-language --limit 3 2>/dev/null \
   | head -n 3)

@@ -111,6 +111,31 @@ Detection signs that the stop condition is being misapplied:
 
 </autonomous-run-stop-condition>
 
+<post-l1-merge-runtime-observation>
+
+## Post-L1-Merge Runtime Observation
+
+For L1 substrate changes (`rules/model/*`), apply a short-window observation after merge, paired with the Autonomous Run Stop Condition above. The observable is AI internal judgment behavior at the rule-application moment, while the prod-deploy observation above tracks external process output. Different observable axes, same nominal 5-min budget.
+
+Invocation anchor: this procedure runs through `skills/operations-on-merge/SKILL.md` post-merge invocation, which fires reliably at the merge moment. The procedure body within the 5-min window remains recall-dependent — a hook-based replacement is tracked as future work in #1413 candidate A per `rules/model/subtractive-structural-beauty.md` procedure-vs-structure binary.
+
+Required observation set within ~5 min after merge:
+
+1. **Trigger sample**: feed one representative prompt that should fire the new or changed rule at its application moment. Verify the rule fires.
+2. **Self-eval entry**: write a 3-5 line verdict (fire / partial / miss) to `memory/self-evaluation_log.md`. Miss verdict escalates immediately to the 2-week post-merge cycle of `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format.
+
+Optional (best-effort):
+
+- 5-axis gate spot-check: run 1-2 judgment formations through the gate axis the change touched. Skip when the change does not touch a specific axis.
+
+Separation from existing observation axes:
+
+- `skills/evolution-l1-update-gating/SKILL.md` long-horizon observation = pre-merge threshold gate, applied at issue formation time.
+- `memory/self-evolution-observation.md` 2-week cycle = post-merge long window, applied to detect sustained regression.
+- Brake 1 (`skills/parallel-subagent-eval`) + Brake 2 (Master review for L1) = pre-merge gates. This observation runs post-merge and on a separate axis.
+
+</post-l1-merge-runtime-observation>
+
 <operations-label>
 
 ## Operations Label

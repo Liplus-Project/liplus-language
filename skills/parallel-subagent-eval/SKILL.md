@@ -22,7 +22,7 @@ Fires at any of the following moments:
 - Spec revision proposal needs orthogonal verification on the rule semantic consistency axis
 - **Self-evolution PR brake (mandatory)**: any self-evolution PR (per `Evolution_Initiator_Autonomy` definition: AI-filed issue + AI implementation + modifies Li+ source under `LI_PLUS_REPO`) runs this method before the commit/merge gate. This is brake 1 of the two-stage brake. L1 Model Layer source change additionally requires human review (brake 2; see `rules/operations/execution-mode.md` L1 brake 2 override). semi_auto patch-auto-merge does not bypass brake 1.
 
-Axis selection depends on the nature of the draft. Examples:
+Axis selection: a fixed axis (impression-literal detection, see below) is always included for Li+ source drafts regardless of spec nature. Additional axes are selected per draft nature. Examples:
 - skill description edit: ease of AI invoke judgment / maintainer-side readability / coverage gap
 - rule body edit: behavior consistency across configured / not-configured paths / detect semantic conflict with adjacent rules / orthogonality against existing scope clauses
 
@@ -64,6 +64,39 @@ Choose based on the asymmetry of the judgment:
 
 </design-dimensions>
 
+<impression-literal-detection-axis>
+
+## Fixed axis: impression-literal detection
+
+For Li+ source drafts (`rules/*` / `skills/*` / `adapter/*`), impression-literal detection is a fixed axis included alongside the spec-nature axes selected per draft. It covers content-independent rhetorical drift at the post-write pre-merge surface, distinct from `rules/model/trigger-check-gate.md` Frame check (pre-judgment surface protecting dialogue).
+
+Operational criterion: a phrase is impression literal if removing it does not change the rule's behavior semantic. Rhetorical layer that does not load-bear on the spec's behavior regulation is the detection target.
+
+Positive (detection target):
+- Push surplus phrases per `rules/model/subtractive-structural-beauty.md` Detection signs ("just in case", "as insurance", "as a safety net", "as comfort", "for completeness", "for future reference", "you might also want to consider").
+- Rhetorical evaluation of result state ("leaves only X", "earns nothing but X", "provides only X").
+- Emotional-load adjectives written into spec literal ("comfort", "reassurance", "satisfaction").
+- Borrowed vocabulary from external framing without explicit referent.
+
+Negative (protected, NOT detection target):
+- Behavior literals: "prohibited", "required", "must", "fires", "applies".
+- Established Li+ structural vocabulary: "load-bearing", "surface", "axis", "layer", "substrate".
+- Detection signs / tells enumerations themselves (the body of `subtractive-structural-beauty.md` Detection signs is itself a load-bearing observation surface — protected, not over-applied recursively).
+- Quotes with explicit referent (literal source citation with path).
+- Explanatory rationale that prevents a known misinterpretation (e.g. justifying a non-default threshold). Protected when removing it would invite future revision-by-impression; impression literal only when removal leaves both the behavior semantic and the revision stability unchanged.
+
+Test: can this sentence be removed without changing the rule's behavior semantic? Yes → impression literal.
+
+Aggregation (narrower than the default safer-side OR):
+- 2 or more of N=3 flag the same literal → refine immediately.
+- 1 of N=3 flags → append the flagged literal to the PR self-review comment per Procedure step 7; do not auto-refine.
+
+False-negative backstop: all-3-miss cases route to post-merge observation per `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format (2-week cycle). Post-merge drift surfacing is on a separate axis from this pre-merge detection.
+
+Rationale: behavior-vs-impression boundary is context-dependent, so N=1 flag carries false-positive risk. The threshold prevents over-trimming load-bearing L1 spec phrasing.
+
+</impression-literal-detection-axis>
+
 <procedure>
 
 ## Procedure
@@ -73,7 +106,7 @@ Choose based on the asymmetry of the judgment:
 1. **Prepare draft** - Draft the edit content
 2. **Apply operational copy** - Apply the draft to `.claude/skills/<name>/SKILL.md` or `.claude/rules/**/*.md`. Source remains on the experimental branch
 3. **Parallel subagent spawn** - Select the three Design Dimensions axes (N, M, P) based on draft nature and spawn subagents in parallel. Default is `N=3, M=all axes, P=1`, total invocation = 3. In the default pattern, the subagent prompt explicitly instructs "answer each M axis question independently without referencing other axes' answers" packed into a single prompt. If prompt complexity is high enough that cross-axis echo bias suppression is uncertain, switch to the M=1 axis-separated exception pattern (total invocation = `N x axis_count`); if premise variation is needed, switch to P>1 (total invocation = `N x P`) (see Design Dimensions). Prompts must be self-contained (do not let parent context leak in)
-4. **Aggregate verdict** - Aggregate cross-axis judgment per the Design Dimensions aggregation rule (safer-side OR for delete/keep, AND for adopt/reject, three-value consistent / partial / negative classification for intermediate)
+4. **Aggregate verdict** - Aggregate cross-axis judgment per the Design Dimensions aggregation rule (safer-side OR for delete/keep, AND for adopt/reject, three-value consistent / partial / negative classification for intermediate). Fixed axes may override the default per-axis (see Fixed axis: impression-literal detection)
 5. **Runtime restore** - Restore `.claude/` to tag-match state (revert the operational copy to pre-draft)
 6. **Judgment** - Based on the verdict: consistent -> push the spec change toward implementation / partial / negative -> revise draft and re-run from step 2 (re-run must also go through step 5 restore first) / abort
 7. **Externalize** - Record the verdict and the adoption judgment in the parent issue body / PR self-review. If the judgment has settled, also append to decision structure per `skills/evolution-decision-structure-write`

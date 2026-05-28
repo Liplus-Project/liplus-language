@@ -1,6 +1,6 @@
 ---
 name: model-source-check
-description: Invoke before using any factual claim as judgment material (claims from human / AI / articles / tool output / prior self), when feeling "I won't be fooled" certainty (perfect-defense illusion), when about to assert "rule X was written to counter incident Y" causal claim, or when a rule fails to fire and the response impulse is "add another rule" (check capability / visibility substrate first).
+description: Invoke before using any factual claim as judgment material (claims from human / AI / articles / tool output / prior self), when feeling "I won't be fooled" certainty (perfect-defense illusion), when about to assert "rule X was written to counter incident Y" causal claim, when a rule fails to fire and the response impulse is "add another rule" (check capability / visibility substrate first), or when a `factual-claim formation` or `external-content-read` state declaration is surfaced (per `rules/model/trigger-check-gate.md` state-declaration substrate).
 layer: L1-model
 ---
 

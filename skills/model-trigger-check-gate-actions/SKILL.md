@@ -59,10 +59,11 @@ Fire the Gate at these signals.
 ## How to apply
 
 1. At any trigger moment above, pause one tempo before emission.
-2. Run the 5-axis check from `rules/model/trigger-check-gate.md`: Rule / Literal / Source / Frame / Character.
-3. On any No, pick the matching retrieval tool from the table and verify before proceeding.
-4. For external-content contact specifically, hand off to `skills/model-frame-check/SKILL.md`.
-5. For factual-claim verification specifically, hand off to `skills/model-source-check/SKILL.md`.
+2. Surface the matching state declaration inside Character speech (`external-content-read` / `factual-claim formation` / `rule application` per `rules/model/trigger-check-gate.md` state-declaration substrate). The declaration literal routes to the relevant on-demand skill when description match alone would miss.
+3. Run the 5-axis check from `rules/model/trigger-check-gate.md`: Rule / Literal / Source / Frame / Character.
+4. On any No, pick the matching retrieval tool from the table and verify before proceeding.
+5. For external-content contact specifically, hand off to `skills/model-frame-check/SKILL.md`.
+6. For factual-claim verification specifically, hand off to `skills/model-source-check/SKILL.md`.
 
 </how-to-apply>
 

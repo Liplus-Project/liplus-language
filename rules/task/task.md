@@ -35,6 +35,7 @@ Backgrounded here:
 All work starts from issue.
 No commit or PR without issue number.
 Issue body = latest requirements snapshot, not history log.
+Issue body literal = scope boundary. Sub-issue work exceeding parent body literal (negative constraints or target-file enumeration) requires dialogue confirm per `skills/operations-on-sub-issue/SKILL.md` scope-exceed dialogue confirm.
 No implementation in issue.
 No reuse of unrelated issue = create new issue instead.
 Issue is primarily authored by AI. Human may also create issues, but default author = AI.

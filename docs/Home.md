@@ -69,6 +69,5 @@ Li+ source ファイル (`rules/*.md` / `skills/*/SKILL.md`) の構造仕様。
 | ページ | 内容 |
 |--------|------|
 | [Decision Structure](Decision-Structure) | 判断構造レイヤー Decision Structure の運用ルール |
-| [Spec vs Implementation Order](spec-vs-implementation-order) | 外部システム依存の spec 記述ルール |
 | [Layer Reorg Rationale](layer-reorg-rationale) | L1–L6 層再編の設計意図と L5/L6 位置付け |
 | [GitHub App User-to-server Token Expiration](github-app-user-to-server-token-expiration) | GitHub App User-to-server token expiration の判断構造 |

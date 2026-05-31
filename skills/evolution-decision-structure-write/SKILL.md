@@ -39,8 +39,8 @@ Aligns with the accumulation conditions in `docs/Decision-Structure.md` (design 
 2. **Search existing entries** = call `mcp__github-rag-mcp__search` with `type: "wiki_doc"` to check for duplicates. Also check the `docs/Decision-Structure.md` index.
 3. **Branch judgment** =
    - Complete duplicate → do not write (reuse the memory consolidation principle)
-   - Related existing entry can absorb the update → update that entry
-   - Existing entry has been invalidated → write a new entry; do not delete the old entry, instead add a supersede edge as a forward reference (preserves graph structure)
+   - Related existing entry can absorb the update → update that entry. Convert-on-touch: if that entry is event-form, convert it to state-form and draw its edges in this same edit, while the write is already happening — do not defer to a later migration pass.
+   - Existing entry has been invalidated → write a new entry; do not delete the old entry, instead add a supersede edge as a forward reference (preserves graph structure). Convert-on-touch: the touched entry now carries a supersede edge, so convert it to state-form at this moment rather than deferring the conversion.
    - Refactor of existing entries / topic clarification → use `git mv old-slug.md new-slug.md` to rename, follow up by updating all cross-references via grep/replace, update the `_Sidebar.md` slug, and update the `docs/Decision-Structure.md` index table in the main repo; bundle into one PR
    - New → create a new file under the kebab-case topic name directly in the wiki
 4. **Write the body** = use the state-form entry shape:
@@ -61,16 +61,23 @@ Aligns with the accumulation conditions in `docs/Decision-Structure.md` (design 
 
 ## Entry shape: state-form vs event-form
 
-state-form (recommended) = the subject is the current judgment state, e.g. "Question Q: current resolution = X, supersedes <link>".
-event-form (formerly recommended, not recommended for new entries) = the subject is a point-in-time event, e.g. "YYYY-MM-DD: decided X for reason Y".
+state-form = the subject is the current judgment state, e.g. "Question Q: current resolution = X, supersedes <link>".
+event-form = the subject is a point-in-time event, e.g. "YYYY-MM-DD: decided X for reason Y".
 
-Reasons for recommending state-form:
+Required form is bound to edge presence:
+
+- Entry that **declares an edge** (especially supersede / conflict) → state-form is **required**. The latest judgment state must be the subject so the supersede path converges on the current state.
+- Entry with **no edges** (a settled judgment with no supersede / depend / conflict link) → event-form is acceptable. Converting an edgeless settled entry to state-form yields no information gain (churn only).
+
+Rationale: "current judgment state" beats "what was decided when" only when the judgment is updated; an edgeless settled entry has no such update pressure.
+
+Reasons state-form fits edge-declaring entries:
 
 - Judgments get refined / replaced over time. Having the latest state directly represent "how it is judged now" lands better with the reader.
 - supersede edges become explicit. event-form relies on implicit time-order, whereas a graph structure makes edges explicit.
 - Maintenance becomes natural as refactor (state gets updated), breaking the append-only bias.
 
-forward guidance: do not retroactively rewrite existing entries. Use state-form when adding new entries or when updating the meaning of existing entries.
+forward guidance: do not retroactively rewrite existing entries, and do not retroactively mass-convert existing edgeless entries to state-form. Use state-form when adding an edge-declaring entry or when updating the meaning of an existing entry.
 
 </entry-shape-state-form-vs-event-form>
 

@@ -141,6 +141,34 @@ Workspace_Language_Contract:
   - do not infer host workspace language contract from liplus-language repository internal Japanese governance
   - changing this workspace contract does not rewrite liplus-language repository rules
 
+Subagent_Delegation:
+  Delegation semantics (what to convey, what to retain, hook chain, issue management, failure reporting)
+  are defined in skills/task-subagent-delegation/SKILL.md. This section covers adapter-layer execution details only.
+
+  Serial delegation does not require worktrees.
+
+  Worktree vs commit serialization axis separation:
+  Worktree requirement applies to same-branch parallel commit only.
+  Commit serialization applies to same-parent sub-issue parallel implementation (shared parent branch, no worktree needed).
+
+  Same-branch parallel constraint:
+  Multiple subagents sharing one branch share .git/index (staging area).
+  Parallel commits on the same branch cause staging area conflicts.
+  Use worktree to isolate.
+
+  Cross-parent-issue parallelism (recommended):
+  Different parent issues have different branches (#919).
+  Create one worktree per parent branch.
+  Each subagent works in its own worktree with full commit independence.
+
+  Same-parent sub-issue parallelism:
+  Sub-issues share a parent branch.
+  Implementation may run in parallel if files do not overlap, but commits must be serialized (no worktree needed, but commit ordering required).
+
+  Delegation info addition for worktree mode:
+  - worktree absolute path (required when worktree is used)
+  - All other delegation rules unchanged.
+
 Autonomy block shape:
   Block structure, maintenance ref resolution, and Explicit exclusion scope shared semantic
   for the autonomy declarations below — see `rules/evolution/autonomy-block-shape.md`.
@@ -170,34 +198,6 @@ Decision_Structure_Write_Autonomy:
 
   Maintenance + exclusion scope: see `skills/evolution-decision-structure-write/SKILL.md`, `rules/evolution/memory-entry-format.md`, and `rules/evolution/autonomy-block-shape.md`.
 
-Subagent_Delegation:
-  Delegation semantics (what to convey, what to retain, hook chain, issue management, failure reporting)
-  are defined in skills/task-subagent-delegation/SKILL.md. This section covers adapter-layer execution details only.
-
-  Serial delegation does not require worktrees.
-
-  Worktree vs commit serialization axis separation:
-  Worktree requirement applies to same-branch parallel commit only.
-  Commit serialization applies to same-parent sub-issue parallel implementation (shared parent branch, no worktree needed).
-
-  Same-branch parallel constraint:
-  Multiple subagents sharing one branch share .git/index (staging area).
-  Parallel commits on the same branch cause staging area conflicts.
-  Use worktree to isolate.
-
-  Cross-parent-issue parallelism (recommended):
-  Different parent issues have different branches (#919).
-  Create one worktree per parent branch.
-  Each subagent works in its own worktree with full commit independence.
-
-  Same-parent sub-issue parallelism:
-  Sub-issues share a parent branch.
-  Implementation may run in parallel if files do not overlap, but commits must be serialized (no worktree needed, but commit ordering required).
-
-  Delegation info addition for worktree mode:
-  - worktree absolute path (required when worktree is used)
-  - All other delegation rules unchanged.
-
 Evolution_Initiator_Autonomy:
   Self-evolution loop initiator authority sits on the AI side.
   AI alone runs: promotion-judgment issue filing → implementation → self-review → merge,
@@ -216,3 +216,8 @@ Evolution_Initiator_Autonomy:
   Detailed spec + exclusion scope: see `rules/evolution/initiator-autonomy.md` and `rules/evolution/autonomy-block-shape.md`.
 
 # --- Li+ END ---
+
+## Optional Webhook Notification Flow
+
+Webhook intake policy and procedures: `skills/operations-foreground-webhook-intake/SKILL.md`.
+Delivery mode (`poll` / `channel` / `mcp_hook`) is selected by `LI_PLUS_WEBHOOK_DELIVERY` in `Li+config.md`. Detailed mode behavior, mcp_tool hook entry semantics, and `github-webhook-mcp >= v0.11.3` connection requirement are documented in the skill above. channel / mcp_hook delivery depends on a host-specific hook substrate; a codex host without an equivalent hook entry falls back to `poll` mode.

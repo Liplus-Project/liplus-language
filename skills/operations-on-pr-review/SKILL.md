@@ -41,7 +41,7 @@ if execution_mode == semi_auto:
 
   Per-PR exception (content-based axis, ref `rules/operations/execution-mode.md` semi_auto section):
     Even when the parent issue is minor / major, if the PR's own modification qualifies
-    as patch under release-version.md (governance structure change with no user/system
+    as patch under `skills/operations-on-release` Release Version Rule (governance structure change with no user/system
     observable impact, e.g. language alignment, typo, comment, internal literal, docs
     alignment), the human-check requirement is waived; AI direct-merges.
     AI must record the exception judgment reason in the self-review comment, e.g.

@@ -57,7 +57,7 @@ Defense-in-depth (intentionally two layers):
   Layer 2 = Release human gate (latest flip on real-device verification, prevents catastrophic user exposure).
 
 Per-PR exception (content-based axis):
-  If the PR's own modification qualifies as patch under release-version.md
+  If the PR's own modification qualifies as patch under `skills/operations-on-release` (Release Version Rule)
   (governance structure change with no user/system observable impact, e.g.
   language alignment, typo, comment, internal literal, docs alignment), the
   human-check requirement is waived; AI direct-merges regardless of the parent

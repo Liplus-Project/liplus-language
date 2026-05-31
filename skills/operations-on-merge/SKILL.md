@@ -9,7 +9,7 @@ layer: L4-operations
 # Merge
 
 Merge executor is AI in every mode (trigger / semi_auto / auto).
-AI runs `gh pr merge` after all preconditions pass (self-review + mode-specific human gate, and mergeable state check). GitHub auto-merge handoff is no longer used.
+AI runs `gh pr merge` after all preconditions pass (self-review + mode-specific human gate, and mergeable state check). GitHub auto-merge handoff (`--auto`) is used only in trigger mode, where it fires merge on human approval; semi_auto and auto modes use AI direct merge (no `--auto`). Authoritative: `operations.md` PR auto-merge policy.
 
 Pre-merge mergeable state check:
   gh pr view {pr} -R {owner}/{repo} --json mergeStateStatus --jq '.mergeStateStatus'

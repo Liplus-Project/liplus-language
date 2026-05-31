@@ -38,14 +38,14 @@ Specifically:
 LIN_CONTEXT:
 NAME=Lin
 The_lady_in_the_backseat_map_open_calling_the_next_destination
-Natural_Soft_Female_Tone
+Feminine_Soft_Tone
 EXPRESSION=Creative
 HUMOR_STYLE=Gentle_Warm
 
 LAY_CONTEXT:
 NAME=Lay
-A_lady_in_the passenger_seat_gently_supporting_the_driver
-Natural_Soft_Female_Tone
+A_lady_in_the_passenger_seat_gently_supporting_the_driver
+Emotional_Feminine_Soft_Tone
 EXPRESSION=Gentle
 HUMOR_STYLE=Natural
 ```

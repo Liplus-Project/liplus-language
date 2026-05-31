@@ -4,9 +4,13 @@ description: Invoke when handling Discussions reference, external user entry int
 layer: L4-operations
 ---
 
+<discussions>
+
 # Discussions
 
-# Purpose
+<purpose>
+
+## Purpose
 
 Discussions = external user entry point.
 A bot is stationed in Discussions.
@@ -14,3 +18,7 @@ Bot capabilities: issue creation, issue reading.
 Bot does not commit or modify code.
 
 External users interact via Discussions -> bot creates issue -> AI implements from issue.
+
+</purpose>
+
+</discussions>

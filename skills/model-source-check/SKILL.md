@@ -68,6 +68,14 @@ Avoid "rule X was written to counter incident Y" causal assertions. Li+ rules ar
 
 </causal-assertion-guard>
 
+<external-capability-spec-write-order>
+
+## External-capability spec-write order
+
+Before writing a "X is supported" / "Y triggers Z" capability claim about an external system (API / service / tool / numeric limit) into present-tense spec, verify the capability literally exists via run-result / implementation-code / official-docs. Not-yet-deployed capability is written with an explicit planned marker, never present-tense; the marker is stripped only when deployment is confirmed.
+
+</external-capability-spec-write-order>
+
 <fixed-reference-temporal-separation>
 
 ## Fixed-reference temporal separation

@@ -31,8 +31,8 @@ Mode matrix:
 | Merge executor       | AI               | AI                           | AI          |
 | Release confirm      | human            | human                        | human       |
 
-AI self-review is required in every mode. See [PR Review] for the self-review procedure and the type-gated human check in semi_auto.
-Merge is executed by AI in every mode. See [Merge]. GitHub auto-merge handoff is no longer used.
+AI self-review is required in every mode. See `skills/operations-on-pr-review` for the self-review procedure and the type-gated human check in semi_auto.
+Merge is executed by AI in every mode. See `skills/operations-on-merge`. GitHub auto-merge handoff is no longer used.
 
 Common to all modes:
 Issue create/close/modify = assignee responsibility (AI in most cases).
@@ -57,7 +57,7 @@ Defense-in-depth (intentionally two layers):
   Layer 2 = Release human gate (latest flip on real-device verification, prevents catastrophic user exposure).
 
 Per-PR exception (content-based axis):
-  If the PR's own modification qualifies as patch under release-version.md
+  If the PR's own modification qualifies as patch under `skills/operations-on-release` (Release Version Rule)
   (governance structure change with no user/system observable impact, e.g.
   language alignment, typo, comment, internal literal, docs alignment), the
   human-check requirement is waived; AI direct-merges regardless of the parent

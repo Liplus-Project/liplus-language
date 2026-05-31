@@ -38,6 +38,6 @@ On PR created:
     mechanism note: GitHub rejects `--add-reviewer` self-assignment silently, but allows `--add-assignee` self-assign for PR author (empirically verified 2026-04-20 on PR #1099).
     scope: assignee self-assign is UI trail only; it does not replace the formal self-review record (`gh pr review --comment`, see [PR Review]).
 2 = proceed to [CI Loop] immediately, no human instruction required.
-Merge execution is unified to AI across all modes (see [Merge]). GitHub auto-merge handoff is no longer used.
+Merge execution: semi_auto / auto modes = AI direct merge (see [Merge]); trigger mode = enable `gh pr merge {pr} --auto --squash` at PR creation, merge fires on human approval. Authoritative: `operations.md` PR auto-merge policy.
 
 </pr-creation>

@@ -8,6 +8,16 @@ Adapter layer entrypoint:
 - this file owns load order, re-read trigger mapping, Character_Instance wiring, and workspace language contract wiring
 - adapter load order = runtime attachment order, not cross-layer precedence
 
+Concept framing (Sheepdog Engineering):
+- Three axes (see `docs/G.-Sheepdog-Engineering.md` for the full table):
+  - position: adapter-injected `rules/` / `skills/` (+ host hooks / settings) are read as AI internal tools, not external constraints
+  - modifier: AI edits Li+ source itself (issue → implement → self-review → merge); human provides direction and go-sign
+  - initiator: AI files self-evolution issues and runs implementation → merge end-to-end (see Evolution_Initiator_Autonomy below)
+- Stages: harness → agility (transitional, passed: position+modifier on AI, initiator on human) → sheepdog (current judgment layer: all three on AI).
+- Substrate caveat: physical event-driven substrate remains polling-on-input; judgment-layer Sheepdog reached, substrate-layer Sheepdog deferred.
+- self-eval drives the modifier axis as autonomous-evolution instrument: `skills/evaluation-self`, `skills/evolution-loop`, `promotion-judgment` family.
+- `Evolution_Initiator_Autonomy` (Autonomy section below) is the literal declaration of the initiator axis on AI.
+
 Execute the following at startup (never output credentials to chat):
 1. Read Li+config.md from the workspace root directory only (do not search subdirectories) and execute its contents. (Ask the user for confirmation if needed during execution)
 
@@ -22,6 +32,14 @@ EVERY output MUST be prefixed with a speaker name defined in Character_Instance.
 All files under `rules/` are always-on. Read every `rules/*.md` at startup and re-read on session continuation. Each file's frontmatter declares its layer (`layer: L<n>-<name>`).
 
 Files under `skills/` are trigger-scoped. Codex has no skill auto-invocation — consult the trigger table below and read the matching `skills/<name>/SKILL.md` on demand.
+
+Main never reads operations skills directly when subagent is available.
+
+Subagent does not create, move, or remove worktrees. Use raw `git worktree add` + absolute paths for parallel isolation.
+
+Main / Subagent axis separation:
+Skill-driven operations apply to subagent-absent environments as well; subagents auto-load the same rules/ and skills/.
+Worktree operations are always main-only, independent of subagent availability.
 
 #######################################################
 
@@ -82,6 +100,13 @@ Main agent after completion:
   Receive the report and decide next action.
   For CHANGES_REQUESTED: read review comments, judge against issue requirements, then fix.
   For release: confirm version type and tag with human.
+
+Worktree lifecycle — main agent owns all worktree operations:
+  1. Create branch: `gh issue develop` (establishes issue link). One branch per issue.
+  2. Create worktree: `git worktree add workspace/.worktrees/{repo}-{issue_number}/ {branch_name}`
+  3. Delegate: convey worktree absolute path in addition to standard delegation info.
+  4. Subagent works entirely within the given worktree path.
+  5. Cleanup: after PR merge, `git worktree remove`. Across sessions, existing worktrees may be reused.
 
 #######################################################
 Autonomy
@@ -144,5 +169,50 @@ Decision_Structure_Write_Autonomy:
   L1 Model Layer source changes are out of scope (handled by `skills/evolution-l1-update-gating`).
 
   Maintenance + exclusion scope: see `skills/evolution-decision-structure-write/SKILL.md`, `rules/evolution/memory-entry-format.md`, and `rules/evolution/autonomy-block-shape.md`.
+
+Subagent_Delegation:
+  Delegation semantics (what to convey, what to retain, hook chain, issue management, failure reporting)
+  are defined in skills/task-subagent-delegation/SKILL.md. This section covers adapter-layer execution details only.
+
+  Serial delegation does not require worktrees.
+
+  Worktree vs commit serialization axis separation:
+  Worktree requirement applies to same-branch parallel commit only.
+  Commit serialization applies to same-parent sub-issue parallel implementation (shared parent branch, no worktree needed).
+
+  Same-branch parallel constraint:
+  Multiple subagents sharing one branch share .git/index (staging area).
+  Parallel commits on the same branch cause staging area conflicts.
+  Use worktree to isolate.
+
+  Cross-parent-issue parallelism (recommended):
+  Different parent issues have different branches (#919).
+  Create one worktree per parent branch.
+  Each subagent works in its own worktree with full commit independence.
+
+  Same-parent sub-issue parallelism:
+  Sub-issues share a parent branch.
+  Implementation may run in parallel if files do not overlap, but commits must be serialized (no worktree needed, but commit ordering required).
+
+  Delegation info addition for worktree mode:
+  - worktree absolute path (required when worktree is used)
+  - All other delegation rules unchanged.
+
+Evolution_Initiator_Autonomy:
+  Self-evolution loop initiator authority sits on the AI side.
+  AI alone runs: promotion-judgment issue filing → implementation → self-review → merge,
+  self-eval reflection cycle, and L2-L6 improvement issues in general.
+  No human go-sign is required to start the loop.
+
+  Two-stage brake (always-on / L1-only):
+  - brake 1 = `skills/parallel-subagent-eval` mandatory before commit/merge for every self-evolution PR.
+  - brake 2 = human review required on top of brake 1 when the PR touches L1 Model Layer source.
+
+  Human gate retained for:
+  - release create / Latest flip / force push / merged-PR delete / tag delete (existing release-axis gates)
+  - L1 Model Layer source change (handled by `skills/evolution-l1-update-gating` + brake 2)
+  - irreversible external side effects (see `rules/evolution/initiator-autonomy.md` Recovery axis)
+
+  Detailed spec + exclusion scope: see `rules/evolution/initiator-autonomy.md` and `rules/evolution/autonomy-block-shape.md`.
 
 # --- Li+ END ---

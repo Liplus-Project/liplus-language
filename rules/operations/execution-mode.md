@@ -31,8 +31,8 @@ Mode matrix:
 | Merge executor       | AI               | AI                           | AI          |
 | Release confirm      | human            | human                        | human       |
 
-AI self-review is required in every mode. See `skills/operations-on-pr-review` for the self-review procedure and the type-gated human check in semi_auto.
-Merge is executed by AI in every mode. See `skills/operations-on-merge`. GitHub auto-merge handoff is no longer used.
+AI self-review is required in every mode. See [PR Review] for the self-review procedure and the type-gated human check in semi_auto.
+Merge is executed by AI in every mode. See [Merge]. GitHub auto-merge handoff is no longer used.
 
 Common to all modes:
 Issue create/close/modify = assignee responsibility (AI in most cases).

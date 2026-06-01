@@ -155,11 +155,17 @@ case "$LI_PLUS_CHANNEL_VAL" in
     TARGET_TAG=$(gh release list --repo Liplus-Project/liplus-language --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null)
     ;;
   tag)
+    # ls-remote is the only source of truth here: the target is the newest tag on
+    # the REMOTE, not whatever this clone happens to hold locally. Do NOT fall back
+    # to local `git tag` on ls-remote empty/failure -- a stale clone (remote has a
+    # newer tag, local not yet fetched) would resolve its local newest tag to the
+    # adapter sentinel tag and emit a false "unnecessary". On failure we leave
+    # TARGET_TAG empty so the `[ -z "$TARGET_TAG" ]` check below forces "needed"
+    # (confirm-impossible -> safe side; the normal Li+update version check runs).
+    # Spec: Li+update.md Phase 3.1 (version check mandatory per startup; stale local
+    # clone silent continuation prohibited). See issue #1454.
     TARGET_TAG=$(git -C "$LIPLUS_DIR" ls-remote --tags --sort=-creatordate origin 2>/dev/null \
       | awk -F'refs/tags/' 'NF==2 {print $2}' | sed 's/\^{}$//' | head -n 1)
-    if [ -z "$TARGET_TAG" ]; then
-      TARGET_TAG=$(git -C "$LIPLUS_DIR" tag --sort=-creatordate 2>/dev/null | head -n 1)
-    fi
     ;;
 esac
 

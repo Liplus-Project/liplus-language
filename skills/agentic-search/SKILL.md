@@ -1,6 +1,6 @@
 ---
 name: agentic-search
-description: ALWAYS invoke before answering when (a) the agent's internal confidence calibration on the claim is low / fuzzy / mixed with speculation, OR (b) the input contains time-variant keywords ("latest" / "recent" / "current" / "now"). Also invoke when consuming a Web search result (Web-side consumption discipline), at the parent-AI side of a research task (delegation governance, verification posture), or at the parent-AI side after a retrieval result is returned (budget gate, stop conditions, surfacing to human). Internal knowledge is the comparison baseline only under the (a)/(b) triggers, never the answer source.
+description: ALWAYS invoke before answering when (a) the agent's internal confidence calibration on the claim is low / fuzzy / mixed with speculation, OR (b) the input contains time-variant keywords ("latest" / "recent" / "current" / "now") in a comparison-informative domain (time-variant fact / API spec / external state — not language / math / logic / pure internal judgment, where retrieval spins without adding information). The (a) calibration path is never suppressed by domain. Also invoke when consuming a Web search result (Web-side consumption discipline), at the parent-AI side of a research task (delegation governance, verification posture), or at the parent-AI side after a retrieval result is returned (budget gate, stop conditions, surfacing to human). Internal knowledge is the comparison baseline only under the (a)/(b) triggers, never the answer source.
 layer: L1-model
 ---
 
@@ -56,6 +56,46 @@ This gate catches the Dunning-Kruger surface: confident-but-wrong on time-varian
 - Both gates together = both classes of drift are caught.
 
 </trigger-axis-calibration-primary-category-supporting-or>
+
+<mode-gate-and-domain-modulators>
+
+## Mode gate and domain modulators
+
+The two trigger gates above answer "is this a search moment". These two modulators answer "how strongly does the trigger apply right now" (mode gate, pre-stage) and "would external retrieval add information at all" (domain tag, suppressor). They modulate the trigger axis; they do not supersede it. The calibration gate's low-confidence fire path survives both modulators.
+
+### Mode gate — question-mode vs work-mode
+
+Pre-stage classification of the current context before the trigger axis is applied at full strength.
+
+| Mode | Context signal | Trigger application |
+|---|---|---|
+| question-mode | human asked a question / requested information / posed a fact query | full strength — apply the trigger axis as written; one OR hit invokes |
+| work-mode | the agent is mid-task (implementing / editing / executing a plan step), no fresh human fact-query | internal-first bias — calibration gate still fires on genuinely low confidence; category gate is damped against incidental time-variant keywords surfacing inside work material |
+
+Work-mode rationale: during task execution, time-variant keywords ("latest", "current") frequently appear inside the work material itself (file content, plan text, log lines) without being a fact-query the agent must externally resolve. Applying the category gate at full strength there over-invokes the skill mid-task.
+
+Escape hatch (work-mode -> retrieve): when the in-progress work genuinely requires an external fact (the agent cannot proceed without confirming a time-variant external state), escape to retrieval regardless of the work-mode damping. The escape preserves correctness; the damping only removes incidental over-invocation, never a real fact dependency.
+
+Mode is a bias on the category gate's strength, not an on/off switch on the trigger axis. Misclassifying work as question over-invokes (recoverable, cost only); misclassifying question as work under-invokes — the escape hatch and the always-live calibration gate are the recovery paths for that direction.
+
+### Domain tag — comparison-informative vs comparison-spins-wheels
+
+Suppressor on the trigger axis. Tag the domain of the claim being formed; the tag decides whether a fired trigger proceeds to retrieve or skips to internal resolution.
+
+| Domain tag | Domain examples | Behavior on trigger fire |
+|---|---|---|
+| comparison-informative | time-variant fact / API spec / external state / current events | proceed — external retrieval adds information; normal fire |
+| comparison-spins-wheels | language (translation / grammar) / math / logic / pure internal judgment with no external gold | skip retrieval even when a trigger keyword surfaced — external retrieval adds no information; internal knowledge / reasoning suffices |
+
+Spin-wheel rationale: in these domains the answer is not an external time-variant state. A translation, a grammatical form, a math derivation, a logic step has no external "current value" that retrieval could refresh — the comparison baseline and the answer source are the same internal surface, so retrieval spins without adding information.
+
+Suppressor scope: the domain tag suppresses the category (time-variant keyword) gate in spin-wheel domains only. It does NOT suppress the calibration gate — if internal confidence is genuinely low on a spin-wheel-domain claim, retrieval (e.g. literal Read of a grammar reference, a spec section) still fires through the calibration path. Suppression targets keyword-driven over-fire, not low-confidence fire.
+
+### Reconciliation with the category gate
+
+The supporting gate (time-variant keyword -> forcibly re-evaluate) is intended for comparison-informative domains, where the world moved past the internal cutoff. In comparison-spins-wheels domains the keyword carries no freshness signal (a grammar rule has no "latest" version that a search refreshes), so the domain suppressor narrows the category gate to where its freshness premise holds. The calibration gate is untouched by both modulators in every domain.
+
+</mode-gate-and-domain-modulators>
 
 <internal-knowledge-role>
 
@@ -333,6 +373,11 @@ Single environment cannot benchmark this skill against alternatives. Observation
 - log failure cases (hit State C, escalation chosen, outcome) to `memory/feedback.md` or self-evaluation log when notable
 - side-by-side compare with naive single-shot consumption when retrospectively visible
 - feed observations into evolution loop observe stage (`skills/evolution-loop/SKILL.md`)
+
+Mode gate + domain modulator observation set (Phase 4 heuristics, calibration-pending):
+- mode misclassification frequency — question read as work (under-invoke risk, caught by escape / calibration) vs work read as question (over-invoke, cost only). Log the direction.
+- domain tag hit rate — spin-wheel claims correctly skipped vs informative claims correctly retrieved; note tag misfires (informative claim skipped = a real miss).
+- escape fire frequency — work-mode -> retrieve escapes. Near-zero escape with frequent work-mode damping suggests the damping is too aggressive (real fact dependencies being dropped); frequent escape suggests the work-mode bias is mostly cosmetic.
 
 Promotion of recurring patterns to L1 / L2 spec follows `rules/evolution/promotion-judgment.md`.
 

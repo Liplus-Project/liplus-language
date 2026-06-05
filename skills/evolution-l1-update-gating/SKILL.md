@@ -40,7 +40,7 @@ The long-horizon observation threshold is the safety device for **AI-alone initi
 
 When a human directs the L1 change (human-initiated, AI-implemented), human judgment is present at initiation and brake 2 (human review) gates the PR. That pair fills the role the observation threshold plays under AI-alone initiation; the threshold's substitute-for-absent-human-judgment purpose is already satisfied by the present human judgment + brake 2. The observation threshold is therefore not an independent precondition for a human-directed L1 change.
 
-This is not a relaxation of the gate. AI-alone initiation keeps the observation threshold as a hard requirement, unchanged. The carve-out is scoped to the initiation axis only: human-directed initiation routes through human judgment + brake 2; AI-alone initiation routes through the observation threshold. The two-axis split below is preserved — the observation gate's subject stays AI, brake 2's subject stays human.
+This is not a relaxation of the gate. AI-alone initiation keeps the observation threshold as a hard requirement, unchanged. The carve-out is scoped to the initiation axis only: human-directed initiation routes through human judgment + brake 2; AI-alone initiation routes through the observation threshold. The two-axis split is preserved — the observation gate's subject stays AI, brake 2's subject stays human.
 
 </boundary-clarification>
 

@@ -39,9 +39,11 @@ This substrate is a relief path, not a closure. It adds a second invocation trig
 
 States to declare (minimum load-bearing set):
 
-- **external-content-read** — after Read / WebFetch / human-quoted text / tool output. Routes to Frame check and Source check.
-- **factual-claim formation** — before asserting a fact built from internal inference (definition, history, mechanism). Routes to Source check.
+- **external-content-read** — after Read / WebFetch / human-quoted text / tool output. System-injected tool output (hook output, status marker, auto-generated tag / version / state surfaced by the harness) counts as tool output here — it is source, not pre-verified ground truth. Routes to Frame check and Source check.
+- **factual-claim formation** — before asserting a fact built from internal inference (definition, history, mechanism), or before asserting any auto-generated tag / version / state value as settled. Routes to Source check.
 - **rule application** — before applying a Li+ rule, past judgment, or memory entry. Routes to Rule check and Literal check.
+
+System-injected output litmus: before asserting a tag / version / state value that arrived as automatic output (hook output, status marker, generated metadata), confirm the real value once via `git ls-remote` / `gh api` / Read. The injected value is the claim to verify, not the verification.
 
 Shape: one short clause inside ordinary Character speech, not a separate ritual block. Examples: "external article read, Frame check applies" / "meta-harness definition is internal inference, Source check applies".
 

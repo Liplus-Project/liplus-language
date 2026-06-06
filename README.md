@@ -83,6 +83,8 @@ Explanation, intention, or internal consistency do not constitute correctness.
 
 Li+ is a **dialogue-driven compiler** — not a specification-driven one.
 
+This methodology is named **Dialogue-Driven Development (DiDD)**: requirements are built through dialogue, execution is governed by structure, and correctness is measured by real-world behavior. See [DiDD](https://github.com/Liplus-Project/liplus-language/wiki/DiDD).
+
 In specification-driven approaches, the human writes a detailed spec and the AI executes it faithfully. In Li+, the human just talks. The AI distills purpose, premises, and constraints from the conversation, structures them into issues, and compiles them into working software through CI-verified iteration.
 
 The rules in Li+ files are written **for the AI to read**, not for the human. Human learning cost is designed to approach zero — you talk, the AI handles the structure.
@@ -138,6 +140,7 @@ Minimum: roughly Claude Sonnet 4.6 equivalent or above.
 | [B. Configuration](https://github.com/Liplus-Project/liplus-language/wiki/B.-Configuration) | Configuration reference |
 | [C. Update](https://github.com/Liplus-Project/liplus-language/wiki/C.-Update) | Adapter / configuration sync procedure |
 | [D. Installation](https://github.com/Liplus-Project/liplus-language/wiki/D.-Installation) | Quickstart setup |
+| [DiDD (Dialogue-Driven Development)](https://github.com/Liplus-Project/liplus-language/wiki/DiDD) | Umbrella naming for the three drivers — dialogue / structure / reality |
 | [E. Li+language](https://github.com/Liplus-Project/liplus-language/wiki/E.-Li+language) | Design theory: Li+ language definition and trinity |
 | [F. Behavior-First](https://github.com/Liplus-Project/liplus-language/wiki/F.-Behavior-First) | Design theory: foundational invariant and behavior axis |
 | [G. Sheepdog-Engineering](https://github.com/Liplus-Project/liplus-language/wiki/G.-Sheepdog-Engineering) | Design theory: harness-to-sheepdog migration, pal / Lilayer |

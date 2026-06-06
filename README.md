@@ -81,9 +81,9 @@ Explanation, intention, or internal consistency do not constitute correctness.
 
 ## Design Philosophy
 
-Li+ is a **dialogue-driven compiler** — not a specification-driven one.
+Li+ is **Dialogue-Driven Development (DiDD)**, not specification-driven.
 
-This methodology is named **Dialogue-Driven Development (DiDD)**: requirements are built through dialogue, execution is governed by structure, and correctness is measured by real-world behavior. See [DiDD](https://github.com/Liplus-Project/liplus-language/wiki/DiDD).
+Requirements are built through dialogue, execution is governed by structure, and correctness is measured by real-world behavior. See [DiDD](https://github.com/Liplus-Project/liplus-language/wiki/DiDD).
 
 In specification-driven approaches, the human writes a detailed spec and the AI executes it faithfully. In Li+, the human just talks. The AI distills purpose, premises, and constraints from the conversation, structures them into issues, and compiles them into working software through CI-verified iteration.
 

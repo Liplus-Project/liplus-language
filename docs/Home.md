@@ -39,12 +39,13 @@ Li+ v1.0.0 の成立条件は到達済みとみなし、現在の本番はその
 
 ---
 
-## 設計思想（E–H）
+## 設計思想（DiDD ＋ E–H）
 
-Li+ プログラムの設計思想を軸別に蒸留した独立 docs。
+Li+ プログラムの設計思想。三軸（対話駆動 / 構造駆動 / 現実駆動）を束ねる総称が **DiDD（対話駆動開発）**、各軸を軸別に蒸留した独立 docs が E–H。
 
 | ページ | 担う軸 |
 |--------|--------|
+| [DiDD（対話駆動開発）](DiDD) | 三駆動を束ねる総称（対話駆動 / 構造駆動 / 現実駆動）、看板コピーと命名 |
 | [E. Li+language](E.-Li+language) | Li+ language の定義と三位一体（要求仕様 = code、対話型コンパイラ、外部記憶） |
 | [F. Behavior-First](F.-Behavior-First) | 動いている挙動が正しさ（foundational invariant、CI = 現実判定装置、Ceiling-by-design） |
 | [G. Sheepdog-Engineering](G.-Sheepdog-Engineering) | 装具を頭の中に置く（ハーネス → アジリティ → シープドッグ、pal / Lilayer、Character_Instance） |

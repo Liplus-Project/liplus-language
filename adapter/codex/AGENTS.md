@@ -68,7 +68,7 @@ Responsibilities
 Re-read and apply all `rules/*.md` on any session continuation.
 
 Trigger-based skill reads:
-  on_issue (create/edit) → skills/operations-on-issue-format + skills/operations-on-milestone + skills/operations-on-sub-issue
+  on_issue (create/edit) → skills/operations-on-issue-format + skills/operations-on-sub-issue
   on_issue (view) → skills/operations-on-issue-maturity + skills/operations-on-sub-issue
   on_issue (sub-issue API) → skills/operations-on-sub-issue
   on_issue (close): no re-read required

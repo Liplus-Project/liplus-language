@@ -32,8 +32,8 @@ Reads through:
 
   [TRIGGER_INDEX]
   act_now      -> Branch And Label Flow
-  on_issue_create -> Issue Format + Milestone Rules
-  on_issue_edit   -> Issue Format + Milestone Rules
+  on_issue_create -> Issue Format
+  on_issue_edit   -> Issue Format
   on_issue_view   -> Issue Maturity
   on_issue_sub    -> Sub-issue Rules
   on_commit    -> Commit Rules
@@ -65,7 +65,7 @@ PR title = ASCII English only, single line.
 PR body = Japanese.
 Docs update must be in same PR as implementation. Split docs PR is prohibited.
 docs/ is source of truth. Wiki is mirror, not source.
-Wiki sync is mandatory after every release. Skipping wiki sync is prohibited.
+Wiki sync is mandatory after every release. Skipping wiki sync is prohibited. Wiki sync gates release flow completion.
 Requirements spec is not post-implementation follow-up.
 Before implementation starts = create or update corresponding requirements spec first.
 PR title must include impact scope.
@@ -73,7 +73,6 @@ AI `gh release create` default = no state flag (prerelease=false, latest=false).
 prerelease flag = AI option. Use only when an explicit test period is desired. Tag name stays final-form; no alpha/rc/-pre suffix. Promotion strips the flag, not the tag.
 latest flag = human-only. Set via `gh release edit {tag} --latest=true` after real-device verification.
 Release body = GitHub generated release notes. Pass --generate-notes. Do not pass empty body via --notes "".
-Post-release milestone delete is mandatory and is part of the release procedure, not a follow-up task. Wiki sync + milestone delete both gate release flow completion.
 "Prerelease tag" / "stable tag" in human instructions = GitHub Release prerelease flag (boolean attribute), not git tag object and not release entry itself.
 Release terminology interpretation ladder (most-preserving first, literal delete last):
   1. Attribute / flag change (prerelease -> stable, draft -> published)

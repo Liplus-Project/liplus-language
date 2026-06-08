@@ -37,7 +37,6 @@ Rapid path:
 - title = ASCII English, bug/kind prefix only (e.g. `bug(rerank): cross-encoder not firing`). No deep verb structure.
 - body = observation fact (1-3 lines) + reproduction hint (1-2 lines). No purpose / premise / constraints / target files.
 - labels = one type label (bug / enhancement / spec / docs / tips) + maturity = `memo`.
-- milestone = unassigned. Assignment happens later at forming → ready promotion.
 - assignee = unassigned.
 
 Discriminator: "Is this issue creation itself the main task, or is it interrupting the main task?"

@@ -108,7 +108,7 @@ bug         = something not working
 enhancement = new feature or request
 spec        = language or system specification affecting Li+ behavior
 docs        = documentation change (no behavior impact)
-tips        = operational know-how memo not tied to a release milestone
+tips        = operational know-how memo not tied to a release
 
 Marker:
 promotion   = path flag for an issue filed by the promotion-judgment mechanism (separate axis from type). See rules/operations/operations.md and rules/evolution/promotion-judgment.md for details.

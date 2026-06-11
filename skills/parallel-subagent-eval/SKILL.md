@@ -20,7 +20,7 @@ Fires at any of the following moments:
 - evolution-loop observe / evaluate stage needs an empirical verdict
 - Right after AI alone feels "this edit satisfies the spec" (catch overconfidence from N=1 self-check)
 - Spec revision proposal needs orthogonal verification on the rule semantic consistency axis
-- **Self-evolution PR brake (mandatory)**: any self-evolution PR (per `Evolution_Initiator_Autonomy` definition: AI-filed issue + AI implementation + modifies Li+ source under `LI_PLUS_REPO`) runs this method before the commit/merge gate. This is brake 1 of the two-stage brake. L1 Model Layer source change additionally requires human review (brake 2; see `rules/operations/execution-mode.md` L1 brake 2 override). semi_auto patch-auto-merge does not bypass brake 1.
+- **Self-evolution PR brake (mandatory)**: any self-evolution PR (per `Evolution_Initiator_Autonomy` definition: AI-filed issue + AI implementation + modifies Li+ source under `LI_PLUS_REPO`) runs this method before the commit/merge gate. This is brake 1 of the two-stage brake. L1 Model Layer source change additionally requires the L1 root-criteria evaluator `adapter/claude/agents/l1-gate-eval.md` (brake 2; see `rules/operations/execution-mode.md` L1 brake 2 override). semi_auto patch-auto-merge does not bypass brake 1.
 
 Axis selection: a fixed axis (impression-literal detection, see below) is always included for Li+ source drafts regardless of spec nature. Additional axes are selected per draft nature. Examples:
 - skill description edit: ease of AI invoke judgment / maintainer-side readability / coverage gap
@@ -140,7 +140,7 @@ Rationale: behavior-vs-impression boundary is context-dependent, so N=1 flag car
 ## Boundary
 
 - **`skills/evolution-loop/SKILL.md`**: This skill is referenced inside the loop's observe / evaluate stage. The loop side "calls this method"; the method body lives in this skill
-- **`skills/evolution-l1-update-gating/SKILL.md`**: Authorization axis for L1 source changes (long-horizon observation requirement). This method is the empirical verification axis immediately before implementation. Orthogonal relation - L1 update is expected to use this method alongside. In the `Evolution_Initiator_Autonomy` two-stage brake framing, this method is brake 1 (always-on for self-evolution PRs); L1 human review is brake 2 (L1-only, layered on top of brake 1)
+- **`skills/evolution-l1-update-gating/SKILL.md`**: Authorization axis for L1 source changes (long-horizon observation requirement). This method is the empirical verification axis immediately before implementation. Orthogonal relation - L1 update is expected to use this method alongside. In the `Evolution_Initiator_Autonomy` two-stage brake framing, this method is brake 1 (always-on for self-evolution PRs); the L1 root-criteria evaluator (`adapter/claude/agents/l1-gate-eval.md`) is brake 2 (L1-only, layered on top of brake 1)
 - **`rules/evolution/promotion-judgment.md`**: Noise floor observation judgment (memory cluster tally). This method is spec verification (immediately before implementation). Orthogonal relation
 - **`skills/task-subagent-delegation/SKILL.md`**: Derived use from the delegation axis - this method's subagent spawn is a special case of delegation (purpose: gather evaluation data, not delegate implementation)
 - **`skills/evolution-decision-structure-write/SKILL.md`**: Judgment record surface. Judgments produced by applying this method get recorded in decision structure

@@ -69,11 +69,16 @@ Per-PR exception (content-based axis):
 
 L1 brake 2 override (orthogonal axis, supersedes per-PR exception):
   When the PR touches L1 Model Layer source (any file with `layer: L1-model`
-  frontmatter, typically under `rules/model/`), `Evolution_Initiator_Autonomy`
-  brake 2 (`adapter/claude/CLAUDE.md`) imposes a mandatory human review gate
-  that overrides the patch per-PR exception above. Even if the L1 change
-  qualifies as patch (typo / docs alignment in `rules/model/`), brake 2
-  applies and human review is required.
+  frontmatter, typically under `rules/model/`; L1-tagged adapter files such
+  as `adapter/claude/agents/l1-gate-eval.md` count), `Evolution_Initiator_Autonomy`
+  brake 2 (`adapter/claude/CLAUDE.md`) imposes a mandatory L1 root-criteria
+  evaluation gate — the dedicated-prompt subagent evaluator
+  (`adapter/claude/agents/l1-gate-eval.md`) — that overrides the patch per-PR
+  exception above. Even if the L1 change qualifies as patch (typo / docs
+  alignment in `rules/model/`), brake 2 applies: the evaluator must run and
+  return PASS before merge; DEVIATION = merge blocked. Evaluator PASS
+  substitutes for human approval at brake 2 (Human = final judge unchanged
+  per `rules/model/role-separation.md`, separate axis).
   "Touch" = any added / modified / deleted line in an L1 file within the PR
   diff. Single-line L1 edits trigger brake 2. Mixed PRs (L1 + non-L1) trigger
   brake 2 for the whole PR; cannot be split-merged to bypass.

@@ -182,11 +182,10 @@ Evolution_Initiator_Autonomy:
 
   Two-stage brake (always-on / L1-only):
   - brake 1 = `skills/parallel-subagent-eval` mandatory before commit/merge for every self-evolution PR.
-  - brake 2 = human review required on top of brake 1 when the PR touches L1 Model Layer source.
+  - brake 2 = L1 root-criteria evaluator subagent (`adapter/claude/agents/l1-gate-eval.md`, skills disabled, L1 diff + stated reason passed inline) required on top of brake 1 when the PR touches L1 Model Layer source. Evaluator PASS substitutes for human approval at brake 2; DEVIATION = merge blocked. `skills/evolution-l1-update-gating` observation threshold continues to apply on its own axis. Human = final judge stands unchanged on a separate axis (`rules/model/role-separation.md`).
 
   Human gate retained for:
   - release create / Latest flip / force push / merged-PR delete / tag delete (existing release-axis gates)
-  - L1 Model Layer source change (handled by `skills/evolution-l1-update-gating` + brake 2)
   - irreversible external side effects (see `rules/evolution/initiator-autonomy.md` Recovery axis)
 
   Detailed spec + exclusion scope: see `rules/evolution/initiator-autonomy.md` and `rules/evolution/autonomy-block-shape.md`.

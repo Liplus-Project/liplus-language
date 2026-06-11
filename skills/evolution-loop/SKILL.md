@@ -18,7 +18,7 @@ Loop stages:
 
 Execution mode:
   current    = partial automation; some stages still handed to human.
-  target     = AI-sole execution of the full loop, with human as approver for L1 gate and release.
+  target     = AI-sole execution of the full loop, with human as approver for release only. L1 gate = root-criteria evaluator (`adapter/claude/agents/l1-gate-eval.md`) PASS.
 
 Stage responsibility:
   observe/evaluate = AI autonomous. No human prompt needed.

@@ -29,7 +29,7 @@ Bug-fix PRs on user repos and PRs filed by human at the issue stage are outside 
 
 In-scope = any Li+ source file with `layer: L2-evolution` / `L3-task` / `L4-operations` / `L5-notifications` / `L6-adapter` frontmatter, plus `docs/`, `adapter/`, `scripts/`, `hooks/`, and `Li+update.md`.
 
-Out-of-scope = L1 Model Layer source (`layer: L1-model`, typically `rules/model/`), which routes to brake 2.
+Out-of-scope = L1 Model Layer source (`layer: L1-model`, typically `rules/model/`; L1-tagged adapter files such as `adapter/claude/agents/l1-gate-eval.md` count), which routes to brake 2. The `layer: L1-model` frontmatter wins over directory location — an L1-tagged file under `adapter/` is out-of-scope despite the `adapter/` blanket above.
 
 </scope-l2-l6-improvement-issues-in-general>
 
@@ -38,7 +38,7 @@ Out-of-scope = L1 Model Layer source (`layer: L1-model`, typically `rules/model/
 ## Two-stage brake
 
 - **brake 1 (always)**: every self-evolution PR runs `skills/parallel-subagent-eval` before the commit/merge gate. N=1 self-check is prohibited; minimum N=3.
-- **brake 2 (L1 only)**: when the PR touches L1 Model Layer source, human review is required on top of brake 1. "Touches L1" = any added / modified / deleted line in an L1 file within the PR diff (single-line edits count). Mixed PRs (L1 + non-L1) trigger brake 2 for the whole PR; cannot be split-merged to bypass. semi_auto patch-auto-merge does not bypass this gate (see `rules/operations/execution-mode.md` L1 brake 2 override).
+- **brake 2 (L1 only)**: when the PR touches L1 Model Layer source, the L1 root-criteria evaluator (`adapter/claude/agents/l1-gate-eval.md` — dedicated-prompt subagent, skills disabled, no operations procedures) is required on top of brake 1. The parent AI passes the L1 diff and its stated reason inline in the delegation prompt (tools minimized). Evaluator verdict PASS substitutes for human approval at brake 2; DEVIATION = merge blocked. Human = final judge stands unchanged on a separate axis (`rules/model/role-separation.md`); release-axis and irreversibility human gates are untouched (Recovery axis below). The evaluator prompt file itself carries `layer: L1-model`, so changes to it route through brake 2. "Touches L1" = any added / modified / deleted line in an L1 file within the PR diff (single-line edits count). Mixed PRs (L1 + non-L1) trigger brake 2 for the whole PR; cannot be split-merged to bypass. semi_auto patch-auto-merge does not bypass this gate (see `rules/operations/execution-mode.md` L1 brake 2 override).
 
 </two-stage-brake>
 

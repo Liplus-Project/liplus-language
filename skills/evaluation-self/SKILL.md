@@ -38,8 +38,8 @@ Upper limit = 25 entries. Oldest deleted on overflow.
 
 Root cause categories: spec-gap, reading-drift, judgment-bias, success.
 
-When a root cause pattern repeats: propose spec improvement to human.
-Human approves before any spec change.
+When a root cause pattern repeats: file a spec improvement under the `Evolution_Initiator_Autonomy` initiator path.
+The self-evolution PR runs AI-led with brake 1 (`skills/parallel-subagent-eval`, N>=3); L1 Model Layer changes additionally require brake 2 (`adapter/claude/agents/l1-gate-eval.md` evaluator PASS). No per-change human go-sign; human gates remain only on the release / irreversible axis (`rules/evolution/initiator-autonomy.md` Recovery axis).
 
 </self-evaluation>
 

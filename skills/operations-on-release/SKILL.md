@@ -138,7 +138,8 @@ New-repo setup (one-shot, before first sync):
 - Decision Structure entries (`<topic>.md` lowercase kebab-case, no sequence prefix) are wiki-only from creation; do not place under docs/.
 
 Steps:
-  1. Clone wiki repo: git clone https://github.com/{owner}/{repo}.wiki.git {tmpdir}
+  1. Clone wiki repo (line-ending normalization disabled so the working tree matches the raw blob byte-for-byte): git -c core.autocrlf=false clone https://github.com/{owner}/{repo}.wiki.git {tmpdir}
+     Rationale: on Windows hosts a default clone applies `autocrlf=true` and checks the wiki working tree out as CRLF even when the blob is LF. `cmp -s docs/X {tmpdir}/X` would then return non-zero on the line-ending difference alone, flagging every docs/-owned file as drift (false to_copy) and pushing pure line-ending churn. `core.autocrlf=false` keeps the working tree identical to the blob; combined with the LF-normalized compare in step 3 the drift set reflects real content diffs only.
   2. Configure identity (clone-and-throw-away pattern requires explicit identity):
      git -C {tmpdir} config user.name  "{commit-author-name}"
      git -C {tmpdir} config user.email "{commit-author-email}"
@@ -148,6 +149,13 @@ Steps:
      Reference algorithm:
      ```
      shopt -s nullglob
+     # Line-ending-normalized content compare: strip CR from both sides, then cmp.
+     # Returns 0 when content is identical ignoring CR (LF vs CRLF), non-zero on real content diff.
+     # No-op on LF-only hosts (no CR to strip → identical to a raw cmp); neutralizes a
+     # CRLF working-tree checkout on Windows so line endings alone never register as drift.
+     content_same() {  # args: docs_file wiki_file
+       cmp -s <(tr -d '\r' < "$1") <(tr -d '\r' < "$2")
+     }
      # Build docs/-owned filename set on docs/ side.
      docs_owned=()
      for f in docs/[A-Z]*.md docs/[0-9]*.md docs/Home.md docs/_Footer.md; do
@@ -158,10 +166,10 @@ Steps:
      for f in {tmpdir}/[A-Z]*.md {tmpdir}/[0-9]*.md {tmpdir}/Home.md {tmpdir}/_Footer.md; do
        [ -e "$f" ] && wiki_docs_owned+=("$(basename "$f")")
      done
-     # to_copy = docs/ entries whose content differs (cmp returns non-zero or wiki side absent).
+     # to_copy = docs/ entries whose content differs (wiki side absent, or content_same returns non-zero).
      to_copy=()
      for name in "${docs_owned[@]}"; do
-       if [ ! -e "{tmpdir}/$name" ] || ! cmp -s "docs/$name" "{tmpdir}/$name"; then
+       if [ ! -e "{tmpdir}/$name" ] || ! content_same "docs/$name" "{tmpdir}/$name"; then
          to_copy+=("$name")
        fi
      done
@@ -174,6 +182,7 @@ Steps:
        esac
      done
      ```
+     Line-ending normalization axis: `content_same` compares CR-stripped content, so a docs/ (LF) vs wiki (CRLF) pair with identical content is NOT flagged as drift. Real content differences still register (CR stripping does not alter non-CR bytes). This is the defensive complement to the `core.autocrlf=false` clone in step 1 — the clone keeps the working tree LF, and the normalized compare guarantees correctness even if some other path reintroduces CR. The mirror invariant (`cp docs/$name {tmpdir}/$name` on real drift) is unchanged.
      The drift set explicitly omits lowercase kebab-case files (`[a-z]*.md`, Decision Structure entries) and `_Sidebar.md`; those are wiki-only and never enter `to_copy` / `to_delete`.
   4. Apply the drift set with explicit per-file operations (bounded; no unbounded glob deletion):
      ```
@@ -191,7 +200,7 @@ Rationale for diff-targeted pattern (replaces prior wipe-and-copy):
 - Blast radius bounded to the actually-changed files (no unbounded glob `rm` over the wiki working tree).
 - End state is byte-for-byte identical to wipe-and-copy when `to_copy` covers every docs/-owned file and `to_delete` covers every removed-on-docs entry. The mirror invariant is preserved without the destructive primitive.
 - Auto-mode classifier rejection of unbounded `rm [A-Z]*.md ...` patterns is structural (`rules/model/subtractive-structural-beauty.md` Artifact deletion calibration's blast-radius axis), not a transient block. Diff-targeted copy aligns with that axis by construction.
-- Fallback note: if drift computation fails (e.g. `cmp` unavailable, filesystem encoding mismatch), STOP and escalate to human. Do not silently fall back to the wipe pattern.
+- Fallback note: if drift computation fails (e.g. `cmp` / `tr` unavailable, process substitution unsupported by the shell, filesystem encoding mismatch), STOP and escalate to human. Do not silently fall back to the wipe pattern. Process substitution (`<(...)`) requires bash/zsh; the wiki sync procedure already assumes a bash-class shell.
 - Empirical anchor (build-2026-05-20.1 sync, 2026-05-21): diff-targeted pattern was first applied when the prior wipe-and-copy hit the auto-mode classifier; observed drift set was 7 files, all docs/-owned, and the resulting wiki state matched the wipe-and-copy outcome exactly.
 
 Windows-specific (case-only rename hazard):

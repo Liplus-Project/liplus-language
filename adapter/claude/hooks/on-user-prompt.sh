@@ -1,6 +1,9 @@
 #!/bin/bash
 # Source: adapter/claude/hooks/on-user-prompt.sh ({LI_PLUS_TAG})
-# UserPromptSubmit hook: webhook check only.
+# UserPromptSubmit hook: per-turn Trigger Check Gate re-arm + webhook check.
+# The gate re-arm is the deterministic firing surface for
+# rules/model/trigger-check-gate.md (replaces the retired state-declaration
+# substrate; #1493 implements #1413 candidate A).
 # Character_Instance is loaded via Claude Code output-styles (system prompt
 # residency) and no longer re-notified per turn.
 # Source of truth is this file; keep hooks-settings.md reference consistent.
@@ -21,3 +24,12 @@ if [ "$WEBHOOK_DELIVERY" != "channel" ] && [ "$WEBHOOK_DELIVERY" != "mcp_hook" ]
   echo "Report only foreground-relevant or notable items."
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 fi
+
+# --- Trigger Check Gate re-arm (every turn) ---
+echo ""
+echo "━━━ Trigger Check Gate ━━━"
+echo "Before any non-trivial speech or action, run the 5-axis check (one No -> pause, retrieve, verify):"
+echo "  Rule / Literal / Source / Frame / Character"
+echo "Situational routing: external content read -> Frame + Source. Asserting from internal memory -> Source. Applying a Li+ rule -> Rule + Literal."
+echo "Axis detail: rules/model/trigger-check-gate.md (always-on)."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━"

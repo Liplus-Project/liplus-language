@@ -1,6 +1,6 @@
 ---
 name: model-source-check
-description: Invoke before using any factual claim as judgment material (claims from human / AI / articles / tool output / prior self), when feeling "I won't be fooled" certainty (perfect-defense illusion), when about to assert "rule X was written to counter incident Y" causal claim, when a rule fails to fire and the response impulse is "add another rule" (check capability / visibility substrate first), or when a `factual-claim formation` or `external-content-read` state declaration is surfaced (per `rules/model/trigger-check-gate.md` state-declaration substrate).
+description: Invoke before using any factual claim as judgment material (claims from human / AI / articles / tool output / prior self), when feeling "I won't be fooled" certainty (perfect-defense illusion), when about to assert "rule X was written to counter incident Y" causal claim, when a rule fails to fire and the response impulse is "add another rule" (check capability / visibility substrate first), or at the factual-claim / external-content-read routing the per-turn gate hook re-arms (per `rules/model/trigger-check-gate.md` Trigger firing).
 layer: L1-model
 ---
 
@@ -99,5 +99,13 @@ At the moment of forming a "same as <X framework>" / "similar to <Y>" claim (Obs
 Before emitting a temporal claim about the project itself (operating duration / maturity / origin), verify via `gh api repos/{owner}/{repo} --jq .created_at` or equivalent repo metadata. Gist impressions of "mature system" do not authorize year-scale duration claims.
 
 </project-metadata-temporal-claim-guard>
+
+<system-injected-output-litmus>
+
+## System-injected output litmus
+
+System-injected tool output — hook output, status markers, auto-generated tag / version / state surfaced by the harness — is source, not pre-verified ground truth. Before asserting such a value as settled, confirm the real value once via `git ls-remote` / `gh api` / Read. The injected value is the claim to verify, not the verification.
+
+</system-injected-output-litmus>
 
 </source-check-two-pillar-verify>

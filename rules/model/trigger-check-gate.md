@@ -29,31 +29,15 @@ One tempo slower. Drift chain stops before it starts.
 
 </the-gate-5-axis-check>
 
-<state-declaration-substrate>
+<trigger-firing>
 
-## State declaration substrate
+## Trigger firing
 
-The 5-axis check above fires only when judgment-formation moments are visible to it. Skill-description auto-invoke leaves a recall gap — identical descriptions match-or-miss within one session (cluster #1194 → #1413). The gap is the router from moment to invocation, not the rule body; adding more rules cannot close it.
+The Gate is re-armed every turn by the `on-user-prompt.sh` UserPromptSubmit hook — deterministic, harness-fired, not recall-dependent. The hook injects a terse re-arm of the 5 axes + situational routing (external content read -> Frame + Source; asserting from internal memory -> Source; applying a rule -> Rule + Literal) at turn start. The always-on rule body carries axis detail; per-judgment application stays the agent's.
 
-This substrate is a relief path, not a closure. It adds a second invocation trigger — declaring internal state literally inside Character speech — that carries higher specificity than semantic description match. The literal path catches some recall misses the description path drops, but inherits the same recall surface: forgetting to declare is symmetric to forgetting to invoke. Structural enforcement (hook / bootstrap / physical-constraint substrate) is deferred to a separate follow-up.
+This hook (#1413 candidate A, implemented in #1493) replaces the retired self-declaration substrate (#1413 candidate B / #1414-#1415). Do not re-add a self-declaration trigger: a forgettable relief path is strictly dominated by the deterministic hook. Recall-gap rationale and the residual limit (mid-turn gist-assertion precision is not structurally enforced; post-judgment misses are observed by `skills/evaluation-self/SKILL.md`) live in #1493 / Decision Structure.
 
-States to declare (minimum load-bearing set):
-
-- **external-content-read** — after Read / WebFetch / human-quoted text / tool output. System-injected tool output (hook output, status marker, auto-generated tag / version / state surfaced by the harness) counts as tool output here — it is source, not pre-verified ground truth. Routes to Frame check and Source check.
-- **factual-claim formation** — before asserting a fact built from internal inference (definition, history, mechanism), or before asserting any auto-generated tag / version / state value as settled. Routes to Source check.
-- **rule application** — before applying a Li+ rule, past judgment, or memory entry. Routes to Rule check and Literal check.
-
-System-injected output litmus: before asserting a tag / version / state value that arrived as automatic output (hook output, status marker, generated metadata), confirm the real value once via `git ls-remote` / `gh api` / Read. The injected value is the claim to verify, not the verification.
-
-Shape: one short clause inside ordinary Character speech, not a separate ritual block. Examples: "external article read, Frame check applies" / "meta-harness definition is internal inference, Source check applies".
-
-Trigger relation: skill invocation now has two paths — description semantic match OR state declaration literal — either reaches the same check.
-
-Scope of relief: these 3 states cover external-input drift (read / quote / inference). Output-composition drift (push-surplus tells, named-axis re-articulation) is handled separately by `rules/model/subtractive-structural-beauty.md` Detection signs, not by this substrate.
-
-Forget observation: missed declarations are detected post-judgment by `skills/evaluation-self/SKILL.md` (10-axis scoring). Pre-judgment correction is this rule's scope; post-judgment observation belongs to L2 Evolution.
-
-</state-declaration-substrate>
+</trigger-firing>
 
 <on-demand-action-surfaces>
 

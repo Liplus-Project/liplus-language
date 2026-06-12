@@ -37,13 +37,13 @@ if execution_mode == semi_auto:
   Type-gated human check.
   patch -> no human gate. Self-review pass -> proceed to [Merge].
   minor / major -> human check required after self-review pass (procedure = trigger mode's Review approval check below).
-  Version type is the same judgment axis used at release (see [Human Confirmation Required]#Release version rule). AI proposes type at PR creation time; on unclear, default to the safer side (minor) and ask human.
+  Version type is the same judgment axis used at release (see `rules/operations/release-version-rule.md`). AI proposes type at PR creation time; on unclear, default to the safer side (minor) and ask human.
 
   Per-PR exception (content-based axis, ref `rules/operations/execution-mode.md` semi_auto section):
     Even when the parent issue is minor / major, if the PR's own modification qualifies
-    as patch under `skills/operations-on-release` Release Version Rule (governance structure change with no user/system
-    observable impact, e.g. language alignment, typo, comment, internal literal, docs
-    alignment), the human-check requirement is waived; AI direct-merges.
+    as patch under `rules/operations/release-version-rule.md` (e.g. language alignment,
+    typo, comment, internal literal, docs alignment), the human-check requirement is
+    waived; AI direct-merges.
     AI must record the exception judgment reason in the self-review comment, e.g.
     "no user/system observable impact, internal literal only, exception applied as
     patch-equivalent for review purposes".

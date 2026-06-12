@@ -1,6 +1,6 @@
 ---
 name: operations-on-release
-description: Invoke for release create / branch delete / force push; handles release version rule (patch/minor/major), state rule (prerelease/latest), wiki sync, tag conventions, Latest anchor requirement, anchor flip procedure, bulk state normalization.
+description: Invoke for release create / branch delete / force push; handles release state rule (prerelease/latest), wiki sync, tag conventions, Latest anchor requirement, anchor flip procedure, bulk state normalization. Version rule criteria (patch/minor/major) live in rules/operations/release-version-rule.md (always-on).
 layer: L4-operations
 ---
 
@@ -17,19 +17,7 @@ Mode-dependent confirm (trigger mode only): issue selection, issue execution sta
 
 # Release Version Rule
 
-v0.x.x = initial development. Anything may change. Not a stable release.
-v1.0.0 = first stable release (semver compliant).
-
-Judgment axis = change scale + user/system observability.
-patch = everything else (docs / small fix / small spec / config / internal rule / governance structure change with no user/system observable impact). This issue (#1087) is itself a patch example: release-rule redesign is structurally governance but not observable from a Li+ user's surface.
-minor = large refactor or large structural change that is user/system observable.
-major = large-scale change or major goal milestone (phase transition, project milestone). Human decides.
-
-Important note: "structural change -> minor" is wrong. "Structural change AND user/system observable -> minor". Governance / spec rule changes without observable impact stay patch regardless of structural scale.
-
-AI proposes patch or minor. Human confirms minor or major. AI executes.
-
-**Application-moment trigger:** Before writing a classification (patch / minor / major) in any artifact, Read this section literally. The recurring miss is omitting the "large" modifier on minor — observable change misclassified as minor when it is incremental scope (patch). See `skills/model-trigger-check-gate-actions/SKILL.md` Trigger moments.
+Relocated to `rules/operations/release-version-rule.md` (always-on rules layer, single source, #1484). Judgment criteria (v0.x.x/v1.0.0 base, judgment axis, patch / minor / major definitions, Important note, proposal/confirmation authority split, application-moment trigger) live there. This skill does not restate them.
 
 # Release State Rule (independent axis from version type)
 
@@ -105,7 +93,7 @@ Check project docs/ or CI/CD config for convention before creating release.
 ## Release create
 
 Execute the canonical `gh release create` command above with resolved {tag} and {version}.
-AI proposes patch or minor; human confirms minor or major; AI executes.
+Version type proposal and confirmation follow `rules/operations/release-version-rule.md`.
 
 ## Post-release wiki sync
 

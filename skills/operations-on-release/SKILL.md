@@ -4,6 +4,8 @@ description: Invoke for release create / branch delete / force push; handles rel
 layer: L4-operations
 ---
 
+<human-confirmation-required>
+
 # Human Confirmation Required
 
 Stop immediately when:
@@ -15,9 +17,17 @@ branch delete (when linked issue may close)
 force push
 Mode-dependent confirm (trigger mode only): issue selection, issue execution start.
 
+</human-confirmation-required>
+
+<release-version-rule>
+
 # Release Version Rule
 
 Relocated to `rules/operations/release-version-rule.md` (always-on rules layer, single source, #1484). Judgment criteria (v0.x.x/v1.0.0 base, judgment axis, patch / minor / major definitions, Important note, proposal/confirmation authority split, application-moment trigger) live there. This skill does not restate them.
+
+</release-version-rule>
+
+<release-state-rule-independent-axis-from-version-type>
 
 # Release State Rule (independent axis from version type)
 
@@ -26,6 +36,10 @@ prerelease = AI option. Apply only when an explicit test period is wanted. Tag n
 latest = human-only. Real-device verification gate. Human flips via `gh release edit {tag} --latest=true`. Independent of version type: patch / minor / major all gate on the same real-device check.
 
 **Authority axis**: "human-only" / "human flips via ..." refers to decision authority, not execution authority — human decides, AI executes `gh release edit ... --latest=true` after explicit go-sign. See `rules/operations/execution-mode.md` human judgment gate for the full gate list and axis definition.
+
+</release-state-rule-independent-axis-from-version-type>
+
+<canonical-release-creation-command-ai>
 
 # Canonical Release Creation Command (AI)
 
@@ -39,11 +53,19 @@ gh release create {tag} \
 
 `--latest=false` must be passed explicitly. Omitting the flag makes gh CLI fall back to its default `legacy` behavior (semver + date auto-pick), which promotes the new release to Latest and silently demotes the existing Latest anchor.
 
+</canonical-release-creation-command-ai>
+
+<latest-anchor-requirement>
+
 # Latest Anchor Requirement
 
 The repository must always hold at least one explicit Latest release (`make_latest=true`). This release is the Latest anchor.
 When the anchor is absent, `--latest=false` on a new release is overridden by the legacy default and the new release is promoted to Latest against intent.
 Treat the anchor as repo-wide persistent state, not a per-release attribute.
+
+</latest-anchor-requirement>
+
+<anchor-flip-procedure-human-after-real-device-verification>
 
 # Anchor Flip Procedure (human, after real-device verification)
 
@@ -54,20 +76,36 @@ gh release edit {new_tag} --repo {owner}/{repo} --latest=true
 GitHub enforces a single Latest per repo, so the previous anchor automatically loses its Latest badge and transitions to the default (no-state) form. The new release becomes the Latest anchor.
 Tag names remain unchanged across the flip; only the Latest state moves.
 
+</anchor-flip-procedure-human-after-real-device-verification>
+
+<bootstrap-transient-state>
+
 # Bootstrap / Transient State
 
 For the first non-prerelease release of a repository, or whenever the anchor is lost, GitHub temporarily promotes the newest release to Latest via the legacy auto-pick. This transient Latest state is resolved the moment a human sets an explicit Latest anchor (one-Latest-only constraint performs the natural transition).
 Do not treat this transient Latest as an AI-authored state; it is a platform-side default, not a governance decision.
 
+</bootstrap-transient-state>
+
+<bulk-state-normalization>
+
 # Bulk State Normalization
 
 To normalize multiple existing releases to the no-state default, first pin one release as the anchor with `--latest=true`, then PATCH the remaining releases with `--latest=false`. Reversing the order leaves the repo anchorless, so `--latest=false` is silently overridden by the legacy default and one of the target releases ends up Latest again.
+
+</bulk-state-normalization>
+
+<version-base-rule>
 
 # Version Base Rule
 
 Base on most recent release = includes prereleases.
 Not latest stable only.
 Use: `gh release list --limit 1` (includes prereleases).
+
+</version-base-rule>
+
+<release-tag-and-title-rule>
 
 # Release Tag and Title Rule
 
@@ -78,7 +116,13 @@ If project has CD workflow that creates tags: use existing CD-created tag, do no
 If project uses npm version: tag is created by npm version command.
 Check project docs/ or CI/CD config for convention before creating release.
 
+</release-tag-and-title-rule>
+
+<release-execution-procedure>
+
 # Release Execution Procedure
+
+<release-checks-pre-create>
 
 ## Release checks (pre-create)
 
@@ -90,10 +134,18 @@ Check project docs/ or CI/CD config for convention before creating release.
     Poll gh api until all CD checks complete.
   CD pass = proceed. CD fail = escalate to human (do not release).
 
+</release-checks-pre-create>
+
+<release-create>
+
 ## Release create
 
 Execute the canonical `gh release create` command above with resolved {tag} and {version}.
 Version type proposal and confirmation follow `rules/operations/release-version-rule.md`.
+
+</release-create>
+
+<post-release-wiki-sync>
 
 ## Post-release wiki sync
 
@@ -202,6 +254,10 @@ Detection: `git -C {tmpdir} status --short` shows a `D` and `??` pair on the sam
 
 Wiki sync is part of the release procedure, not a follow-up task. Wiki sync gates release flow completion.
 
+</post-release-wiki-sync>
+
+<release-completion-report-discipline>
+
 ## Release Completion Report Discipline
 
 Release create completion report contains release URL + post-release task completion only. The report does NOT mention any of the following:
@@ -225,3 +281,7 @@ Detection signs:
 - Cold-start synthesis about to surface "v1.x.y が出ているが Latest は前版" as unique insight.
 
 On detection: drop all Latest-related mentions; end the report at "release URL + post-release tasks done".
+
+</release-completion-report-discipline>
+
+</release-execution-procedure>

@@ -27,6 +27,8 @@ Li+ addresses **what should be satisfied** — and governs how an AI prioritizes
 2. Place it in your workspace root and edit the settings
 3. Start a session and tell the AI: "Execute the workspace Li+config.md" (first time requires security approval)
 
+This is a one-time setup. From the next session on, Li+ loads automatically at session start — you run nothing. You only re-execute the config when Li+ is updated, and the session-start hook tells you when that's needed.
+
 See the [Installation Guide](https://github.com/Liplus-Project/liplus-language/wiki/D.-Installation) for details.
 
 ---
@@ -50,6 +52,8 @@ Each layer stabilizes outward behavior according to its responsibility.
 An AI with Li+ applied responds as **Lin** or **Lay** — not as a generic assistant.
 All work starts from an issue. No commit without an issue number.
 The AI manages its own TODO: creates issues, tracks maturity, splits tasks, and self-corrects through CI.
+
+Li+ also evolves its own rules. At the current **Sheepdog** stage, the AI runs the full loop on Li+ itself — filing improvement issues, implementing them, self-reviewing, and merging — with the human as the final judge. Two automatic brakes guard the loop (parallel multi-agent review on every change, plus a root-criteria evaluator for Model-layer edits), and releases and other irreversible actions stay behind a human gate. See [Sheepdog Engineering](https://github.com/Liplus-Project/liplus-language/wiki/G.-Sheepdog-Engineering).
 
 ---
 
@@ -112,8 +116,8 @@ What's *not* exchangeable: the principle that correctness is observable behavior
 
 | Environment | Status | Notes |
 |-------------|--------|-------|
-| Claude Code (Opus 4.7, 1M context) | **Recommended** | Full capability with hooks and subagent delegation |
-| Claude Code (Opus 4.6) | Good | Previous recommended tier |
+| Claude Code (Opus 4.8, 1M context) | **Recommended** | Full capability with hooks and subagent delegation |
+| Claude Code (Opus 4.7) | Good | Previous recommended tier |
 | Claude Code (Sonnet 4.6) | Good | Strong for development work |
 | Claude Sonnet 4.6 (claude.ai) | Fair | Strong for documents, not ideal for continuous work |
 | Codex (GPT 5.4) | Good | Practical, tends to over-weight structure |

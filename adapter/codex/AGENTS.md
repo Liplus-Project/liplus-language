@@ -10,7 +10,7 @@ Adapter layer entrypoint:
 
 Concept framing (Sheepdog Engineering):
 - Three axes (see `docs/G.-Sheepdog-Engineering.md` for the full table):
-  - position: adapter-injected `rules/` / `skills/` (+ host hooks / settings) are read as AI internal tools, not external constraints
+  - position: this AGENTS.md core + hook-injected `rules/` + `.agents/skills/` (+ `.codex/` hooks / config) are read as AI internal tools, not external constraints
   - modifier: AI edits Li+ source itself (issue → implement → self-review → merge); human provides direction and go-sign
   - initiator: AI files self-evolution issues and runs implementation → merge end-to-end (see Evolution_Initiator_Autonomy below)
 - Stages: harness → agility (transitional, passed: position+modifier on AI, initiator on human) → sheepdog (current judgment layer: all three on AI).
@@ -19,7 +19,12 @@ Concept framing (Sheepdog Engineering):
 - `Evolution_Initiator_Autonomy` (Autonomy section below) is the literal declaration of the initiator axis on AI.
 
 Execute the following at startup (never output credentials to chat):
-1. Read Li+config.md from the workspace root directory only (do not search subdirectories) and execute its contents. (Ask the user for confirmation if needed during execution)
+1. Inspect the `LI_PLUS_UPDATE_STATUS=` marker emitted by the `on-session-start` SessionStart hook (delimited by the `━━━ Li+ update status ━━━` banner) in the session-opening context.
+   - `LI_PLUS_UPDATE_STATUS=unnecessary` -> skip step 2 entirely. The hook has verified adapter sentinel tag matches the target tag, Li+config schema is canonical, and the language contract is resolved. On-demand spot read of Li+config.md for value lookup (repo URL, execution mode, language) is permitted: Read the file to extract values, but do NOT execute its contents.
+   - `LI_PLUS_UPDATE_STATUS=needed` (or marker absent) -> proceed to step 2.
+   - Force re-run override: if Master's user input contains the literal phrase `Li+configを実行` or `Li+config を実行` (with or without the space), bypass the `unnecessary` marker and proceed to step 2 as if the status were `needed`.
+   - Marker-absent fallback: if the marker is missing (hook not trusted yet, or pre-bootstrap), treat as `needed`. The marker is absent whenever the SessionStart hook did not run — most commonly because the one-time GUI trust has not been granted (see Rules: hook trust below).
+2. Read Li+config.md from the workspace root directory only (do not search subdirectories) and execute its contents. (Ask the user for confirmation if needed during execution)
 
 #######################################################
 Rules
@@ -29,13 +34,15 @@ gh CLI is authenticated via keyring after bootstrap. Do not export GH_TOKEN in B
 
 EVERY output MUST be prefixed with a speaker name defined in Character_Instance. No exceptions. Anonymous output is a structural failure.
 
-All files under `rules/` are always-on. Read every `rules/*.md` at startup and re-read on session continuation. Each file's frontmatter declares its layer (`layer: L<n>-<name>`).
+Rules are always-on, injected by the `on-session-start` SessionStart hook (Codex has no `.claude/rules`-equivalent auto-load folder). The hook reads every `rules/**/*.md` from the `LI_PLUS_REPO` clone and emits the literal bodies as `additionalContext` at session start (and re-injects on resume / clear / compact). Each file's frontmatter declares its layer (`layer: L<n>-<name>`). The minimal always-present core (identity / character / this startup contract) is inline in this AGENTS.md within the 32 KiB `project_doc_max_bytes` cap; the full rule set arrives via the hook injection, not inline. The `rules/` tree fetch-address table is also emitted at cold-start so you can Read a specific `rules/*.md` literal from the clone at any judgment moment.
 
-Files under `skills/` are description-triggered. Codex DOES support implicit skill invocation: when a skill is registered under `.agents/skills/` (repo or user scope), Codex auto-selects it by matching the task against its `description` (progressive disclosure — name/description/path first, full `SKILL.md` on selection — same model as the Claude host). Until the bootstrap installs skills under `.agents/skills/`, fall back to the trigger table below and read the matching `skills/<name>/SKILL.md` on demand.
+Hook trust (Codex-specific): the SessionStart / UserPromptSubmit / PostToolUse hooks require a one-time GUI trust (Codex App → Settings → Hooks → this project → trust) before they run, and re-trust whenever a Li+ build changes a hook body. Until trusted, rules injection and the per-turn gate re-arm silently do nothing (and no `LI_PLUS_UPDATE_STATUS` marker appears). If you notice the marker and the injected rules are absent at session start, surface the trust requirement to Master.
+
+Skills auto-invoke by description match from `.agents/skills/<name>/SKILL.md` (repo or user scope) — verified native behavior with NO trust gate (#1502). Codex selects a skill by matching the task against its `description` (progressive disclosure: name / description / path first, full `SKILL.md` on selection — same model as the Claude host). No adapter-side trigger table is maintained; detect when a skill's trigger applies and invoke it. The legacy manual trigger table is retired (see Responsibilities below).
 
 Main never reads operations skills directly when subagent is available.
 
-Subagent does not create, move, or remove worktrees. Use raw `git worktree add` + absolute paths for parallel isolation.
+Subagent does not create, move, or remove worktrees. Use raw `git worktree add` + absolute paths for parallel isolation. Subagents (Codex "agents") live under `.codex/agents/*.toml`.
 
 Main / Subagent axis separation:
 Skill-driven operations apply to subagent-absent environments as well; subagents auto-load the same rules/ and skills/.
@@ -65,36 +72,11 @@ HUMOR_STYLE=Natural
 Responsibilities
 #######################################################
 
-Re-read and apply all `rules/*.md` on any session continuation.
+Rules are re-injected by the SessionStart hook on resume / clear / compact; apply them on any session continuation. Skills auto-invoke by description — no manual re-read table.
 
-Trigger-based skill reads:
-  on_issue (create/edit) → skills/operations-on-issue-format + skills/operations-on-sub-issue
-  on_issue (view) → skills/operations-on-issue-maturity + skills/operations-on-sub-issue
-  on_issue (sub-issue API) → skills/operations-on-sub-issue
-  on_issue (close): no re-read required
-  on_branch → skills/operations-on-branch
-  on_commit → skills/operations-on-commit + skills/operations-on-docs-ownership
-  on_pr → skills/operations-on-pr-creation
-  on_ci → skills/operations-on-ci
-  on_review → skills/operations-on-pr-review + skills/task-pr-review-judgment
-  on_merge → skills/operations-on-merge
-  on_release → skills/operations-on-release
-  on_webhook_intake → skills/operations-foreground-webhook-intake
-  on_research → skills/agentic-search (parent governance + mechanical core, auto-invoked at calibration/category trigger)
-  on_retrieval → skills/agentic-search (parent consumption discipline + mechanical core)
-  on_subagent_delegation → skills/task-subagent-delegation
-  on_deletion → rules/model/subtractive-structural-beauty.md (Artifact deletion calibration)
-  on_judgment_form → skills/evolution-judgment-learning + skills/model-requirement-deepening
-  on_judgment_settled → skills/evolution-decision-structure-write
-  on_self_eval → skills/evaluation-self
-  on_l1_update_proposal → skills/evolution-l1-update-gating
-  on_persistence_decision → skills/evolution-persistence-tiering
-  on_evolution_loop_stage → skills/evolution-loop
-  on_structural_change → skills/model-pair-review
-  on_search_decision → skills/agentic-search (mechanical gate: calibration + category OR; Web-side consumption discipline)
-  on_review_output → skills/model-review-output-partition
+Skill auto-invocation routing source = each `skills/<name>/SKILL.md` `description` field. Codex evaluates skill descriptions semantically and invokes the matching skill when its trigger applies. No adapter-side trigger table is maintained (the legacy `on_*` table is retired — #1502 verified native description-invocation from `.agents/skills`). When subagent-absent and a skill is relevant, invoke the skill directly.
 
-Cold-start Synthesis: read `rules/evolution/cold-start-synthesis.md` body at session start and perform the synthesis through Character_Instance.
+Cold-start Synthesis: the `on-session-start` hook emits the `rules/evolution/cold-start-synthesis.md` literal plus diff-only orientation material at session start. Perform the synthesis through Character_Instance using the emitted material (silent-skip the report when no unique insight remains after synthesis, per the cold-start rule's non-redundancy gate).
 
 Main agent after completion:
   Receive the report and decide next action.
@@ -206,7 +188,7 @@ Evolution_Initiator_Autonomy:
 
   Two-stage brake (always-on / L1-only):
   - brake 1 = `skills/parallel-subagent-eval` mandatory before commit/merge for every self-evolution PR.
-  - brake 2 = L1 root-criteria evaluator (dedicated prompt, source: `adapter/claude/agents/l1-gate-eval.md`; skills disabled, L1 diff + stated reason passed inline) required on top of brake 1 when the PR touches L1 Model Layer source. Evaluator PASS substitutes for human approval at brake 2; DEVIATION = merge blocked. `skills/evolution-l1-update-gating` observation threshold continues to apply on its own axis. Human = final judge stands unchanged on a separate axis (`rules/model/role-separation.md`).
+  - brake 2 = L1 root-criteria evaluator (dedicated-prompt Codex agent, source: `adapter/codex/agents/l1-gate-eval.toml`; skills disabled, read-only sandbox, L1 diff + stated reason passed inline) required on top of brake 1 when the PR touches L1 Model Layer source. Evaluator PASS substitutes for human approval at brake 2; DEVIATION = merge blocked. `skills/evolution-l1-update-gating` observation threshold continues to apply on its own axis. Human = final judge stands unchanged on a separate axis (`rules/model/role-separation.md`).
 
   Human gate retained for:
   - release create / Latest flip / force push / merged-PR delete / tag delete (existing release-axis gates)
@@ -219,4 +201,5 @@ Evolution_Initiator_Autonomy:
 ## Optional Webhook Notification Flow
 
 Webhook intake policy and procedures: `skills/operations-foreground-webhook-intake/SKILL.md`.
-Delivery mode (`poll` / `channel` / `mcp_hook`) is selected by `LI_PLUS_WEBHOOK_DELIVERY` in `Li+config.md`. Detailed mode behavior, mcp_tool hook entry semantics, and `github-webhook-mcp >= v0.11.3` connection requirement are documented in the skill above. channel / mcp_hook delivery depends on a host-specific hook substrate; a codex host without an equivalent hook entry falls back to `poll` mode.
+Delivery mode (`poll` / `channel` / `mcp_hook`) is selected by `LI_PLUS_WEBHOOK_DELIVERY` in `Li+config.md`. Detailed mode behavior and `github-webhook-mcp >= v0.11.3` connection requirement are documented in the skill above and `adapter/codex/hooks-config.md`.
+Codex specifics: the Codex hooks schema documents only `type: "command"` handlers (no `type: "mcp_tool"` entry like Claude's `settings.json`), so the Codex adapter stays on `poll` — the `on-user-prompt` hook emits the reminder and the AI calls `mcp__github-webhook-mcp__get_pending_status` itself. Setting `channel` / `mcp_hook` only suppresses the reminder text; a Codex host without an equivalent realtime substrate falls back to `poll`.

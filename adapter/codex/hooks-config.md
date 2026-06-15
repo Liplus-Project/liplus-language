@@ -19,7 +19,7 @@ verbatim into `{workspace_root}/.codex/hooks/` at bootstrap time.
 | hook registration | `.claude/settings.json` `hooks` | `.codex/hooks.json` (or `config.toml` `[hooks]`) |
 | hook script bodies | `.claude/hooks/*.sh` | `.codex/hooks/*.ps1` (+ `*.sh` fallback) |
 | skills | `.claude/skills/<name>/SKILL.md` | `.agents/skills/<name>/SKILL.md` |
-| subagents | `.claude/agents/*.md` | `.codex/agents/*.md` |
+| subagents | `.claude/agents/*.md` | `.codex/agents/*.toml` |
 | always-on rules | `.claude/rules/**/*.md` (folder auto-load) | injected by SessionStart hook (no folder equivalent) |
 | diff-only state | `.claude/state/last-cold-start-emit.json` | `.codex/state/last-cold-start-emit.json` |
 

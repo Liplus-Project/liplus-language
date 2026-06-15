@@ -321,6 +321,12 @@ URL から owner / repository name は parse して抽出する（gh CLI integra
 
 **6.1. 更新同期完了を報告する。**
 
+**6.2. runtime=codex のみ — 一度きりの GUI hook trust を案内する**
+
+- Codex App を開き hook を trust するよう案内する（設定 → フック → 当該プロジェクト → 信頼する）。trust 付与までは SessionStart の rules 注入と毎ターンの Trigger Check Gate 再注入が走らない（Phase 4 codex 冒頭、step-by-step は [D. Installation](D.-Installation)）。
+- 本 bootstrap が hook 本体を再生成した場合（tag bump）、trust の再付与が必要なことを伝える（trust は内容ハッシュ単位）。
+- インストール済み skill 集合が変わったがローカルの `.codex/agents/l1-gate-eval.toml` が既存（Create-only、未再生成 — 4x.5 参照）の場合、skills-disable enumeration を更新するにはそのファイルを削除して再 bootstrap する必要があることを伝える。
+
 ---
 
 ## 関連ページ

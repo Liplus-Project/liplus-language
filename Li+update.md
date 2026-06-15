@@ -451,3 +451,14 @@ Dependencies: Phase 2 (gh CLI authenticated, repository schema resolved).
 Dependencies: all prior phases.
 
 6.1. Report completion.
+
+6.2. runtime=codex only — surface the one-time GUI hook trust requirement:
+- Instruct the user to open the Codex App and grant hook trust
+  (Settings -> Hooks -> this project -> trust). Until trusted, the SessionStart
+  rules injection and the per-turn Trigger Check Gate re-arm do not run (see
+  Phase 4 codex intro; full step-by-step in `docs/D.-Installation.md`).
+- If this bootstrap regenerated any hook body (tag bump), note that trust must be
+  re-granted (trust is per content hash).
+- If the installed skill set changed but a local `.codex/agents/l1-gate-eval.toml`
+  already exists (Create-only, not regenerated — see 4x.5), note that the user
+  must delete that file and re-bootstrap to refresh the skills-disable enumeration.

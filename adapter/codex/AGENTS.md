@@ -31,7 +31,7 @@ EVERY output MUST be prefixed with a speaker name defined in Character_Instance.
 
 All files under `rules/` are always-on. Read every `rules/*.md` at startup and re-read on session continuation. Each file's frontmatter declares its layer (`layer: L<n>-<name>`).
 
-Files under `skills/` are trigger-scoped. Codex has no skill auto-invocation — consult the trigger table below and read the matching `skills/<name>/SKILL.md` on demand.
+Files under `skills/` are description-triggered. Codex DOES support implicit skill invocation: when a skill is registered under `.agents/skills/` (repo or user scope), Codex auto-selects it by matching the task against its `description` (progressive disclosure — name/description/path first, full `SKILL.md` on selection — same model as the Claude host). Until the bootstrap installs skills under `.agents/skills/`, fall back to the trigger table below and read the matching `skills/<name>/SKILL.md` on demand.
 
 Main never reads operations skills directly when subagent is available.
 

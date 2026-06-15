@@ -24,7 +24,9 @@ Dependencies: none.
 
 Dependencies: Phase 1 (runtime detected).
 
-2.1. Prerequisite install (gh CLI): managed by `adapter/claude/hooks/on-session-start.sh`. The hook ensures `~/.local/bin/gh` exists (install on absence, silent skip on presence); failure surfaces as a cold-start material entry asking the user to intervene. Bootstrap walkthrough does not perform install steps.
+2.1. Prerequisite install (gh CLI):
+- runtime=claude (Linux/Mac host): managed by `adapter/claude/hooks/on-session-start.sh`. The hook ensures `~/.local/bin/gh` exists (install on absence, silent skip on presence); failure surfaces as a cold-start material entry asking the user to intervene. Bootstrap walkthrough does not perform install steps.
+- runtime=codex (Windows-native host, the #1502-verified env): the Linux `~/.local/bin/gh` auto-install path does NOT apply (wrong platform). `gh` is treated as a documented prerequisite, NOT silently installed by bootstrap. If `gh` is absent, surface the install instruction to the user (`winget install --id GitHub.cli` in a Windows terminal) and continue once present. Do not run the install command on the user's behalf. See `docs/D.-Installation.md` for the prerequisite note.
 
 2.2. Load GH_TOKEN and authenticate.
 
@@ -254,8 +256,25 @@ Note: bootstrap takes effect from the NEXT session. Current session continues wi
 
 ### Phase 4 codex: Codex Integration
 
-Adapter generation and direct layer reads. Codex has no rules/skills mechanism,
-so layers must be read explicitly.
+Adapter, skills, hooks, and agents generation. This branch mirrors the Phase 4
+claude branch surface-for-surface (#1502 real-device-verified Codex placements):
+- skills land at `.agents/skills/<name>/SKILL.md` (Codex native auto-invocation,
+  NO trust gate — verified).
+- always-on rules have no Codex folder equivalent; they are injected by the
+  SessionStart hook from the LI_PLUS_REPO clone (`.codex/hooks/on-session-start`).
+  So unlike the previous Codex branch, there is no "read all rules/ inline at
+  bootstrap" step — the hook is the always-on substrate.
+- hooks land at `.codex/hooks/` (`*.ps1` Windows-native primary + `*.sh` POSIX
+  fallback), registered via `.codex/hooks.json`.
+- subagents (Codex "agents") land at `.codex/agents/*.toml`.
+
+Codex hook trust precondition (surface to the user, do not silently assume):
+Codex hooks require a one-time GUI trust (Codex App -> Settings -> Hooks -> this
+project -> trust) before they run, and re-trust whenever a build changes a hook
+body (trust is per content hash). Until trusted, the SessionStart rules injection
+and the per-turn gate re-arm silently do nothing. Bootstrap writes the hook files
+but cannot grant trust; the completion report (Phase 6) must instruct the user to
+grant trust in the GUI. See `docs/D.-Installation.md` for the step-by-step.
 
 4x.1. Bootstrap adapter:
 - target = {workspace_root}/AGENTS.md, source = adapter/codex/AGENTS.md
@@ -272,10 +291,147 @@ so layers must be read explicitly.
      - If tag differs or is absent: replace the section between "Li+ BEGIN" and "Li+ END" (inclusive)
        with the current adapter source contents. Preserve content outside this section.
   c. If target file exists but does not contain "Li+ BEGIN": ask user -- append Li+ section or skip?
+- Note (32 KiB cap): the root AGENTS.md holds only the minimal always-present core
+  (identity / character / startup contract). The full rule set arrives via the
+  SessionStart hook injection (4x.3), not inline, to stay under Codex's
+  `project_doc_max_bytes` (default 32 KiB).
 
-4x.2. Read Li+ layers directly:
-- Read all `rules/*.md` files in LI_PLUS_REPO (always-on).
-- `skills/<name>/SKILL.md` files are read on demand per the trigger table in adapter/codex/AGENTS.md.
+4x.2. Generate .agents/skills/ files (flat directory mirror):
+- Mirrors 4c.3, but the Codex native skill location is `.agents/skills/`, not
+  `.claude/skills/`.
+- If {workspace_root}/.agents/skills/ does not exist: create directory.
+- For each `<name>/SKILL.md` directly under LI_PLUS_REPO/skills/ (FLAT, no subdirectories):
+  - Target = `.agents/skills/<name>/SKILL.md`.
+  - Create target subdirectory if needed.
+  - Copy source verbatim (source already has the skill frontmatter; Codex reads
+    the same `name` / `description` progressive-disclosure fields).
+  - If source tag matches: skip.
+- Remove stale skills: for each `<name>/` directory in `.agents/skills/` that no
+  longer exists in LI_PLUS_REPO/skills/, recursively delete it.
+- The list of installed skill names produced here is the enumeration input for the
+  l1-gate-eval skills-disable blocks in 4x.5. Capture it before proceeding.
+
+Note: Codex skill discovery uses the flat `<name>/SKILL.md` layout (same as the
+Claude host). Skill auto-invocation is by `description` match with NO trust gate
+(#1502 verified). Skill names must be unique at the flat level; layer attribution
+is expressed via the skill-name prefix convention (e.g. `evolution-judgment-learning`).
+
+4x.3. Bootstrap hooks:
+- Source files:
+  - adapter/codex/hooks-config.md — contains the literal `.codex/hooks.json` JSON
+    block (and an alternate `config.toml [hooks]` snippet).
+  - adapter/codex/hooks/*.ps1 (Windows-native primary) and adapter/codex/hooks/*.sh
+    (POSIX fallback) — hook script bodies as real files.
+- BYTE-FAITHFUL .ps1 copy (CRITICAL): the `.ps1` files are UTF-8 WITH BOM
+  (first three bytes EF BB BF). Windows PowerShell 5.1 — the interpreter the
+  `commandWindows` line invokes — misparses BOM-less non-ASCII `.ps1`. Copy the
+  `.ps1` files as raw bytes; do NOT round-trip them through any text transform
+  that strips or re-adds the BOM or rewrites line endings. After install, verify
+  each installed `.ps1` still begins with bytes EF BB BF. (The `.sh` files are
+  plain LF-terminated UTF-8 without BOM; copy them verbatim too.)
+- {LI_PLUS_TAG} substitution in hook bodies: replace the `{LI_PLUS_TAG}` token in
+  the `# Source: ... ({LI_PLUS_TAG})` comment line with the resolved target tag.
+  Perform this as a byte-level token replacement on the file content so the BOM
+  and all other bytes are preserved (the token is plain ASCII; substituting it
+  does not touch the leading BOM).
+- {WORKSPACE_ROOT} substitution in hooks.json: Codex hooks need absolute paths
+  (there is no `$CLAUDE_PROJECT_DIR` equivalent). Replace every `{WORKSPACE_ROOT}`
+  placeholder in the rendered `.codex/hooks.json` with the absolute workspace path.
+  Quote any path containing spaces (the template already quotes the `-File` arg).
+- {workspace_root}/.codex/hooks.json is Li+ owned (compare-and-overwrite):
+  - If it does not exist: create it from the JSON code block in
+    adapter/codex/hooks-config.md (with {WORKSPACE_ROOT} substituted).
+    Also create {workspace_root}/.codex/hooks/ and copy all
+    adapter/codex/hooks/*.ps1 and *.sh there (byte-faithful per above).
+  - If it exists and content matches the rendered template byte-for-byte: skip.
+  - If it exists and content differs: overwrite with the rendered template.
+    (User-specific Codex settings belong in {workspace_root}/.codex/config.toml,
+    which Li+ does not own; see adapter/codex/hooks-config.md File ownership
+    boundary. If the user prefers TOML placement of hooks, the config.toml
+    `[hooks]` snippet is the documented alternate — use either hooks.json OR the
+    snippet, never both, or Codex registers the hooks twice.)
+  - SessionStart uses a single regex matcher `startup|resume|clear|compact` (Codex
+    matchers are regex; one entry covers all four sources). The Cold-start
+    Synthesis material + rules injection runs on every session entry point.
+- {workspace_root}/.codex/hooks/*.{ps1,sh} tag-tracked regeneration:
+  - Check the source tag in existing files
+    (e.g. "# Source: adapter/codex/hooks/on-session-start.ps1 (build-2026-03-30.14)").
+  - If tag matches current target tag: skip (up to date).
+  - If tag differs or is absent: regenerate by re-copying adapter/codex/hooks/*
+    (byte-faithful .ps1 copy + {LI_PLUS_TAG} token substitution as above).
+  - Regeneration changes the hook content hash, which INVALIDATES the Codex GUI
+    trust. The completion report must remind the user to re-trust after any build
+    that regenerated a hook.
+- on-session-start is the Codex rules-injection + Cold-start Synthesis material
+  emitter. It reads every `rules/**/*.md` from the LI_PLUS_REPO clone and emits
+  the literal bodies as `additionalContext` (the Codex substitute for Claude's
+  always-on `.claude/rules/` folder), plus the update-status marker
+  (LI_PLUS_UPDATE_STATUS) and diff-only cold-start material. Synthesis itself is
+  performed by the AI through Character_Instance, not by the hook.
+- Set executable permission on the .sh files (the .ps1 files are invoked via
+  `powershell -File` and need no executable bit).
+
+4x.4. Prepare cold-start state directory (diff-only emission persistence):
+- Mirrors 4c.5; the Codex state path is `.codex/state/`.
+- on-session-start persists per-section fingerprints to
+  `{workspace_root}/.codex/state/last-cold-start-emit.json` so the next
+  startup-matcher invocation can emit only changed sections.
+- Create `{workspace_root}/.codex/state/` if it does not exist.
+- Write `{workspace_root}/.codex/state/.gitignore` with the literal content
+  below if the file does not exist (do not overwrite a user-modified one):
+
+  ```
+  # Li+ hook runtime state — local-only, not version-controlled.
+  *
+  !.gitignore
+  ```
+
+- This step is idempotent: existing directory and existing `.gitignore` are
+  left alone.
+
+4x.5. Generate .codex/agents/ files (Create-only mirror + skills-disable enumeration):
+- Mirrors 4c.6, but Codex agents are TOML files at `.codex/agents/*.toml`, and the
+  l1-gate-eval agent additionally requires a bootstrap-filled skills-disable
+  enumeration (Codex has no global skills-off switch).
+- If LI_PLUS_REPO/adapter/codex/agents/ does not exist: skip this sub-phase entirely.
+- If {workspace_root}/.codex/agents/ does not exist: create directory.
+- For each `*.toml` directly under LI_PLUS_REPO/adapter/codex/agents/ (FLAT):
+  - Target = `{workspace_root}/.codex/agents/<filename>.toml`.
+  - Replace {LI_PLUS_TAG} in the `# Source: ... ({LI_PLUS_TAG})` comment with the
+    resolved target tag.
+  - Skills-disable enumeration (l1-gate-eval.toml ONLY): this agent must run with
+    ZERO skills (brake-2 root-criteria-only requirement). Codex disables skills
+    per SKILL.md path, not globally. After the `# --- Skills disable enumeration
+    (filled by bootstrap) ---` marker comment block at the bottom of the file,
+    append ONE TOML block per installed skill from 4x.2:
+
+    ```toml
+    [[skills.config]]
+    path = "{WORKSPACE_ROOT}/.agents/skills/<skill-name>/SKILL.md"
+    enabled = false
+    ```
+
+    - Substitute {WORKSPACE_ROOT} with the absolute workspace path (absolute path,
+      same rationale as the hooks: Codex needs absolute paths).
+    - Emit one block per `<name>/SKILL.md` installed at 4x.2 (enumerate the same
+      set). If a future Codex build adds a global skills toggle, this enumeration
+      can be replaced by it (see the placeholder comment in the source file).
+    - Other agents (e.g. dialogue-evaluator.toml) get no skills-disable
+      enumeration; copy them with {LI_PLUS_TAG} substituted only.
+  - If Target does not exist: write the rendered source.
+  - If Target exists: skip (Create-only; user customizations preserved). The
+    skills-disable enumeration is therefore (re)generated only on first install.
+    If the installed skill set later changes, the user must delete the local
+    l1-gate-eval.toml and re-bootstrap to regenerate the enumeration (same
+    Create-only caveat as 4c.6). Surface this in the completion report when the
+    skill set changed but a local l1-gate-eval.toml already exists.
+- No tag-based overwrite. No stale removal (a user may keep custom agents not in
+  the adapter source).
+
+Note: bootstrap takes effect from the NEXT session, AND is gated on the one-time
+Codex GUI hook trust (4x intro). Current session continues with Li+config.md
+execution. Until the user grants hook trust, rules injection and the per-turn gate
+do not run.
 
 ## Phase 5: Workspace Preparation
 
@@ -295,3 +451,14 @@ Dependencies: Phase 2 (gh CLI authenticated, repository schema resolved).
 Dependencies: all prior phases.
 
 6.1. Report completion.
+
+6.2. runtime=codex only — surface the one-time GUI hook trust requirement:
+- Instruct the user to open the Codex App and grant hook trust
+  (Settings -> Hooks -> this project -> trust). Until trusted, the SessionStart
+  rules injection and the per-turn Trigger Check Gate re-arm do not run (see
+  Phase 4 codex intro; full step-by-step in `docs/D.-Installation.md`).
+- If this bootstrap regenerated any hook body (tag bump), note that trust must be
+  re-granted (trust is per content hash).
+- If the installed skill set changed but a local `.codex/agents/l1-gate-eval.toml`
+  already exists (Create-only, not regenerated — see 4x.5), note that the user
+  must delete that file and re-bootstrap to refresh the skills-disable enumeration.

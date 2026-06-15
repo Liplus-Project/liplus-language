@@ -1,3 +1,9 @@
 *.md text eol=lf
 *.sh text eol=lf
 LICENSE text eol=lf
+
+# Codex hook PowerShell scripts are UTF-8 WITH BOM and must round-trip
+# byte-faithfully (Windows PowerShell 5.1 misparses BOM-less non-ASCII .ps1).
+# -text disables EOL normalization so the bytes (BOM + LF) survive clone /
+# checkout unchanged, regardless of the user's core.autocrlf setting (#1502).
+*.ps1 -text

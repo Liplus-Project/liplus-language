@@ -3,17 +3,23 @@
 # layer: L1-model  (changes to this evaluator route through brake 2 itself)
 #
 # Codex agents are TOML (not Markdown+frontmatter like Claude). The Claude
-# `tools: Read` restriction maps to sandbox_mode = "read-only" (no write / no
-# exec). The Claude "skills disabled" requirement maps to skills.config entries
-# with enabled = false.
+# `tools: Read` restriction maps to sandbox_mode = "read-only"; the Claude
+# "skills disabled" requirement maps to skills.config entries with enabled=false.
 #
-# IMPORTANT — skills disable is path-enumerated on Codex:
-#   Codex has no documented single "disable all skills" switch; skills.config
-#   disables per SKILL.md path. The bootstrap must enumerate the installed
-#   .agents/skills/*/SKILL.md paths and emit an `enabled = false` entry for each
-#   so this evaluator carries NO skills (brake-2 root-criteria-only requirement).
-#   The placeholder block at the bottom is filled by bootstrap. If a future Codex
-#   build adds a global skills toggle, replace the enumeration with it.
+# Real-device findings (#1502, verified on Codex / Windows, full-access parent):
+# - sandbox_mode is best-effort: a parent session in full-access / --yolo
+#   reapplies its sandbox to spawned children, overriding this file's read-only
+#   (a read-only-declared probe wrote a file). Acceptable for brake-2 because the
+#   verdict integrity rests on root-only JUDGMENT (developer_instructions below),
+#   not on write-prevention; read-only is defense-in-depth (judge/executor split).
+# - Codex subagents do NOT auto-invoke skills (3-arm probe: skill fired in the
+#   main session, absent in both a control subagent and a skills-disabled one),
+#   so the brake-2 skills-off / root-only isolation holds automatically. The
+#   per-skill enabled=false enumeration below is therefore defense-in-depth, NOT
+#   the sole guarantee — kept per subtractive-structural-beauty subtraction-
+#   safeguards (the auto-off is observed-not-contracted; brake-2 is an integrity
+#   surface). The bootstrap fills the placeholder block; a future global skills
+#   toggle would replace the enumeration.
 
 name = "l1-gate-eval"
 description = """

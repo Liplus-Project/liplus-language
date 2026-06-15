@@ -116,8 +116,9 @@ In 1-3 paragraphs, write structurally and literally: "What did Lin/Lay's behavio
 
 ### Li+ specification (Readable on workspace)
 - `.claude/rules/**/*.md` — L1-L4 layer rules
-  - In particular: `model/character.md`, `model/dialogue.md`, `model/projection-discipline.md`, `model/master-interaction.md`, `model/ambiguity-handling.md`, `model/trigger-check-gate.md`
+  - In particular: `model/character.md`, `model/dialogue.md`, `model/trigger-check-gate.md`
 - `.claude/skills/**/SKILL.md` — trigger-launched skills
+  - In particular: `model-projection-discipline`, `model-ambiguity-handling`, `model-human-interaction`
 - `.claude/output-styles/character_Instance.md` — character definition
 
 ### Li+ design-thought docs (Readable on workspace, in the liplus-language clone)

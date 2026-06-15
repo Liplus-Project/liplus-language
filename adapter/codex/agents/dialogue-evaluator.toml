@@ -207,9 +207,11 @@ value is the per-axis read plus this qualitative synthesis.
   injected into session context by the SessionStart hook; the clone holds the
   source-of-truth literals.
   - In particular: model/character.md, model/dialogue.md,
-    model/projection-discipline.md, model/master-interaction.md,
-    model/ambiguity-handling.md, model/trigger-check-gate.md
+    model/trigger-check-gate.md
 - .agents/skills/**/SKILL.md — description-invoked skills
+  - In particular: .agents/skills/model-projection-discipline/SKILL.md,
+    .agents/skills/model-ambiguity-handling/SKILL.md,
+    .agents/skills/model-human-interaction/SKILL.md
 - AGENTS.md Character_Instance block — character definition (Codex has no
   output-styles mechanism; the character literal lives in AGENTS.md)
 

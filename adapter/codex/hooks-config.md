@@ -158,6 +158,8 @@ not both.**
 
 Target: `{workspace_root}/.codex/config.toml`
 
+`{WORKSPACE_ROOT}` is replaced with the absolute workspace path at bootstrap (same as `hooks.json` above).
+
 ```toml
 [[hooks.SessionStart]]
 matcher = "startup|resume|clear|compact"

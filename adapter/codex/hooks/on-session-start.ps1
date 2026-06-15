@@ -1,4 +1,4 @@
-# Source: adapter/codex/hooks/on-session-start.ps1 ({LI_PLUS_TAG})
+﻿# Source: adapter/codex/hooks/on-session-start.ps1 ({LI_PLUS_TAG})
 # Codex SessionStart hook (Windows native / PowerShell). PRIMARY Windows path.
 # Port of adapter/claude/hooks/on-session-start.sh.
 #
@@ -56,7 +56,12 @@ function Flush-Json {
       additionalContext = $ctx
     }
   }
-  $out | ConvertTo-Json -Depth 5 -Compress
+  # Write raw UTF-8 bytes so non-ASCII survives Windows PowerShell 5.1
+  # (default redirected-output encoding is ANSI).
+  $json = $out | ConvertTo-Json -Depth 5 -Compress
+  $stdout = [System.Console]::OpenStandardOutput()
+  $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+  $stdout.Write($bytes, 0, $bytes.Length); $stdout.Flush()
 }
 
 # ---------- stdin / paths ----------

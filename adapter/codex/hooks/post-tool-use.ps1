@@ -1,4 +1,4 @@
-# Source: adapter/codex/hooks/post-tool-use.ps1 ({LI_PLUS_TAG})
+﻿# Source: adapter/codex/hooks/post-tool-use.ps1 ({LI_PLUS_TAG})
 # Codex PostToolUse hook (Windows native / PowerShell).
 # Port of adapter/claude/hooks/post-tool-use.sh.
 #
@@ -43,7 +43,12 @@ function Emit-Context([string]$ctx) {
       additionalContext = $ctx
     }
   }
-  $out | ConvertTo-Json -Depth 5 -Compress
+  # Write raw UTF-8 bytes so non-ASCII survives Windows PowerShell 5.1
+  # (default redirected-output encoding is ANSI).
+  $json = $out | ConvertTo-Json -Depth 5 -Compress
+  $stdout = [System.Console]::OpenStandardOutput()
+  $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+  $stdout.Write($bytes, 0, $bytes.Length); $stdout.Flush()
 }
 
 function Repo-From-Origin {

@@ -231,8 +231,8 @@ if (Test-Path -LiteralPath $coldstartMd) {
     if ($dashCount -ge 2) { $afterFm += $l }
   }
   # Drop a leading H1, then drop leading blank lines.
-  if ($afterFm.Count -gt 0 -and $afterFm[0] -match '^# ') { $afterFm = $afterFm[1..($afterFm.Count-1)] }
-  while ($afterFm.Count -gt 0 -and $afterFm[0].Trim() -eq '') { $afterFm = $afterFm[1..($afterFm.Count-1)] }
+  if ($afterFm.Count -gt 0 -and $afterFm[0] -match '^# ') { $afterFm = @($afterFm | Select-Object -Skip 1) }
+  while ($afterFm.Count -gt 0 -and $afterFm[0].Trim() -eq '') { $afterFm = @($afterFm | Select-Object -Skip 1) }
   $coldstartLiteral = ($afterFm -join "`n")
 }
 Emit-Section 'Cold-start Synthesis (rules/evolution/cold-start-synthesis.md literal)' $coldstartLiteral

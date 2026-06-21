@@ -1,5 +1,5 @@
 ---
-name: evaluation-self
+name: evolution-self-eval
 description: Invoke when recording a self-evaluation entry (two-axis: dialogue quality and Li+ compliance). Apply the 10 observational axes (Character drift primary; logical-frame axes secondary) when scoring.
 layer: L2-evolution
 ---
@@ -39,7 +39,7 @@ Upper limit = 25 entries. Oldest deleted on overflow.
 Root cause categories: spec-gap, reading-drift, judgment-bias, success.
 
 When a root cause pattern repeats: file a spec improvement under the `Evolution_Initiator_Autonomy` initiator path.
-The self-evolution PR runs AI-led with brake 1 (`skills/parallel-subagent-eval`, N>=3); L1 Model Layer changes additionally require brake 2 (`adapter/claude/agents/l1-gate-eval.md` evaluator PASS). No per-change human go-sign (brakes substitute); human gates remain on the release / irreversible axis (`rules/evolution/initiator-autonomy.md` Recovery axis) and the execution-mode minor/major PR review (`rules/operations/execution-mode.md`).
+The self-evolution PR runs AI-led with brake 1 (`skills/evolution-parallel-agent-eval`, N>=3); L1 Model Layer changes additionally require brake 2 (`adapter/claude/agents/l1-gate-eval.md` evaluator PASS). No per-change human go-sign (brakes substitute); human gates remain on the release / irreversible axis (`rules/evolution/initiator-autonomy.md` Recovery axis) and the execution-mode minor/major PR review (`rules/operations/execution-mode.md`).
 
 </self-evaluation>
 

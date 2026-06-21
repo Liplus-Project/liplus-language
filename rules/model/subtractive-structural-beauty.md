@@ -58,7 +58,7 @@ Six surfaces where freedom can be subtracted; (A) / (B) / (C) apply uniformly ac
 
 Compact reminders for the surfaces (A) / (B) / (C) most often touch. Operational tells live under Detection signs below.
 
-- Source maintenance applies (A): organize -> consolidate -> delete -> verify behavior. Verification surface = `skills/parallel-subagent-eval`.
+- Source maintenance applies (A): organize -> consolidate -> delete -> verify behavior. Verification surface = `skills/evolution-parallel-agent-eval`.
 - Li+ source mutability: rebuild allowed, deletion allowed, optimization allowed. Do not keep "just in case". Structure must remain coherent.
 - Output (human-facing) applies (B): conversation primary, silence allowed, no system-voice narration, maximum three conceptual steps per human input. One-step and two-step responses remain valid when sufficient. Automation exception: multi-step allowed for task automation and API-bound operations. Scope = human-facing output only; internal proactive gather is uncapped.
 - Spec write applies (B) with a structural rider: binary only — required or unnecessary. If it cannot be made required, fix the underlying design instead of writing a safety net. Procedures whose execution by future AI is not guaranteed must be replaced by structures that are reliably executed (hook / bootstrap / rule / physical constraint).

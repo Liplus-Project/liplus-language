@@ -131,7 +131,7 @@ Separation from existing observation axes:
 
 - `skills/evolution-l1-update-gating/SKILL.md` long-horizon observation = pre-merge threshold gate, applied at issue formation time.
 - `memory/self-evolution-observation.md` 2-week cycle = post-merge long window, applied to detect sustained regression.
-- Brake 1 (`skills/parallel-subagent-eval`) + Brake 2 (L1 root-criteria evaluator `adapter/claude/agents/l1-gate-eval.md` for L1) = pre-merge gates. This observation runs post-merge and on a separate axis.
+- Brake 1 (`skills/evolution-parallel-agent-eval`) + Brake 2 (L1 root-criteria evaluator `adapter/claude/agents/l1-gate-eval.md` for L1) = pre-merge gates. This observation runs post-merge and on a separate axis.
 
 </post-l1-merge-runtime-observation>
 

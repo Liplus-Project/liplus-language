@@ -28,7 +28,7 @@ memory = transient only. Persistent residency is not intended.
 
 What memory holds:
 - cluster tally (3-day expire / threshold-judgment intermediate state → `rules/evolution/promotion-judgment.md`)
-- self-evaluation log (cap = 25 entries, oldest-first deletion → `skills/evaluation-self/SKILL.md`)
+- self-evaluation log (cap = 25 entries, oldest-first deletion → `skills/evolution-self-eval/SKILL.md`)
 - self-evolution observation (post-merge detection cycle, per-entry expire → see Self-Evolution Observation Format below)
 - reference (transient lookup, reconstructible if lost)
 
@@ -156,7 +156,7 @@ After running the skill, update the `**Last consolidate run:**` line in each mem
 This rule defines the entry format and operation of memory only. The following are separate surfaces:
 - cluster tally 3-day expire / sub-threshold deletion → `rules/evolution/promotion-judgment.md`
 - memory ↔ docs / wiki / rules sorting → `skills/evolution-persistence-tiering/SKILL.md`
-- self-evaluation 10-axis scoring → `skills/evaluation-self/SKILL.md`
+- self-evaluation 10-axis scoring → `skills/evolution-self-eval/SKILL.md`
 
 </out-of-scope>
 

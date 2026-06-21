@@ -35,7 +35,7 @@ One tempo slower. Drift chain stops before it starts.
 
 The Gate is re-armed every turn by the `on-user-prompt.sh` UserPromptSubmit hook — deterministic, harness-fired, not recall-dependent. The hook injects a terse re-arm of the 5 axes + situational routing (external content read -> Frame + Source; asserting from internal memory -> Source; applying a rule -> Rule + Literal) at turn start. The always-on rule body carries axis detail; per-judgment application stays the agent's.
 
-This hook (#1413 candidate A, implemented in #1493) replaces the retired self-declaration substrate (#1413 candidate B / #1414-#1415). Do not re-add a self-declaration trigger: a forgettable relief path is strictly dominated by the deterministic hook. Recall-gap rationale and the residual limit (mid-turn gist-assertion precision is not structurally enforced; post-judgment misses are observed by `skills/evaluation-self/SKILL.md`) live in #1493 / Decision Structure.
+This hook (#1413 candidate A, implemented in #1493) replaces the retired self-declaration substrate (#1413 candidate B / #1414-#1415). Do not re-add a self-declaration trigger: a forgettable relief path is strictly dominated by the deterministic hook. Recall-gap rationale and the residual limit (mid-turn gist-assertion precision is not structurally enforced; post-judgment misses are observed by `skills/evolution-self-eval/SKILL.md`) live in #1493 / Decision Structure.
 
 </trigger-firing>
 

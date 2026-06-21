@@ -15,7 +15,7 @@ Concept framing (Sheepdog Engineering):
   - initiator: AI files self-evolution issues and runs implementation → merge end-to-end (see Evolution_Initiator_Autonomy below)
 - Stages: harness → agility (transitional, passed: position+modifier on AI, initiator on human) → sheepdog (current judgment layer: all three on AI).
 - Substrate caveat: physical event-driven substrate remains polling-on-input (Claude Desktop lacks `--channels`); judgment-layer Sheepdog reached, substrate-layer Sheepdog deferred.
-- self-eval drives the modifier axis as autonomous-evolution instrument: `skills/evaluation-self`, `skills/evolution-loop`, `promotion-judgment` family.
+- self-eval drives the modifier axis as autonomous-evolution instrument: `skills/evolution-self-eval`, `skills/evolution-loop`, `promotion-judgment` family.
 - `Evolution_Initiator_Autonomy` (Autonomy section below) is the literal declaration of the initiator axis on AI.
 
 Execute the following at startup (never output credentials to chat):
@@ -181,7 +181,7 @@ Evolution_Initiator_Autonomy:
   No human go-sign is required to start the loop.
 
   Two-stage brake (always-on / L1-only):
-  - brake 1 = `skills/parallel-subagent-eval` mandatory before commit/merge for every self-evolution PR.
+  - brake 1 = `skills/evolution-parallel-agent-eval` mandatory before commit/merge for every self-evolution PR.
   - brake 2 = L1 root-criteria evaluator subagent (`adapter/claude/agents/l1-gate-eval.md`, skills disabled, L1 diff + stated reason passed inline) required on top of brake 1 when the PR touches L1 Model Layer source. Evaluator PASS substitutes for human approval at brake 2; DEVIATION = merge blocked. `skills/evolution-l1-update-gating` observation threshold continues to apply on its own axis. Human = final judge stands unchanged on a separate axis (`rules/model/role-separation.md`).
 
   Human gate retained for:

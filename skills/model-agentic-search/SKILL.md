@@ -1,5 +1,5 @@
 ---
-name: agentic-search
+name: model-agentic-search
 description: ALWAYS invoke before answering when (a) the agent's internal confidence calibration on the claim is low / fuzzy / mixed with speculation, OR (b) the input contains time-variant keywords ("latest" / "recent" / "current" / "now") in a comparison-informative domain (time-variant fact / API spec / external state — not language / math / logic / pure internal judgment, where retrieval spins without adding information). The (a) calibration path is never suppressed by domain. Also invoke when consuming a Web search result (Web-side consumption discipline), at the parent-AI side of a research task (delegation governance, verification posture), or at the parent-AI side after a retrieval result is returned (budget gate, stop conditions, surfacing to human). Internal knowledge is the comparison baseline only under the (a)/(b) triggers, never the answer source.
 layer: L1-model
 ---

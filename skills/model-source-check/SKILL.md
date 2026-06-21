@@ -32,7 +32,7 @@ Before using anything as judgment material, do not exempt verification by speake
 | "What did we learn in similar situations?" | Memory (feedback / self-eval) |
 | "Does this source literally say this?" | Read tool (literal source) |
 
-Search-side gate = `skills/agentic-search/SKILL.md` (calibration + category dual trigger across Web / RAG / gh / Read / memory). When that gate fires, the mechanical multi-angle gather + three-state cross-check protocol runs there; this skill carries the factual-claim verification axis that sits alongside.
+Search-side gate = `skills/model-agentic-search/SKILL.md` (calibration + category dual trigger across Web / RAG / gh / Read / memory). When that gate fires, the mechanical multi-angle gather + three-state cross-check protocol runs there; this skill carries the factual-claim verification axis that sits alongside.
 
 </two-pillar-verify-table>
 

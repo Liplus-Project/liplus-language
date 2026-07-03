@@ -25,8 +25,9 @@ Dependencies: none.
 Dependencies: Phase 1 (runtime detected).
 
 2.1. Prerequisite install (gh CLI):
-- runtime=claude (Linux/Mac host): managed by `adapter/claude/hooks/on-session-start.sh`. The hook ensures `~/.local/bin/gh` exists (install on absence, silent skip on presence); failure surfaces as a cold-start material entry asking the user to intervene. Bootstrap walkthrough does not perform install steps.
-- runtime=codex (Windows-native host, the #1502-verified env): the Linux `~/.local/bin/gh` auto-install path does NOT apply (wrong platform). `gh` is treated as a documented prerequisite, NOT silently installed by bootstrap. If `gh` is absent, surface the install instruction to the user (`winget install --id GitHub.cli` in a Windows terminal) and continue once present. Do not run the install command on the user's behalf. See `docs/D.-Installation.md` for the prerequisite note.
+- Branching is by detected **host OS**, not by adapter (`runtime=claude` / `runtime=codex`). Both adapters can and do run natively on Linux, macOS, or Windows — e.g. the Claude adapter running natively on Windows via Git Bash/MSYS2 is a verified env (#1518), not merely a Linux/Mac case. Do not infer host OS from which adapter is active.
+- runtime=claude: managed by `adapter/claude/hooks/on-session-start.sh`. The hook detects host OS itself (`uname -s`: `Linux*` / `Darwin*` / `MINGW*|MSYS*|CYGWIN*`). On Linux it ensures `~/.local/bin/gh` exists (arch-detected auto-install on absence, silent skip on presence). On macOS and Windows (incl. Git-Bash/MSYS2), auto-install is NOT attempted; `gh` is treated as a documented prerequisite and a platform-appropriate install instruction (`brew install gh` / `winget install --id GitHub.cli`) is surfaced as a cold-start material entry when absent from PATH. Bootstrap walkthrough does not perform install steps either way.
+- runtime=codex: `gh` is treated as a documented prerequisite, NOT silently installed by bootstrap, regardless of host OS. If `gh` is absent, surface the install instruction appropriate to the detected host OS (e.g. `winget install --id GitHub.cli` on Windows, `brew install gh` on macOS) and continue once present. Do not run the install command on the user's behalf. See `docs/D.-Installation.md` for the prerequisite note.
 
 2.2. Load GH_TOKEN and authenticate.
 

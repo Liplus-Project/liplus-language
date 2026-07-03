@@ -17,9 +17,12 @@
 #   "No new orientation material since last session" marker is emitted so the
 #   human can still observe that a session boundary occurred.
 #
-#   Fail-safe: missing state, unreadable state, malformed JSON, or sha256 tool
-#   absence collapses to "full emit" (every available section) and rewrites the
-#   state. A corrupted diff is heavier than a redundant full emit.
+#   Fail-safe: missing state, unreadable state, malformed JSON, or sha256/node
+#   tool absence collapses to "full emit" (every available section) and
+#   rewrites the state. A corrupted diff is heavier than a redundant full emit.
+#   JSON read/write uses Node.js (`node -e`), not an external `jq` binary —
+#   node is the runtime Claude Code itself depends on, so it is a safe
+#   assumption and removes a previously-common fail-safe trigger.
 #
 #   resume / clear / compact matchers do not run diff comparison (the work
 #   context is continuous; only the cold-start rule literal is re-anchored).
@@ -36,43 +39,72 @@ CONFIG_FILE="$PROJECT_ROOT/Li+config.md"
 # ===================================================================
 # Prerequisite install: gh CLI
 # ===================================================================
-# Relocated from Li+update.md Phase 2.1. The hook ensures `~/.local/bin/gh`
-# exists so the update walkthrough does not have to spell out install steps
-# every session. Install is performed only when the binary is absent; presence
-# is a silent skip. Failure does NOT abort the hook — it is surfaced as a
-# cold-start material entry so the AI can ask the user to intervene.
+# Relocated from Li+update.md Phase 2.1. The hook ensures `gh` is present so
+# the update walkthrough does not have to spell out install steps every
+# session. Behavior branches on detected host OS (not on adapter identity —
+# the Claude adapter runs natively on Linux, macOS, and Windows/Git-Bash
+# alike; see Li+update.md Phase 2.1):
+#   - Linux: auto-install into `~/.local/bin/gh` when absent (arch-detected
+#     tarball, not hardcoded). Presence is a silent skip.
+#   - macOS / Windows (incl. Git-Bash/MSYS2): auto-install is NOT attempted.
+#     `gh` is treated as a documented prerequisite. When absent from PATH, a
+#     platform-appropriate install instruction is surfaced via the
+#     GH_INSTALL_STATUS marker and the hook continues without blocking.
+# Failure/guidance does NOT abort the hook — it is surfaced as a cold-start
+# material entry so the AI can inform (Linux failure) or guide (macOS/Windows
+# absence) the user.
 GH_INSTALL_STATUS=""
-if ! command -v "$HOME/.local/bin/gh" >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/gh" ]; then
-  GH_INSTALL_LOG=$(mktemp 2>/dev/null || echo "/tmp/liplus-gh-install-$$.log")
-  {
-    set -e
-    mkdir -p "$HOME/.local/bin"
-    GH_VERSION="2.62.0"
-    GH_ARCH="linux_amd64"
-    GH_URL="https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_${GH_ARCH}.tar.gz"
-    GH_TARBALL="$HOME/.local/bin/gh.tar.gz"
-    GH_EXTRACT_DIR="$HOME/.local/bin/_gh_extract"
-    mkdir -p "$GH_EXTRACT_DIR"
-    curl -fsSL -o "$GH_TARBALL" "$GH_URL"
-    tar -xzf "$GH_TARBALL" -C "$GH_EXTRACT_DIR" --strip-components=1
-    mv "$GH_EXTRACT_DIR/bin/gh" "$HOME/.local/bin/gh"
-    chmod +x "$HOME/.local/bin/gh"
-    rm -rf "$GH_EXTRACT_DIR" "$GH_TARBALL"
-  } > "$GH_INSTALL_LOG" 2>&1
-  if [ -x "$HOME/.local/bin/gh" ]; then
-    GH_INSTALL_STATUS="installed"
-  else
-    GH_INSTALL_STATUS="failed: $(tail -n 3 "$GH_INSTALL_LOG" 2>/dev/null | tr '\n' ' ')"
-  fi
-  rm -f "$GH_INSTALL_LOG" 2>/dev/null || true
+if ! command -v gh >/dev/null 2>&1; then
+  HOST_KERNEL=$(uname -s 2>/dev/null || echo "unknown")
+  case "$HOST_KERNEL" in
+    Linux*)
+      GH_INSTALL_LOG=$(mktemp 2>/dev/null || echo "/tmp/liplus-gh-install-$$.log")
+      {
+        set -e
+        mkdir -p "$HOME/.local/bin"
+        GH_VERSION="2.62.0"
+        case "$(uname -m 2>/dev/null)" in
+          x86_64|amd64) GH_ARCH="linux_amd64" ;;
+          aarch64|arm64) GH_ARCH="linux_arm64" ;;
+          armv6l|armv7l) GH_ARCH="linux_armv6" ;;
+          386|i686) GH_ARCH="linux_386" ;;
+          *) GH_ARCH="linux_amd64" ;;
+        esac
+        GH_URL="https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_${GH_ARCH}.tar.gz"
+        GH_TARBALL="$HOME/.local/bin/gh.tar.gz"
+        GH_EXTRACT_DIR="$HOME/.local/bin/_gh_extract"
+        mkdir -p "$GH_EXTRACT_DIR"
+        curl -fsSL -o "$GH_TARBALL" "$GH_URL"
+        tar -xzf "$GH_TARBALL" -C "$GH_EXTRACT_DIR" --strip-components=1
+        mv "$GH_EXTRACT_DIR/bin/gh" "$HOME/.local/bin/gh"
+        chmod +x "$HOME/.local/bin/gh"
+        rm -rf "$GH_EXTRACT_DIR" "$GH_TARBALL"
+      } > "$GH_INSTALL_LOG" 2>&1
+      if [ -x "$HOME/.local/bin/gh" ]; then
+        GH_INSTALL_STATUS="installed"
+      else
+        GH_INSTALL_STATUS="failed: $(tail -n 3 "$GH_INSTALL_LOG" 2>/dev/null | tr '\n' ' ')"
+      fi
+      rm -f "$GH_INSTALL_LOG" 2>/dev/null || true
+      ;;
+    Darwin*)
+      GH_INSTALL_STATUS="missing: macOS host detected, gh not found on PATH. Documented prerequisite — do not auto-install. Ask the user to run: brew install gh"
+      ;;
+    MINGW*|MSYS*|CYGWIN*)
+      GH_INSTALL_STATUS="missing: Windows host detected (Git-Bash/MSYS2), gh not found on PATH. Documented prerequisite — do not auto-install. Ask the user to run in a Windows terminal: winget install --id GitHub.cli"
+      ;;
+    *)
+      GH_INSTALL_STATUS="missing: unrecognized host kernel ($HOST_KERNEL), gh not found on PATH. Documented prerequisite — do not auto-install. Ask the user to install gh via their platform's package manager."
+      ;;
+  esac
 fi
 
 # Guard: if liplus-language source is not resolved yet (e.g. pre-bootstrap), exit silently
-# AFTER emitting the gh install failure marker if applicable.
+# AFTER emitting the gh install failure/guidance marker if applicable.
 if [ ! -d "$LIPLUS_DIR" ]; then
-  if [ "${GH_INSTALL_STATUS#failed}" != "$GH_INSTALL_STATUS" ]; then
+  if [ "${GH_INSTALL_STATUS#failed}" != "$GH_INSTALL_STATUS" ] || [ "${GH_INSTALL_STATUS#missing}" != "$GH_INSTALL_STATUS" ]; then
     printf '━━━ gh install ━━━\n%s\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' \
-      "Prerequisite install failed. Master intervention required." \
+      "Prerequisite install failed or gh missing. Master intervention required." \
       "Detail: $GH_INSTALL_STATUS"
   fi
   exit 0
@@ -91,10 +123,23 @@ fi
 MATCHER="startup"
 if [ -n "$HOOK_INPUT" ]; then
   EXTRACTED=""
-  if command -v jq >/dev/null 2>&1; then
-    EXTRACTED=$(printf '%s' "$HOOK_INPUT" | jq -r '.matcher // .hook_event_name // empty' 2>/dev/null)
+  if command -v node >/dev/null 2>&1; then
+    EXTRACTED=$(printf '%s' "$HOOK_INPUT" | node -e '
+      let raw = "";
+      process.stdin.on("data", (d) => { raw += d; });
+      process.stdin.on("end", () => {
+        try {
+          const payload = JSON.parse(raw);
+          const v = payload.matcher || payload.hook_event_name || "";
+          process.stdout.write(String(v));
+        } catch (e) {
+          // leave stdout empty; caller falls back to regex extraction
+        }
+      });
+    ' 2>/dev/null)
   fi
-  # jq fallback: regex-extract "matcher":"value" from the JSON payload.
+  # Fallback: regex-extract "matcher":"value" from the JSON payload, used when
+  # node is unavailable or JSON parsing above yielded nothing.
   # The matcher key is a flat string field per Claude Code SessionStart contract.
   if [ -z "$EXTRACTED" ]; then
     EXTRACTED=$(printf '%s' "$HOOK_INPUT" | sed -n 's/.*"matcher"[[:space:]]*:[[:space:]]*"\([a-z]*\)".*/\1/p' | head -n 1)
@@ -485,10 +530,21 @@ fi
 #
 # Compute current fingerprint per section. Load prior fingerprint set from
 # state. Emit a section iff its fingerprint differs from the stored value or
-# fail-safe (no state / unreadable / sha256 unavailable / jq unavailable)
+# fail-safe (no state / unreadable / sha256 unavailable / node unavailable)
 # forces full emit.
+#
+# JSON handling uses Node.js (`node -e`) instead of an external `jq` binary.
+# Node is a safe assumption: it is the runtime Claude Code itself depends on.
+# This mirrors adapter/codex/hooks/on-session-start.ps1, which solves the same
+# problem with PowerShell-native ConvertFrom-Json/ConvertTo-Json.
 FAIL_SAFE_FULL_EMIT=0
 FAIL_SAFE_REASON=""
+
+# node availability check (used for state read/parse and state write).
+NODE_BIN=""
+if command -v node >/dev/null 2>&1; then
+  NODE_BIN="node"
+fi
 
 # sha256 availability check (used for both current fingerprints and state read).
 if [ -z "$(sha256_of probe)" ]; then
@@ -496,20 +552,33 @@ if [ -z "$(sha256_of probe)" ]; then
   FAIL_SAFE_REASON="sha256 tool unavailable"
 fi
 
-# jq availability check: state read and write both require it. Without jq,
-# diff comparison and state rewrite cannot proceed reliably.
-if [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ] && ! command -v jq >/dev/null 2>&1; then
+# node availability check: state read and write both require it. Without
+# node, diff comparison and state rewrite cannot proceed reliably.
+if [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ] && [ -z "$NODE_BIN" ]; then
   FAIL_SAFE_FULL_EMIT=1
-  FAIL_SAFE_REASON="jq unavailable"
+  FAIL_SAFE_REASON="node unavailable"
 fi
 
-# Read prior state, if present and parseable.
-PRIOR_STATE_JSON=""
+# Read prior state, if present and parseable. On success, PRIOR_FP_DUMP holds
+# one "key<TAB>fingerprint" line per recorded section (flat text, easy to
+# grep from bash without needing associative arrays).
+PRIOR_FP_DUMP=""
 if [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ]; then
   if [ -f "$STATE_FILE" ]; then
-    if jq -e . "$STATE_FILE" >/dev/null 2>&1; then
-      PRIOR_STATE_JSON=$(cat "$STATE_FILE")
-    else
+    PRIOR_FP_DUMP=$("$NODE_BIN" -e '
+      const fs = require("fs");
+      try {
+        const raw = fs.readFileSync(process.argv[1], "utf8");
+        const data = JSON.parse(raw);
+        const sections = (data && typeof data === "object" && data.sections) || {};
+        for (const k of Object.keys(sections)) {
+          process.stdout.write(k + "\t" + String(sections[k]) + "\n");
+        }
+      } catch (e) {
+        process.exit(1);
+      }
+    ' "$STATE_FILE" 2>/dev/null)
+    if [ "$?" -ne 0 ]; then
       FAIL_SAFE_FULL_EMIT=1
       FAIL_SAFE_REASON="state file malformed JSON"
     fi
@@ -519,9 +588,19 @@ if [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ]; then
   fi
 fi
 
-# Build current fingerprints and emit per section.
+# Helper: look up a key's prior fingerprint from the flat PRIOR_FP_DUMP dump.
+prior_fp_of() {
+  local key="$1"
+  [ -n "$PRIOR_FP_DUMP" ] || return 0
+  printf '%s\n' "$PRIOR_FP_DUMP" | awk -F'\t' -v k="$key" '$1 == k { print $2; exit }'
+}
+
+# Build current fingerprints and emit per section. NEW_FP_KEYS / NEW_FP_VALS
+# are parallel arrays accumulating "last gathered" fingerprints, written out
+# as a single JSON object at the end (one node invocation, not one per key).
 EMITTED_ANY=0
-NEW_STATE_JSON='{"sections":{}}'
+NEW_FP_KEYS=()
+NEW_FP_VALS=()
 
 i=0
 while [ "$i" -lt "${#SECTION_KEYS[@]}" ]; do
@@ -538,16 +617,16 @@ while [ "$i" -lt "${#SECTION_KEYS[@]}" ]; do
   current_fp=$(sha256_of "$body")
 
   prior_fp=""
-  if [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ] && [ -n "$PRIOR_STATE_JSON" ]; then
-    prior_fp=$(printf '%s' "$PRIOR_STATE_JSON" | jq -r ".sections[\"$key\"] // empty" 2>/dev/null)
+  if [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ]; then
+    prior_fp=$(prior_fp_of "$key")
   fi
 
-  # Update new state with current fingerprint (even if not emitted, so the
-  # state always reflects "last gathered" not "last emitted"; this prevents
-  # an unchanged section from being re-emitted forever after one stale state
-  # read).
-  if command -v jq >/dev/null 2>&1 && [ -n "$current_fp" ]; then
-    NEW_STATE_JSON=$(printf '%s' "$NEW_STATE_JSON" | jq --arg k "$key" --arg v "$current_fp" '.sections[$k] = $v' 2>/dev/null || printf '%s' "$NEW_STATE_JSON")
+  # Record current fingerprint (even if not emitted, so the state always
+  # reflects "last gathered" not "last emitted"; this prevents an unchanged
+  # section from being re-emitted forever after one stale state read).
+  if [ -n "$current_fp" ]; then
+    NEW_FP_KEYS+=("$key")
+    NEW_FP_VALS+=("$current_fp")
   fi
 
   if [ "$FAIL_SAFE_FULL_EMIT" -eq 1 ] || [ "$current_fp" != "$prior_fp" ] || [ -z "$current_fp" ]; then
@@ -565,14 +644,37 @@ fi
 
 # Persist new state (best-effort; failure is non-fatal — next session will
 # fall through to fail-safe full emit).
-if command -v jq >/dev/null 2>&1; then
+if [ -n "$NODE_BIN" ]; then
   mkdir -p "$STATE_DIR" 2>/dev/null || true
   # Add a top-level timestamp for human-readable forensics.
   TS=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "")
-  if [ -n "$TS" ]; then
-    NEW_STATE_JSON=$(printf '%s' "$NEW_STATE_JSON" | jq --arg t "$TS" '.last_emit_at = $t' 2>/dev/null || printf '%s' "$NEW_STATE_JSON")
-  fi
-  printf '%s\n' "$NEW_STATE_JSON" > "$STATE_FILE" 2>/dev/null || true
+  # Pass keys/values/timestamp as argv to node; it assembles and writes the
+  # JSON object directly (single invocation, no shell-side JSON string building).
+  # Build the interleaved key/value argv list as a real array (avoids fragile
+  # word-splitting via command substitution).
+  NEW_FP_ARGV=()
+  j=0
+  while [ "$j" -lt "${#NEW_FP_KEYS[@]}" ]; do
+    NEW_FP_ARGV+=("${NEW_FP_KEYS[$j]}" "${NEW_FP_VALS[$j]}")
+    j=$((j + 1))
+  done
+  "$NODE_BIN" -e '
+    const fs = require("fs");
+    const outPath = process.argv[1];
+    const ts = process.argv[2];
+    const rest = process.argv.slice(3);
+    const sections = {};
+    for (let i = 0; i < rest.length; i += 2) {
+      sections[rest[i]] = rest[i + 1];
+    }
+    const state = { sections: sections };
+    if (ts) { state.last_emit_at = ts; }
+    try {
+      fs.writeFileSync(outPath, JSON.stringify(state) + "\n");
+    } catch (e) {
+      process.exit(1);
+    }
+  ' "$STATE_FILE" "$TS" "${NEW_FP_ARGV[@]}" 2>/dev/null || true
 fi
 
 # --- instruction to the AI: synthesize through Character_Instance ---

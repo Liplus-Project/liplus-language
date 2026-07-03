@@ -14,11 +14,17 @@ Li+のセットアップは、ワークスペースに設定ファイルを1つ�
 - **AIエージェント環境**（Claude Code / CODEX 等）
 - **GitHubアカウント**
 - **GitHub Personal Access Token**（GH_TOKEN）
-- **CODEX (Windows ネイティブ環境) の場合のみ: `gh` CLI を事前にインストール**
-  - Claude 側（Linux/Mac）は SessionStart hook が `~/.local/bin/gh` を自動配置しますが、CODEX の Windows ネイティブ環境ではこの自動インストール経路は使えません（プラットフォーム違い）。
-  - Windows ターミナルで以下を一度だけ実行します（bootstrap は代行しません。明示的にユーザーが実行）：
+- **`gh` CLI の事前インストールが必要な場合があります（ホストOSにより異なります。アダプター種別 = Claude Code / CODEX には依存しません。どちらのアダプターも Linux / macOS / Windows いずれのホストでも動作します。例えば Claude Code が Git Bash/MSYS2 経由で Windows ネイティブ環境上で動作するケースも実例として確認済みです）**
+  - **Linux**: SessionStart hook が `~/.local/bin/gh` を自動配置します（アーキテクチャ検出込み）。事前インストールは不要です。
+  - **macOS / Windows（Git Bash/MSYS2 を含む。アダプターの種類は問いません）**: 自動インストールは行われません。ターミナルで以下を一度だけ実行します（bootstrap は代行しません。明示的にユーザーが実行）：
 
     ```
+    # macOS
+    brew install gh
+    ```
+
+    ```
+    # Windows
     winget install --id GitHub.cli
     ```
 

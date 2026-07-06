@@ -18,6 +18,13 @@
 #
 # Matchers: startup / resume / clear / compact. resume/clear/compact = rules
 # re-injection + cold-start anchor only (no diff eval, no update-status re-check).
+#
+# JSON handling (output wrapping, HOOK_INPUT field extraction, cold-start
+# diff-only state read/write) uses Node.js (`node -e`), not an external `jq`
+# binary — node is a runtime dependency Codex CLI (like Claude Code) already
+# has, so it is a safe assumption. Ported from adapter/claude/hooks/on-session-start.sh
+# (#1519); on-session-start.ps1 (Windows-native primary) never depended on jq
+# in the first place (PowerShell-native ConvertFrom-Json/ConvertTo-Json). #1526.
 export PATH="$HOME/.local/bin:$PATH"
 
 BUFFER=""
@@ -32,13 +39,16 @@ emit_section() {
   emit ""
 }
 flush_json() {
-  if command -v jq >/dev/null 2>&1; then
-    jq -n --arg ctx "$BUFFER" '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":$ctx}}'
-  else
-    local esc
-    esc=$(printf '%s' "$BUFFER" | sed 's/\\/\\\\/g; s/"/\\"/g' | awk 'BEGIN{ORS=""} {printf "%s\\n", $0}')
-    printf '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"%s"}}\n' "$esc"
+  if command -v node >/dev/null 2>&1; then
+    BUFFER="$BUFFER" node -e '
+      process.stdout.write(JSON.stringify({
+        hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: process.env.BUFFER || "" }
+      }) + "\n");
+    ' 2>/dev/null && return
   fi
+  local esc
+  esc=$(printf '%s' "$BUFFER" | sed 's/\\/\\\\/g; s/"/\\"/g' | awk 'BEGIN{ORS=""} {printf "%s\\n", $0}')
+  printf '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"%s"}}\n' "$esc"
 }
 sha256_of() {
   local input="$1"
@@ -55,8 +65,19 @@ sha256_of() {
 HOOK_INPUT=""
 if [ ! -t 0 ]; then HOOK_INPUT=$(cat 2>/dev/null || true); fi
 PROJECT_ROOT=""
-if [ -n "$HOOK_INPUT" ] && command -v jq >/dev/null 2>&1; then
-  PROJECT_ROOT=$(printf '%s' "$HOOK_INPUT" | jq -r '.cwd // empty' 2>/dev/null)
+if [ -n "$HOOK_INPUT" ] && command -v node >/dev/null 2>&1; then
+  PROJECT_ROOT=$(printf '%s' "$HOOK_INPUT" | node -e '
+    let raw = "";
+    process.stdin.on("data", (d) => { raw += d; });
+    process.stdin.on("end", () => {
+      try {
+        const payload = JSON.parse(raw);
+        process.stdout.write(String(payload.cwd || ""));
+      } catch (e) {
+        // leave stdout empty; caller falls back to CODEX_PROJECT_DIR/PWD
+      }
+    });
+  ' 2>/dev/null)
 fi
 [ -n "$PROJECT_ROOT" ] || PROJECT_ROOT="${CODEX_PROJECT_DIR:-$PWD}"
 
@@ -73,8 +94,20 @@ RULES_ROOT="$LIPLUS_DIR/rules"
 MATCHER="startup"
 if [ -n "$HOOK_INPUT" ]; then
   EXTRACTED=""
-  if command -v jq >/dev/null 2>&1; then
-    EXTRACTED=$(printf '%s' "$HOOK_INPUT" | jq -r '.matcher // .source // .session_source // empty' 2>/dev/null)
+  if command -v node >/dev/null 2>&1; then
+    EXTRACTED=$(printf '%s' "$HOOK_INPUT" | node -e '
+      let raw = "";
+      process.stdin.on("data", (d) => { raw += d; });
+      process.stdin.on("end", () => {
+        try {
+          const payload = JSON.parse(raw);
+          const v = payload.matcher || payload.source || payload.session_source || "";
+          process.stdout.write(String(v));
+        } catch (e) {
+          // leave stdout empty; caller falls back to regex extraction
+        }
+      });
+    ' 2>/dev/null)
   fi
   if [ -z "$EXTRACTED" ]; then
     EXTRACTED=$(printf '%s' "$HOOK_INPUT" | sed -n 's/.*"\(matcher\|source\)"[[:space:]]*:[[:space:]]*"\([a-z]*\)".*/\2/p' | head -n 1)
@@ -297,21 +330,60 @@ register_section "promotion_candidates" "Promotion candidates (memory → Li+ so
 # ===================================================================
 # Diff-only emission (startup)
 # ===================================================================
+# JSON handling uses Node.js (`node -e`) instead of an external `jq` binary.
+# Node is a safe assumption: it is the runtime Codex CLI itself depends on
+# (mirrors the fix applied to adapter/claude/hooks/on-session-start.sh in #1519;
+# on-session-start.ps1, the Windows-native primary, already avoided jq via
+# PowerShell-native ConvertFrom-Json/ConvertTo-Json).
 FAIL_SAFE_FULL_EMIT=0
 FAIL_SAFE_REASON=""
-if [ -z "$(sha256_of probe)" ]; then FAIL_SAFE_FULL_EMIT=1; FAIL_SAFE_REASON="sha256 tool unavailable"; fi
-if [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ] && ! command -v jq >/dev/null 2>&1; then FAIL_SAFE_FULL_EMIT=1; FAIL_SAFE_REASON="jq unavailable"; fi
 
-PRIOR_STATE_JSON=""
-if [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ]; then
-  if [ -f "$STATE_FILE" ]; then
-    if jq -e . "$STATE_FILE" >/dev/null 2>&1; then PRIOR_STATE_JSON=$(cat "$STATE_FILE")
-    else FAIL_SAFE_FULL_EMIT=1; FAIL_SAFE_REASON="state file malformed JSON"; fi
-  else FAIL_SAFE_FULL_EMIT=1; FAIL_SAFE_REASON="state file absent (first run or post-cleanup)"; fi
+NODE_BIN=""
+if command -v node >/dev/null 2>&1; then
+  NODE_BIN="node"
 fi
 
+if [ -z "$(sha256_of probe)" ]; then FAIL_SAFE_FULL_EMIT=1; FAIL_SAFE_REASON="sha256 tool unavailable"; fi
+if [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ] && [ -z "$NODE_BIN" ]; then FAIL_SAFE_FULL_EMIT=1; FAIL_SAFE_REASON="node unavailable"; fi
+
+# Read prior state, if present and parseable. On success, PRIOR_FP_DUMP holds
+# one "key<TAB>fingerprint" line per recorded section (flat text, easy to
+# grep from bash without needing associative arrays).
+PRIOR_FP_DUMP=""
+if [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ]; then
+  if [ -f "$STATE_FILE" ]; then
+    PRIOR_FP_DUMP=$("$NODE_BIN" -e '
+      const fs = require("fs");
+      try {
+        const raw = fs.readFileSync(process.argv[1], "utf8");
+        const data = JSON.parse(raw);
+        const sections = (data && typeof data === "object" && data.sections) || {};
+        for (const k of Object.keys(sections)) {
+          process.stdout.write(k + "\t" + String(sections[k]) + "\n");
+        }
+      } catch (e) {
+        process.exit(1);
+      }
+    ' "$STATE_FILE" 2>/dev/null)
+    if [ "$?" -ne 0 ]; then
+      FAIL_SAFE_FULL_EMIT=1
+      FAIL_SAFE_REASON="state file malformed JSON"
+    fi
+  else
+    FAIL_SAFE_FULL_EMIT=1
+    FAIL_SAFE_REASON="state file absent (first run or post-cleanup)"
+  fi
+fi
+
+# Helper: look up a key's prior fingerprint from the flat PRIOR_FP_DUMP dump.
+prior_fp_of() {
+  local key="$1"
+  [ -n "$PRIOR_FP_DUMP" ] || return 0
+  printf '%s\n' "$PRIOR_FP_DUMP" | awk -F'\t' -v k="$key" '$1 == k { print $2; exit }'
+}
+
 EMITTED_ANY=0
-NEW_STATE_JSON='{"sections":{}}'
+NEW_FP_KEYS=(); NEW_FP_VALS=()
 i=0
 while [ "$i" -lt "${#SECTION_KEYS[@]}" ]; do
   key="${SECTION_KEYS[$i]}"; banner="${SECTION_BANNERS[$i]}"; body="${SECTION_BODIES[$i]}"
@@ -319,11 +391,12 @@ while [ "$i" -lt "${#SECTION_KEYS[@]}" ]; do
   [ -z "$body" ] && continue
   current_fp=$(sha256_of "$body")
   prior_fp=""
-  if [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ] && [ -n "$PRIOR_STATE_JSON" ]; then
-    prior_fp=$(printf '%s' "$PRIOR_STATE_JSON" | jq -r ".sections[\"$key\"] // empty" 2>/dev/null)
+  if [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ]; then
+    prior_fp=$(prior_fp_of "$key")
   fi
-  if command -v jq >/dev/null 2>&1 && [ -n "$current_fp" ]; then
-    NEW_STATE_JSON=$(printf '%s' "$NEW_STATE_JSON" | jq --arg k "$key" --arg v "$current_fp" '.sections[$k] = $v' 2>/dev/null || printf '%s' "$NEW_STATE_JSON")
+  if [ -n "$current_fp" ]; then
+    NEW_FP_KEYS+=("$key")
+    NEW_FP_VALS+=("$current_fp")
   fi
   if [ "$FAIL_SAFE_FULL_EMIT" -eq 1 ] || [ "$current_fp" != "$prior_fp" ] || [ -z "$current_fp" ]; then
     emit_section "$banner" "$body"; EMITTED_ANY=1
@@ -334,11 +407,35 @@ if [ "$EMITTED_ANY" -eq 0 ] && [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ]; then
   emit_section "Orientation diff" "No new orientation material since last session. Prior in-context state remains authoritative."
 fi
 
-if command -v jq >/dev/null 2>&1; then
+# Persist new state (best-effort; failure is non-fatal — next session will
+# fall through to fail-safe full emit). Keys/values/timestamp are passed as
+# argv to a single node invocation (no shell-side JSON string building).
+if [ -n "$NODE_BIN" ]; then
   mkdir -p "$STATE_DIR" 2>/dev/null || true
   TS=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "")
-  [ -n "$TS" ] && NEW_STATE_JSON=$(printf '%s' "$NEW_STATE_JSON" | jq --arg t "$TS" '.last_emit_at = $t' 2>/dev/null || printf '%s' "$NEW_STATE_JSON")
-  printf '%s\n' "$NEW_STATE_JSON" > "$STATE_FILE" 2>/dev/null || true
+  NEW_FP_ARGV=()
+  j=0
+  while [ "$j" -lt "${#NEW_FP_KEYS[@]}" ]; do
+    NEW_FP_ARGV+=("${NEW_FP_KEYS[$j]}" "${NEW_FP_VALS[$j]}")
+    j=$((j + 1))
+  done
+  "$NODE_BIN" -e '
+    const fs = require("fs");
+    const outPath = process.argv[1];
+    const ts = process.argv[2];
+    const rest = process.argv.slice(3);
+    const sections = {};
+    for (let i = 0; i < rest.length; i += 2) {
+      sections[rest[i]] = rest[i + 1];
+    }
+    const state = { sections: sections };
+    if (ts) { state.last_emit_at = ts; }
+    try {
+      fs.writeFileSync(outPath, JSON.stringify(state) + "\n");
+    } catch (e) {
+      process.exit(1);
+    }
+  ' "$STATE_FILE" "$TS" "${NEW_FP_ARGV[@]}" 2>/dev/null || true
 fi
 
 if [ "$FAIL_SAFE_FULL_EMIT" -eq 1 ]; then

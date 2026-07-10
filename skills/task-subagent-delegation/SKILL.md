@@ -1,6 +1,6 @@
 ---
 name: task-subagent-delegation
-description: Invoke when delegating implementation or operations to a subagent; defines what to convey, what parent retains, and mode-dependent execution scope.
+description: Invoke when delegating implementation, operations, or a bounded read-only investigation (audit / consistency check / grep-and-report) to a subagent; defines what to convey, what parent retains, and mode-dependent execution scope.
 layer: L3-task
 ---
 
@@ -105,6 +105,26 @@ Detection signs:
 - Subagent reports "pre-existing em-dash found in previously-merged artifact" — the propagation already happened.
 
 </delegation-prompt-hygiene-ascii-only-example-text>
+
+<bounded-delegation-prohibit-recursive-subagent-spawn>
+
+## Bounded delegation: prohibit recursive subagent spawn
+
+A subagent with Agent tool access (`Tools: *`, typically `general-purpose`) defaults to the same fan-out instinct the parent has: when its assigned task looks like it has multiple independent sub-checks, it may spawn its own nested Agent-tool children rather than executing directly. Absent an explicit prohibition, this can cascade at every level — each hop adds real API cost with no visible warning until the rate limit wall is hit, and the top-level report ends up as coordinator meta-commentary ("waiting for background agent") instead of actual findings.
+
+How to apply:
+- When delegating a bounded read-only investigation (audit / consistency check / grep-and-report) to a subagent, explicitly state in the prompt: "Do this yourself directly using Read/Grep/Bash — do not spawn further subagents via the Agent tool for this task."
+- If a subagent's task has 2-3 independent sub-checks that seem parallelizable, prefer sequencing them directly inside one subagent's own tool calls over letting it decide to spawn children.
+- Reserve subagent-of-subagent delegation for genuinely large-scale parallel work where the fan-out is deliberate and bounded (e.g. `skills/evolution-parallel-agent-eval` N=3 evaluator pattern — a controlled, known-width fan-out is exempt from this prohibition).
+
+This is a tool-authority bound (which tools the subagent may use), not a conveyed step-by-step procedure — it does not conflict with the top-level Rules section's "do not convey: step-by-step procedure" constraint, same reconciliation as `mode-specific-delegation-injection` above.
+
+Detection signs:
+- About to write a delegation prompt with multiple distinct "Check A / Check B" sections without explicitly stating the subagent should perform all checks directly itself.
+- A task-notification result consisting of meta-commentary ("I'll wait for the background agent", "the audit is running in the background") rather than actual findings — that phrasing means the "agent" is a coordinator that itself spawned more agents instead of doing the work.
+- A burst of many task-notifications arriving in immediate succession after only 2-3 Agent calls were made.
+
+</bounded-delegation-prohibit-recursive-subagent-spawn>
 
 <memory-only-knowledge-does-not-transfer-to-subagent>
 

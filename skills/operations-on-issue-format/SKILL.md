@@ -11,7 +11,7 @@ layer: L4-operations
 Issue title language:
 Title = ASCII English only.
 Body  = LI_PLUS_PROJECT_LANGUAGE.
-Consistent with Commit Rules and PR title convention.
+Consistent with the commit title/body language convention (`rules/operations/operations.md` Operations Rules) and PR title convention.
 
 Issue may start from memo. Three fields are convergence target, not creation gate.
 Use only necessary headings. Do not force empty sections.

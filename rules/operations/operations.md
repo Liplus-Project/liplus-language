@@ -17,7 +17,7 @@ layer: L4-operations
 Layer = L4 Operations Layer
 Event-driven operations surface over the shared Li+ program
 Requires = L1 Model Layer + L2 Evolution Layer + L3 Task Layer + Li+config.md
-Load timing = event-driven (not every session)
+Load timing = always-on (loads every session per alwaysApply; Read when below governs application timing, not loading)
 Read when: branch creation, commit, PR, merge, release, label assignment, Discussions reference.
 
 Foregrounds:
@@ -36,7 +36,7 @@ Reads through:
   on_issue_edit   -> Issue Format
   on_issue_view   -> Issue Maturity
   on_issue_sub    -> Sub-issue Rules
-  on_commit    -> Commit Rules
+  on_commit    -> Commit And Push
   on_pr        -> PR Creation
   on_ci        -> CI Loop
   on_review    -> PR Review

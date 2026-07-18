@@ -8,7 +8,7 @@ layer: L4-operations
 
 # PR Creation
 
-One PR per parent issue (see Sub-issue Rules#Single parent PR flow).
+One PR per parent issue (see Sub-issue Rules).
 Parent issue with sub-issues = single PR that closes all sub-issues + the parent on merge.
 Per-sub-issue PR is prohibited.
 

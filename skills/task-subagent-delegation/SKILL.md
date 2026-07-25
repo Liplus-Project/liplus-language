@@ -39,7 +39,7 @@ Subagent MUST fire state-machine labels at role boundaries:
 - Pause on human input requirement → switch to `blocked` + write issue comment with reason. Comment is mandatory.
 - CI fail → fix recovery → before retry, revert `done` → `in-progress` (same subagent in-session is allowed; the label reflects the actual work state).
 
-Label authority canonical spec is in `rules/task/task.md` Lifecycle section; this skill defines the application-moment behavior.
+Label authority canonical spec is in `rules/task/task.md` Task Label Definitions section (`Lifecycle:` field); this skill defines the application-moment behavior.
 
 </state-machine-label-discipline-subagent-side-mandate>
 

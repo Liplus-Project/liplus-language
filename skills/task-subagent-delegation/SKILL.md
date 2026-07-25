@@ -77,7 +77,7 @@ Parent executes operations directly. All rules still apply.
 
 ## Subagent Model Policy
 
-Parent session runs opus-class model or above (`opus`, or another positively-classified opus-class-or-above id such as `fable`; per #1532 this is out of this skill's change scope, set at the scheduled-task / session level). All subagents set the Agent tool `model` parameter explicitly — default and floor = `sonnet`; explicit specification of a higher-class id (e.g. `opus`, `fable`) remains permitted but is not the default. Implicit parent-model inheritance is prohibited. Named explicitly, per Master's decision (2026-07-25) that no category is left implied:
+The parent session's own model tier is out of scope for this change (#1532 lowers subagent floors only); see `docs/A.-Concept.md` for the documented minimum operating environment. All subagents set the Agent tool `model` parameter explicitly — default and floor = `sonnet`; explicit specification of a higher-class id (e.g. `opus`, `fable`) remains permitted but is not the default. Implicit parent-model inheritance is prohibited. Applies to:
 
 - General delegation under this skill's Rules (implementation / operations subagent spawn).
 - Brake-1 evaluators in `skills/evolution-parallel-agent-eval/SKILL.md`.
@@ -149,11 +149,13 @@ Detection signs:
 
 Cap = 5 subagents in flight at once (spawned and not yet returned), applying to every parallel delegation pattern that funnels through this skill: cross-parent-issue worktree parallelism and same-parent sub-issue parallelism (both defined in `adapter/claude/CLAUDE.md` Subagent_Delegation), and bounded read-only investigation fan-out (defined in this skill's own frontmatter description). The value 5 is a provisional bound, bracketed against the established eval default width (N=3) and well under host-scale fan-out (Dynamic Workflows research preview: up to 16 concurrent / 1000 cumulative per run, evaluated and deferred in #1426 / #1428) — it is not derived from a cost or latency measurement and should be revised on observation.
 
-Enforcement mechanism: per-message batch size (Agent tool calls in a single message) is necessary but not sufficient on its own — a message launching 5, followed by a second message launching 5 more before the first wave has returned, keeps every message at or under 5 while actual in-flight width reaches 10. The binding condition (not a stylistic preference) is that a new batch may not be launched until every subagent in the prior batch has completed and reported; only then does per-message batch size equal actual concurrent width. If a task needs wider fan-out than 5 total, split into sequential batches under this same rule rather than overlapping waves.
+Enforcement mechanism: per-message batch size (Agent tool calls in a single message) is necessary but not sufficient on its own — a message launching 5, followed by a second message launching 5 more before the first wave has returned, keeps every message at or under 5 while actual in-flight width reaches 10. The binding condition is that a new batch may not be launched until every subagent in the prior batch has completed and reported; only then does per-message batch size equal actual concurrent width. If a task needs wider fan-out than 5 total, split into sequential batches under this same rule rather than overlapping waves.
 
 This cap governs top-level concurrent width (how many subagents the parent has in flight at once). It is a separate axis from `Bounded delegation: prohibit recursive subagent spawn` above, which governs spawn depth (a subagent spawning its own children) — the two do not extend or narrow each other.
 
 Exempt: `evolution-parallel-agent-eval`'s own N / M / P fan-out (default N=3, up to N=3 x P=2 = 6, or N=3 x axis_count under the M=1 exception pattern) is a separately-bounded, deliberate fan-out per that skill's Design Dimensions and is not subject to this cap.
+
+Honesty clause: this cap is recall-dependent. There is no hook, counter, or gate enforcing the wave-sequencing binding condition above — the parent must apply it from procedure alone. Per `rules/model/subtractive-structural-beauty.md` procedure-vs-structure binary (a reliably-executed structure is required where execution is not guaranteed), a hook-based replacement is tracked as future work in #1534.
 
 </parallel-width-cap>
 

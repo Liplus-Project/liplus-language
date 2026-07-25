@@ -77,11 +77,9 @@ Parent executes operations directly. All rules still apply.
 
 ## Subagent Model Policy
 
-Parent session runs opus-class model or above (same floor definition as `skills/evolution-parallel-agent-eval/SKILL.md` Constraint: `opus`, or another positively-classified opus-class-or-above id such as `fable`). General delegation under this skill's Rules (implementation / operations subagent spawn) sets the Agent tool `model` parameter explicitly to `sonnet` — implicit parent-model inheritance is prohibited, the same discipline `evolution-parallel-agent-eval` already applies to its own eval spawns.
+Parent session runs opus-class model or above (`opus`, or another positively-classified opus-class-or-above id such as `fable`; per #1532 this is out of this skill's change scope, set at the scheduled-task / session level). All subagents — general delegation under this skill's Rules (implementation / operations subagent spawn) and brake-1 evaluators in `skills/evolution-parallel-agent-eval/SKILL.md` alike — set the Agent tool `model` parameter explicitly to `sonnet`, no exception. Implicit parent-model inheritance is prohibited.
 
-Rationale: subagent execution here is bounded work against an already-converged issue body plus auto-loaded Li+ rules/skills (the parent retains judgment — issue management, review, merge decision per the Rules section above); sonnet-class capability is sufficient and parent-tier cost is not load-bearing for it.
-
-Exception (does not lower the eval floor): `evolution-parallel-agent-eval` brake-1 evaluator subagents are a distinct category — verification judgment on Li+ source edits, not implementation execution — and remain on that skill's opus-class floor. This policy's `sonnet` default applies only to delegation defined in this skill.
+Rationale (#1532): token budget reduction under a shrunk subscription plan. Empirically grounded on Master's operational observation that Li+ previously ran entirely on Sonnet with no observed regression — during that period the parent model was also Sonnet, so brake 1's effective floor was already Sonnet, making this an observed-safe floor rather than an untested lowering.
 
 </subagent-model-policy>
 

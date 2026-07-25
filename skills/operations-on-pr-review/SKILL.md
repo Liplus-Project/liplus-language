@@ -39,7 +39,7 @@ if execution_mode == semi_auto:
   minor / major -> human check required after self-review pass (procedure = trigger mode's Review approval check below).
   Version type is the same judgment axis used at release (see `rules/operations/release-version-rule.md`). AI proposes type at PR creation time; on unclear, default to the safer side (minor) and ask human.
 
-  Per-PR exception (content-based axis, ref `rules/operations/execution-mode.md` semi_auto section):
+  Per-PR exception (content-based axis, ref `rules/operations/execution-mode.md` `semi_auto mode:` label):
     Even when the parent issue is minor / major, if the PR's own modification qualifies
     as patch under `rules/operations/release-version-rule.md` (e.g. language alignment,
     typo, comment, internal literal, docs alignment), the human-check requirement is

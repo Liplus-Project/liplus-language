@@ -73,6 +73,18 @@ Parent executes operations directly. All rules still apply.
 
 </autonomy>
 
+<subagent-model-policy>
+
+## Subagent Model Policy
+
+Parent session runs opus-class model or above (same floor definition as `skills/evolution-parallel-agent-eval/SKILL.md` Constraint: `opus`, or another positively-classified opus-class-or-above id such as `fable`). General delegation under this skill's Rules (implementation / operations subagent spawn) sets the Agent tool `model` parameter explicitly to `sonnet` — implicit parent-model inheritance is prohibited, the same discipline `evolution-parallel-agent-eval` already applies to its own eval spawns.
+
+Rationale: subagent execution here is bounded work against an already-converged issue body plus auto-loaded Li+ rules/skills (the parent retains judgment — issue management, review, merge decision per the Rules section above); sonnet-class capability is sufficient and parent-tier cost is not load-bearing for it.
+
+Exception (does not lower the eval floor): `evolution-parallel-agent-eval` brake-1 evaluator subagents are a distinct category — verification judgment on Li+ source edits, not implementation execution — and remain on that skill's opus-class floor. This policy's `sonnet` default applies only to delegation defined in this skill.
+
+</subagent-model-policy>
+
 <mode-specific-delegation-injection>
 
 ## Mode-specific delegation injection
@@ -125,6 +137,18 @@ Detection signs:
 - A burst of many task-notifications arriving in immediate succession after only 2-3 Agent calls were made.
 
 </bounded-delegation-prohibit-recursive-subagent-spawn>
+
+<parallel-width-cap>
+
+## Parallel-Width Cap
+
+Cap = 5 concurrent subagent spawns per delegation batch (one message, multiple Agent tool calls), applying to this skill's parallel delegation patterns (cross-parent-issue worktree parallelism, same-parent sub-issue parallelism). Rationale: modestly above the established eval default width (N=3, see `evolution-parallel-agent-eval` Design Dimensions) while staying well below host-scale fan-out (Dynamic Workflows research preview: up to 16 concurrent / 1000 cumulative per run, evaluated and deferred in #1426 / #1428) — Li+ parallelism stays deliberately small-scale and human-reviewable.
+
+If a task needs wider fan-out than the cap, split into sequential batches (one wave completes and reports before the next wave spawns) rather than exceeding the cap in a single message.
+
+Exempt: `evolution-parallel-agent-eval`'s own N / M / P fan-out (default N=3, up to N=3 x P=2 = 6, or N=3 x axis_count under the M=1 exception pattern) is a separately-bounded, deliberate fan-out per that skill's Design Dimensions — same treatment as the recursive-spawn-prohibition exemption above — and is not subject to this cap.
+
+</parallel-width-cap>
 
 <memory-only-knowledge-does-not-transfer-to-subagent>
 

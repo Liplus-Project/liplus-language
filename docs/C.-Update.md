@@ -46,7 +46,7 @@ Li+config.md にはトークンが含まれるため、ファイルパーミッ�
 host OS は adapter 種別（runtime=claude / runtime=codex）から推測しない。両 adapter とも Linux / macOS / Windows のいずれのホストでも動作しうる（Claude adapter が Windows ネイティブ Git-Bash/MSYS2 上で動く構成も検証済み、#1518）。ただし自動インストールを行うかどうかは adapter によって異なる（下記 runtime=claude / runtime=codex を参照。runtime=codex はいずれの host OS でも自動インストールしない）。
 
 - **runtime=claude:** インストール判断・実行は `Li+update.md` walkthrough ではなく `adapter/claude/hooks/on-session-start.sh` hook が毎セッション自律的に担う（bootstrap walkthrough 側は install 手順を持たない）。hook は起動時に無条件で `$HOME/.local/bin` を PATH に前置し（全ホスト共通の前処理）、その上で `command -v gh` を単一の gate として評価する。PATH 上のどこかに `gh` が解決できれば（例: システム標準の `/usr/bin/gh` でも真になる。`~/.local/bin/gh` というファイル1つの存在確認ではない）その場でスキップする。`gh` が見つからない場合のみ `uname -s` で host OS を判定し、以下のように分岐する：
-  - Linux: アーキテクチャ判定つきで `~/.local/bin/gh` へ自動インストールする（sudo 不要、PATH 変更不要）。
+  - Linux: アーキテクチャ判定つきで `~/.local/bin/gh` へ自動インストールする（sudo 不要、PATH 変更不要）。hook の PATH 前置は hook 自身のプロセスに閉じており、後続の Bash ツール呼び出しの親プロセスにはならず、シェルプロファイルへの書き込みも行わない。そのため自動インストール直後でも素の `gh` が PATH 解決される保証はなく、以降の gh 操作は常にフルパス `~/.local/bin/gh` を使用すること（[B. Configuration](B.-Configuration) の注意事項にも同旨の記載がある）。この制約は自動インストール対象の Linux にのみ適用される。macOS / Windows は `brew` / `winget` が導入した `gh` が最初から PATH 上にあるため該当しない。
   - macOS / Windows(Git-Bash・MSYS2・Cygwin): 自動インストールしない。`gh` を**前提条件**として扱い、`brew install gh` / `winget install --id GitHub.cli` の具体的な導入コマンドをユーザーへ案内する。
   - 上記いずれにも一致しないホストカーネル: 自動インストールせず、具体的なコマンドは示さず一般的な導入案内のみを出す。
   - 結果（`installed` / `failed: <詳細>` / `missing: <ガイダンス>`）は `GH_INSTALL_STATUS` として `━━━ gh install ━━━` マーカーで session 冒頭 context に emit される。マーカーの出力形式・出力タイミングの正本は [6. Adapter](6.-Adapter.md) の on-session-start.sh 節を参照。

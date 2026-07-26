@@ -6,8 +6,7 @@
 # Retained: gh pr create → sub-issue refs auto-append to PR body.
 #
 # JSON read/write uses Node.js (`node -e`), not an external `jq` binary —
-# node is the runtime Claude Code itself depends on, so it is a safe
-# assumption. This mirrors the #1519 fix applied to on-session-start.sh.
+# this mirrors the #1519 fix applied to on-session-start.sh.
 # Before #1540 this hook parsed stdin with a standalone `jq`; on any host
 # without jq installed (not shipped by default on Windows, macOS, or most
 # Linux distributions) the parse yielded an empty tool name, the guard below
@@ -15,14 +14,39 @@
 # observable trace, since a successful hook run with empty output is not
 # persisted to the transcript.
 #
+# node is a strictly better assumption than jq, but NOT a guaranteed one:
+# Claude Code ships as a packaged executable and does not contract to place a
+# `node` binary on a hook subprocess's PATH. So node absence is handled
+# explicitly below rather than assumed away — otherwise this change would
+# merely re-key the same silent failure from `jq` to `node`.
+#
 # NOTE: the `gh api --jq` calls further down use gh's BUILT-IN jq expression
 # engine, which ships inside the gh binary. Those are not an external
 # dependency and must not be rewritten.
 export PATH="$HOME/.local/bin:$PATH"
 INPUT=$(cat)
 
+# Cheap pre-filter on the raw payload. This hook only ever acts on
+# `gh pr create`, so anything else exits before spawning node at all. Purely a
+# fast path: it admits a superset of what the parsed guards below accept, so it
+# cannot change which payloads are processed.
+case "$INPUT" in
+  *"gh pr create"*|*"gh.exe pr create"*) ;;
+  *) exit 0 ;;
+esac
+
+# node absence must stay observable. A static JSON literal is used here because
+# building it would otherwise require the very interpreter that is missing.
+if ! command -v node >/dev/null 2>&1; then
+  printf '%s' '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"post-tool-use.sh: `node` not found on PATH, so sub-issue refs were NOT auto-appended to the PR body. Add any missing `Closes #NNN` lines manually. See adapter/claude/hooks/post-tool-use.sh (#1540)."}}'
+  exit 0
+fi
+
 # Extract a dot-path field from the hook payload held in $INPUT.
 # Empty output means absent or unparsable; every caller treats that as "skip".
+# Absence semantics match the `// empty` of the jq expressions this replaced:
+# null, undefined and false all render as empty. Objects and arrays render as
+# JSON text, as `jq -r` did, rather than via JS string coercion.
 json_field() {
   printf '%s' "$INPUT" | node -e '
     let raw = "";
@@ -33,7 +57,10 @@ json_field() {
         for (const key of process.argv[1].split(".")) {
           v = (v === null || v === undefined) ? undefined : v[key];
         }
-        process.stdout.write((v === null || v === undefined) ? "" : String(v));
+        if (v === null || v === undefined || v === false) {
+          return;
+        }
+        process.stdout.write(typeof v === "object" ? JSON.stringify(v) : String(v));
       } catch (e) {
         // leave stdout empty; caller treats it as an absent field
       }
@@ -55,13 +82,15 @@ LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
 emit_context() {
   local context="$1"
   [ -n "$context" ] || exit 0
+  # Indent 2 reproduces jq -n's default pretty-print, so the emitted bytes stay
+  # identical to the sample in docs/6.-Adapter.md.
   node -e '
     process.stdout.write(JSON.stringify({
       hookSpecificOutput: {
         hookEventName: "PostToolUse",
         additionalContext: process.argv[1]
       }
-    }));
+    }, null, 2));
   ' "$context"
 }
 

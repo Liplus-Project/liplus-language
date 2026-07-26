@@ -30,10 +30,10 @@ INPUT=$(cat)
 # node at all. This matches raw bytes, whereas the guards below match decoded
 # JSON values, so the two are not equivalent in general: a payload that
 # unicode-escapes the spaces inside the command string still decodes to a
-# matching command, yet has no literal match here and would be dropped. That
-# input is not reachable from Claude Code, whose payload serializer never
-# escapes printable ASCII — the filter is sound for real traffic, not for
-# arbitrary JSON.
+# matching command, yet has no literal match here and would be dropped. The
+# filter therefore rests on an assumption Li+ cannot verify from its own source:
+# that Claude Code's payload serializer does not escape printable ASCII. Sound
+# for real traffic on that assumption, not for arbitrary JSON.
 case "$INPUT" in
   *"gh pr create"*|*"gh.exe pr create"*) ;;
   *) exit 0 ;;
@@ -59,6 +59,12 @@ fi
 json_field() {
   printf '%s' "$INPUT" | node -e '
     let raw = "";
+    // setEncoding is load-bearing: without it each Buffer chunk is decoded on
+    // its own, so a multi-byte character straddling a chunk boundary (payloads
+    // past the ~64KB stream highWaterMark, e.g. a long `tool_response.output`)
+    // decodes into U+FFFD. Reproduced at 3 replacement chars in a 192KB
+    // Japanese payload before this line was added.
+    process.stdin.setEncoding("utf8");
     process.stdin.on("data", (d) => { raw += d; });
     process.stdin.on("end", () => {
       try {

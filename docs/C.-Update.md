@@ -49,7 +49,7 @@ host OS は adapter 種別（runtime=claude / runtime=codex）から推測しな
   - Linux: アーキテクチャ判定つきで `~/.local/bin/gh` へ自動インストールする（sudo 不要、PATH 変更不要）。hook の PATH 前置は hook 自身のプロセスに閉じており、後続の Bash ツール呼び出しの親プロセスにはならず、シェルプロファイルへの書き込みも行わない。そのため自動インストール直後でも素の `gh` が PATH 解決される保証はなく、以降の gh 操作は常にフルパス `~/.local/bin/gh` を使用すること（[B. Configuration](B.-Configuration) の注意事項にも同旨の記載がある）。この制約は自動インストール対象の Linux にのみ適用される。macOS / Windows は `brew` / `winget` が導入した `gh` が最初から PATH 上にあるため該当しない。
   - macOS / Windows(Git-Bash・MSYS2・Cygwin): 自動インストールしない。`gh` を**前提条件**として扱い、`brew install gh` / `winget install --id GitHub.cli` の具体的な導入コマンドをユーザーへ案内する。
   - 上記いずれにも一致しないホストカーネル: 自動インストールせず、具体的なコマンドは示さず一般的な導入案内のみを出す。
-  - 結果（`installed` / `failed: <詳細>` / `missing: <ガイダンス>`）は `GH_INSTALL_STATUS` として `━━━ gh install ━━━` マーカーで session 冒頭 context に emit される。マーカーの出力形式・出力タイミングの正本は [6. Adapter](6.-Adapter.md) の on-session-start.sh 節を参照。
+  - 結果（`installed` / `failed: <詳細>` / `missing: <ガイダンス>`）は `GH_INSTALL_STATUS` として `━━━ gh install ━━━` マーカーで session 冒頭 context に emit される。マーカーの出力形式・出力タイミングの正本は [6. Adapter](6.-Adapter) の on-session-start.sh 節を参照。
 - **runtime=codex:** host OS に関わらず `gh` は**前提条件**として扱い、bootstrap では自動インストールしない。`gh` が不在なら検出した host OS に応じた案内（Windows: `winget install --id GitHub.cli` / macOS: `brew install gh`）をユーザーへ提示し（代行実行しない）、導入後に続行する。詳細は [D. Installation](D.-Installation) の前提条件を参照
 
 **2.2. GH_TOKEN の読み込みと認証**

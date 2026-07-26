@@ -154,7 +154,21 @@ Adapter, rules, skills, and hooks generation. Rules/skills generation doubles as
      - Extract the tag from the sentinel (e.g. "Li+ BEGIN (build-2026-03-30.14)" -> "build-2026-03-30.14").
      - If extracted tag matches current target tag: skip (up to date).
      - If tag differs or is absent: replace the section between "Li+ BEGIN" and "Li+ END" (inclusive)
-       with the current adapter source contents. Preserve content outside this section.
+       with the current adapter source contents. Preserve content outside this section, subject to
+       the legacy webhook trailer migration below. The replacement span ends at the final byte of
+       `Li+ END`; do not add the adapter source EOF newline to the preserved target suffix.
+     - Legacy webhook trailer migration: the current adapter source owns its `## Optional Webhook
+       Notification Flow` block inside the sentinel. Before assembling the replacement, derive the
+       legacy block as that complete source block (heading through its final line before `Li+ END`).
+       Run this migration only when the old sentinel section contains no webhook heading; that is
+       the pre-migration ownership shape. From the old target suffix immediately after its `Li+ END`,
+       remove every consecutive byte-exact legacy trailer. One trailer is exactly its two leading
+       separator newlines, the legacy block, and the block's final newline. Stop at the first
+       non-matching bytes and preserve that suffix verbatim; do not normalize line endings to make a
+       match. This removes duplicated trailers written by pre-migration versions without deleting a
+       matching block later added by the user outside a canonical sentinel. Re-applying a later tag
+       skips migration because the old section already owns the webhook block, so the result has
+       exactly one webhook heading for the migrated layout.
   c. If target file exists but does not contain "Li+ BEGIN": ask user -- append Li+ section or skip?
 
 4c.2. Generate .claude/rules/ files (recursive directory mirror):
@@ -290,7 +304,21 @@ grant trust in the GUI. See `docs/D.-Installation.md` for the step-by-step.
      - Extract the tag from the sentinel (e.g. "Li+ BEGIN (build-2026-03-30.14)" -> "build-2026-03-30.14").
      - If extracted tag matches current target tag: skip (up to date).
      - If tag differs or is absent: replace the section between "Li+ BEGIN" and "Li+ END" (inclusive)
-       with the current adapter source contents. Preserve content outside this section.
+       with the current adapter source contents. Preserve content outside this section, subject to
+       the legacy webhook trailer migration below. The replacement span ends at the final byte of
+       `Li+ END`; do not add the adapter source EOF newline to the preserved target suffix.
+     - Legacy webhook trailer migration: the current adapter source owns its `## Optional Webhook
+       Notification Flow` block inside the sentinel. Before assembling the replacement, derive the
+       legacy block as that complete source block (heading through its final line before `Li+ END`).
+       Run this migration only when the old sentinel section contains no webhook heading; that is
+       the pre-migration ownership shape. From the old target suffix immediately after its `Li+ END`,
+       remove every consecutive byte-exact legacy trailer. One trailer is exactly its two leading
+       separator newlines, the legacy block, and the block's final newline. Stop at the first
+       non-matching bytes and preserve that suffix verbatim; do not normalize line endings to make a
+       match. This removes duplicated trailers written by pre-migration versions without deleting a
+       matching block later added by the user outside a canonical sentinel. Re-applying a later tag
+       skips migration because the old section already owns the webhook block, so the result has
+       exactly one webhook heading for the migrated layout.
   c. If target file exists but does not contain "Li+ BEGIN": ask user -- append Li+ section or skip?
 - Note (32 KiB cap): the root AGENTS.md holds only the minimal always-present core
   (identity / character / startup contract). The full rule set arrives via the

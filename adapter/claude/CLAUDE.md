@@ -190,9 +190,9 @@ Evolution_Initiator_Autonomy:
 
   Detailed spec + exclusion scope: see `rules/evolution/initiator-autonomy.md` and `rules/evolution/autonomy-block-shape.md`.
 
-# --- Li+ END ---
-
 ## Optional Webhook Notification Flow
 
 Webhook intake policy and procedures: `skills/operations-foreground-webhook-intake/SKILL.md`.
 Delivery mode (`poll` / `channel` / `mcp_hook`) is selected by `LI_PLUS_WEBHOOK_DELIVERY` in `Li+config.md`. Detailed mode behavior, mcp_tool hook entry semantics, and `github-webhook-mcp >= v0.11.3` connection requirement are documented in the skill above and `adapter/claude/hooks-settings.md`.
+
+# --- Li+ END ---

@@ -129,7 +129,8 @@ Li+config.md にはトークンが含まれるため、ファイルパーミッ�
 - ファイルが存在し `Li+ BEGIN` sentinel を含む:
   - sentinel 内のタグ（例 `Li+ BEGIN (build-2026-03-30.14)` → `build-2026-03-30.14`）を抽出
   - 現在のターゲットタグと一致 → スキップ（最新）
-  - 不一致またはタグなし → `Li+ BEGIN` 〜 `Li+ END` 間（両端含む）をソース内容で差し替え、セクション外は保護
+  - 不一致またはタグなし → `Li+ BEGIN` 〜 `Li+ END` 間（両端含む）をソース内容で差し替え、下記 legacy webhook trailer migration を除く sentinel 外は保護。置換 byte span は `Li+ END` の最終 byte で終え、adapter source の EOF newline を保持する target suffix へ追加しない
+  - legacy webhook trailer migration: 現行 adapter source が `## Optional Webhook Notification Flow` block を sentinel 内で所有する。migration は旧 sentinel section に webhook heading が無い pre-migration 所有形状だけで実行する。差し替え前に source の当該 heading から `Li+ END` 直前までを legacy block として取得し、旧 target の `Li+ END` 直後の suffix から、先頭の2個の separator newline、legacy block、block末尾 newline までを1件とする連続した byte-exact legacy trailer だけを除去する。最初の不一致 byte で停止し、line ending を正規化して一致させず、以後の suffix はそのまま保持する。これにより pre-migration 版が残した重複 trailer を除去しつつ、canonical sentinel の外へ後から追加された同一 block を削除しない。後続 tag を再適用した時は旧 section が既に heading を所有するため migration を skip し、migrated layout の webhook heading は置換 section 内の1件だけになる
 - ファイルが存在するが sentinel なし → ユーザーに確認（Li+ セクションを追記 or スキップ）
 
 **4c.2. `.claude/rules/` ファイル生成（再帰ディレクトリミラー）**
@@ -227,7 +228,7 @@ Codex ホストでは Phase 4 claude branch と同型に adapter / skills / hook
 **4x.1. アダプターの bootstrap**
 
 - target = `{workspace_root}/AGENTS.md`, source = `adapter/codex/AGENTS.md`
-- sentinel 判定ロジックは 4c.1 と同一（存在しなければ新規、sentinel ありタグ一致でスキップ、不一致で section 差し替え、sentinel なしでユーザー確認）
+- sentinel 判定ロジックは 4c.1 と同一（存在しなければ新規、sentinel ありタグ一致でスキップ、不一致で section 差し替え、sentinel なしでユーザー確認）。差し替え時の legacy webhook trailer migration も4c.1と同一で、旧 section が heading を持たない時だけ、連続する byte-exact legacy trailer を `Li+ END` 直後から除去し、canonical sentinel 外のユーザー作成 suffix を保持する
 - 32 KiB 上限: ルートの AGENTS.md は最小コア（identity / character / 起動契約）のみを保持。rules 全体は 4x.3 の SessionStart hook 注入で届くため inline しない（Codex の `project_doc_max_bytes` 既定 32 KiB を超えないため）
 
 **4x.2. `.agents/skills/` ファイル生成（flat ディレクトリミラー）**

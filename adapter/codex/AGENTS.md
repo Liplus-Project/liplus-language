@@ -196,10 +196,10 @@ Evolution_Initiator_Autonomy:
 
   Detailed spec + exclusion scope: see `rules/evolution/initiator-autonomy.md` and `rules/evolution/autonomy-block-shape.md`.
 
-# --- Li+ END ---
-
 ## Optional Webhook Notification Flow
 
 Webhook intake policy and procedures: `skills/operations-foreground-webhook-intake/SKILL.md`.
 Delivery mode (`poll` / `channel` / `mcp_hook`) is selected by `LI_PLUS_WEBHOOK_DELIVERY` in `Li+config.md`. Detailed mode behavior and `github-webhook-mcp >= v0.11.3` connection requirement are documented in the skill above and `adapter/codex/hooks-config.md`.
 Codex specifics: the Codex hooks schema documents only `type: "command"` handlers (no `type: "mcp_tool"` entry like Claude's `settings.json`), so the Codex adapter stays on `poll` — the `on-user-prompt` hook emits the reminder and the AI calls `mcp__github-webhook-mcp__get_pending_status` itself. Setting `channel` / `mcp_hook` only suppresses the reminder text; a Codex host without an equivalent realtime substrate falls back to `poll`.
+
+# --- Li+ END ---

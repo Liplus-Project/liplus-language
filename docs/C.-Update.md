@@ -41,14 +41,16 @@ Li+config.md にはトークンが含まれるため、ファイルパーミッ�
 
 参照: `Li+update.md` Phase 2。依存: Phase 1（ランタイム検出済み）。
 
-**2.1. gh CLI のインストール（runtime 別）**
+**2.1. gh CLI のインストール（host OS 別、runtime=claude は hook へ移譲済み）**
 
-- **runtime=claude（Linux/Mac ホスト）:** `~/.local/bin/gh` が存在しない場合のみインストールする。
-  - sudo 不要、PATH 変更不要
-  - 以降の gh 操作は常にフルパス `~/.local/bin/gh` を使用（Bash ツールは PATH を永続化しないため）
-  - `/tmp` は使用禁止（他セッションとの権限衝突のため）
-  - 手順: `mkdir -p ~/.local/bin` → `~/.local/bin/gh.tar.gz` に tarball を curl → その場で展開 → `~/.local/bin/gh` を配置 → tarball を削除
-- **runtime=codex（Windows ネイティブホスト、#1502 検証環境）:** Linux の `~/.local/bin/gh` 自動配置経路は使えない（プラットフォーム違い）。`gh` は**前提条件**として扱い、bootstrap では自動インストールしない。`gh` が不在なら `winget install --id GitHub.cli` をユーザーに案内し（代行実行しない）、導入後に続行する。詳細は [D. Installation](D.-Installation) の前提条件を参照
+分岐軸は検出した **host OS** であり、adapter（runtime=claude / runtime=codex）ではない。両 adapter とも Linux / macOS / Windows のいずれのホストでも動作しうる（Claude adapter が Windows ネイティブ Git-Bash/MSYS2 上で動く構成も検証済み、#1518）。adapter からホスト OS を推測しない。
+
+- **runtime=claude:** インストール判断・実行は `Li+update.md` walkthrough ではなく `adapter/claude/hooks/on-session-start.sh` hook が毎セッション自律的に担う（bootstrap walkthrough 側は install 手順を持たない）。hook は `uname -s` で host OS を判定し、以下のように分岐する：
+  - Linux: `~/.local/bin/gh` が存在しない場合のみ、アーキテクチャ判定つきで自動インストールする（sudo 不要、PATH 変更不要）。存在すれば完全無出力でスキップする。
+  - macOS / Windows(Git-Bash・MSYS2・Cygwin): 自動インストールしない。`gh` を**前提条件**として扱い、`brew install gh` / `winget install --id GitHub.cli` の具体的な導入コマンドをユーザーへ案内する。
+  - 上記いずれにも一致しないホストカーネル: 自動インストールせず、具体的なコマンドは示さず一般的な導入案内のみを出す。
+  - 結果（`installed` / `failed: <詳細>` / `missing: <ガイダンス>`）は `GH_INSTALL_STATUS` として `━━━ gh install ━━━` マーカーで session 冒頭 context に emit される。マーカーの出力形式・出力タイミングの正本は [6. Adapter](6.-Adapter.md) の on-session-start.sh 節を参照。
+- **runtime=codex:** host OS に関わらず `gh` は**前提条件**として扱い、bootstrap では自動インストールしない。`gh` が不在なら検出した host OS に応じた案内（Windows: `winget install --id GitHub.cli` / macOS: `brew install gh`）をユーザーへ提示し（代行実行しない）、導入後に続行する。詳細は [D. Installation](D.-Installation) の前提条件を参照
 
 **2.2. GH_TOKEN の読み込みと認証**
 

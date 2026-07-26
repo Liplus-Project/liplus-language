@@ -26,10 +26,14 @@
 export PATH="$HOME/.local/bin:$PATH"
 INPUT=$(cat)
 
-# Cheap pre-filter on the raw payload. This hook only ever acts on
-# `gh pr create`, so anything else exits before spawning node at all. Purely a
-# fast path: it admits a superset of what the parsed guards below accept, so it
-# cannot change which payloads are processed.
+# Cheap pre-filter on the raw payload, so an unrelated Bash call does not spawn
+# node at all. This matches raw bytes, whereas the guards below match decoded
+# JSON values, so the two are not equivalent in general: a payload that
+# unicode-escapes the spaces inside the command string still decodes to a
+# matching command, yet has no literal match here and would be dropped. That
+# input is not reachable from Claude Code, whose payload serializer never
+# escapes printable ASCII — the filter is sound for real traffic, not for
+# arbitrary JSON.
 case "$INPUT" in
   *"gh pr create"*|*"gh.exe pr create"*) ;;
   *) exit 0 ;;
@@ -37,8 +41,12 @@ esac
 
 # node absence must stay observable. A static JSON literal is used here because
 # building it would otherwise require the very interpreter that is missing.
+# Without node the payload cannot be parsed, so this branch cannot tell whether
+# a PR was actually created — the pre-filter above only proves the raw text
+# mentions the command. The message is therefore worded conditionally; asserting
+# that refs were dropped would be false whenever the command merely named it.
 if ! command -v node >/dev/null 2>&1; then
-  printf '%s' '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"post-tool-use.sh: `node` not found on PATH, so sub-issue refs were NOT auto-appended to the PR body. Add any missing `Closes #NNN` lines manually. See adapter/claude/hooks/post-tool-use.sh (#1540)."}}'
+  printf '%s' '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"post-tool-use.sh: `node` not found on PATH, so this hook cannot run. If a PR was just created, its sub-issue `Closes #NNN` refs were not auto-appended — add them manually. See adapter/claude/hooks/post-tool-use.sh (#1540)."}}'
   exit 0
 fi
 
@@ -46,7 +54,8 @@ fi
 # Empty output means absent or unparsable; every caller treats that as "skip".
 # Absence semantics match the `// empty` of the jq expressions this replaced:
 # null, undefined and false all render as empty. Objects and arrays render as
-# JSON text, as `jq -r` did, rather than via JS string coercion.
+# compact JSON text rather than via JS string coercion (`jq -r` pretty-prints
+# them instead, but no field this hook reads is ever a composite value).
 json_field() {
   printf '%s' "$INPUT" | node -e '
     let raw = "";
@@ -82,15 +91,16 @@ LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
 emit_context() {
   local context="$1"
   [ -n "$context" ] || exit 0
-  # Indent 2 reproduces jq -n's default pretty-print, so the emitted bytes stay
-  # identical to the sample in docs/6.-Adapter.md.
+  # Indent 2 plus the trailing newline reproduce jq -n's default output byte for
+  # byte, matching the sample in docs/6.-Adapter.md. JSON.stringify emits
+  # neither on its own.
   node -e '
     process.stdout.write(JSON.stringify({
       hookSpecificOutput: {
         hookEventName: "PostToolUse",
         additionalContext: process.argv[1]
       }
-    }, null, 2));
+    }, null, 2) + "\n");
   ' "$context"
 }
 

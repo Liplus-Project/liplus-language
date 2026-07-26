@@ -68,6 +68,9 @@ PROJECT_ROOT=""
 if [ -n "$HOOK_INPUT" ] && command -v node >/dev/null 2>&1; then
   PROJECT_ROOT=$(printf '%s' "$HOOK_INPUT" | node -e '
     let raw = "";
+    // Without setEncoding each Buffer chunk is decoded on its own, so a
+    // multi-byte character straddling a chunk boundary becomes U+FFFD (#1544).
+    process.stdin.setEncoding("utf8");
     process.stdin.on("data", (d) => { raw += d; });
     process.stdin.on("end", () => {
       try {
@@ -97,6 +100,9 @@ if [ -n "$HOOK_INPUT" ]; then
   if command -v node >/dev/null 2>&1; then
     EXTRACTED=$(printf '%s' "$HOOK_INPUT" | node -e '
       let raw = "";
+      // Without setEncoding each Buffer chunk is decoded on its own, so a
+      // multi-byte character straddling a chunk boundary becomes U+FFFD (#1544).
+      process.stdin.setEncoding("utf8");
       process.stdin.on("data", (d) => { raw += d; });
       process.stdin.on("end", () => {
         try {

@@ -26,8 +26,11 @@
 export PATH="$HOME/.local/bin:$PATH"
 INPUT=$(cat)
 
-# Cheap pre-filter on the raw payload, so an unrelated Bash call does not spawn
-# node at all. This matches raw bytes, whereas the guards below match decoded
+# Cheap pre-filter on the raw payload, so a Bash call whose payload never
+# mentions the command does not spawn node at all. (A payload that merely names
+# it in passing — command output quoting it, say — still spawns node and is
+# rejected by the parsed guards below.)
+# This matches raw bytes, whereas the guards below match decoded
 # JSON values, so the two are not equivalent in general: a payload that
 # unicode-escapes the spaces inside the command string still decodes to a
 # matching command, yet has no literal match here and would be dropped. The
@@ -55,7 +58,9 @@ fi
 # Absence semantics match the `// empty` of the jq expressions this replaced:
 # null, undefined and false all render as empty. Objects and arrays render as
 # compact JSON text rather than via JS string coercion (`jq -r` pretty-prints
-# them instead, but no field this hook reads is ever a composite value).
+# them instead). That divergence is unreachable as long as the three fields read
+# here stay string-typed — another assumption about Claude Code's payload shape
+# that Li+ cannot verify from its own source.
 json_field() {
   printf '%s' "$INPUT" | node -e '
     let raw = "";

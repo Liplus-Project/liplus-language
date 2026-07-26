@@ -67,20 +67,17 @@ Per-PR exception (content-based axis):
   If uncertain, default to the parent's release type axis (safer-side fallback).
 
 L1 brake 2 override (orthogonal axis, supersedes per-PR exception):
-  When the PR touches L1 Model Layer source (any file with `layer: L1-model`
-  frontmatter, typically under `rules/model/`; L1-tagged adapter files such
-  as `adapter/claude/agents/l1-gate-eval.md` count), `Evolution_Initiator_Autonomy`
-  brake 2 (`adapter/claude/CLAUDE.md`) imposes a mandatory L1 root-criteria
-  evaluation gate — the dedicated-prompt subagent evaluator
-  (`adapter/claude/agents/l1-gate-eval.md`) — that overrides the patch per-PR
-  exception above. Even if the L1 change qualifies as patch (typo / docs
-  alignment in `rules/model/`), brake 2 applies: the evaluator must run and
-  return PASS before merge; DEVIATION = merge blocked. Evaluator PASS
-  substitutes for human approval at brake 2 (Human = final judge unchanged
-  per `rules/model/role-separation.md`, separate axis).
-  "Touch" = any added / modified / deleted line in an L1 file within the PR
-  diff. Single-line L1 edits trigger brake 2. Mixed PRs (L1 + non-L1) trigger
-  brake 2 for the whole PR; cannot be split-merged to bypass.
+  When the PR touches L1 Model Layer source, `Evolution_Initiator_Autonomy`
+  brake 2 applies and overrides the per-PR exception above: an L1 change that
+  qualifies as patch (typo / docs alignment in `rules/model/`) still requires
+  the brake 2 evaluator to return PASS before merge. semi_auto patch
+  auto-merge does not bypass it.
+  Which files count as L1 is specified in `rules/evolution/initiator-autonomy.md`
+  Scope — the `layer: L1-model` frontmatter test wins over directory location, so
+  an L1-tagged file outside `rules/model/` still counts. What counts as touching
+  one, mixed-PR handling, the evaluator's identity, and the
+  PASS-substitutes-human-approval semantic are in that file's Two-stage brake.
+  Do not restate them here; the second copy is what drifts.
 
 auto mode:
 Execution timing = AI decides.

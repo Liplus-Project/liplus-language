@@ -77,16 +77,21 @@ Parent executes operations directly. All rules still apply.
 
 ## Subagent Model Policy
 
-The parent session's own model tier is out of scope for this change (#1532 lowers subagent floors only); see `docs/A.-Concept.md` for the documented minimum operating environment. All subagents set the Agent tool `model` parameter explicitly — default and floor = `sonnet`; explicit specification of a higher-class id (e.g. `opus`, `fable`) remains permitted but is not the default. Implicit parent-model inheritance is prohibited. Applies to:
+The parent session's own model tier is out of scope; see `docs/A.-Concept.md` for the documented minimum operating environment. The policy splits by purpose (#1554): brake evaluators are pinned, every other spawn inherits.
 
-- General delegation under this skill's Rules (implementation / operations subagent spawn).
+**Brake evaluators — explicit `model`, default and floor = `sonnet`.** Implicit parent-model inheritance is prohibited here, because a sub-floor parent silently lowers the evaluation floor. Explicit specification of a higher-class id (e.g. `opus`, `fable`) remains permitted but is not the default. The floor's detailed spec (`haiku` prohibition, doubt -> `sonnet` fallback, per-call fixing rather than custom-agent frontmatter `model:` pinning) lives in `skills/evolution-parallel-agent-eval/SKILL.md` Constraint and governs both brakes. Applies to:
+
 - Brake-1 evaluators in `skills/evolution-parallel-agent-eval/SKILL.md`.
 - Brake 2, the L1 root-criteria evaluator (`adapter/claude/agents/l1-gate-eval.md`, spawned by the parent as a subagent at the `model` parameter set here; its PASS verdict substitutes for human approval on PRs touching L1 Model Layer source per `Evolution_Initiator_Autonomy`). This file is not edited — the model is set at spawn time by the parent, not in the evaluator prompt file itself.
-- `adapter/claude/agents/dialogue-evaluator.md` (ported to `adapter/codex/agents/dialogue-evaluator.toml`), spawned on explicit human request for dialogue evaluation. Its frontmatter carries no `model:` field, so the floor applies at spawn time the same way as the other categories. This file is not edited either.
 
-These four are exhaustive over `adapter/*/agents/*` (verified by directory listing at #1532 fix time: only `dialogue-evaluator` and `l1-gate-eval`, each ported to `claude` and `codex`) plus the file-less general-delegation category. `.github/scripts/liplus_discussions_agent.py` (Discussions intake bot) is a separate GitHub Actions + direct Anthropic API caller, not spawned via the Agent tool from a Li+ session, and is out of scope for this policy.
+**Every other spawn — omit the `model` parameter, inheriting the parent model.** The prohibition above is evaluator-specific; for these categories inheriting the parent's model is the intent, so the sub-floor-parent reasoning does not apply. Omission (rather than writing the parent's id literally) tracks a later parent-model change without a source edit. Applies to:
 
-Rationale (#1532): token budget reduction. Empirically grounded on Master's operational observation that Li+ previously ran entirely on Sonnet with no observed regression — during that period the parent model was also Sonnet, so brake 1's effective floor was already Sonnet.
+- General delegation under this skill's Rules (implementation / operations subagent spawn). No agent definition file exists for this category, so nothing can intercept the omission.
+- `adapter/claude/agents/dialogue-evaluator.md` (ported to `adapter/codex/agents/dialogue-evaluator.toml`), spawned only on explicit human request for dialogue evaluation. Not a brake, and explicit-request-only invocation keeps its budget contribution marginal, so it sits on the capable side for reading dialogue nuance. Neither the `.md` frontmatter nor the `.toml` carries a `model:` key, so omission resolves to parent inheritance per the Agent tool default. This file is not edited either.
+
+The four categories above are exhaustive over `adapter/*/agents/*` (verified by directory listing at #1532 fix time: only `dialogue-evaluator` and `l1-gate-eval`, each ported to `claude` and `codex`) plus the file-less general-delegation category. `.github/scripts/liplus_discussions_agent.py` (Discussions intake bot) is a separate GitHub Actions + direct Anthropic API caller, not spawned via the Agent tool from a Li+ session, and is out of scope for this policy.
+
+Rationale (#1554, partially superseding #1532's uniform floor): token mass sits on the evaluator side — PR #1550 / #1551 spent ~2.6M tokens across 21 brake-1 evaluators against ~0.4M across 2 implementation subagents — while those evaluators ran at the sonnet floor with detection power intact (every round produced real defects, several the parent had not reached independently). Evaluator count is `N=3 x rounds`, and rounds are driven by implementation defects, so raising the implementer's tier removes whole rounds of evaluators; the correct order is to move the upstream variable and leave the downstream multiplier's unit cost fixed. #1532's grounding for the evaluator floor itself (Li+ previously ran entirely on Sonnet with no observed regression, parent model Sonnet at the time so brake 1's effective floor was already Sonnet) is unchanged.
 
 </subagent-model-policy>
 

@@ -1,6 +1,6 @@
 ---
 name: task-pr-review-judgment
-description: Invoke when judging a PR review result; mode-dependent (auto: self-review; trigger: external review APPROVED/CHANGES_REQUESTED handling).
+description: Invoke when judging a PR review result; mode-dependent (auto / semi_auto: self-review by the main agent, semi_auto adding a type-gated human check; trigger: external review APPROVED/CHANGES_REQUESTED handling).
 layer: L3-task
 ---
 
@@ -22,6 +22,12 @@ if execution_mode == auto:
     Self-created PR = diff re-check before merge.
     pass → proceed to merge.
     fail → fix and recommit (restart CI loop).
+
+if execution_mode == semi_auto:
+  Self-review: same as auto. The main agent performs it; the subagent does not.
+  On pass, a type-gated human check is layered on top before merge.
+  Gate detail (patch direct-merge / minor / major human check / per-PR exception /
+  L1 brake 2 override) lives in `rules/operations/execution-mode.md`. Read it there.
 
 if execution_mode == trigger:
   External review judgment:

@@ -17,7 +17,8 @@ Review basis:
     local-only success does not close review
 
 Self-review procedure (all modes):
-  Main agent reviews PR diff against issue requirements (see Li+issues.md#PR_Review_Judgment).
+  Actor = the agent holding the merge decision per `skills/task-subagent-delegation/SKILL.md` Rules: parent in `auto` / `semi_auto`, subagent in `trigger`. A delegated subagent under `auto` / `semi_auto` neither runs nor posts the self-review; it stops at PR open + CI green and reports.
+  That agent reviews the PR diff against issue requirements (see `skills/task-pr-review-judgment/SKILL.md`).
   self-review pass -> post formal review record (below) -> proceed to mode-specific human gate.
   self-review fail -> fix and recommit (restart [CI Loop]).
 

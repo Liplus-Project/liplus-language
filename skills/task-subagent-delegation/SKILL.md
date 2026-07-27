@@ -14,11 +14,16 @@ layer: L3-task
 
 Parent agent delegates implementation and operations to subagent.
 Parent retains: issue creation, issue management (non-state lifecycle labels / type / maturity / marker / close), review judgment.
-if execution_mode == auto:
+if execution_mode == auto or execution_mode == semi_auto:
   Subagent executes: branch, implementation, commit, push, PR, CI loop.
   Parent retains: self-review, merge decision.
+  The two modes share one subagent boundary: what differs is the human PR check
+  (`semi_auto` adds one for minor / major per `rules/operations/execution-mode.md`),
+  and that is a parent-side gate, not a subagent execution step.
+  Subagent does not post the self-review record: it is a PR comment, and the actor
+  is fixed by `skills/operations-on-pr-review/SKILL.md` Self-review procedure.
 if execution_mode == trigger:
-  Subagent executes: branch, implementation, commit, push, PR, CI loop, merge.
+  Subagent executes: branch, implementation, commit, push, PR, CI loop, self-review, merge.
 
 Do not convey: step-by-step procedure, branch name, commit message, intent.
 Intent is already in issue body.
@@ -103,7 +108,7 @@ The minimal "issue URL only" pattern works for `auto` and `semi_auto` because th
 
 - (a) commit body language: project-language constraint (e.g. Japanese for liplus-language). Auto-loaded operations.md states the rule, but missed-application is the recurring failure mode; explicit reminder in the delegation prompt prevents drift.
 - (b) auto-merge enablement: include `gh pr merge {pr} --auto --squash` as a step the subagent runs after PR creation. Without this, the merge sits idle after human approval because trigger-mode PRs do not auto-merge by default.
-- (c) stop condition: subagent stops at "PR open + auto-merge enabled + CI green + awaiting human review" — NOT at merge complete. Merge fires later via GitHub auto-merge after human approval; the subagent's session ends before that.
+- (c) stop condition: subagent stops at "PR open + auto-merge enabled + CI green + self-review posted + awaiting human review" — NOT at merge complete. Self-review precedes the human gate in every mode (`skills/operations-on-pr-review/SKILL.md`), and in `trigger` the subagent is its actor, so it lands before the stop point. Merge fires later via GitHub auto-merge after human approval; the subagent's session ends before that.
 
 These three are out of scope for the broader "do not convey procedure" rule because they are not procedure — they are gate-state decisions specific to trigger-mode merge timing.
 

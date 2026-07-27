@@ -264,6 +264,24 @@ register_section "self_eval_head" "Self-evaluation log head (most recent)" "$SEL
 
 # promotion candidates
 THRESHOLD_N=2
+# A candidate qualifies as MEMORY_DIR only when it holds at least one file that
+# some MEMORY_DIR consumer reads. Directory existence alone is not the criterion:
+# an empty higher-precedence directory would otherwise shadow a populated
+# lower-precedence one and silence every consumer at once.
+# The marker set is the union over all consumers (self-eval head, feedback /
+# project detectors, self-evolution observation surface), so the criterion stays
+# consumer-neutral instead of favouring whichever file prompted the fix.
+memory_dir_populated() {
+  for markerfile in \
+    self-evaluation_log.md \
+    feedback.md \
+    project.md \
+    self-evolution-observation.md; do
+    [ -f "$1/$markerfile" ] && return 0
+  done
+  return 1
+}
+
 # Probe the directory directly when self-evaluation_log.md is absent: the other
 # MEMORY_DIR readers (feedback/project detectors, self-evolution observation
 # surface) must not be silenced by the absence of an unrelated file.
@@ -272,7 +290,7 @@ if [ -n "$SELFEVAL_FOUND" ]; then
   MEMORY_DIR=$(dirname "$SELFEVAL_FOUND")
 else
   for memcandidate in "$PROJECT_ROOT/memory" "$LIPLUS_DIR/memory"; do
-    [ -d "$memcandidate" ] && { MEMORY_DIR="$memcandidate"; break; }
+    memory_dir_populated "$memcandidate" && { MEMORY_DIR="$memcandidate"; break; }
   done
 fi
 PROMOTION_BODY=""

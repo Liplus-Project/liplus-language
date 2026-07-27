@@ -386,6 +386,26 @@ register_section "self_eval_head" "Self-evaluation log head (most recent)" "$SEL
 # Threshold is adjustable via THRESHOLD_N (initial value = 2, see issue #1080).
 THRESHOLD_N=2
 
+# A candidate qualifies as MEMORY_DIR only when it holds at least one file that
+# some MEMORY_DIR consumer reads. Directory existence alone is not the criterion:
+# an empty higher-precedence directory would otherwise shadow a populated
+# lower-precedence one and silence every consumer at once.
+# The marker set is the union over all consumers (self-eval head, feedback /
+# project detectors, self-evolution observation surface), so the criterion stays
+# consumer-neutral instead of favouring whichever file prompted the fix.
+memory_dir_populated() {
+  for markerfile in \
+    self-evaluation_log.md \
+    feedback.md \
+    project.md \
+    self-evolution-observation.md; do
+    if [ -f "$1/$markerfile" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 # Resolve memory directory using the same lookup path as self-evaluation_log.md.
 # The directory is probed directly when that file is absent: other readers of
 # MEMORY_DIR (feedback/project detectors, self-evolution observation surface)
@@ -397,15 +417,21 @@ else
   for memcandidate in \
     "$HOME/.claude/projects/$CCD_SLUG/memory" \
     "$PROJECT_ROOT/memory"; do
-    if [ -d "$memcandidate" ]; then
+    if memory_dir_populated "$memcandidate"; then
       MEMORY_DIR="$memcandidate"
       break
     fi
   done
   # Glob fallback mirrors the self-eval log fallback: most recently modified
-  # memory dir under any project slug.
+  # memory dir under any project slug, populated ones only.
   if [ -z "$MEMORY_DIR" ]; then
-    MEMORY_DIR=$(ls -1td "$HOME"/.claude/projects/*/memory 2>/dev/null | head -n 1)
+    while IFS= read -r memcandidate; do
+      [ -n "$memcandidate" ] || continue
+      if memory_dir_populated "$memcandidate"; then
+        MEMORY_DIR="$memcandidate"
+        break
+      fi
+    done < <(ls -1td "$HOME"/.claude/projects/*/memory 2>/dev/null)
   fi
 fi
 

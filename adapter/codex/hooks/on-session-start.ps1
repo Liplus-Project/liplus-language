@@ -304,6 +304,25 @@ Register-Section 'self_eval_head' 'Self-evaluation log head (most recent)' $self
 
 # promotion candidates (memory -> Li+ source)
 $thresholdN = 2
+# A candidate qualifies as $memoryDir only when it holds at least one file that
+# some $memoryDir consumer reads. Directory existence alone is not the criterion:
+# an empty higher-precedence directory would otherwise shadow a populated
+# lower-precedence one and silence every consumer at once.
+# The marker set is the union over all consumers (self-eval head, feedback /
+# project detectors, self-evolution observation surface), so the criterion stays
+# consumer-neutral instead of favouring whichever file prompted the fix.
+function Test-MemoryDirPopulated {
+  param([string]$Dir)
+  foreach ($markerFile in @(
+      'self-evaluation_log.md',
+      'feedback.md',
+      'project.md',
+      'self-evolution-observation.md')) {
+    if (Test-Path -LiteralPath (Join-Path $Dir $markerFile) -PathType Leaf) { return $true }
+  }
+  return $false
+}
+
 # Probe the directory directly when self-evaluation_log.md is absent: the other
 # $memoryDir readers (feedback/project detectors, self-evolution observation
 # surface) must not be silenced by the absence of an unrelated file.
@@ -312,7 +331,7 @@ if ($selfEvalFound) {
   $memoryDir = Split-Path -Parent $selfEvalFound
 } else {
   foreach ($memCand in @((Join-Path $projectRoot 'memory'), (Join-Path $liplusDir 'memory'))) {
-    if (Test-Path -LiteralPath $memCand -PathType Container) { $memoryDir = $memCand; break }
+    if (Test-MemoryDirPopulated $memCand) { $memoryDir = $memCand; break }
   }
 }
 $promotionBody = ''

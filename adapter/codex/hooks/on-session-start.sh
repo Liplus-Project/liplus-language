@@ -268,9 +268,12 @@ THRESHOLD_N=2
 # some MEMORY_DIR consumer reads. Directory existence alone is not the criterion:
 # an empty higher-precedence directory would otherwise shadow a populated
 # lower-precedence one and silence every consumer at once.
-# The marker set is the union over all consumers (self-eval head, feedback /
-# project detectors, self-evolution observation surface), so the criterion stays
-# consumer-neutral instead of favouring whichever file prompted the fix.
+# The marker set is the files MEMORY_DIR consumers read (feedback / project
+# detectors, self-evolution observation surface), plus self-evaluation_log.md so
+# that both resolution paths agree on what counts as a memory directory. That
+# added member never decides a case in practice: the self-eval lookup above
+# scans the same candidate directories, so whenever that file exists the primary
+# path has already claimed the directory before this check runs.
 memory_dir_populated() {
   for markerfile in \
     self-evaluation_log.md \

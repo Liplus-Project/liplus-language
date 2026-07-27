@@ -235,12 +235,23 @@ if merged and merged[-1]["role"] == "assistant":
 client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 response = client.messages.create(
     model=CLAUDE_MODEL,
-    max_tokens=1024,
+    max_tokens=4096,
     system=system_prompt,
     messages=merged,
 )
 
-reply = response.content[0].text
+# Sonnet 5 以降は adaptive thinking が既定で有効なため、content の先頭が
+# ThinkingBlock になりうる。text ブロックのみを取り出す。
+reply = "".join(
+    block.text for block in response.content if block.type == "text"
+).strip()
+if not reply:
+    raise SystemExit(
+        "no text block in response "
+        f"(stop_reason={response.stop_reason}, "
+        f"blocks={[b.type for b in response.content]}); "
+        "max_tokens may be exhausted by thinking"
+    )
 
 # ── Issue creation if signaled ────────────────────────────────────────────────
 

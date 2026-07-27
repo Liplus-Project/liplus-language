@@ -275,6 +275,17 @@ class Workspace:
     def state_file(self, adapter: str) -> Path:
         return self.workspace / self.STATE_RELATIVE[adapter]
 
+    def clear_state(self) -> None:
+        """Remove every adapter's cold-start state file.
+
+        `codex_sh` and `codex_ps1` map to one path, so leaving it behind makes
+        the next adapter's first run look like a second run.
+        """
+        for adapter in ADAPTERS:
+            path = self.state_file(adapter)
+            if path.is_file():
+                path.unlink()
+
     def cleanup(self) -> None:
         shutil.rmtree(self.root, ignore_errors=True)
 
@@ -379,7 +390,18 @@ class ObservationSurfaceTestCase(unittest.TestCase):
         return output
 
     def sections_for_all_adapters(self) -> dict[str, str | None]:
-        return {adapter: observation_section(self.run_hook(adapter)) for adapter in ADAPTERS}
+        """Run every adapter against this fixture, one adapter at a time.
+
+        `codex_sh` and `codex_ps1` share one state-file path (`STATE_RELATIVE`),
+        so a previous adapter's run would put the next one into diff-only mode
+        on what should be its first run. Clearing the state between adapters
+        keeps each run a first run.
+        """
+        sections: dict[str, str | None] = {}
+        for adapter in ADAPTERS:
+            self.ws.clear_state()
+            sections[adapter] = observation_section(self.run_hook(adapter))
+        return sections
 
     def assert_adapters_agree(self, sections: dict[str, str | None]) -> None:
         reference = sections["claude_sh"]
@@ -690,7 +712,10 @@ class NoNewMaterialMarkerTest(ObservationSurfaceTestCase):
             "the second run cannot reach diff-only mode",
         )
 
+        started_on = date.today()
         second = self.run_hook(adapter, workspace)
+        if date.today() != started_on:
+            self.skipTest("local date rolled over between runs; fixture offsets are stale")
         self.assertNotIn(
             FAIL_SAFE_MARK,
             second,

@@ -91,8 +91,12 @@ Autonomy
 Workspace_Language_Contract:
   These language rules apply to the host workspace only. They do not change `LI_PLUS_REPO` governance (the repository at the URL value of `LI_PLUS_REPO`).
 
-  Read LI_PLUS_BASE_LANGUAGE and LI_PLUS_PROJECT_LANGUAGE from the workspace-root Li+config.md.
-  If either value is missing:
+  LI_PLUS_BASE_LANGUAGE and LI_PLUS_PROJECT_LANGUAGE are emitted into the session-opening context
+  by `on-session-start.sh` under the `━━━ Li+ language contract ━━━` banner, resolved from the
+  workspace-root Li+config.md at session start. Apply those values; no file read is required.
+  Li+config.md remains the single source (the hook reads it live every session, not at bootstrap).
+  If either value is emitted as `unset`, or the banner is absent entirely (pre-bootstrap session:
+  the hook exits at the unresolved-source guard before emitting any Li+ marker):
   - ask human once at session start
   - write resolved values to Li+config.md
 

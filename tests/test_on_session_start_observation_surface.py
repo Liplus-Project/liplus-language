@@ -303,24 +303,24 @@ class Workspace:
             env["PATH"] = str(self.stub_bin) + os.pathsep + env.get("PATH", "")
         return env
 
-    def _command_and_stdin(self, adapter: str) -> tuple[list[str], str]:
+    def _command_and_stdin(self, adapter: str, matcher: str) -> tuple[list[str], str]:
         hook = HOOKS[adapter]
         if adapter == "claude_sh":
-            return [BASH, posix_path(hook)], json.dumps({"matcher": "startup"})
+            return [BASH, posix_path(hook)], json.dumps({"matcher": matcher})
         if adapter == "codex_sh":
-            payload = {"cwd": posix_path(self.workspace), "source": "startup"}
+            payload = {"cwd": posix_path(self.workspace), "source": matcher}
             return [BASH, posix_path(hook)], json.dumps(payload)
-        payload = {"cwd": slash_path(self.workspace), "source": "startup"}
+        payload = {"cwd": slash_path(self.workspace), "source": matcher}
         return [PWSH, "-NoProfile", "-NonInteractive", "-File", str(hook)], json.dumps(payload)
 
-    def run(self, adapter: str) -> str:
+    def run(self, adapter: str, matcher: str = "startup") -> str:
         """Run one hook and return its emitted context text."""
         if adapter in ("claude_sh", "codex_sh") and not BASH:
             require_runtime("bash", "claude / codex shell hooks")
         if adapter == "codex_ps1" and not PWSH:
             require_runtime("pwsh", "codex PowerShell hook")
 
-        command, stdin_payload = self._command_and_stdin(adapter)
+        command, stdin_payload = self._command_and_stdin(adapter, matcher)
         completed = subprocess.run(
             command,
             input=stdin_payload.encode("utf-8"),

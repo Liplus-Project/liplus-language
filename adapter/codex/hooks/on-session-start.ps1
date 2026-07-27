@@ -131,10 +131,32 @@ if (Test-Path -LiteralPath $rulesRoot) {
 }
 
 # ===================================================================
+# Language contract values (every matcher)
+# ===================================================================
+# Issue #1575. Resolved outside the startup-only block below because the values
+# must be in context on every session entry point, the same way the always-on
+# rules above are re-injected on every matcher. The startup-only axis 3 check
+# reuses what this block resolved.
+# -CaseSensitive is required for parity with the two bash ports, whose `sed`
+# extraction is case-sensitive; without it PowerShell resolves a lowercase key
+# spelling that the bash ports leave unset, and one Li+config.md would yield
+# two different language contracts depending on the host adapter.
+$baseLang = ''
+$projLang = ''
+if (Test-Path -LiteralPath $configFile) {
+  $bl = Select-String -LiteralPath $configFile -CaseSensitive -Pattern '^\s*LI_PLUS_BASE_LANGUAGE\s*=\s*(.*)$' -ErrorAction SilentlyContinue | Select-Object -First 1
+  if ($bl) { $baseLang = $bl.Matches[0].Groups[1].Value.Trim() }
+  $pl = Select-String -LiteralPath $configFile -CaseSensitive -Pattern '^\s*LI_PLUS_PROJECT_LANGUAGE\s*=\s*(.*)$' -ErrorAction SilentlyContinue | Select-Object -First 1
+  if ($pl) { $projLang = $pl.Matches[0].Groups[1].Value.Trim() }
+}
+
+# ===================================================================
 # Update sentinel-skip verification (axes 1-3) — startup matcher only.
 # On resume/clear/compact the work context is continuous, so we do not re-run
-# the update-status verification (matches the Claude design: only the cold-start
-# anchor is re-emitted on those matchers). Rules were already re-injected above.
+# the update-status verification. Rules were already re-injected above, and the
+# language contract block above is emitted on every matcher; the Claude port
+# re-emits its update status on every matcher too, so this startup gate is a
+# Codex-side choice, not a shared design.
 # ===================================================================
 if ($matcher -eq 'startup') {
   $updateReasons = @()
@@ -182,15 +204,7 @@ if ($matcher -eq 'startup') {
     if ($legacy) { $updateReasons += 'legacy-schema-keys-present' }
   }
 
-  # --- axis 3: language contract resolved ---
-  $baseLang = ''
-  $projLang = ''
-  if (Test-Path -LiteralPath $configFile) {
-    $bl = Select-String -LiteralPath $configFile -Pattern '^\s*LI_PLUS_BASE_LANGUAGE\s*=\s*(.*)$' -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($bl) { $baseLang = $bl.Matches[0].Groups[1].Value.Trim() }
-    $pl = Select-String -LiteralPath $configFile -Pattern '^\s*LI_PLUS_PROJECT_LANGUAGE\s*=\s*(.*)$' -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($pl) { $projLang = $pl.Matches[0].Groups[1].Value.Trim() }
-  }
+  # --- axis 3: language contract resolved (values resolved above, every matcher) ---
   if (-not $baseLang -or -not $projLang) {
     $b = if ($baseLang) { $baseLang } else { 'unset' }
     $p = if ($projLang) { $projLang } else { 'unset' }
@@ -214,6 +228,26 @@ if ($matcher -eq 'startup') {
     Emit ''
   }
 }
+
+# --- emit language contract values (every matcher) ---
+# Issue #1575: the contract text is always in context (adapter AGENTS.md) but
+# its values were not, because resolving them was written as "read
+# Li+config.md" and that file is not auto-loaded. Emitting the values the hook
+# already holds removes the read step without baking anything into a generated
+# file. Emitted on every path that reaches here, with an unresolved value
+# rendered as 'unset', so inside a bootstrapped session the block's absence
+# never has to be distinguished from an unresolved value. The unresolved-source
+# guard exits well before this point and emits no language marker at all; the
+# adapter Workspace_Language_Contract routes that state to the same ask-human
+# branch as 'unset'.
+$emitBase = if ($baseLang) { $baseLang } else { 'unset' }
+$emitProj = if ($projLang) { $projLang } else { 'unset' }
+Emit '━━━ Li+ language contract ━━━'
+Emit "LI_PLUS_BASE_LANGUAGE=$emitBase"
+Emit "LI_PLUS_PROJECT_LANGUAGE=$emitProj"
+Emit 'Resolved from Li+config.md at session start. Definitions, scope and precedence: Workspace_Language_Contract (adapter AGENTS.md).'
+Emit '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+Emit ''
 
 # ===================================================================
 # Cold-start material gathering

@@ -263,6 +263,27 @@ else
   printf '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
 fi
 
+# --- emit language contract values ---
+# Issue #1575: the Workspace_Language_Contract is always in context (adapter
+# CLAUDE.md), but resolving its VALUES was written as a procedure ("read
+# Li+config.md"), and Li+config.md is not auto-loaded into any agent context.
+# The contract text was therefore present while its values were not, and the
+# emission fell back to the model default (observed: English self-review bodies
+# on PR #1531 / #1533 in a base=ja workspace).
+# Axis 3 above already extracted both values from the live config this session;
+# emitting them removes the read step without baking anything into a generated
+# file. Emitted on every path that reaches here, with an unresolved value
+# rendered as "unset", so inside a bootstrapped session the block's absence
+# never has to be distinguished from an unresolved value. The pre-bootstrap
+# guard exits well before this point and emits no Li+ marker at all; the
+# adapter Workspace_Language_Contract routes that state to the same ask-human
+# branch as "unset".
+printf '━━━ Li+ language contract ━━━\n'
+printf 'LI_PLUS_BASE_LANGUAGE=%s\n' "${BASE_LANG:-unset}"
+printf 'LI_PLUS_PROJECT_LANGUAGE=%s\n' "${PROJ_LANG:-unset}"
+printf 'Resolved from Li+config.md at session start. Definitions, scope and precedence: Workspace_Language_Contract (adapter CLAUDE.md).\n'
+printf '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
+
 # Emit gh install status marker after update status (only when install was attempted).
 if [ -n "$GH_INSTALL_STATUS" ]; then
   printf '━━━ gh install ━━━\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' "GH_INSTALL_STATUS=$GH_INSTALL_STATUS"

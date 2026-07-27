@@ -13,7 +13,9 @@
 #   fingerprint set is persisted at {workspace_root}/.claude/state/last-cold-start-emit.json.
 #   On the next startup the hook compares current fingerprints to the stored set
 #   and emits only sections whose body changed. The cold-start rule literal is
-#   always emitted (drift recovery anchor). When no section changed, a single
+#   always emitted (drift recovery anchor), as is the self-evolution observation
+#   surface (date-driven trigger; see its gather block). When no section changed
+#   and no observation is due, a single
 #   "No new orientation material since last session" marker is emitted so the
 #   human can still observe that a session boundary occurred.
 #
@@ -507,6 +509,87 @@ ${OVERLAP}"
 fi
 register_section "promotion_candidates" "Promotion candidates (memory → Li+ source)" "$PROMOTION_BODY"
 
+# --- self-evolution observation surface (due / overdue) ---
+# Implements rules/evolution/cold-start-synthesis.md "Self-Evolution Observation
+# Surface" (issue #1537 — the contract existed, the adapter side did not):
+#   next_check <= today AND verdict_state == pending -> "observation due"
+#   expires    <  today AND verdict_state == pending -> "observation overdue,
+#                                                       human judgment needed"
+#
+# NOT registered via register_section — this section is deliberately outside the
+# diff-only comparison set (same treatment as the cold-start rule literal, for a
+# different reason). The trigger is date-driven while the body is content-driven:
+# an unresolved entry produces a byte-identical body day after day, so a
+# fingerprint comparison would surface it exactly once and then suppress it for
+# the whole period during which it still needs attention. An empty body is a
+# silent skip (nothing due), so always-emit costs nothing in the common case.
+#
+# Source file = memory/self-evolution-observation.md, resolved through the same
+# MEMORY_DIR lookup the promotion detectors above already use. Silent skip when
+# the file is absent (workspace-local + gitignored; absence is normal).
+#
+# An entry past expires is reported as OVERDUE only. Its next_check is normally
+# also in the past, but reporting the same entry on both axes is noise, and
+# overdue is the axis that carries the escalation.
+#
+# Date comparison is lexicographic on ISO YYYY-MM-DD, which is order-preserving.
+OBSERVATION_BODY=""
+OBSERVATION_FILE=""
+if [ -n "$MEMORY_DIR" ] && [ -f "$MEMORY_DIR/self-evolution-observation.md" ]; then
+  OBSERVATION_FILE="$MEMORY_DIR/self-evolution-observation.md"
+fi
+if [ -n "$OBSERVATION_FILE" ]; then
+  TODAY=$(date +%Y-%m-%d 2>/dev/null || echo "")
+  if [ -n "$TODAY" ]; then
+    OBSERVATION_LIST=$(awk -v today="$TODAY" '
+      function flush(   label) {
+        if (name == "") return
+        if (state == "pending") {
+          label = ""
+          if (expires != "" && expires < today) {
+            label = "OVERDUE (expires " expires ", human judgment needed)"
+          } else if (nextcheck != "" && nextcheck <= today) {
+            label = "DUE (next_check " nextcheck ")"
+          }
+          if (label != "") {
+            printf "  - %s: %s%s\n", label, name, (pr == "" ? "" : " [PR #" pr "]")
+          }
+        }
+        name = ""; pr = ""; expires = ""; nextcheck = ""; state = ""
+      }
+      /^##[[:space:]]+observation:/ {
+        flush()
+        v = $0
+        sub(/^##[[:space:]]+observation:[[:space:]]*/, "", v)
+        gsub(/[[:space:]]+$/, "", v)
+        name = v
+        next
+      }
+      name != "" && /^[[:space:]]*pr:[[:space:]]*/ {
+        v = $0; sub(/^[[:space:]]*pr:[[:space:]]*/, "", v); gsub(/[[:space:]]+$/, "", v); pr = v; next
+      }
+      name != "" && /^[[:space:]]*expires:[[:space:]]*/ {
+        v = $0; sub(/^[[:space:]]*expires:[[:space:]]*/, "", v); gsub(/[[:space:]]+$/, "", v); expires = v; next
+      }
+      name != "" && /^[[:space:]]*next_check:[[:space:]]*/ {
+        v = $0; sub(/^[[:space:]]*next_check:[[:space:]]*/, "", v); gsub(/[[:space:]]+$/, "", v); nextcheck = v; next
+      }
+      name != "" && /^[[:space:]]*verdict_state:[[:space:]]*/ {
+        v = $0; sub(/^[[:space:]]*verdict_state:[[:space:]]*/, "", v); gsub(/[[:space:]]+$/, "", v); state = v; next
+      }
+      /^##[[:space:]]/ { flush() }
+      END { flush() }
+    ' "$OBSERVATION_FILE")
+    if [ -n "$OBSERVATION_LIST" ]; then
+      OBSERVATION_BODY="memory/self-evolution-observation.md - entries whose check window has opened:
+${OBSERVATION_LIST}
+Surfacing is observation, not auto-action. Verdict transition (settle / revert /
+supersede) follows rules/evolution/memory-entry-format.md Self-Evolution
+Observation Format."
+    fi
+  fi
+fi
+
 # ===================================================================
 # Emission phase
 # ===================================================================
@@ -527,6 +610,15 @@ in-context state as authoritative; do not re-orient from scratch.
 
 EOF
   exit 0
+fi
+
+# --- self-evolution observation surface (outside the diff-only set) ---
+# Emitted before the diff sections so a due/overdue entry is not buried under
+# whatever else changed. Empty body = silent skip (see gather phase above).
+OBSERVATION_EMITTED=0
+if [ -n "$OBSERVATION_BODY" ]; then
+  emit_section "Self-evolution observation (due / overdue)" "$OBSERVATION_BODY"
+  OBSERVATION_EMITTED=1
 fi
 
 # --- diff-only logic (startup matcher only) ---
@@ -641,7 +733,9 @@ done
 # If no section emitted under diff-only mode, emit the no-new-material marker
 # so the human can still observe that a session boundary occurred (silent
 # skip is intentionally avoided — it would hide the session transition).
-if [ "$EMITTED_ANY" -eq 0 ] && [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ]; then
+# The observation surface counts as material: pairing a just-emitted overdue
+# entry with "No new orientation material" would be self-contradictory output.
+if [ "$EMITTED_ANY" -eq 0 ] && [ "$OBSERVATION_EMITTED" -eq 0 ] && [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ]; then
   emit_section "Orientation diff" "No new orientation material since last session. Prior in-context state remains authoritative."
 fi
 

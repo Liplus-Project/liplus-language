@@ -380,6 +380,76 @@ if ($memoryDir -and (Test-Path -LiteralPath $memoryDir)) {
 }
 Register-Section 'promotion_candidates' 'Promotion candidates (memory → Li+ source)' $promotionBody
 
+# --- self-evolution observation surface (due / overdue) ---
+# Implements rules/evolution/cold-start-synthesis.md "Self-Evolution Observation
+# Surface" (#1537). Port of the same block in adapter/claude/hooks/on-session-start.sh:
+#   next_check <= today AND verdict_state == pending -> "observation due"
+#   expires    <  today AND verdict_state == pending -> "observation overdue,
+#                                                       human judgment needed"
+#
+# Deliberately NOT passed through Register-Section: the trigger is date-driven
+# while the body is content-driven, so an unresolved entry keeps a byte-identical
+# body and a fingerprint comparison would surface it once and then suppress it
+# for the whole period it still needs attention. Empty body = silent skip.
+# An entry past expires is reported as OVERDUE only (overdue carries the
+# escalation; reporting it on both axes is noise). CompareOrdinal on ISO
+# YYYY-MM-DD is order-preserving and culture-independent.
+$observationBody = ''
+$observationFile = ''
+if ($memoryDir) {
+  $obsCand = Join-Path $memoryDir 'self-evolution-observation.md'
+  if (Test-Path -LiteralPath $obsCand) { $observationFile = $obsCand }
+}
+if ($observationFile) {
+  $today = (Get-Date).ToString('yyyy-MM-dd')
+  $entries = @()
+  $cur = $null
+  foreach ($l in (Get-Content -LiteralPath $observationFile -ErrorAction SilentlyContinue)) {
+    if ($l -match '^##\s+observation:\s*(.*)$') {
+      if ($cur) { $entries += $cur }
+      $cur = @{ name = $matches[1].Trim(); pr = ''; expires = ''; next = ''; state = '' }
+      continue
+    }
+    if ($l -match '^##\s') { if ($cur) { $entries += $cur; $cur = $null }; continue }
+    if (-not $cur) { continue }
+    if ($l -match '^\s*pr:\s*(.*)$')            { $cur.pr      = $matches[1].Trim(); continue }
+    if ($l -match '^\s*expires:\s*(.*)$')       { $cur.expires = $matches[1].Trim(); continue }
+    if ($l -match '^\s*next_check:\s*(.*)$')    { $cur.next    = $matches[1].Trim(); continue }
+    if ($l -match '^\s*verdict_state:\s*(.*)$') { $cur.state   = $matches[1].Trim(); continue }
+  }
+  if ($cur) { $entries += $cur }
+
+  $observationList = ''
+  foreach ($e in $entries) {
+    if ($e.state -ne 'pending') { continue }
+    $label = ''
+    if ($e.expires -and ([string]::CompareOrdinal($e.expires, $today) -lt 0)) {
+      $label = "OVERDUE (expires $($e.expires), human judgment needed)"
+    } elseif ($e.next -and ([string]::CompareOrdinal($e.next, $today) -le 0)) {
+      $label = "DUE (next_check $($e.next))"
+    }
+    if ($label) {
+      $suffix = if ($e.pr) { " [PR #$($e.pr)]" } else { '' }
+      $observationList += "  - $($label): $($e.name)$suffix`n"
+    }
+  }
+  if ($observationList) {
+    $observationBody = "memory/self-evolution-observation.md - entries whose check window has opened:`n" +
+      $observationList +
+      "Surfacing is observation, not auto-action. Verdict transition (settle / revert /`n" +
+      "supersede) follows rules/evolution/memory-entry-format.md Self-Evolution`n" +
+      "Observation Format."
+  }
+}
+
+# Emitted before the diff sections so a due/overdue entry is not buried under
+# whatever else changed.
+$observationEmitted = $false
+if ($observationBody) {
+  Emit-Section 'Self-evolution observation (due / overdue)' $observationBody
+  $observationEmitted = $true
+}
+
 # ===================================================================
 # Diff-only emission (startup matcher)
 # ===================================================================
@@ -415,7 +485,9 @@ for ($i = 0; $i -lt $sectionKeys.Count; $i++) {
   }
 }
 
-if (-not $emittedAny -and -not $failSafeFull) {
+# The observation surface counts as material: pairing a just-emitted overdue
+# entry with "No new orientation material" would be self-contradictory output.
+if (-not $emittedAny -and -not $observationEmitted -and -not $failSafeFull) {
   Emit-Section 'Orientation diff' 'No new orientation material since last session. Prior in-context state remains authoritative.'
 }
 

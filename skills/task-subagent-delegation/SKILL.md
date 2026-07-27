@@ -13,7 +13,7 @@ layer: L3-task
 ## Rules
 
 Implementation is always delegated to a subagent. The parent does not implement. Scope = all of Li+: self-evolution PRs in `LI_PLUS_REPO` and work in the user repositories `USER_REPO<N>` alike. No exception by diff size. A rule that branches demands a judgment at its application moment, and simplicity of the rule is the axis this one was decided on (judgment record: wiki `implementation-always-delegated`). Accepted cost: the parent reconstructs context from the report when it adjudicates brake findings, and a one-line change still carries the cost of writing a delegation prompt.
-Boundary: the implementation this rule delegates is the issue's change, produced before the PR opens. The parent's revision of brake findings after CI green (`rules/evolution/initiator-autonomy.md` Two-stage brake) sits inside adjudication and is not a re-delegation point.
+Boundary: the implementation this rule delegates is the issue's change, produced before the PR opens. The parent's revision of brake findings after CI green (`rules/evolution/initiator-autonomy.md` Two-stage brake) sits inside adjudication and is not a re-delegation point. That revision is bounded to the findings: the parent may apply what an adjudicated finding calls for and nothing beyond it. Work outside the findings' reach is implementation and returns to the subagent, whatever its size — otherwise a thin delegated draft followed by a substantial parent rewrite reintroduces under "adjudication" the exception this rule denies on size.
 
 Parent agent delegates implementation and operations to subagent.
 Parent retains: issue creation, issue management (non-state lifecycle labels / type / maturity / marker / close), review judgment.

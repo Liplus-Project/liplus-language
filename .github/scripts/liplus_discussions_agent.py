@@ -235,7 +235,7 @@ if merged and merged[-1]["role"] == "assistant":
 client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 response = client.messages.create(
     model=CLAUDE_MODEL,
-    max_tokens=1024,
+    max_tokens=4096,
     system=system_prompt,
     messages=merged,
 )

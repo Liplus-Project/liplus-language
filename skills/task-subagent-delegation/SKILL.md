@@ -12,11 +12,15 @@ layer: L3-task
 
 ## Rules
 
+Implementation is always delegated to a subagent. The parent does not implement. Scope = all of Li+: self-evolution PRs in `LI_PLUS_REPO` and work in the user repositories `USER_REPO<N>` alike. No exception by diff size. A rule that branches demands a judgment at its application moment, and simplicity of the rule is the axis this one was decided on (judgment record: wiki `implementation-always-delegated`). Accepted cost: the parent reconstructs context from the report when it adjudicates brake findings, and a one-line change still carries the cost of writing a delegation prompt.
+Boundary: the implementation this rule delegates is the issue's change, produced before the PR opens. The parent's revision of brake findings after CI green (`rules/evolution/initiator-autonomy.md` Two-stage brake) sits inside adjudication and is not a re-delegation point.
+
 Parent agent delegates implementation and operations to subagent.
 Parent retains: issue creation, issue management (non-state lifecycle labels / type / maturity / marker / close), review judgment.
 if execution_mode == auto or execution_mode == semi_auto:
   Subagent executes: branch, implementation, commit, push, PR, CI loop.
-  Parent retains: self-review, merge decision.
+  Stop condition = `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition.
+  Parent retains: brake 1 (and brake 2 when the PR touches L1 Model Layer source) adjudication, self-review, merge decision.
   The two modes share one subagent boundary: what differs is the human PR check
   (`semi_auto` adds one for minor / major per `rules/operations/execution-mode.md`),
   and that is a parent-side gate, not a subagent execution step.
@@ -24,6 +28,7 @@ if execution_mode == auto or execution_mode == semi_auto:
   is fixed by `skills/operations-on-pr-review/SKILL.md` Self-review procedure.
 if execution_mode == trigger:
   Subagent executes: branch, implementation, commit, push, PR, CI loop, self-review, merge.
+  Stop condition = `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition.
 
 Do not convey: step-by-step procedure, branch name, commit message, intent.
 Intent is already in issue body.
@@ -75,6 +80,7 @@ Branch linking: see skills/operations-on-branch/SKILL.md.
 
 If subagent capability is unavailable:
 Parent executes operations directly. All rules still apply.
+This is a substrate-absence fallback, not an exception to the always-delegate rule above: it fires on a missing capability, never on a judgment that a change is small enough.
 
 </autonomy>
 
@@ -108,7 +114,7 @@ The minimal "issue URL only" pattern works for `auto` and `semi_auto` because th
 
 - (a) commit body language: project-language constraint (e.g. Japanese for liplus-language). Auto-loaded operations.md states the rule, but missed-application is the recurring failure mode; explicit reminder in the delegation prompt prevents drift.
 - (b) auto-merge enablement: include `gh pr merge {pr} --auto --squash` as a step the subagent runs after PR creation. Without this, the merge sits idle after human approval because trigger-mode PRs do not auto-merge by default.
-- (c) stop condition: subagent stops at "PR open + auto-merge enabled + CI green + self-review posted + awaiting human review" — NOT at merge complete. Self-review precedes the human gate in every mode (`skills/operations-on-pr-review/SKILL.md`), and in `trigger` the subagent is its actor, so it lands before the stop point. Merge fires later via GitHub auto-merge after human approval; the subagent's session ends before that.
+- (c) stop condition: the `trigger` form is longer than the `auto` / `semi_auto` one and ends short of merge complete. Read it at `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition, which splits by mode; inject that mode's literal into the prompt. Do not restate it here.
 
 These three are out of scope for the broader "do not convey procedure" rule because they are not procedure — they are gate-state decisions specific to trigger-mode merge timing.
 

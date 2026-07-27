@@ -127,6 +127,19 @@ Subagent_Delegation:
   Delegation semantics (what to convey, what to retain, hook chain, issue management, failure reporting)
   are defined in skills/task-subagent-delegation/SKILL.md. This section covers adapter-layer execution details only.
 
+  Codex context inheritance (per-call):
+  - Every subagent spawn must set `fork_turns` explicitly. Omitting it is prohibited.
+  - Normal non-brake spawn: omit `model` so the parent model is inherited, and set `fork_turns="none"`.
+  - Brake 1 / brake 2 evaluator spawn: set `model` explicitly under the existing evaluator policy, set
+    `fork_turns="none"`, and pass all evaluation material in a self-contained prompt.
+  - The only positive form allowed is a decimal string such as `fork_turns="3"`, and only when the
+    bounded dialogue segment itself is required as evaluation material.
+  - Full-history inheritance via `fork_turns="all"` is normally prohibited.
+  - Keep this binding at the spawn call, not in `adapter/codex/agents/*.toml`, because context needs vary by use.
+
+  This host-specific binding does not change the L3 context-isolation semantics, the independent `model`
+  policy, or the evaluator model floor / N / M / P / self-contained-prompt contracts.
+
   Serial delegation does not require worktrees.
 
   Worktree vs commit serialization axis separation:

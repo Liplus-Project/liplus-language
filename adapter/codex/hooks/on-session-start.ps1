@@ -304,8 +304,39 @@ Register-Section 'self_eval_head' 'Self-evaluation log head (most recent)' $self
 
 # promotion candidates (memory -> Li+ source)
 $thresholdN = 2
+# A candidate qualifies as $memoryDir only when it holds at least one file that
+# some $memoryDir consumer reads. Directory existence alone is not the criterion:
+# an empty higher-precedence directory would otherwise shadow a populated
+# lower-precedence one and silence every consumer at once.
+# The marker set is the files $memoryDir consumers read (feedback / project
+# detectors, self-evolution observation surface), plus self-evaluation_log.md so
+# that both resolution paths agree on what counts as a memory directory. That
+# added member never decides a case in practice: the self-eval lookup above
+# scans the same candidate directories, so whenever that file exists the primary
+# path has already claimed the directory before this check runs.
+function Test-MemoryDirPopulated {
+  param([string]$Dir)
+  foreach ($markerFile in @(
+      'self-evaluation_log.md',
+      'feedback.md',
+      'project.md',
+      'self-evolution-observation.md')) {
+    if (Test-Path -LiteralPath (Join-Path $Dir $markerFile) -PathType Leaf) { return $true }
+  }
+  return $false
+}
+
+# Probe the directory directly when self-evaluation_log.md is absent: the other
+# $memoryDir readers (feedback/project detectors, self-evolution observation
+# surface) must not be silenced by the absence of an unrelated file.
 $memoryDir = ''
-if ($selfEvalFound) { $memoryDir = Split-Path -Parent $selfEvalFound }
+if ($selfEvalFound) {
+  $memoryDir = Split-Path -Parent $selfEvalFound
+} else {
+  foreach ($memCand in @((Join-Path $projectRoot 'memory'), (Join-Path $liplusDir 'memory'))) {
+    if (Test-MemoryDirPopulated $memCand) { $memoryDir = $memCand; break }
+  }
+}
 $promotionBody = ''
 
 # Detector 1: repeated (root_cause, first-tag) pairs in self-evaluation_log.md.
@@ -380,6 +411,82 @@ if ($memoryDir -and (Test-Path -LiteralPath $memoryDir)) {
 }
 Register-Section 'promotion_candidates' 'Promotion candidates (memory → Li+ source)' $promotionBody
 
+# --- self-evolution observation surface (due / overdue) ---
+# Implements rules/evolution/cold-start-synthesis.md "Self-Evolution Observation
+# Surface" (#1537). Port of the same block in adapter/claude/hooks/on-session-start.sh:
+#   next_check <= today AND verdict_state == pending -> "observation due"
+#   expires    <  today AND verdict_state == pending -> "observation overdue,
+#                                                       human judgment needed"
+#
+# Deliberately NOT passed through Register-Section: the trigger is date-driven
+# while the body is content-driven, so an unresolved entry keeps a byte-identical
+# body and a fingerprint comparison would surface it once and then suppress it
+# for the whole period it still needs attention. Empty body = silent skip.
+# An entry past expires is reported as OVERDUE only (overdue carries the
+# escalation; reporting it on both axes is noise). CompareOrdinal on ISO
+# YYYY-MM-DD is order-preserving and culture-independent.
+$observationBody = ''
+$observationFile = ''
+if ($memoryDir) {
+  $obsCand = Join-Path $memoryDir 'self-evolution-observation.md'
+  if (Test-Path -LiteralPath $obsCand) { $observationFile = $obsCand }
+}
+if ($observationFile) {
+  $today = (Get-Date).ToString('yyyy-MM-dd')
+  $entries = @()
+  $cur = $null
+  # -cmatch / -cne (not -match / -ne): PowerShell comparison is case-insensitive
+  # by default, while the awk ports in the two on-session-start.sh hooks are
+  # case-sensitive. Without the c-prefix, `PR:` / `Verdict_State:` / `Pending`
+  # would be accepted here and rejected there — same input, different output.
+  foreach ($l in (Get-Content -LiteralPath $observationFile -ErrorAction SilentlyContinue)) {
+    if ($l -cmatch '^##\s+observation:\s*(.*)$') {
+      if ($cur) { $entries += $cur }
+      $cur = @{ name = $matches[1].Trim(); pr = ''; expires = ''; next = ''; state = '' }
+      continue
+    }
+    if ($l -cmatch '^##\s') { if ($cur) { $entries += $cur; $cur = $null }; continue }
+    if (-not $cur) { continue }
+    if ($l -cmatch '^\s*pr:\s*(.*)$')            { $cur.pr      = $matches[1].Trim(); continue }
+    if ($l -cmatch '^\s*expires:\s*(.*)$')       { $cur.expires = $matches[1].Trim(); continue }
+    if ($l -cmatch '^\s*next_check:\s*(.*)$')    { $cur.next    = $matches[1].Trim(); continue }
+    if ($l -cmatch '^\s*verdict_state:\s*(.*)$') { $cur.state   = $matches[1].Trim(); continue }
+  }
+  if ($cur) { $entries += $cur }
+
+  $observationList = ''
+  foreach ($e in $entries) {
+    # Empty descriptor = malformed header; the awk ports drop it in flush().
+    if (-not $e.name) { continue }
+    if ($e.state -cne 'pending') { continue }
+    $label = ''
+    if ($e.expires -and ([string]::CompareOrdinal($e.expires, $today) -lt 0)) {
+      $label = "OVERDUE (expires $($e.expires), human judgment needed)"
+    } elseif ($e.next -and ([string]::CompareOrdinal($e.next, $today) -le 0)) {
+      $label = "DUE (next_check $($e.next))"
+    }
+    if ($label) {
+      $suffix = if ($e.pr) { " [PR #$($e.pr)]" } else { '' }
+      $observationList += "  - $($label): $($e.name)$suffix`n"
+    }
+  }
+  if ($observationList) {
+    $observationBody = "memory/self-evolution-observation.md - entries whose check window has opened:`n" +
+      $observationList +
+      "Surfacing is observation, not auto-action. Verdict transition (settle / revert /`n" +
+      "supersede) follows rules/evolution/memory-entry-format.md Self-Evolution`n" +
+      "Observation Format."
+  }
+}
+
+# Emitted before the diff sections so a due/overdue entry is not buried under
+# whatever else changed.
+$observationEmitted = $false
+if ($observationBody) {
+  Emit-Section 'Self-evolution observation (due / overdue)' $observationBody
+  $observationEmitted = $true
+}
+
 # ===================================================================
 # Diff-only emission (startup matcher)
 # ===================================================================
@@ -415,7 +522,9 @@ for ($i = 0; $i -lt $sectionKeys.Count; $i++) {
   }
 }
 
-if (-not $emittedAny -and -not $failSafeFull) {
+# The observation surface counts as material: pairing a just-emitted overdue
+# entry with "No new orientation material" would be self-contradictory output.
+if (-not $emittedAny -and -not $observationEmitted -and -not $failSafeFull) {
   Emit-Section 'Orientation diff' 'No new orientation material since last session. Prior in-context state remains authoritative.'
 }
 

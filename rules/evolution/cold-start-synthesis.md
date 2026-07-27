@@ -23,7 +23,7 @@ Hook coordination:
 Hook emission states (matcher = startup):
 - full emit = first session after install, fail-safe (state missing / unreadable / sha256 unavailable), or every section changed. All sections shown.
 - diff-only = some sections changed since prior session. Only changed sections shown.
-- no-new-material marker = no section changed. A single "No new orientation material since last session" line is emitted (silent skip is intentionally avoided so the human can still observe the session boundary).
+- no-new-material marker = no section changed AND no self-evolution observation entry was surfaced. A single "No new orientation material since last session" line is emitted (silent skip is intentionally avoided so the human can still observe the session boundary). A surfaced observation entry (see Self-Evolution Observation Surface below) counts as material even though it carries no section key, so the marker is suppressed for that session; pairing an overdue entry with "no new material" would be self-contradictory output.
 
 Hook emission states (matcher = resume / clear / compact):
 - Only the cold-start rule literal is re-anchored. The work context is continuous; the diff-only set is not re-evaluated.
@@ -47,6 +47,8 @@ Self-evolution observation entries (`memory/self-evolution-observation.md`, form
 Surface targets:
 - `next_check` <= today and `verdict_state` == `pending` -> surface as "observation due"
 - `expires` < today and `verdict_state` == `pending` -> surface as "observation overdue, human judgment needed"
+
+Both conditions normally hold at once for an expired entry (`next_check` is typically also in the past). Overdue wins: the entry is surfaced once, as overdue only. Overdue is the axis carrying the escalation, and presenting one entry on both axes is noise.
 
 Surfacing is observation, not auto-action. Verdict transitions (settle / revert / supersede) still go through the explicit lifecycle defined in the format spec.
 

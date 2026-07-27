@@ -18,6 +18,18 @@ The first case set is the four behavioural defects brake 1 found on PR #1560:
 
 Each hook is executed as a real process against a filesystem fixture; there is
 no external dependency (`gh` is stubbed, dates are relative to today).
+
+What is pinned and what is not
+------------------------------
+The contract (`rules/evolution/cold-start-synthesis.md:47-51`) fixes the date
+conditions, the pending filter and the overdue-wins fold; the presentation is
+explicitly delegated to the adapter (same file, :55). So the assertions here
+read the *judgment* out of the emission — which descriptor surfaces, under which
+state, against which date, with which PR reference — and deliberately do not
+match the banner text, the bullet prefix, the field names restated inside the
+parentheses, the `[PR #N]` suffix notation, or the order of the entries. The
+`DUE` / `OVERDUE (human judgment needed)` label words are matched, because those
+are specified on the docs side (`docs/6.-Adapter.md:71`), not chosen here.
 """
 
 from __future__ import annotations
@@ -28,9 +40,11 @@ import re
 import shutil
 import subprocess
 import tempfile
+import time
 import unittest
 from datetime import date, timedelta
 from pathlib import Path
+from typing import NamedTuple
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -42,11 +56,34 @@ HOOKS = {
 }
 ADAPTERS = tuple(HOOKS)
 
-OBSERVATION_BANNER = "Self-evolution observation (due / overdue)"
 HOOK_TIMEOUT = 180
 
 BASH = shutil.which("bash")
 PWSH = shutil.which("pwsh")
+NODE = shutil.which("node")
+
+# Emission-mode probe. The shell hooks fall back to a full emit whenever the
+# diff-only machinery cannot run; the marker path is reachable only from the
+# other branch, so tests that need diff-only assert this string is absent.
+FAIL_SAFE_MARK = "Fail-safe full emit"
+
+# `rules/evolution/cold-start-synthesis.md:26` — "A single 'No new orientation
+# material since last session' line is emitted". The line is the contract; the
+# banner it sits under is not.
+NO_NEW_MATERIAL = "No new orientation material"
+
+
+def require_runtime(binary: str, covered: str) -> None:
+    """Skip locally, fail on CI.
+
+    A developer host without `pwsh` should still be able to run the rest of the
+    suite. On CI the same condition would silently drop the coverage this file
+    exists to provide, so there it is an error instead.
+    """
+    message = f"{binary} is required to exercise the {covered}"
+    if os.environ.get("CI"):
+        raise AssertionError(f"{message}; it is missing on this CI runner")
+    raise unittest.SkipTest(f"{message}; not available on this host")
 
 
 def posix_path(path: Path) -> str:
@@ -67,32 +104,131 @@ def iso(day_offset: int) -> str:
     return (date.today() + timedelta(days=day_offset)).isoformat()
 
 
+# --------------------------------------------------------------------------
+# Emission parsing
+# --------------------------------------------------------------------------
+
 def _is_section_rule(line: str) -> bool:
     return len(line) >= 10 and set(line) == {"━"}
 
 
-def observation_section(hook_output: str) -> str | None:
-    """Body of the observation section, or None when the hook stayed silent."""
+def emitted_sections(hook_output: str) -> list[tuple[str, str]]:
+    """(banner, body) for every rule-delimited section in the emission."""
+    sections: list[tuple[str, str]] = []
     lines = hook_output.replace("\r\n", "\n").split("\n")
-    for index, line in enumerate(lines):
-        if line.startswith("━━━ ") and OBSERVATION_BANNER in line:
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        if line.startswith("━━━ ") and line.endswith(" ━━━") and not _is_section_rule(line):
+            banner = line[4:-4].strip()
+            index += 1
             body: list[str] = []
-            for follow in lines[index + 1 :]:
-                if _is_section_rule(follow):
-                    return "\n".join(body)
-                body.append(follow)
-            return "\n".join(body)
+            while index < len(lines) and not _is_section_rule(lines[index]):
+                body.append(lines[index])
+                index += 1
+            sections.append((banner, "\n".join(body)))
+        index += 1
+    return sections
+
+
+def observation_section(hook_output: str) -> str | None:
+    """Body of the observation section, or None when the hook stayed silent.
+
+    Located by topic rather than by exact banner text: the banner is an adapter
+    choice, and pinning it made every assertion in this file depend on one
+    string. A rename should fail the test that actually cares, not all of them.
+    """
+    for banner, body in emitted_sections(hook_output):
+        if "observation" in banner.lower():
+            return body
     return None
 
 
-def entry_lines(section_body: str | None) -> list[str]:
+def no_new_material_marker(hook_output: str) -> str | None:
+    """The no-new-material marker line, or None when it was not emitted."""
+    for _banner, body in emitted_sections(hook_output):
+        lines = [line for line in body.split("\n") if line.strip()]
+        if len(lines) == 1 and NO_NEW_MATERIAL in lines[0]:
+            return lines[0]
+    return None
+
+
+class SurfacedEntry(NamedTuple):
+    """The judgment reported for one observation entry."""
+
+    state: str  # "DUE" or "OVERDUE"
+    date: str  # the ISO date the judgment was made against
+    pr: str | None  # PR reference, or None when the entry carries none
+
+
+_LABEL_RE = re.compile(r"(?<![A-Za-z])(OVERDUE|DUE)(?![A-Za-z])")
+_DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
+_PR_RE = re.compile(r"PR\D{0,3}(\d+)")
+_HEADER_RE = re.compile(r"^##\s*observation:\s*(.*)$")
+
+
+def declared_descriptors(lines) -> tuple[str, ...]:
+    """Every non-empty descriptor an observation fixture declares."""
+    found = []
+    for line in lines:
+        match = _HEADER_RE.match(line)
+        if match and match.group(1).strip():
+            found.append(match.group(1).strip())
+    return tuple(found)
+
+
+def surfaced_entries(
+    section_body: str | None, descriptors: tuple[str, ...]
+) -> dict[str, SurfacedEntry]:
+    """Read the surfaced judgments out of a section body, layout-agnostically.
+
+    `descriptors` is every descriptor the fixture wrote, so the returned mapping
+    answers both directions at once: what surfaced, and what did not. A reported
+    line that cannot be attributed to exactly one declared descriptor (an empty
+    descriptor leaking through, for instance) is an error rather than a silent
+    zero.
+    """
     if section_body is None:
-        return []
-    return [line for line in section_body.split("\n") if line.startswith("  - ")]
+        return {}
+    found: dict[str, SurfacedEntry] = {}
+    for line in section_body.split("\n"):
+        label = _LABEL_RE.search(line)
+        if not label:
+            continue
+        names = [
+            name
+            for name in descriptors
+            if re.search(rf"(?<![\w-]){re.escape(name)}(?![\w-])", line)
+        ]
+        if len(names) != 1:
+            raise AssertionError(
+                f"surfaced line matches {len(names)} declared descriptors, expected 1: "
+                f"{line!r} (declared: {list(descriptors)})"
+            )
+        if names[0] in found:
+            raise AssertionError(f"descriptor {names[0]!r} surfaced more than once")
+        date_match = _DATE_RE.search(line)
+        pr_match = _PR_RE.search(line)
+        found[names[0]] = SurfacedEntry(
+            state=label.group(1),
+            date=date_match.group(0) if date_match else "",
+            pr=pr_match.group(1) if pr_match else None,
+        )
+    return found
 
 
 class Workspace:
     """Filesystem fixture shaped like a Li+ host workspace."""
+
+    # Diff-only state each hook leaves behind. A second run against the same
+    # workspace reads it, which is the only way into the diff-only branch.
+    # The two codex hooks intentionally share one path (they are two ports of
+    # one adapter), so a two-run test must use a fresh workspace per adapter.
+    STATE_RELATIVE = {
+        "claude_sh": ".claude/state/last-cold-start-emit.json",
+        "codex_sh": ".codex/state/last-cold-start-emit.json",
+        "codex_ps1": ".codex/state/last-cold-start-emit.json",
+    }
 
     def __init__(self) -> None:
         self.root = Path(tempfile.mkdtemp(prefix="liplus-hook-"))
@@ -106,7 +242,8 @@ class Workspace:
 
         slug = re.sub(r"[:/\\]", "-", posix_path(self.workspace))
         # Memory directory candidates, in each adapter's own precedence order.
-        self.claude_primary = self.home / ".claude" / "projects" / slug / "memory"
+        self.claude_projects = self.home / ".claude" / "projects"
+        self.claude_primary = self.claude_projects / slug / "memory"
         self.shared_memory = self.workspace / "memory"
         self.codex_secondary = self.liplus / "memory"
 
@@ -135,6 +272,9 @@ class Workspace:
             return self.claude_primary, self.shared_memory
         return self.shared_memory, self.codex_secondary
 
+    def state_file(self, adapter: str) -> Path:
+        return self.workspace / self.STATE_RELATIVE[adapter]
+
     def cleanup(self) -> None:
         shutil.rmtree(self.root, ignore_errors=True)
 
@@ -162,25 +302,12 @@ class Workspace:
         payload = {"cwd": slash_path(self.workspace), "source": "startup"}
         return [PWSH, "-NoProfile", "-NonInteractive", "-File", str(hook)], json.dumps(payload)
 
-    @staticmethod
-    def _missing_runtime(binary: str, covered: str) -> None:
-        """Skip locally, fail on CI.
-
-        A developer host without `pwsh` should still be able to run the rest of
-        the suite. On CI the same condition would silently drop the coverage
-        this file exists to provide, so there it is an error instead.
-        """
-        message = f"{binary} is required to exercise the {covered}"
-        if os.environ.get("CI"):
-            raise AssertionError(f"{message}; it is missing on this CI runner")
-        raise unittest.SkipTest(f"{message}; not available on this host")
-
     def run(self, adapter: str) -> str:
         """Run one hook and return its emitted context text."""
         if adapter in ("claude_sh", "codex_sh") and not BASH:
-            self._missing_runtime("bash", "claude / codex shell hooks")
+            require_runtime("bash", "claude / codex shell hooks")
         if adapter == "codex_ps1" and not PWSH:
-            self._missing_runtime("pwsh", "codex PowerShell hook")
+            require_runtime("pwsh", "codex PowerShell hook")
 
         command, stdin_payload = self._command_and_stdin(adapter)
         completed = subprocess.run(
@@ -207,6 +334,7 @@ class Workspace:
 
 class ObservationSurfaceTestCase(unittest.TestCase):
     def setUp(self) -> None:
+        self.observation_descriptors: tuple[str, ...] = ()
         self.new_workspace()
 
     def new_workspace(self) -> Workspace:
@@ -214,6 +342,11 @@ class ObservationSurfaceTestCase(unittest.TestCase):
         self.ws = Workspace()
         self.addCleanup(self.ws.cleanup)
         return self.ws
+
+    def observation_text(self, *lines: str) -> str:
+        """Record the fixture's descriptors and render it as file content."""
+        self.observation_descriptors = declared_descriptors(lines)
+        return "\n".join(lines)
 
     def write_observation_file(self, *lines: str) -> None:
         """Observation fixture in the shared memory directory.
@@ -225,7 +358,9 @@ class ObservationSurfaceTestCase(unittest.TestCase):
         """
         self.ws.write(self.ws.shared_memory, "self-evaluation_log.md", "# log\n")
         self.ws.write(
-            self.ws.shared_memory, "self-evolution-observation.md", "\n".join(lines)
+            self.ws.shared_memory,
+            "self-evolution-observation.md",
+            self.observation_text(*lines),
         )
 
     def run_hook(self, adapter: str, workspace: Workspace | None = None) -> str:
@@ -255,6 +390,17 @@ class ObservationSurfaceTestCase(unittest.TestCase):
                     reference,
                     f"{adapter} disagrees with claude_sh on identical input",
                 )
+
+    def require_section(self, hook_output: str) -> str:
+        """Fail with the emitted banners listed, instead of a bare `None`."""
+        section = observation_section(hook_output)
+        if section is None:
+            banners = [banner for banner, _body in emitted_sections(hook_output)]
+            self.fail(f"no observation section was emitted; banners seen: {banners}")
+        return section
+
+    def surfaced(self, section_body: str | None) -> dict[str, SurfacedEntry]:
+        return surfaced_entries(section_body, self.observation_descriptors)
 
 
 class DueOverdueJudgmentTest(ObservationSurfaceTestCase):
@@ -295,15 +441,42 @@ class DueOverdueJudgmentTest(ObservationSurfaceTestCase):
         sections = self.sections_for_all_adapters()
         self.assert_adapters_agree(sections)
         self.assertEqual(
-            entry_lines(sections["claude_sh"]),
-            [
+            self.surfaced(sections["claude_sh"]),
+            {
                 # past expiry folds into OVERDUE only, never reported twice
-                f"  - OVERDUE (expires {iso(-2)}, human judgment needed): past-expiry [PR #1500]",
+                "past-expiry": SurfacedEntry("OVERDUE", iso(-2), "1500"),
                 # next_check == today is due (the comparison is <=, not <)
-                f"  - DUE (next_check {iso(0)}): due-today [PR #1501]",
-                # a missing pr field drops the suffix instead of printing an empty one
-                f"  - DUE (next_check {iso(-1)}): due-without-pr",
-            ],
+                "due-today": SurfacedEntry("DUE", iso(0), "1501"),
+                # a missing pr field carries no PR reference
+                "due-without-pr": SurfacedEntry("DUE", iso(-1), None),
+                # not-yet-due and already-settled stay off the surface
+            },
+        )
+
+    def test_expiry_exactly_today_is_not_yet_overdue(self) -> None:
+        # `expires < today` is a strict comparison. Its `<=` sibling on
+        # next_check is pinned above; this is the other half of that boundary.
+        self.write_observation_file(
+            "## observation: expiring-today",
+            "pr: 2100",
+            f"expires: {iso(0)}",
+            f"next_check: {iso(0)}",
+            "verdict_state: pending",
+            "",
+            "## observation: expiring-today-checked-later",
+            "pr: 2101",
+            f"expires: {iso(0)}",
+            f"next_check: {iso(3)}",
+            "verdict_state: pending",
+            "",
+        )
+        sections = self.sections_for_all_adapters()
+        self.assert_adapters_agree(sections)
+        self.assertEqual(
+            self.surfaced(sections["claude_sh"]),
+            # DUE via next_check, not OVERDUE via expires; and with the check
+            # window still shut, an expires-today entry does not surface at all.
+            {"expiring-today": SurfacedEntry("DUE", iso(0), "2100")},
         )
 
     def test_absent_observation_file_is_a_silent_skip(self) -> None:
@@ -354,7 +527,7 @@ class AdapterParityTest(ObservationSurfaceTestCase):
         )
         sections = self.sections_for_all_adapters()
         self.assert_adapters_agree(sections)
-        self.assertEqual(entry_lines(sections["claude_sh"]), [])
+        self.assertEqual(self.surfaced(sections["claude_sh"]), {})
 
     def test_field_name_case_variants_are_not_recognised(self) -> None:
         self.write_observation_file(
@@ -367,7 +540,7 @@ class AdapterParityTest(ObservationSurfaceTestCase):
             "Verdict_State: pending",
             "",
             # PR is not the field name either: the entry is still due, but it
-            # must be reported without a [PR #...] suffix.
+            # must be reported without a PR reference.
             "## observation: capitalised-pr-field",
             "PR: 1801",
             f"expires: {iso(7)}",
@@ -378,8 +551,8 @@ class AdapterParityTest(ObservationSurfaceTestCase):
         sections = self.sections_for_all_adapters()
         self.assert_adapters_agree(sections)
         self.assertEqual(
-            entry_lines(sections["claude_sh"]),
-            [f"  - DUE (next_check {iso(-1)}): capitalised-pr-field"],
+            self.surfaced(sections["claude_sh"]),
+            {"capitalised-pr-field": SurfacedEntry("DUE", iso(-1), None)},
         )
 
     def test_empty_descriptor_entry_is_dropped(self) -> None:
@@ -399,31 +572,35 @@ class AdapterParityTest(ObservationSurfaceTestCase):
         )
         sections = self.sections_for_all_adapters()
         self.assert_adapters_agree(sections)
+        # A leaked empty-descriptor line cannot be attributed to any declared
+        # descriptor, so `surfaced` raises rather than quietly returning one entry.
         self.assertEqual(
-            entry_lines(sections["claude_sh"]),
-            [f"  - DUE (next_check {iso(-1)}): well-formed [PR #1901]"],
+            self.surfaced(sections["claude_sh"]),
+            {"well-formed": SurfacedEntry("DUE", iso(-1), "1901")},
         )
 
 
 class MemoryDirResolutionTest(ObservationSurfaceTestCase):
     """Coverage area 2: memory directory resolution (PR #1560 F3 / G2)."""
 
-    DUE_ENTRY = "\n".join(
-        [
-            "## observation: reachable",
-            "pr: 2000",
-            "expires: {expires}",
-            "next_check: {next_check}",
-            "verdict_state: pending",
-            "",
-        ]
-    )
+    def setUp(self) -> None:
+        super().setUp()
+        self.observation_descriptors = ("reachable",)
 
     def due_entry(self) -> str:
-        return self.DUE_ENTRY.format(expires=iso(7), next_check=iso(-1))
+        return "\n".join(
+            [
+                "## observation: reachable",
+                "pr: 2000",
+                f"expires: {iso(7)}",
+                f"next_check: {iso(-1)}",
+                "verdict_state: pending",
+                "",
+            ]
+        )
 
-    def expected_entry_lines(self) -> list[str]:
-        return [f"  - DUE (next_check {iso(-1)}): reachable [PR #2000]"]
+    def expected(self) -> dict[str, SurfacedEntry]:
+        return {"reachable": SurfacedEntry("DUE", iso(-1), "2000")}
 
     def test_resolution_does_not_depend_on_self_evaluation_log(self) -> None:
         # No self-evaluation_log.md anywhere: the observation surface must still
@@ -433,7 +610,7 @@ class MemoryDirResolutionTest(ObservationSurfaceTestCase):
         )
         sections = self.sections_for_all_adapters()
         self.assert_adapters_agree(sections)
-        self.assertEqual(entry_lines(sections["claude_sh"]), self.expected_entry_lines())
+        self.assertEqual(self.surfaced(sections["claude_sh"]), self.expected())
 
     def test_empty_higher_precedence_directory_does_not_shadow(self) -> None:
         for adapter in ADAPTERS:
@@ -442,8 +619,8 @@ class MemoryDirResolutionTest(ObservationSurfaceTestCase):
                 higher, lower = workspace.memory_candidates(adapter)
                 higher.mkdir(parents=True, exist_ok=True)
                 workspace.write(lower, "self-evolution-observation.md", self.due_entry())
-                section = observation_section(self.run_hook(adapter, workspace))
-                self.assertEqual(entry_lines(section), self.expected_entry_lines())
+                section = self.require_section(self.run_hook(adapter, workspace))
+                self.assertEqual(self.surfaced(section), self.expected())
 
     def test_higher_precedence_directory_without_marker_files_does_not_shadow(self) -> None:
         for adapter in ADAPTERS:
@@ -452,8 +629,114 @@ class MemoryDirResolutionTest(ObservationSurfaceTestCase):
                 higher, lower = workspace.memory_candidates(adapter)
                 workspace.write(higher, "notes.md", "unrelated\n")
                 workspace.write(lower, "self-evolution-observation.md", self.due_entry())
-                section = observation_section(self.run_hook(adapter, workspace))
-                self.assertEqual(entry_lines(section), self.expected_entry_lines())
+                section = self.require_section(self.run_hook(adapter, workspace))
+                self.assertEqual(self.surfaced(section), self.expected())
+
+    def test_claude_glob_fallback_skips_unpopulated_project_slugs(self) -> None:
+        """Third-stage fallback in `adapter/claude/hooks/on-session-start.sh`.
+
+        Neither named candidate resolves, so the hook scans
+        `~/.claude/projects/*/memory` newest-first. The populated-not-merely-
+        existing rule applies there too, which the two named-candidate cases
+        above cannot reach. Claude-only: the codex hooks have no glob stage.
+        """
+        workspace = self.new_workspace()
+        populated = workspace.claude_projects / "other-project" / "memory"
+        empty = workspace.claude_projects / "empty-project" / "memory"
+        workspace.write(populated, "self-evolution-observation.md", self.due_entry())
+        empty.mkdir(parents=True, exist_ok=True)
+        # `ls -1td` orders by mtime, so make the empty slug strictly newer: it is
+        # visited first and must be stepped over rather than claimed.
+        now = time.time()
+        os.utime(empty, (now, now))
+        os.utime(populated, (now - 600, now - 600))
+
+        section = self.require_section(self.run_hook("claude_sh", workspace))
+        self.assertEqual(self.surfaced(section), self.expected())
+
+
+class NoNewMaterialMarkerTest(ObservationSurfaceTestCase):
+    """Coverage area 4: the marker's interaction with the observation surface.
+
+    `rules/evolution/cold-start-synthesis.md:26` — the marker fires when no
+    section changed AND no observation entry was surfaced. Both halves live in
+    the diff-only branch, which is entered only when a prior run left a state
+    file behind, so each test here runs one hook twice against one workspace.
+    """
+
+    def prepared_workspace(self, adapter: str, observation: str | None) -> Workspace:
+        workspace = self.new_workspace()
+        # A stable non-empty section: it gives the second run a fingerprint to
+        # compare, so "nothing changed" is a real comparison and not vacuous.
+        workspace.write(workspace.shared_memory, "self-evaluation_log.md", "# log\n")
+        if observation is not None:
+            workspace.write(
+                workspace.shared_memory, "self-evolution-observation.md", observation
+            )
+        return workspace
+
+    def run_twice(self, adapter: str, observation: str | None) -> tuple[str, str]:
+        if adapter in ("claude_sh", "codex_sh") and not NODE:
+            require_runtime("node", "diff-only state handling in the shell hooks")
+        workspace = self.prepared_workspace(adapter, observation)
+
+        first = self.run_hook(adapter, workspace)
+        self.assertIn(
+            FAIL_SAFE_MARK, first, "first run should be the fail-safe full emit"
+        )
+        self.assertTrue(
+            workspace.state_file(adapter).is_file(),
+            f"{adapter} did not persist {workspace.state_file(adapter)}; "
+            "the second run cannot reach diff-only mode",
+        )
+
+        second = self.run_hook(adapter, workspace)
+        self.assertNotIn(
+            FAIL_SAFE_MARK,
+            second,
+            f"{adapter} fell back to a full emit on the second run, so the "
+            "marker branch was never evaluated",
+        )
+        return first, second
+
+    def test_marker_appears_when_nothing_changed_and_nothing_is_due(self) -> None:
+        for adapter in ADAPTERS:
+            with self.subTest(adapter=adapter):
+                first, second = self.run_twice(adapter, observation=None)
+                self.assertIsNone(
+                    no_new_material_marker(first),
+                    "the marker belongs to diff-only mode, not to the full emit",
+                )
+                self.assertIsNone(observation_section(second))
+                self.assertIsNotNone(
+                    no_new_material_marker(second),
+                    "an unchanged session with nothing due must still mark the boundary",
+                )
+
+    def test_surfaced_observation_suppresses_the_marker(self) -> None:
+        observation = self.observation_text(
+            "## observation: still-open",
+            "pr: 2200",
+            f"expires: {iso(-3)}",
+            f"next_check: {iso(-10)}",
+            "verdict_state: pending",
+            "",
+        )
+        for adapter in ADAPTERS:
+            with self.subTest(adapter=adapter):
+                _first, second = self.run_twice(adapter, observation=observation)
+                section = self.require_section(second)
+                self.assertEqual(
+                    self.surfaced(section),
+                    {"still-open": SurfacedEntry("OVERDUE", iso(-3), "2200")},
+                    "the observation surface is outside the diff set and must "
+                    "re-emit while the entry is unresolved",
+                )
+                self.assertIsNone(
+                    no_new_material_marker(second),
+                    "surfacing an overdue entry and declaring no new material in "
+                    "the same emission is self-contradictory",
+                )
 
 
 if __name__ == "__main__":

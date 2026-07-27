@@ -23,6 +23,12 @@ if execution_mode == auto:
     pass → proceed to merge.
     fail → fix and recommit (restart CI loop).
 
+if execution_mode == semi_auto:
+  Self-review: same as auto. The main agent performs it; the subagent does not.
+  On pass, a type-gated human check is layered on top before merge.
+  Gate detail (patch direct-merge / minor / major human check / per-PR exception /
+  L1 brake 2 override) lives in `rules/operations/execution-mode.md`. Read it there.
+
 if execution_mode == trigger:
   External review judgment:
     APPROVED → proceed (delegate merge execution to subagent if available).

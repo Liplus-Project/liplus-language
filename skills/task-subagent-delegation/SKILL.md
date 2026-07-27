@@ -14,11 +14,16 @@ layer: L3-task
 
 Parent agent delegates implementation and operations to subagent.
 Parent retains: issue creation, issue management (non-state lifecycle labels / type / maturity / marker / close), review judgment.
-if execution_mode == auto:
+if execution_mode == auto or execution_mode == semi_auto:
   Subagent executes: branch, implementation, commit, push, PR, CI loop.
   Parent retains: self-review, merge decision.
+  The two modes share one subagent boundary: what differs is the human PR check
+  (`semi_auto` adds one for minor / major per `rules/operations/execution-mode.md`),
+  and that is a parent-side gate, not a subagent execution step.
+  Subagent does not post the self-review record: it is a PR comment, and the actor
+  is fixed by `skills/operations-on-pr-review/SKILL.md` Self-review procedure.
 if execution_mode == trigger:
-  Subagent executes: branch, implementation, commit, push, PR, CI loop, merge.
+  Subagent executes: branch, implementation, commit, push, PR, CI loop, self-review, merge.
 
 Do not convey: step-by-step procedure, branch name, commit message, intent.
 Intent is already in issue body.

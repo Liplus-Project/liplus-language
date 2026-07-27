@@ -109,7 +109,7 @@ Rationale: behavior-vs-impression boundary is context-dependent, so N=1 flag car
 3. **Parallel subagent spawn** - Select the three Design Dimensions axes (N, M, P) based on draft nature and spawn subagents in parallel. Default is `N=3, M=all axes, P=1`, total invocation = 3. In the default pattern, the subagent prompt explicitly instructs "answer each M axis question independently without referencing other axes' answers" packed into a single prompt. If prompt complexity is high enough that cross-axis echo bias suppression is uncertain, switch to the M=1 axis-separated exception pattern (total invocation = `N x axis_count`); if premise variation is needed, switch to P>1 (total invocation = `N x P`) (see Design Dimensions). Prompts must be self-contained (do not let parent context leak in). Every spawn under this skill explicitly sets the Agent tool `model` parameter at or above the sonnet-class floor; implicit parent-model inheritance is prohibited here (see Constraint: Model floor)
 4. **Aggregate verdict** - Aggregate cross-axis judgment per the Design Dimensions aggregation rule (safer-side OR for delete/keep, AND for adopt/reject, three-value consistent / partial / negative classification for intermediate). Fixed axes may override the default per-axis (see Fixed axis: impression-literal detection)
 5. **Runtime restore** - Restore `.claude/` to tag-match state (revert the operational copy to pre-draft). Skip when step 2 applied nothing (skills/* direct-Read path, or permission-gate fallback): no write occurred, so there is nothing to restore
-6. **Judgment** - Based on the verdict: consistent -> push the spec change toward implementation / partial / negative -> revise draft and re-run from step 2 (re-run must also go through step 5 restore first) / abort
+6. **Judgment** - Based on the verdict: consistent -> push the spec change toward implementation / partial / negative -> the parent adjudicates each finding against the source, revises the draft, and takes the revised draft to self-review / abort. **Single round**: steps 2-4 run once per draft. Re-running them on the revised draft is out of scope; the revised draft ships without a re-verification round (see Non-scope: what the single-round cap gives up)
 7. **Externalize** - Record the verdict and the adoption judgment in the parent issue body / PR self-review. If the judgment has settled, also append to decision structure per `skills/evolution-decision-structure-write`
 
 </procedure>
@@ -134,6 +134,16 @@ Rationale: behavior-vs-impression boundary is context-dependent, so N=1 flag car
 - One trial is excluded as a source of overconfidence
 - Verification of facts that change over time (API spec, library behavior) is outside this method's range; investigate per occurrence
 - Separate axis from promotion-judgment's memory observation noise floor judgment (this method = spec verification; promotion = observation accumulation judgment)
+
+### What the single-round cap gives up
+
+Procedure step 6 caps the eval at one round. Three defect classes are dropped by that cap. They are enumerated here so a later reader reads them as dropped, not missed (#1563):
+
+- Defects introduced by the parent's own fix. Observed at PR #1560 G2 and PR #1555 R2 / R3. `#1562` test coverage is the receptacle for the behavior-defect subset.
+- Prose-layer findings that surface only in later rounds. Observed at PR #1550 R4 (a still-live description deleted during a rewrite). Tests do not catch this class.
+- Behavior defects present in the initial implementation that round 1 did not reach. Observed at PR #1543 R3 (chunk-boundary multibyte corruption).
+
+Accepted on the Li+ correctness criterion (`rules/model/foundational-invariant.md`: correctness is real-world behavior): none of the three had surfaced in production, while the round cost was incurred every time. Changes stay inside git revert range and release remains a human gate. Re-evaluation trigger = a single-round-capped merge that produces observable production harm.
 
 </non-scope>
 

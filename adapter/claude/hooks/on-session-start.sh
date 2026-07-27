@@ -387,9 +387,26 @@ register_section "self_eval_head" "Self-evaluation log head (most recent)" "$SEL
 THRESHOLD_N=2
 
 # Resolve memory directory using the same lookup path as self-evaluation_log.md.
+# The directory is probed directly when that file is absent: other readers of
+# MEMORY_DIR (feedback/project detectors, self-evolution observation surface)
+# must not be silenced by the absence of an unrelated file.
 MEMORY_DIR=""
 if [ -n "$SELFEVAL_FOUND" ]; then
   MEMORY_DIR=$(dirname "$SELFEVAL_FOUND")
+else
+  for memcandidate in \
+    "$HOME/.claude/projects/$CCD_SLUG/memory" \
+    "$PROJECT_ROOT/memory"; do
+    if [ -d "$memcandidate" ]; then
+      MEMORY_DIR="$memcandidate"
+      break
+    fi
+  done
+  # Glob fallback mirrors the self-eval log fallback: most recently modified
+  # memory dir under any project slug.
+  if [ -z "$MEMORY_DIR" ]; then
+    MEMORY_DIR=$(ls -1td "$HOME"/.claude/projects/*/memory 2>/dev/null | head -n 1)
+  fi
 fi
 
 PROMOTION_BODY=""

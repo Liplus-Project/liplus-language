@@ -264,8 +264,17 @@ register_section "self_eval_head" "Self-evaluation log head (most recent)" "$SEL
 
 # promotion candidates
 THRESHOLD_N=2
+# Probe the directory directly when self-evaluation_log.md is absent: the other
+# MEMORY_DIR readers (feedback/project detectors, self-evolution observation
+# surface) must not be silenced by the absence of an unrelated file.
 MEMORY_DIR=""
-[ -n "$SELFEVAL_FOUND" ] && MEMORY_DIR=$(dirname "$SELFEVAL_FOUND")
+if [ -n "$SELFEVAL_FOUND" ]; then
+  MEMORY_DIR=$(dirname "$SELFEVAL_FOUND")
+else
+  for memcandidate in "$PROJECT_ROOT/memory" "$LIPLUS_DIR/memory"; do
+    [ -d "$memcandidate" ] && { MEMORY_DIR="$memcandidate"; break; }
+  done
+fi
 PROMOTION_BODY=""
 
 if [ -n "$SELFEVAL_FOUND" ] && [ -f "$SELFEVAL_FOUND" ]; then

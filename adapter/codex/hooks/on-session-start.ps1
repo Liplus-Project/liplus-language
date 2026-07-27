@@ -304,8 +304,17 @@ Register-Section 'self_eval_head' 'Self-evaluation log head (most recent)' $self
 
 # promotion candidates (memory -> Li+ source)
 $thresholdN = 2
+# Probe the directory directly when self-evaluation_log.md is absent: the other
+# $memoryDir readers (feedback/project detectors, self-evolution observation
+# surface) must not be silenced by the absence of an unrelated file.
 $memoryDir = ''
-if ($selfEvalFound) { $memoryDir = Split-Path -Parent $selfEvalFound }
+if ($selfEvalFound) {
+  $memoryDir = Split-Path -Parent $selfEvalFound
+} else {
+  foreach ($memCand in @((Join-Path $projectRoot 'memory'), (Join-Path $liplusDir 'memory'))) {
+    if (Test-Path -LiteralPath $memCand -PathType Container) { $memoryDir = $memCand; break }
+  }
+}
 $promotionBody = ''
 
 # Detector 1: repeated (root_cause, first-tag) pairs in self-evaluation_log.md.
@@ -404,24 +413,30 @@ if ($observationFile) {
   $today = (Get-Date).ToString('yyyy-MM-dd')
   $entries = @()
   $cur = $null
+  # -cmatch / -cne (not -match / -ne): PowerShell comparison is case-insensitive
+  # by default, while the awk ports in the two on-session-start.sh hooks are
+  # case-sensitive. Without the c-prefix, `PR:` / `Verdict_State:` / `Pending`
+  # would be accepted here and rejected there — same input, different output.
   foreach ($l in (Get-Content -LiteralPath $observationFile -ErrorAction SilentlyContinue)) {
-    if ($l -match '^##\s+observation:\s*(.*)$') {
+    if ($l -cmatch '^##\s+observation:\s*(.*)$') {
       if ($cur) { $entries += $cur }
       $cur = @{ name = $matches[1].Trim(); pr = ''; expires = ''; next = ''; state = '' }
       continue
     }
-    if ($l -match '^##\s') { if ($cur) { $entries += $cur; $cur = $null }; continue }
+    if ($l -cmatch '^##\s') { if ($cur) { $entries += $cur; $cur = $null }; continue }
     if (-not $cur) { continue }
-    if ($l -match '^\s*pr:\s*(.*)$')            { $cur.pr      = $matches[1].Trim(); continue }
-    if ($l -match '^\s*expires:\s*(.*)$')       { $cur.expires = $matches[1].Trim(); continue }
-    if ($l -match '^\s*next_check:\s*(.*)$')    { $cur.next    = $matches[1].Trim(); continue }
-    if ($l -match '^\s*verdict_state:\s*(.*)$') { $cur.state   = $matches[1].Trim(); continue }
+    if ($l -cmatch '^\s*pr:\s*(.*)$')            { $cur.pr      = $matches[1].Trim(); continue }
+    if ($l -cmatch '^\s*expires:\s*(.*)$')       { $cur.expires = $matches[1].Trim(); continue }
+    if ($l -cmatch '^\s*next_check:\s*(.*)$')    { $cur.next    = $matches[1].Trim(); continue }
+    if ($l -cmatch '^\s*verdict_state:\s*(.*)$') { $cur.state   = $matches[1].Trim(); continue }
   }
   if ($cur) { $entries += $cur }
 
   $observationList = ''
   foreach ($e in $entries) {
-    if ($e.state -ne 'pending') { continue }
+    # Empty descriptor = malformed header; the awk ports drop it in flush().
+    if (-not $e.name) { continue }
+    if ($e.state -cne 'pending') { continue }
     $label = ''
     if ($e.expires -and ([string]::CompareOrdinal($e.expires, $today) -lt 0)) {
       $label = "OVERDUE (expires $($e.expires), human judgment needed)"

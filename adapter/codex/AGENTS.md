@@ -204,7 +204,7 @@ Evolution_Initiator_Autonomy:
   No human go-sign is required to start the loop.
 
   Two-stage brake (always-on / L1-only):
-  - brake 1 = `skills/evolution-parallel-agent-eval` mandatory before commit/merge for every self-evolution PR.
+  - brake 1 = `skills/evolution-parallel-agent-eval` mandatory for every self-evolution PR. Both brakes run at the position fixed by `rules/evolution/initiator-autonomy.md` Two-stage brake.
   - brake 2 = L1 root-criteria evaluator (dedicated-prompt Codex agent, source: `adapter/codex/agents/l1-gate-eval.toml`; skills disabled, read-only sandbox, L1 diff + stated reason passed inline) required on top of brake 1 when the PR touches L1 Model Layer source. Evaluator PASS substitutes for human approval at brake 2; DEVIATION = merge blocked. `skills/evolution-l1-update-gating` observation threshold continues to apply on its own axis. Human = final judge stands unchanged on a separate axis (`rules/model/role-separation.md`).
 
   Human gate retained for:

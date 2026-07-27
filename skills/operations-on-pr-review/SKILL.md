@@ -17,10 +17,22 @@ Review basis:
     local-only success does not close review
 
 Self-review procedure (all modes):
-  Actor = the agent holding the merge decision per `skills/task-subagent-delegation/SKILL.md` Rules: parent in `auto` / `semi_auto`, subagent in `trigger`. A delegated subagent under `auto` / `semi_auto` neither runs nor posts the self-review; it stops at PR open + CI green and reports.
+  Actor = the agent holding the merge decision per `skills/task-subagent-delegation/SKILL.md` Rules: parent in `auto` / `semi_auto`, subagent in `trigger`.
   That agent reviews the PR diff against issue requirements (see `skills/task-pr-review-judgment/SKILL.md`).
   self-review pass -> post formal review record (below) -> proceed to mode-specific human gate.
   self-review fail -> fix and recommit (restart [CI Loop]).
+
+Delegated-subagent stop condition (canonical, split by mode):
+  if execution_mode == auto or execution_mode == semi_auto:
+    Stop at `PR open + CI green`. The subagent neither runs nor posts the self-review; it reports there and exits.
+    The parent then runs brake 1 (and brake 2 when the PR touches L1 Model Layer source) at the position fixed by
+    `rules/evolution/initiator-autonomy.md` Two-stage brake, adjudicates the findings, self-reviews, and merges.
+  if execution_mode == trigger:
+    Stop at `PR open + auto-merge enabled + CI green + self-review posted + awaiting human review`.
+    Self-review precedes the human gate in every mode and the subagent is its actor in this mode, so it lands
+    before the stop point. Merge fires later via GitHub auto-merge after human approval; the subagent's session
+    ends before that.
+  Other surfaces point here. Do not restate the condition; the second copy is what drifts.
 
 Self-review formal record (all modes, mandatory):
   After internal self-review pass, AI MUST post the self-review outcome as a formal GitHub PR review:

@@ -168,6 +168,7 @@ wiki 内の閲覧は wiki sidebar の「判断構造」セクション、また�
 | [`liplus-selfevolution-lineage`](https://github.com/Liplus-Project/liplus-language/wiki/liplus-selfevolution-lineage) | Li+ 自己進化の系譜は薄い（permission のみ借用・独自実装・$100/mo）/ dialogue-distillation / RSI トレンドの Li+ 流 redefinition |
 | [`liplus-judgment-learning-telos`](https://github.com/Liplus-Project/liplus-language/wiki/liplus-judgment-learning-telos) | Li+ は GitHub を判断"学習"基盤として使う — telos = 普通判断の蓄積による de-属人化（上流判断の AI handover） |
 | [`sheepdog-engineering-publish-intent`](https://github.com/Liplus-Project/liplus-language/wiki/sheepdog-engineering-publish-intent) | Sheepdog Engineering の論文化意図（概念/ポジション論文）— existence proof は目撃可能時のみ、論文は普及に追従し牽引不可 |
+| [`implementation-always-delegated`](https://github.com/Liplus-Project/liplus-language/wiki/implementation-always-delegated) | 実装は常に subagent へ委譲し親は実装しない判断（#1582、2026-07-28）— 適用範囲は Li+ 全体（自己進化 PR / ユーザーリポジトリ問わず）、差分サイズによる例外なし、判断軸は規則の単純さ。受容した対価3点（親の文脈組み直し / 小変更でも委譲プロンプト費 / 委譲プロンプトが新しい汚染面）。著者と判定者の分離は決定理由ではなく結果 |
 
 ---
 

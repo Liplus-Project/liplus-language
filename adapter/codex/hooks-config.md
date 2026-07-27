@@ -200,9 +200,12 @@ is `.ps1` (Windows native, primary on the verified Codex Windows env) + `.sh`
 
 - `adapter/codex/hooks/on-session-start.{ps1,sh}` — **rules injection** (reads
   `rules/**/*.md` from the clone, the Codex substitute for `.claude/rules/`) +
-  update-status marker (`LI_PLUS_UPDATE_STATUS`) + diff-only Cold-start Synthesis
+  update-status marker (`LI_PLUS_UPDATE_STATUS`, startup only) + language contract
+  marker (`LI_PLUS_BASE_LANGUAGE` / `LI_PLUS_PROJECT_LANGUAGE`, every matcher) +
+  diff-only Cold-start Synthesis
   material. State at `{workspace_root}/.codex/state/last-cold-start-emit.json`.
-  On `resume` / `clear` / `compact`: rules re-injection + cold-start anchor only.
+  On `resume` / `clear` / `compact`: rules re-injection + language contract marker
+  + cold-start anchor only.
 - `adapter/codex/hooks/on-user-prompt.{ps1,sh}` — per-turn Trigger Check Gate
   re-arm + webhook reminder (Character_Instance lives in AGENTS.md, not re-notified
   per turn).

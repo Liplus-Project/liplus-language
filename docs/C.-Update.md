@@ -257,7 +257,7 @@ Codex ホストでは Phase 4 claude branch と同型に adapter / skills / hook
 - `{workspace_root}/.codex/hooks/*.{ps1,sh}` の tag 追跡再生成:
   - 既存ファイルの `# Source: ... (build-...)` 行のタグを確認。一致でスキップ、不一致 / タグなしで再コピー（バイト忠実 .ps1 + `{LI_PLUS_TAG}` 置換）
   - 再生成は hook 内容ハッシュを変えるため Codex の GUI trust を**無効化**する。完了報告で再 trust を案内する
-- `on-session-start` が Codex の rules 注入 + Cold-start Synthesis 素材 emitter。LI_PLUS_REPO clone の `rules/**/*.md` を読み literal を `additionalContext` で注入（Claude の `.claude/rules/` 常時フォルダの Codex 代替）+ update-status marker（LI_PLUS_UPDATE_STATUS）+ diff-only cold-start 素材。synthesis は hook ではなく Character_Instance を介して AI が行う
+- `on-session-start` が Codex の rules 注入 + Cold-start Synthesis 素材 emitter。LI_PLUS_REPO clone の `rules/**/*.md` を読み literal を `additionalContext` で注入（Claude の `.claude/rules/` 常時フォルダの Codex 代替）+ update-status marker（LI_PLUS_UPDATE_STATUS、startup matcher 限定）+ language contract marker（LI_PLUS_BASE_LANGUAGE / LI_PLUS_PROJECT_LANGUAGE、全 matcher）+ diff-only cold-start 素材。synthesis は hook ではなく Character_Instance を介して AI が行う
 - `.sh` ファイルに実行権限を付与（`.ps1` は `powershell -File` 経由で呼ばれるため実行ビット不要）
 
 **4x.4. cold-start state ディレクトリの準備（diff-only 出力の永続化）**

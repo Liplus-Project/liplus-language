@@ -153,6 +153,19 @@ if [ -d "$RULES_ROOT" ]; then
 fi
 
 # ===================================================================
+# Language contract values (every matcher)
+# ===================================================================
+# Issue #1575. Extracted here rather than inside the startup-only block below
+# because the values must be in context on every session entry point, the same
+# way the always-on rules above are re-injected on every matcher. The
+# startup-only axis 3 check reuses what this block resolved.
+BASE_LANG=""; PROJ_LANG=""
+if [ -f "$CONFIG_FILE" ]; then
+  BASE_LANG=$(sed -n 's/^[[:space:]]*LI_PLUS_BASE_LANGUAGE[[:space:]]*=[[:space:]]*\(.*\)$/\1/p' "$CONFIG_FILE" | head -n 1 | tr -d '\r' | sed 's/[[:space:]]*$//')
+  PROJ_LANG=$(sed -n 's/^[[:space:]]*LI_PLUS_PROJECT_LANGUAGE[[:space:]]*=[[:space:]]*\(.*\)$/\1/p' "$CONFIG_FILE" | head -n 1 | tr -d '\r' | sed 's/[[:space:]]*$//')
+fi
+
+# ===================================================================
 # Update sentinel-skip verification (startup only)
 # ===================================================================
 if [ "$MATCHER" = "startup" ]; then
@@ -187,12 +200,7 @@ if [ "$MATCHER" = "startup" ]; then
   fi
   [ -n "$LEGACY_HIT" ] && UPDATE_REASONS+=("legacy-schema-keys-present")
 
-  # axis 3: language contract resolved
-  BASE_LANG=""; PROJ_LANG=""
-  if [ -f "$CONFIG_FILE" ]; then
-    BASE_LANG=$(sed -n 's/^[[:space:]]*LI_PLUS_BASE_LANGUAGE[[:space:]]*=[[:space:]]*\(.*\)$/\1/p' "$CONFIG_FILE" | head -n 1 | tr -d '\r' | sed 's/[[:space:]]*$//')
-    PROJ_LANG=$(sed -n 's/^[[:space:]]*LI_PLUS_PROJECT_LANGUAGE[[:space:]]*=[[:space:]]*\(.*\)$/\1/p' "$CONFIG_FILE" | head -n 1 | tr -d '\r' | sed 's/[[:space:]]*$//')
-  fi
+  # axis 3: language contract resolved (values extracted above, every matcher)
   if [ -z "$BASE_LANG" ] || [ -z "$PROJ_LANG" ]; then
     UPDATE_REASONS+=("language-contract-unresolved(base=${BASE_LANG:-unset},project=${PROJ_LANG:-unset})")
   fi
@@ -213,6 +221,24 @@ if [ "$MATCHER" = "startup" ]; then
     emit ""
   fi
 fi
+
+# --- emit language contract values (every matcher) ---
+# Issue #1575: the contract text is always in context (adapter AGENTS.md) but
+# its values were not, because resolving them was written as "read
+# Li+config.md" and that file is not auto-loaded. Emitting the values the hook
+# already holds removes the read step without baking anything into a generated
+# file. Emitted on every path that reaches here, with an unresolved value
+# rendered as "unset", so inside a bootstrapped session the block's absence
+# never has to be distinguished from an unresolved value. The unresolved-source
+# guard exits well before this point and emits no language marker at all; the
+# adapter Workspace_Language_Contract routes that state to the same ask-human
+# branch as "unset".
+emit "━━━ Li+ language contract ━━━"
+emit "LI_PLUS_BASE_LANGUAGE=${BASE_LANG:-unset}"
+emit "LI_PLUS_PROJECT_LANGUAGE=${PROJ_LANG:-unset}"
+emit "Resolved from Li+config.md at session start. Definitions, scope and precedence: Workspace_Language_Contract (adapter AGENTS.md)."
+emit "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+emit ""
 
 # ===================================================================
 # Cold-start material gathering

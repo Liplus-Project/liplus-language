@@ -33,8 +33,6 @@ if execution_mode == trigger:
 Do not convey: step-by-step procedure, branch name, commit message, intent.
 Intent is already in issue body.
 
-Subagent label authority is partial: the state-machine lifecycle subset (`in-progress` / `done` / `waiting` / `blocked`) is editable by subagent. All other label axes (non-state lifecycle / type / maturity / marker) and close operations remain parent retain. The subagent-side application-moment mandate lives in `skills/task-subagent-state-labels/SKILL.md`.
-
 </rules>
 
 <responsibilities>

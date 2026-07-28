@@ -10,8 +10,6 @@ layer: L4-operations
 
 After release is published, sync docs/ to GitHub Wiki.
 
-Wiki sync is part of the release procedure, not a follow-up task. Wiki sync gates release flow completion.
-
 </post-release-wiki-sync>
 
 <ownership-boundary>

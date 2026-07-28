@@ -19,24 +19,6 @@ Mode-dependent confirm (trigger mode only): issue selection, issue execution sta
 
 </human-confirmation-required>
 
-<release-version-rule>
-
-# Release Version Rule
-
-Relocated to `rules/operations/release-version-rule.md` (always-on rules layer, single source, #1484). Judgment criteria (v0.x.x/v1.0.0 base, judgment axis, patch / minor / major definitions, Important note, proposal/confirmation authority split, application-moment trigger) live there. This skill does not restate them.
-
-</release-version-rule>
-
-<release-state-rule>
-
-# Release State Rule
-
-Relocated to `skills/operations-on-release-state/SKILL.md` (#1598). The prerelease / latest state axis, the Latest anchor requirement, the anchor flip procedure, bootstrap transient state, and bulk state normalization live there. This skill does not restate them.
-
-The one clause that binds at release-create time is carried by the canonical command below: `--latest=false` is passed explicitly.
-
-</release-state-rule>
-
 <canonical-release-creation-command-ai>
 
 # Canonical Release Creation Command (AI)
@@ -107,9 +89,7 @@ Version type proposal and confirmation follow `rules/operations/release-version-
 
 ## Post-release wiki sync
 
-Relocated to `skills/operations-on-wiki-sync/SKILL.md` (#1598). Ownership boundary, pre-sync verification assertions, the diff-targeted drift set, and the 8-step procedure live there.
-
-Wiki sync is part of the release procedure, not a follow-up task. The gate literal is canonical in `rules/operations/operations.md` Operations Rules (always-on); do not restate it here.
+Run `skills/operations-on-wiki-sync/SKILL.md`. The gate literal is canonical in `rules/operations/operations.md` Operations Rules (always-on); do not restate it here.
 
 </post-release-wiki-sync>
 

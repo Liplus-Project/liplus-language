@@ -15,6 +15,7 @@ Always confirm before:
 release create (version type and target tag) (after CD check passes)
 branch delete (when linked issue may close)
 force push
+Mode-dependent confirm (trigger mode only): issue selection, issue execution start.
 
 </human-confirmation-required>
 

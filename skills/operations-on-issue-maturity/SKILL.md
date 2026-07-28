@@ -1,6 +1,6 @@
 ---
 name: operations-on-issue-maturity
-description: Invoke when viewing an issue to judge memo/forming/ready maturity and trigger proactive premise verification.
+description: Invoke when an issue is being viewed and its memo or forming or ready maturity needs judging. Triggers proactive premise verification.
 layer: L4-operations
 ---
 

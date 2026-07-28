@@ -1,6 +1,6 @@
 ---
 name: operations-on-issue-format
-description: Invoke when creating or editing an issue; defines title/body language, canonical convergence fields (purpose/premise/constraints/target files), and rewrite-on-change rule.
+description: Invoke when an issue is about to be created / an issue body is about to be edited. Defines title and body language, the canonical convergence fields (purpose, premise, constraints, target files), and the rewrite-on-change rule.
 layer: L4-operations
 ---
 

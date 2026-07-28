@@ -1,6 +1,6 @@
 ---
 name: operations-on-docs-ownership
-description: Invoke when committing behavior or spec changes to ensure requirements spec and docs/ are updated in the same PR.
+description: Invoke when a behavior or spec change is about to be committed. Ensures the requirements spec and docs are updated in the same PR.
 layer: L4-operations
 ---
 

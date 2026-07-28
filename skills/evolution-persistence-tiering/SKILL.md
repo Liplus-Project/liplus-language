@@ -1,6 +1,6 @@
 ---
 name: evolution-persistence-tiering
-description: Invoke when deciding whether information belongs in workspace memory (session-local) or docs/ (repo-committed, RAG-indexed).
+description: Invoke when deciding whether information belongs in workspace memory (session-local) or in docs (repo-committed and RAG-indexed) / a memory write is about to happen and the pre-write persistence gate must run. Provides the tiering criteria and the escalation routing.
 layer: L2-evolution
 ---
 

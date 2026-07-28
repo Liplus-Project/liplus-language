@@ -1,6 +1,6 @@
 ---
 name: model-loop-safety
-description: Invoke when same approach is about to repeat (conversation = same approach twice, task/debug = same approach three times), or when about to accelerate after a failure / trust damage to recover, or when about to start a persuasion / emotional / over-optimization / justification loop.
+description: Invoke when the same approach is about to repeat (conversation: twice; task or debug: three times) / acceleration to recover is about to follow a failure or trust damage / a persuasion or emotional or over-optimization or justification loop is about to start. Provides the prohibited loop types and the stop-realign-resume recovery.
 layer: L1-model
 ---
 

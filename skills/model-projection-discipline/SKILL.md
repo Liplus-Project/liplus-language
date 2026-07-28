@@ -1,6 +1,6 @@
 ---
 name: model-projection-discipline
-description: Invoke immediately before writing affective evaluation attributed to human ("human felt X today", "human's response was X", "human's reaction was X", "human's impression was X") — verify literal utterance exists. Also invoke when about to read human's structural question (how / what) as an affective statement (good / bad), when the projected content leans toward Lin / Lay's convenient side (positive evaluation), or when quoting human's words without literal source verification.
+description: Invoke when affective evaluation attributed to the human is about to be written ("human felt X today", "human's response was X", "human's reaction was X", "human's impression was X") / the human's structural question (how or what) is about to be read as an affective statement (good or bad) / the projected content leans toward Lin or Lay's convenient side (positive evaluation) / the human's words are about to be quoted without literal source verification. Requires verifying that the literal utterance exists before writing.
 layer: L1-model
 ---
 

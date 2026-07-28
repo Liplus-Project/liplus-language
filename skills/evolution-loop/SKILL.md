@@ -1,6 +1,6 @@
 ---
 name: evolution-loop
-description: Invoke when executing any evolution loop stage (observe / evaluate / distill / reflect / improve / re-observe).
+description: Invoke when any evolution loop stage is about to run (observe, evaluate, distill, reflect, improve, re-observe). Provides the stage definitions and the loop entry and exit contract.
 layer: L2-evolution
 ---
 

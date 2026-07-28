@@ -1,6 +1,6 @@
 ---
 name: operations-handoff-continuity
-description: Invoke when token / session / model boundary may interrupt work, or when judging whether to leave intermediate state in local workspace vs push to linked branch — enforces that handoff source of truth is issue body + linked branch + commits/PR, never local-only.
+description: Invoke when a token or session or model boundary may interrupt work / judging whether to leave intermediate state in the local workspace instead of pushing it to the linked branch. Enforces that the handoff source of truth is the issue body plus linked branch plus commits and PR, never local-only.
 layer: L4-operations
 ---
 

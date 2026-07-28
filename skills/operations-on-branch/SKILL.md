@@ -1,6 +1,6 @@
 ---
 name: operations-on-branch
-description: Invoke when human intent to act now is detected, or when judging whether to work on protected shared branches (main) vs personal issue-linked branches; handles NOW/SOON/SOMEDAY timing tier judgment, label assignment, branch creation via gh issue develop, and repo-first execution surface (protected vs personal branch).
+description: Invoke when human intent to act now is detected / judging whether to work on a protected shared branch such as main instead of a personal issue-linked branch. Handles NOW, SOON and SOMEDAY timing tier judgment, label assignment, branch creation via gh issue develop, and the repo-first execution surface.
 layer: L4-operations
 ---
 

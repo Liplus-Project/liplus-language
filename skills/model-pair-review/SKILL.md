@@ -1,6 +1,6 @@
 ---
 name: model-pair-review
-description: Invoke when task_type == structural_change and review loop phases are needed.
+description: Invoke when task_type == structural_change and the review loop phases are needed. Provides the pair review execution model and its phase sequence.
 layer: L1-model
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: operations-notifications-api
-description: Invoke when calling GitHub notifications API directly (PATCH / PUT / DELETE / GET on /notifications threads) — reference for endpoint behavior, response codes, and required PAT scope.
+description: Invoke when the GitHub notifications API is about to be called directly (PATCH, PUT, DELETE or GET on notification threads). Reference for endpoint behavior, response codes, and the required PAT scope.
 layer: L4-operations
 ---
 

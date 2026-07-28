@@ -1,6 +1,6 @@
 ---
 name: operations-on-merge
-description: Invoke after self-review + mode gate pass; mergeable state check, squash merge, parent auto-close on merge.
+description: Invoke when self-review has passed and the mode gate has cleared. Provides the mergeable state check, squash merge, and parent auto-close on merge.
 layer: L4-operations
 ---
 

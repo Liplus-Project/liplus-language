@@ -1,6 +1,6 @@
 ---
 name: task-pr-review-judgment
-description: Invoke when judging a PR review result; mode-dependent (auto / semi_auto: self-review by the main agent, semi_auto adding a type-gated human check; trigger: external review APPROVED/CHANGES_REQUESTED handling).
+description: Invoke when a PR review result is about to be judged. Mode-dependent: auto and semi_auto use self-review by the main agent, semi_auto adding a type-gated human check; trigger handles external review APPROVED and CHANGES_REQUESTED.
 layer: L3-task
 ---
 

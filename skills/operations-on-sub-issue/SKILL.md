@@ -1,6 +1,6 @@
 ---
 name: operations-on-sub-issue
-description: Invoke when creating, classifying, or linking sub-issues; enforces single parent PR flow and sub-issue vs sibling classification.
+description: Invoke when a sub-issue is about to be created / a sub-issue needs classifying against a sibling issue / a sub-issue is about to be linked to its parent. Enforces the single parent PR flow and the sub-issue versus sibling classification.
 layer: L4-operations
 ---
 

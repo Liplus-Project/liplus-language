@@ -96,7 +96,7 @@ edge は前方リンク（本 entry から相手 entry へのリンク）とし�
 
 wiki 上のファイルは git history に残るので、削除しても reflog 経由で復元可能。
 
-タイトル（ファイル名）の変更も自由化されている。整理整頓の一環としてエントリ名を rename する場合は、`git mv old-slug.md new-slug.md` + 全 entry の cross-reference 追従 + `_Sidebar.md` の slug 更新 + 本 index 表の更新を 1 コミットで行う。broken cross-reference は `skills/operations-on-release/SKILL.md` の Cross-reference integrity assertion が次回 wiki sync で検出する。
+タイトル（ファイル名）の変更も自由化されている。整理整頓の一環としてエントリ名を rename する場合は、`git mv old-slug.md new-slug.md` + 全 entry の cross-reference 追従 + `_Sidebar.md` の slug 更新 + 本 index 表の更新を 1 コミットで行う。broken cross-reference は `skills/operations-on-wiki-sync/SKILL.md` の Cross-reference integrity assertion が次回 wiki sync で検出する。
 
 ---
 
@@ -170,11 +170,12 @@ wiki 内の閲覧は wiki sidebar の「判断構造」セクション、また�
 | [`sheepdog-engineering-publish-intent`](https://github.com/Liplus-Project/liplus-language/wiki/sheepdog-engineering-publish-intent) | Sheepdog Engineering の論文化意図（概念/ポジション論文）— existence proof は目撃可能時のみ、論文は普及に追従し牽引不可 |
 | [`implementation-always-delegated`](https://github.com/Liplus-Project/liplus-language/wiki/implementation-always-delegated) | 実装は常に subagent へ委譲し親は実装しない判断（#1582、2026-07-28）— 適用範囲は Li+ 全体（自己進化 PR / ユーザーリポジトリ問わず）、差分サイズによる例外なし、判断軸は規則の単純さ。受容した対価3点（親の文脈組み直し / 小変更でも委譲プロンプト費 / 委譲プロンプトが新しい汚染面）。著者と判定者の分離は決定理由ではなく結果 |
 | [`always-on-duplication-removal-direction`](https://github.com/Liplus-Project/liplus-language/wiki/always-on-duplication-removal-direction) | 常時ロード分に同一内容のコピーが2つあるとき、どちらを削るかの運用規則（#1564 / #1588、PR #1592、2026-07-28）— 境界（常時ロード ↔ 遅延ロード）を跨ぐかどうかで削る向きが決まる二分規則。合格条件はバイト数ではなくツール呼び出し跳躍の非増加。`liplus-context-rot-tension` への depends on edge を持つ |
+| [`skill-trigger-declaration-in-description`](https://github.com/Liplus-Project/liplus-language/wiki/skill-trigger-declaration-in-description) | skill の発火条件を `description` 内に置き、書き出しを固定形 `Invoke when <条件1> / <条件2>. <何を提供するか>.` に揃える判断（#1598、2026-07-28）— Claude Code 独自の `when_to_use` は Agent Skills オープン標準に存在せず Codex アダプタとの両対応が崩れるため却下、`metadata:` 構造化は二重管理のため保留。固定形により発火条件数が正規表現の当て推量なしに機械カウントできる。仕様は `docs/K.-Source-File-Format.md` |
 
 ---
 
 ## wiki sync との所有境界
 
-`skills/operations-on-release/SKILL.md` の Post-release wiki sync は、docs/ → wiki の方向で同期する。判断構造（wiki 専属の kebab-case `<topic>.md` ファイル群）と wiki special files（`_Sidebar.md` 等）は wiki 専属で docs/ に counterpart を持たないため、sync の selective wipe 対象から除外する（uppercase + numeric prefix + `Home.md` + `_Footer.md` のみが wipe + 上書き対象）。
+`skills/operations-on-wiki-sync/SKILL.md` の Post-release wiki sync は、docs/ → wiki の方向で同期する。判断構造（wiki 専属の kebab-case `<topic>.md` ファイル群）と wiki special files（`_Sidebar.md` 等）は wiki 専属で docs/ に counterpart を持たないため、sync の selective wipe 対象から除外する（uppercase + numeric prefix + `Home.md` + `_Footer.md` のみが wipe + 上書き対象）。
 
 `docs/Decision-Structure.md` は uppercase docs/-owned ファイルとして通常の sync flow に乗る（docs/ 側は cold-start hook の input、wiki 側は nav と運用仕様の表示）。selective wipe の `[A-Z]*.md` パターンが catch し、`cp docs/*.md {tmpdir}/` で再配置される。

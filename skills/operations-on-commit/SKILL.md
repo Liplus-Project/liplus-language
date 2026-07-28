@@ -1,6 +1,6 @@
 ---
 name: operations-on-commit
-description: Invoke when committing and pushing; defines git push primary and fallback procedures.
+description: Invoke when a commit is about to be made and pushed. Defines the git push primary and fallback procedures.
 layer: L4-operations
 ---
 

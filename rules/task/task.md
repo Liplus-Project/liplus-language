@@ -96,7 +96,7 @@ deferred    = not doing this time, revisit later
 State-machine subset = `in-progress` / `done` / `waiting` / `blocked`. subagent + parent both edit.
 Non-state lifecycle = `backlog` / `deferred`. parent retain.
 Close operation = parent retain.
-Detailed subagent application: see `skills/task-subagent-delegation/SKILL.md`.
+Detailed subagent application: see `skills/task-subagent-state-labels/SKILL.md`.
 
 Maturity:
 memo        = issue started as note. Partial sections allowed.

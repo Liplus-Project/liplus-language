@@ -1,6 +1,6 @@
 ---
 name: model-source-check
-description: Invoke before using any factual claim as judgment material (claims from human / AI / articles / tool output / prior self), when feeling "I won't be fooled" certainty (perfect-defense illusion), when about to assert "rule X was written to counter incident Y" causal claim, when a rule fails to fire and the response impulse is "add another rule" (check capability / visibility substrate first), or at the factual-claim / external-content-read routing the per-turn gate hook re-arms (per `rules/model/trigger-check-gate.md` Trigger firing).
+description: Invoke when a factual claim is about to be used as judgment material (claims from human, AI, articles, tool output, prior self) / an "I won't be fooled" certainty is being felt (perfect-defense illusion) / a causal claim of the shape "rule X was written to counter incident Y" is about to be asserted / a rule failed to fire and the response impulse is to add another rule (check the capability and visibility substrate first) / the per-turn gate hook re-arms the factual-claim or external-content-read routing (per `rules/model/trigger-check-gate.md` Trigger firing). Provides the two-pillar verify, the perfect-defense illusion, the capability-plus-visibility note, the causal-assertion guard, fixed-reference temporal separation, the external-framework projection inhibitor, and the project-metadata temporal-claim guard.
 layer: L1-model
 ---
 

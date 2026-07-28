@@ -1,6 +1,6 @@
 ---
 name: operations-on-pr-review
-description: Invoke after CI pass; AI self-review mandatory in every mode, formal review record via gh pr review --comment, mode-specific human gate.
+description: Invoke when CI has passed and the PR has reached its review surface / a delegated subagent has reached its stop condition and needs that mode literal. Makes AI self-review mandatory in every mode, records the formal review via gh pr review --comment, and defines the mode-specific human gate.
 layer: L4-operations
 ---
 

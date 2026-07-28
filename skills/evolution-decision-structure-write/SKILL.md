@@ -1,6 +1,6 @@
 ---
 name: evolution-decision-structure-write
-description: Invoke immediately after a judgment is settled (human go-sign, accepted-tradeoff close, spec-axis decision in dialogue) to write or update a Decision Structure Wiki entry as the writer-side counterpart to evolution-judgment-learning.
+description: Invoke when a judgment has just settled on a human go-sign / an accepted-tradeoff close has just happened / a spec-axis decision has just been fixed in dialogue. Writes or updates a Decision Structure Wiki entry, the writer-side counterpart to evolution-judgment-learning.
 layer: L2-evolution
 ---
 
@@ -106,7 +106,7 @@ Judgment records are a structure. Deletion or consolidation is not "erasing hist
 - Verify spec literally. Impression-based entries are prohibited (they become fuel for the downstream impression-critique loop).
 - Deletion conditions follow the maintenance section in `docs/Decision-Structure.md` (premise invalidation, target feature removal, requirements spec consolidation). Delete only when those conditions apply.
 - Entry language = `LI_PLUS_PROJECT_LANGUAGE` (resolved from the workspace's Li+config.md). Mixing is not allowed.
-- Broken cross-references on rename / deletion are detected by the Cross-reference integrity assertion at the next wiki sync (`skills/operations-on-release/SKILL.md`). Closure is by structure, not by manual attention.
+- Broken cross-references on rename / deletion are detected by the Cross-reference integrity assertion at the next wiki sync (`skills/operations-on-wiki-sync/SKILL.md`). Closure is by structure, not by manual attention.
 
 </maintenance-refactor-framing>
 

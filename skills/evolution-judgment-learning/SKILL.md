@@ -1,6 +1,6 @@
 ---
 name: evolution-judgment-learning
-description: Invoke before forming a new judgment to retrieve past judgment via RAG MCP (primary) or gh search (fallback).
+description: Invoke when a new judgment is about to be formed and past judgment on the same point may already exist. Retrieves past judgment via RAG MCP (primary) or gh search (fallback).
 layer: L2-evolution
 ---
 

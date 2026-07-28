@@ -62,6 +62,41 @@ Li+ source ファイル (`rules/*.md` / `skills/*/SKILL.md`) の構造的 wrap �
 | `# Characters` | `<characters>` |
 | `# Li+ Coding Rule` | `<li-coding-rule>` (`+` は slugify で削除) |
 
+## skill `description` の固定形
+
+`skills/*/SKILL.md` の frontmatter `description` は発火条件の宣言面である。アダプター側にトリガ表を持たない設計（`adapter/claude/CLAUDE.md`）のため、ここが Li+ の接続面そのものにあたる。書式を固定し、発火条件数を推測なしに機械カウントできる状態を保つ。
+
+### 形式
+
+```
+description: Invoke when <条件1> / <条件2> / <条件3>. <何を提供するか>.
+```
+
+### 規約
+
+- `description` は必ずリテラル `Invoke when ` で始まる
+- 発火条件どうしの区切りは必ず ` / `（半角スペース + スラッシュ + 半角スペース）
+- 条件列の終端は `. `（ピリオド + 半角スペース）。以降が「何を提供するか」の節
+- 条件が 1 つの skill も同じ形を使う（`Invoke when <条件1>. <何を提供するか>.`）
+- 条件文に ` / ` を含めない。含む必要がある場合は語を言い換える（`auto / semi_auto` → `auto or semi_auto`）
+- 条件文に `. `（ピリオド + 半角スペース）を含めない。`e.g. ` は `for example` に言い換える。含めると条件列がそこで切れ、以降の条件が数えられなくなる
+- 全体で 1024 字以内（Agent Skills オープン標準の `description` 上限）
+
+### 計数規則
+
+発火条件数 = 先頭文（`description` 先頭から最初の `. ` まで）を ` / ` で分割した要素数。
+
+この規則は正規表現によるキーワード推測（`when|whenever|before|after` 等）を置き換えるために置いた。キーワード推測は `Invoke for A / B / C` 形や「1 個の `when` が 3 項目を束ねる」形を取りこぼし、実際に存在しない分類を生む事故を起こしている（#1598 の背景、判断構造 entry [skill-trigger-declaration-in-description](https://github.com/Liplus-Project/liplus-language/wiki/skill-trigger-declaration-in-description)）。
+
+### 却下した代替
+
+- `metadata:` への構造化（案 B）: 標準準拠だが `description` との二重管理 + CI 整合チェックを要する。固定形の機械カウントが不足した場合の次手として保留
+- Claude Code 独自フィールド `when_to_use`（案 C）: Agent Skills オープン標準に存在せず、Codex アダプタとの両対応が崩れる。Codex 側の実機確認が取れるまで採用しない
+
+### 適用状況
+
+`skills/*/SKILL.md` 全件がこの形。例外は `skills/model-agentic-search/SKILL.md`（`layer: L1-model`、brake 2 対象のため #1599 で別 PR 実施）。
+
 ## scope と除外
 
 ### 適用対象

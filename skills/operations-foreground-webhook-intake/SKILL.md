@@ -1,6 +1,6 @@
 ---
 name: operations-foreground-webhook-intake
-description: Invoke at each user turn start; inspect pending webhook events via MCP or local helper, report foreground-relevant or notable items only.
+description: Invoke when a user turn starts. Inspects pending webhook events via MCP or the local helper and reports foreground-relevant or notable items only.
 layer: L4-operations
 ---
 

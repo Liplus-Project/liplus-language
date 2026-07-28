@@ -1,6 +1,6 @@
 ---
 name: model-trigger-check-gate-actions
-description: Invoke at the application moment of the 5-axis Trigger Check Gate — before non-trivial speech / action, immediately after reading external content, before composing speech about spec / rules / past judgment, when a "confident to say" feeling arises (gist-memory misreliance), before emitting a side "heads-up" / "for your info", immediately after multiple drift corrections (ingratiation-closing risk), about to write a version classification (patch / minor / major), about to characterize cost / weight / token-load of a Li+ component, or about to compose a subagent delegation prompt — provides the Trigger moments expanded list and the Retrieval tools table for one-tempo-slower verification.
+description: Invoke when non-trivial speech or action is about to be emitted / external content has just been read / speech about spec or rules or past judgment is about to be composed / a "confident to say" feeling arises (gist-memory misreliance) / a side heads-up or for-your-information remark is about to be emitted / multiple drift corrections have just happened (ingratiation-closing risk) / a version classification (patch, minor or major) is about to be written / the cost or weight or token-load of a Li+ component is about to be characterized / a subagent delegation prompt is about to be composed. Provides the Trigger moments expanded list and the Retrieval tools table for one-tempo-slower verification of the 5-axis Trigger Check Gate.
 layer: L1-model
 ---
 

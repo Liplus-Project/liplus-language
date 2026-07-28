@@ -73,11 +73,9 @@ L1 brake 2 override (orthogonal axis, supersedes per-PR exception):
   the brake 2 evaluator to return PASS before merge. semi_auto patch
   auto-merge does not bypass it.
   Which files count as L1 is specified in `rules/evolution/initiator-autonomy.md`
-  Scope — the `layer: L1-model` frontmatter test wins over directory location, so
-  an L1-tagged file outside `rules/model/` still counts. What counts as touching
-  one, mixed-PR handling, the evaluator's identity, and the
-  PASS-substitutes-human-approval semantic are in that file's Two-stage brake.
-  Do not restate them here; the second copy is what drifts.
+  Scope. What counts as touching one, mixed-PR handling, the evaluator's
+  identity, and the PASS-substitutes-human-approval semantic are in that file's
+  Two-stage brake. Do not restate them here; the second copy is what drifts.
 
 auto mode:
 Execution timing = AI decides.

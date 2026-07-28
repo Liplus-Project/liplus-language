@@ -187,7 +187,7 @@ Evolution_Initiator_Autonomy:
   Two-stage brake (always-on / L1-only):
   - brake 1 = `skills/evolution-parallel-agent-eval` mandatory for every self-evolution PR.
   - brake 2 = L1 root-criteria evaluator subagent (`adapter/claude/agents/l1-gate-eval.md`, skills disabled, L1 diff + stated reason passed inline) required on top of brake 1 when the PR touches L1 Model Layer source.
-  This block carries the Claude-side wiring only (the evaluator prompt file path above). Firing position, PASS / DEVIATION merge semantics, and the surrounding axes are canonical in `rules/evolution/initiator-autonomy.md` Two-stage brake; do not restate them here.
+  This block carries the Claude-side wiring only (the evaluator prompt file path above). Firing position, PASS / DEVIATION merge semantics, and the human = final judge axis are canonical in `rules/evolution/initiator-autonomy.md` Two-stage brake; the maintenance axes that keep applying alongside the brakes (`skills/evolution-l1-update-gating` observation threshold, execution-mode matrix, noise-floor gate) are in the same file's Existing maintenance rules still apply. Do not restate either section here.
 
   Human gate retained for:
   - release create / Latest flip / force push / merged-PR delete / tag delete (existing release-axis gates)

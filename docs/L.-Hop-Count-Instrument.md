@@ -26,7 +26,12 @@
 
 ### 再計測手順
 
-「シナリオ集合」の各行に記録された経路を辿り直し、(1) 記録済みポインタが消えていないか、(2) 起点と目的 literal の間に新しいツール呼び出し跳躍が挿入されていないか、の2点を確認する。経路が記録されているため、再計測は機械的作業であり判断を要さない。
+「シナリオ集合」の各行に記録された経路を辿り直し、(1) 記録済みポインタが消えていないか、(2) 起点と目的 literal の間に新しいツール呼び出し跳躍が挿入されていないか、の2点を確認する。
+
+**記録された経路は判断の幅を狭めるが、判断を無くしはしない。** 残る判断は次の2点に集中する。再計測者ごとにぶれるのはここなので、数値だけでなく「なぜ数えた／数えなかったか」を経路行に書き残す（各シナリオの `非計数` 行がその置き場）。
+
+- **どのポインタが load-bearing か**（計数規則 :14）。目的 literal への到達に本当に必要な参照と、隣接して書かれているだけの連想的参照の線引きは自明ではない。実測: 本 instrument をブレーキ1（`skills/evolution-parallel-agent-eval`、N=3）に掛けたところ、3体の評価者がいずれもこの線引きを独自に判断し、うち2体が記録と異なる分割に達した。S2 / S3 の過大計上はこれで発覚した。
+- **どこまでが当該シナリオの鎖か**（シナリオ間の境界）。別シナリオが既に計測している区間は、二重計上を避けるため数えない。境界の位置そのものが判断であり、記録から自動的には出てこない。
 
 ### シナリオ差し替え規則
 
@@ -41,8 +46,8 @@
 | ID | 適用瞬間 | 起点 `file:line` | ツール | 文脈内 |
 |---|---|---|---:|---:|
 | S1 | self-evolution PR が CI green → 次に何を走らせるか | `rules/evolution/initiator-autonomy.md:40` | 3 | 0 |
-| S2 | subagent 完了 → 親の次の行動 | `adapter/claude/CLAUDE.md:75` | 2 | 2 |
-| S3 | webhook イベント到着 → 処理と `mark_processed` | `adapter/claude/CLAUDE.md:200` | 2 | 1 |
+| S2 | subagent 完了 → 親の次の行動 | `adapter/claude/CLAUDE.md:75` | 1 | 0 |
+| S3 | webhook イベント到着 → 処理と `mark_processed` | `adapter/claude/CLAUDE.md:200` | 2 | 0 |
 | S4 | sub-issue が親の本文範囲を超える | `rules/task/task.md:38` | 1 | 0 |
 | S5 | L1 evaluator の判定基準そのもの | `rules/evolution/initiator-autonomy.md:43` | 1 | 0 |
 | S6 | patch / minor / major の分類 | `rules/operations/release-version-rule.md:25` | 0 | 0 |
@@ -52,9 +57,11 @@
 | S10 | drift / pattern を観測 → 昇格の閾値判定 | `rules/evolution/promotion-judgment.md:26` | 0 | 0 |
 | S11 | merge 完了直後 → L1 変更の短窓観察 | `rules/operations/operations.md:120` | 1 | 1 |
 | S12 | session 開始 → cold-start synthesis | `rules/evolution/cold-start-synthesis.md:11` | 2 | 1 |
-| | **合計** | | **15** | **7** |
+| | **合計** | | **14** | **4** |
 
-S1 / S2 / S3 / S4 / S5 / S6 / S7 のツール跳躍は #1564 実測2 の表と一致する（同一タグで再検証済）。S8-S12 は同じタグ・同じ計数規則で本 instrument 固定時に測った。
+S1 / S3 / S4 / S5 / S6 / S7 のツール跳躍は #1564 実測2 の表と一致する（同一タグで再検証済）。S8-S12 は同じタグ・同じ計数規則で本 instrument 固定時に測った。
+
+S2 のみ #1564 実測2 の記録（ツール2 / 文脈内2）と一致しない。同記録は計数規則（:14）に反する連想的参照を含む過大計上であり、本 instrument 側をツール1 / 文脈内0 に訂正した（PR #1592 のブレーキ1 で検出）。訂正は計数の誤りの是正であって、ソース側の変化ではない — 同じ数値が baseline tag でも現在でも成り立つ。S3 も同じ理由で文脈内跳躍を1つ落としたが、ツール跳躍は2のまま変わらない。
 
 ### 各シナリオの経路
 
@@ -66,15 +73,14 @@ S1 / S2 / S3 / S4 / S5 / S6 / S7 のツール跳躍は #1564 実測2 の表と�
 - → `skills/evolution-parallel-agent-eval/SKILL.md` Procedure `[tool]`
 
 **S2** — anchor: `Main agent after subagent completion:`
-- → `rules/evolution/initiator-autonomy.md` Two-stage brake `[ctx]` → `skills/evolution-parallel-agent-eval/SKILL.md` `[tool]`
-- → `skills/task-subagent-delegation/SKILL.md`（CHANGES_REQUESTED の再委譲、`adapter/claude/CLAUDE.md:126` 経由）`[tool]`
-- → `rules/operations/release-version-rule.md`（release の version type 確認）`[ctx]`
-- 境界: 自己レビュー〜merge へ続く鎖は S1 が計測するため、S2 では数えない（二重計上の回避）。
+- → `skills/task-subagent-delegation/SKILL.md`（CHANGES_REQUESTED の再委譲。同一ファイル内 `adapter/claude/CLAUDE.md:126` の明示ポインタ経由であり、節移動は跳躍に数えない）`[tool]`
+- 非計数1 — 自己レビュー〜merge へ続く鎖（`rules/evolution/initiator-autonomy.md` Two-stage brake → `skills/evolution-parallel-agent-eval/SKILL.md`）: S1 が計測するため二重計上を避ける。加えてアンカー行（`:75-78`）にこの鎖を名指す明示ポインタがない — `initiator-autonomy.md` への参照は `adapter/claude/CLAUDE.md:190` / `:194` / `:196`、すなわち `Evolution_Initiator_Autonomy` ブロック内にのみ存在する。境界規則と計数規則（:14）の双方から除外。
+- 非計数2 — `rules/operations/release-version-rule.md`（release の version type 確認）: `grep -c release-version-rule adapter/claude/CLAUDE.md` = 0。アンカーからの明示ポインタが存在しない連想的参照であり、計数規則（:14）により除外。
 
 **S3** — anchor: `Webhook intake policy and procedures:`
 - → `skills/operations-foreground-webhook-intake/SKILL.md` `[tool]`
 - → `adapter/claude/hooks-settings.md` `[tool]`
-- → `rules/operations/operations.md:89`（`mark_processed` の義務）`[ctx]`
+- 非計数 — `rules/operations/operations.md`（`mark_processed` の義務）: 鎖のどこにも明示ポインタがない。`grep -n "operations\.md"` は `skills/operations-foreground-webhook-intake/SKILL.md` / `adapter/claude/hooks-settings.md` とも0件、アンカー（`:200`）が名指すのは skill のみ。計数規則（:14）により除外。なお `mark_processed` の実務リテラル自体は skill 本体（`:68`）に到達済みで、この参照は追加跳躍を要さない。
 
 **S4** — anchor: `Sub-issue work exceeding parent body literal ... requires dialogue confirm`
 - → `skills/operations-on-sub-issue/SKILL.md` scope-exceed dialogue confirm `[tool]`

@@ -25,7 +25,7 @@ Load timing = always-on (observation occurs across the entire session)
 
 A drift / pattern observation occurring at any moment of dialogue / task / spec interaction.
 Concretely:
-- repeated same-kind misses in self-evaluation entries
+- repeated same-kind misses in self-evaluation entries (`skills/evolution-self-eval/SKILL.md` root cause categories / observational axes routes here; that surface files nothing on its own)
 - duplicate detection against existing entries when appending to feedback memory
 - the felt sense during task execution that "I have seen this same kind of judgment miss / spec gap before"
 - the moment the application-moment gate in `rules/model/trigger-check-gate.md` detects drift

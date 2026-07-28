@@ -53,13 +53,14 @@ Li+ プログラムの設計思想。三軸（対話駆動 / 構造駆動 / 現�
 
 ---
 
-## ソース形式（K）
+## ソース形式・計測（K–L）
 
-Li+ source ファイル (`rules/*.md` / `skills/*/SKILL.md`) の構造仕様。
+Li+ source ファイル (`rules/*.md` / `skills/*/SKILL.md`) の構造仕様と、常時ロード分に対する計測面。
 
 | ページ | 内容 |
 |--------|------|
 | [K. Source-File-Format](K.-Source-File-Format) | semantic tag wrap 形式 (Option Y, H1+H2, lowercase kebab-case) の規約と運用 |
+| [L. Hop-Count-Instrument](L.-Hop-Count-Instrument) | 跳躍数計測の固定面（12シナリオ集合・計数規則・baseline・経路ゼロ検査） |
 
 ---
 

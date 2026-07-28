@@ -64,7 +64,8 @@ English-only commit body is prohibited.
 PR title = ASCII English only, single line.
 PR body = Japanese.
 Docs update must be in same PR as implementation. Split docs PR is prohibited.
-docs/ is source of truth. Wiki is mirror, not source.
+docs/ is source of truth. Wiki is mirror, not source. `docs/` in this line = the repository's numbered requirements specs and lettered reference docs. It is not the `docs-tier` of `skills/evolution-persistence-tiering`, which is a persistence rank that spans the wiki as well; same word, different axis.
+Exception = Decision Structure entries. Their body is authored directly in the wiki under `Decision_Structure_Write_Autonomy` and exists nowhere else, so for those entries the wiki is source; `docs/Decision-Structure.md` holds the operating index only. Spec = `docs/Decision-Structure.md`; do not restate it here.
 Wiki sync is mandatory after every release. Skipping wiki sync is prohibited. Wiki sync gates release flow completion.
 Requirements spec is not post-implementation follow-up.
 Before implementation starts = create or update corresponding requirements spec first.

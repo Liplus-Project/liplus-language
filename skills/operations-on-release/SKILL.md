@@ -1,6 +1,6 @@
 ---
 name: operations-on-release
-description: Invoke when a release is about to be created / a branch is about to be deleted / a force push is about to run / a release completion report is about to be written. Provides the human confirmation list, the pre-create CD check, the canonical gh release create command, version base and tag or title conventions, and release completion report discipline. Release state flags live in `skills/operations-on-release-state/SKILL.md`; the mandatory post-release mirror lives in `skills/operations-on-wiki-sync/SKILL.md`; version type criteria live in `rules/operations/release-version-rule.md` (always-on).
+description: Invoke when a release is about to be created / a branch is about to be deleted / a force push is about to run / a release completion report is about to be written. Provides the human confirmation list, the pre-create CD check, the canonical gh release create command, version base and tag or title conventions, and release completion report discipline. Release state flags live in `skills/operations-on-release-state/SKILL.md`; the mandatory post-release mirror lives in `skills/operations-on-wiki-sync/SKILL.md`; version type criteria (patch, minor, major) live in `rules/operations/release-version-rule.md` (always-on).
 layer: L4-operations
 ---
 
@@ -109,7 +109,7 @@ Version type proposal and confirmation follow `rules/operations/release-version-
 
 Relocated to `skills/operations-on-wiki-sync/SKILL.md` (#1598). Ownership boundary, pre-sync verification assertions, the diff-targeted drift set, and the 8-step procedure live there.
 
-Wiki sync is part of the release procedure, not a follow-up task. Wiki sync gates release flow completion: the release flow is not complete until that skill's procedure has run.
+Wiki sync is part of the release procedure, not a follow-up task. The gate literal is canonical in `rules/operations/operations.md` Operations Rules (always-on); do not restate it here.
 
 </post-release-wiki-sync>
 

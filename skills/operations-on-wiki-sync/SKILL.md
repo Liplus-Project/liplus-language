@@ -35,10 +35,10 @@ The three assertions below run after step 4 and before the step 5 / step 6 commi
 
   Excluded from the expected set: `_Sidebar.md`, `_Footer.md` — navigation infrastructure, not target entries. Strip code notation from `{tmpdir}/_Sidebar.md` with the algorithm below before extracting `](<slug>)` link targets. STOP if `expected - referenced` is non-empty.
 - **Cross-reference integrity: verify every wiki-internal markdown link target in `{tmpdir}/*.md` resolves to an existing file.** Build the resolution set:
-  - existing slugs = `Home` + every `{tmpdir}/[A-Z]*.md` + every `{tmpdir}/[0-9]*.md` + every `{tmpdir}/[a-z]*.md` (all without the `.md` extension)
-  - extracted slugs = every `](<x>)` occurrence in the code-stripped body where `<x>` does NOT contain `://`, does NOT start with `#`, and does NOT contain `/`. Strip any `#section` fragment before resolution.
+  - existing targets = for every existing `{tmpdir}/[A-Z]*.md`, `{tmpdir}/[0-9]*.md`, and `{tmpdir}/[a-z]*.md` file, both its extensionless slug and its exact filename including `.md` (`Home` and `Home.md` included). A `.md` target enters the set only when this enumeration found the corresponding Markdown file.
+  - extracted targets = every `](<x>)` occurrence in the code-stripped body where `<x>` does NOT contain `://`, does NOT start with `#`, and does NOT contain `/`. Strip any `#section` fragment before resolution. Do not strip `.md`; compare the extracted notation as written against the resolution set.
 
-  STOP if any extracted slug is absent from the resolution set.
+  STOP if any extracted target is absent from the resolution set. Both notations are live because these bodies mirror into repository `docs/` as well, where only the `.md` form resolves (#1608).
 
 **Code-notation stripping (both assertions).** Link-like notation inside code, or inside an HTML comment, documents the notation or is invisible markup — it is not a real link. Skipping this step is not a rare-edge risk but a guaranteed false-positive STOP on every release, because the assertion specs themselves (this file, `docs/4.-Operations.md`, and the wiki entry `wiki-sync-sidebar-integrity-check`) describe the pattern using that very notation. Remove notation in this order, each pass covering the whole body before the next pass starts: HTML comments, then HTML elements, then fenced code blocks, then indented code blocks, then inline code spans last.
 

@@ -72,7 +72,7 @@ This is a substrate-absence fallback, not an exception to the always-delegate ru
 
 This skill covers the decision to delegate and the split of what each side executes. Three adjacent moments have their own skills; do not restate them here.
 
-- Composing the delegation prompt (mode-specific injection, ASCII-only example text, recursive-spawn prohibition, memory-does-not-transfer) → `skills/task-subagent-prompt/SKILL.md`.
+- Composing the delegation prompt (mode-specific injection, field-scoped title/body language hygiene, recursive-spawn prohibition, memory-does-not-transfer) → `skills/task-subagent-prompt/SKILL.md`.
 - Setting the Agent tool spawn parameters (model policy, parallel-width cap) → `skills/task-subagent-spawn/SKILL.md`.
 - Subagent-side state-machine label transitions at role boundaries → `skills/task-subagent-state-labels/SKILL.md`.
 

@@ -1,6 +1,6 @@
 ---
 name: task-subagent-prompt
-description: Invoke when a subagent delegation prompt is being composed / example artifact text such as a suggested PR title or commit body is about to be written into a delegation prompt / a delegation runs in trigger execution mode and merge-gate context must be injected / subagent behavior depends on something that exists only in parent-side memory / a bounded read-only investigation prompt is being written and recursive subagent spawn must be prohibited. Provides the mode-specific injection items for trigger mode, ASCII-only hygiene for quotable example text, the recursive-spawn prohibition literal, and the memory-does-not-transfer rule with its injection or promotion cure.
+description: Invoke when a subagent delegation prompt is being composed / example artifact text such as a suggested PR title or commit body is about to be written into a delegation prompt / a delegation runs in trigger execution mode and merge-gate context must be injected / subagent behavior depends on something that exists only in parent-side memory / a bounded read-only investigation prompt is being written and recursive subagent spawn must be prohibited. Provides the mode-specific injection items for trigger mode, field-scoped language hygiene for quotable example text, the recursive-spawn prohibition literal, and the memory-does-not-transfer rule with its injection or promotion cure.
 layer: L3-task
 ---
 
@@ -18,24 +18,28 @@ These three are out of scope for the broader "do not convey procedure" rule (`sk
 
 </mode-specific-delegation-injection>
 
-<delegation-prompt-hygiene-ascii-only-example-text>
+<delegation-prompt-hygiene-field-scoped-language>
 
-# Delegation prompt hygiene (ASCII-only example text)
+# Delegation prompt hygiene (field-scoped artifact language)
 
-Any example text the subagent may quote into an artifact (suggested PR title / commit title / commit body / wiki entry / issue body) MUST be ASCII-only. Subagents mirror the prompt's literal style when emitting artifacts; non-ASCII typographic characters (em-dash `—` / en-dash `–` / box-drawing `─` / smart quotes `' " ' "` / JA characters in example PR titles) leak through and persist in merged artifacts because governance CI checks PR titles only — commit bodies, wiki entry bodies, and issue bodies are not byte-checked.
+Example artifact text MUST follow the destination field's language contract; being example text does not create an independent ASCII-only category. Issue / PR / commit title examples MUST be ASCII-only. Body examples (issue / PR / commit / wiki entry) MUST follow `LI_PLUS_PROJECT_LANGUAGE` and MUST NOT be rewritten under an ASCII-only rule. In liplus-language, issue / PR / commit body examples therefore contain Japanese where governance requires it.
+
+Subagents mirror the prompt's literal style when emitting artifacts. Non-ASCII typographic characters (em-dash `—` / en-dash `–` / box-drawing `─` / smart quotes `' " ' "` / JA characters in example titles) can leak from a prompt into an ASCII-governed title field. Body fields are validated as well-formed UTF-8 that renders without mojibake, not as ASCII byte sequences.
 
 How to apply:
-- Substitute ASCII before sending the prompt: em-dash -> `-` / `--`, en-dash -> `-`, box-drawing horizontal -> `-` / `=`, smart quotes -> ASCII `'` `"`, JA-in-example-PR-title -> romanize or omit.
-- Add an explicit instruction to the prompt: "Use ASCII characters only in PR titles, commit titles/bodies, and entry body text. Apply `od -c` byte-level verification to BOTH titles AND body content text."
-- The prompt's surrounding prose may use non-ASCII (em-dash for English reading efficiency is fine); the *example text fields* the subagent might copy must be ASCII.
+- For issue / PR / commit title examples, substitute ASCII before sending the prompt: em-dash -> `-` / `--`, en-dash -> `-`, box-drawing horizontal -> `-` / `=`, smart quotes -> ASCII `'` `"`, JA-in-example-title -> romanize or omit.
+- For body examples, use `LI_PLUS_PROJECT_LANGUAGE`; validate well-formed UTF-8 and inspect rendered text for mojibake. Do not use an ASCII-only check as body validation.
+- Add an explicit instruction to the prompt: "Use ASCII characters only in issue, PR, and commit titles. Bodies must follow LI_PLUS_PROJECT_LANGUAGE; do not apply an ASCII-only rule to issue, PR, commit, wiki, or entry bodies. Apply `od -c` byte-level verification to title fields, and verify body text is well-formed UTF-8 and renders without mojibake."
+- The prompt's surrounding prose may use non-ASCII (em-dash for English reading efficiency is fine); every example field the subagent might copy follows its own destination-field contract.
 
 Detection signs:
-- About to write `—` or `──` in an example title / body field inside the delegation prompt.
+- About to write `—` or `──` in an ASCII-governed example title inside the delegation prompt.
 - Example PR title field contains JA characters or smart quotes.
-- Re-reading own prompt: surrounding prose mixes typographic chars freely while example fields inherit the same mix.
-- Subagent reports "pre-existing em-dash found in previously-merged artifact" — the propagation already happened.
+- Example body is forced to ASCII or omits the project language required for that body.
+- `od -c` or another byte-level ASCII check is applied to body content as an acceptance criterion instead of UTF-8 / mojibake validation.
+- One instruction groups title and body fields under the same ASCII-only clause.
 
-</delegation-prompt-hygiene-ascii-only-example-text>
+</delegation-prompt-hygiene-field-scoped-language>
 
 <bounded-delegation-prohibit-recursive-subagent-spawn>
 

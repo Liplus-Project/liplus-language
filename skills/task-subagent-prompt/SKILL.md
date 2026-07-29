@@ -1,6 +1,6 @@
 ---
 name: task-subagent-prompt
-description: Invoke when a subagent delegation prompt is being composed / example artifact text such as a suggested PR title or commit body is about to be written into a delegation prompt / a delegation runs in trigger execution mode and merge-gate context must be injected / subagent behavior depends on something that exists only in parent-side memory / a bounded read-only investigation prompt is being written and recursive subagent spawn must be prohibited. Provides the mode-specific injection items for trigger mode, ASCII-only hygiene for quotable example text, the recursive-spawn prohibition literal, and the memory-does-not-transfer rule with its injection or promotion cure.
+description: Invoke when a subagent delegation prompt is being composed / example artifact text such as a suggested PR title or commit body is about to be written into a delegation prompt / a delegation runs in trigger execution mode and merge-gate context must be injected / subagent behavior depends on something that exists only in parent-side memory / a bounded read-only investigation prompt is being written and recursive subagent spawn must be prohibited. Provides the mode-specific injection items for trigger mode, field-scoped language hygiene for quotable example text, the recursive-spawn prohibition literal, and the memory-does-not-transfer rule with its injection or promotion cure.
 layer: L3-task
 ---
 
@@ -10,7 +10,7 @@ layer: L3-task
 
 The minimal "issue URL only" pattern works for `auto` and `semi_auto` because the subagent's auto-loaded operations rules already cover the merge gate. `trigger` mode is the exception: the merge gate involves human approval timing, and three pieces of context need explicit injection because they are parent-side decisions, not subagent-discovered facts:
 
-- (a) commit body language: project-language constraint (e.g. Japanese for liplus-language). Auto-loaded operations.md states the rule, but missed-application is the recurring failure mode; explicit reminder in the delegation prompt prevents drift.
+- (a) commit body language: the destination artifact's governing language contract and repository governance (liplus-language requires Japanese). Auto-loaded operations.md states the repository rule, but missed-application is the recurring failure mode; explicit reminder in the delegation prompt prevents drift.
 - (b) auto-merge enablement: include `gh pr merge {pr} --auto --squash` as a step the subagent runs after PR creation. Without this, the merge sits idle after human approval because trigger-mode PRs do not auto-merge by default.
 - (c) stop condition: the `trigger` form is longer than the `auto` / `semi_auto` one and ends short of merge complete. Read it at `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition, which splits by mode; inject that mode's literal into the prompt. Do not restate it here.
 
@@ -18,24 +18,31 @@ These three are out of scope for the broader "do not convey procedure" rule (`sk
 
 </mode-specific-delegation-injection>
 
-<delegation-prompt-hygiene-ascii-only-example-text>
+<delegation-prompt-hygiene-field-scoped-language>
 
-# Delegation prompt hygiene (ASCII-only example text)
+# Delegation prompt hygiene (field-scoped artifact language)
 
-Any example text the subagent may quote into an artifact (suggested PR title / commit title / commit body / wiki entry / issue body) MUST be ASCII-only. Subagents mirror the prompt's literal style when emitting artifacts; non-ASCII typographic characters (em-dash `—` / en-dash `–` / box-drawing `─` / smart quotes `' " ' "` / JA characters in example PR titles) leak through and persist in merged artifacts because governance CI checks PR titles only — commit bodies, wiki entry bodies, and issue bodies are not byte-checked.
+Example artifact text MUST follow the destination artifact's governing language contract; being example text does not create an independent ASCII-only category. Resolve the language from (1) an explicit human language instruction for that artifact, (2) an accepted thread agreement, then (3) the destination repository / workspace project-language default (`LI_PLUS_PROJECT_LANGUAGE` when applicable), while also satisfying destination-repository governance. A host workspace language contract does not override `LI_PLUS_REPO` governance.
+
+Issue / PR / commit title examples MUST be ASCII English only. Body examples (issue / PR / commit bodies and wiki entries) MUST follow the resolved governing language contract and MUST NOT be rewritten under an ASCII-only rule. In liplus-language, issue / PR / commit bodies contain Japanese as required by repository governance.
+
+Subagents mirror the prompt's literal style when emitting artifacts. Non-ASCII typographic characters (em-dash `—` / en-dash `–` / box-drawing `─` / smart quotes `' " ' "` / JA characters in example titles) can leak from a prompt into an ASCII-English-governed title field. Body fields are validated as well-formed UTF-8 that renders without mojibake, not as ASCII byte sequences.
 
 How to apply:
-- Substitute ASCII before sending the prompt: em-dash -> `-` / `--`, en-dash -> `-`, box-drawing horizontal -> `-` / `=`, smart quotes -> ASCII `'` `"`, JA-in-example-PR-title -> romanize or omit.
-- Add an explicit instruction to the prompt: "Use ASCII characters only in PR titles, commit titles/bodies, and entry body text. Apply `od -c` byte-level verification to BOTH titles AND body content text."
-- The prompt's surrounding prose may use non-ASCII (em-dash for English reading efficiency is fine); the *example text fields* the subagent might copy must be ASCII.
+- For issue / PR / commit title examples, rewrite into ASCII English before sending the prompt: em-dash -> `-` / `--`, en-dash -> `-`, box-drawing horizontal -> `-` / `=`, smart quotes -> ASCII `'` `"`, and JA example-title text -> translate / rewrite into ASCII English or omit.
+- For issue / PR / commit body and wiki-entry examples, resolve the destination artifact's governing language contract using the precedence above; validate well-formed UTF-8 and inspect rendered text for mojibake. Do not use an ASCII-only check as body validation.
+- Add an explicit instruction to the prompt: "Use ASCII English only in issue, PR, and commit titles. Resolve issue/PR/commit bodies and wiki entries from each destination artifact's governing language contract: an explicit human language instruction for that artifact, then an accepted thread agreement, then the destination repository/workspace project-language default, while satisfying destination-repository governance. The host workspace language contract does not override LI_PLUS_REPO governance; in liplus-language, issue/PR/commit bodies require Japanese. Never apply an ASCII-only rule to bodies. Apply `od -c` byte-level verification to title fields, and verify body text is well-formed UTF-8 and renders without mojibake."
+- The prompt's surrounding prose is outside title-field ASCII checks; every example field the subagent might copy follows its own destination-field contract.
 
 Detection signs:
-- About to write `—` or `──` in an example title / body field inside the delegation prompt.
+- About to write `—` or `──` in an ASCII-English-governed example title inside the delegation prompt.
 - Example PR title field contains JA characters or smart quotes.
-- Re-reading own prompt: surrounding prose mixes typographic chars freely while example fields inherit the same mix.
-- Subagent reports "pre-existing em-dash found in previously-merged artifact" — the propagation already happened.
+- Example body is forced to ASCII or omits the resolved governing language contract or destination-repository governance.
+- A host workspace language default is used to override `LI_PLUS_REPO` governance.
+- `od -c` or another byte-level ASCII check is applied to body content as an acceptance criterion instead of UTF-8 / mojibake validation.
+- One instruction groups title and body fields under the same ASCII-only clause.
 
-</delegation-prompt-hygiene-ascii-only-example-text>
+</delegation-prompt-hygiene-field-scoped-language>
 
 <bounded-delegation-prohibit-recursive-subagent-spawn>
 

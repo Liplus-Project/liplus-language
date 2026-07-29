@@ -32,8 +32,8 @@ PR body format:
 Detail belongs in issue, not in PR.
 
 On PR created:
-1 = self-assign AI bot to PR assignees:
-    gh pr edit {pr} -R {owner}/{repo} --add-assignee liplus-lin-lay
+1 = self-assign the authenticated GitHub CLI actor to PR assignees:
+    gh pr edit {pr} -R {owner}/{repo} --add-assignee "@me"
     rationale: existing issue-side assignee does not auto-propagate to the PR entity. Self-assign makes "AI owns this PR" explicit in the Assignees field.
     mechanism note: GitHub rejects `--add-reviewer` self-assignment silently, but allows `--add-assignee` self-assign for PR author (empirically verified 2026-04-20 on PR #1099).
     scope: assignee self-assign is UI trail only; it does not replace the formal self-review record (`gh pr review --comment`, see [PR Review]).

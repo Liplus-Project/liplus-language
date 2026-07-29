@@ -47,7 +47,7 @@ If not exists   = proceed normally.
 
 Branch creation:
 command  = gh issue develop {issue_number} -R {owner}/{repo} --name {session-branch} --base main
-assignee = gh api repos/{owner}/{repo}/issues/{issue_number}/assignees --method POST -f 'assignees[]=liplus-lin-lay'
+assignee = gh issue edit {issue_number} -R {owner}/{repo} --add-assignee "@me"
 
 Merge behavior:
 PR merge auto-closes the parent issue via issue reference.

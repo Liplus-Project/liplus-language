@@ -178,6 +178,7 @@ wiki 内の閲覧は wiki sidebar の「判断構造」セクション、また�
 | [`decision-structure-writer-surface-activation`](https://github.com/Liplus-Project/liplus-language/wiki/decision-structure-writer-surface-activation) | 判断構造 Wiki の書き手 surface を activate する判断（#1205、2026-05-04）— 機構は在ったが発火の瞬間を名指しする skill が無く使われていなかった。読み手 `evolution-judgment-learning` と対をなす writer / reader ペアにする。知識 wiki は却下、射程は判断記録 surface のみ。Wiki は独立 git surface のため PR ceremony を課さない |
 | [`decision-structure-state-form-edge-binding`](https://github.com/Liplus-Project/liplus-language/wiki/decision-structure-state-form-edge-binding) | state 形の要求をエッジの有無に結合し、変換を convert-on-touch にする判断（#1436 / PR #1437、2026-05-31）— 31 entry 監査で 26 が event 形。エッジ無し確定 entry の state 形化は churn のみで情報量不変、エッジ宣言 entry は supersede 経路の収束のため state 形必須。一括移行と「後日の移行パス」はどちらも却下（後者は recall 依存、#1413 の教訓） |
 | [`neuron-graph-rag-integrated-prototype`](https://github.com/Liplus-Project/liplus-language/wiki/neuron-graph-rag-integrated-prototype) | ハイブリッド検索、型付き知識グラフ、活性伝播、成功フィードバックを一つの独立 RAG エンジンとして試作し、Li+ への統合前に有効性を検証する判断 |
+| [`issue-completion-condition-scope`](https://github.com/Liplus-Project/liplus-language/wiki/issue-completion-condition-scope) | issue body の完了条件フィールドの射程を二値で定める判断（#1625 / 実測の出所は `Liplus-Project/github-rag-mcp` #178、2026-07-29）— 判定線は「その完了条件は PR 単体で満たせるか」。満たせるなら書かない（`rules/task/task.md` の汎用 close 条件が覆う）、満たせないなら書く（deploy 後の本番状態・実機の挙動など、PR / CI / release フローが観測しない完了には他に記録面が無い）。「念のため書く」は入らない。元の一律不要規定は撤回せず射程を明示するだけ |
 
 ---
 

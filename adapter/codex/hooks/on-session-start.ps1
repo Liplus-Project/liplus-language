@@ -141,6 +141,17 @@ if (Test-Path -LiteralPath $rulesRoot) {
 # extraction is case-sensitive; without it PowerShell resolves a lowercase key
 # spelling that the bash ports leave unset, and one Li+config.md would yield
 # two different language contracts depending on the host adapter.
+#
+# This applies to EVERY Li+config.md / sentinel-tag extraction in this file, not
+# only to the language pair below. It was stated here when the language keys were
+# pinned (#1581) but left unapplied to the other three (#1632 F5): with
+# `li_plus_channel=tag` spelled lowercase, `.ps1` resolved `tag` and queried
+# `git ls-remote` while `.sh` left it unset and fell back to the `release`
+# default and `gh release list` — so LI_PLUS_UPDATE_STATUS differed by host for
+# one and the same workspace. The four sites are: the language pair below, the
+# adapter sentinel tag, LI_PLUS_CHANNEL, and the legacy-schema probe.
+# Memory-file scans elsewhere in this file match `^## ` and carry no letters, so
+# the flag would be inert there.
 $baseLang = ''
 $projLang = ''
 if (Test-Path -LiteralPath $configFile) {
@@ -164,13 +175,13 @@ if ($matcher -eq 'startup') {
   # --- axis 1: adapter sentinel tag vs current target tag ---
   $adapterTag = ''
   if (Test-Path -LiteralPath $adapterFile) {
-    $line = Select-String -LiteralPath $adapterFile -Pattern '^# --- Li\+ BEGIN \(([^)]*)\) ---' -ErrorAction SilentlyContinue | Select-Object -First 1
+    $line = Select-String -LiteralPath $adapterFile -CaseSensitive -Pattern '^# --- Li\+ BEGIN \(([^)]*)\) ---' -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($line) { $adapterTag = $line.Matches[0].Groups[1].Value }
   }
 
   $channel = ''
   if (Test-Path -LiteralPath $configFile) {
-    $cl = Select-String -LiteralPath $configFile -Pattern '^\s*LI_PLUS_CHANNEL\s*=\s*(.*)$' -ErrorAction SilentlyContinue | Select-Object -First 1
+    $cl = Select-String -LiteralPath $configFile -CaseSensitive -Pattern '^\s*LI_PLUS_CHANNEL\s*=\s*(.*)$' -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($cl) { $channel = $cl.Matches[0].Groups[1].Value.Trim() }
   }
   if (-not $channel) { $channel = 'release' }
@@ -200,7 +211,7 @@ if ($matcher -eq 'startup') {
 
   # --- axis 2: Li+config.md schema canonical (no legacy keys) ---
   if (Test-Path -LiteralPath $configFile) {
-    $legacy = Select-String -LiteralPath $configFile -Pattern '^\s*(LI_PLUS_REPOSITORY|USER_REPOSITORY|USER_REPOSITORY_EXECUTION_MODE)\s*=|^\s*[^#\s][^=]*_EXECUTION_MODE\s*=' -ErrorAction SilentlyContinue | Select-Object -First 1
+    $legacy = Select-String -LiteralPath $configFile -CaseSensitive -Pattern '^\s*(LI_PLUS_REPOSITORY|USER_REPOSITORY|USER_REPOSITORY_EXECUTION_MODE)\s*=|^\s*[^#\s][^=]*_EXECUTION_MODE\s*=' -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($legacy) { $updateReasons += 'legacy-schema-keys-present' }
   }
 

@@ -16,7 +16,15 @@ PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 #   channel                = MCP channel delivers events directly; skip reminder
 #   mcp_hook               = a sibling type=mcp_tool hook entry invokes the MCP
 #                            tool directly without going through Claude; skip reminder
-WEBHOOK_DELIVERY=$(awk -F= '/^LI_PLUS_WEBHOOK_DELIVERY=/{print $2}' "$PROJECT_ROOT/Li+config.md" 2>/dev/null)
+#
+# `tr -d '\r'` normalises a CRLF-saved Li+config.md, matching both codex ports
+# (.sh does the same, .ps1 uses .Trim()). Without it the extracted value is
+# `mcp_hook\r`, which fails the byte comparison below, so the reminder text is
+# emitted every turn while the mcp_tool hook entry also fires — the double
+# delivery hooks-settings.md's mcp_hook setting exists to prevent (#1632 F7).
+# Latent rather than live: on a Windows/Git-Bash host both gawk and MSYS command
+# substitution drop the CR on their own, so the miss needs a POSIX host.
+WEBHOOK_DELIVERY=$(awk -F= '/^LI_PLUS_WEBHOOK_DELIVERY=/{print $2}' "$PROJECT_ROOT/Li+config.md" 2>/dev/null | tr -d '\r')
 if [ "$WEBHOOK_DELIVERY" != "channel" ] && [ "$WEBHOOK_DELIVERY" != "mcp_hook" ]; then
   echo ""
   echo "━━━ Webhook: check pending notifications ━━━"

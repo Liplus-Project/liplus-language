@@ -5,7 +5,7 @@
 # The hook does NOT synthesize — it only gathers material. AI performs synthesis
 # through Character_Instance using the emitted material plus its own loaded layers.
 #
-# Matchers: startup / resume / clear / compact (see hooks-settings.md).
+# Matchers: startup / resume / clear / compact / fork (see hooks-settings.md).
 # Keep total output modest (a few KB). Truncate rather than skip when sources are large.
 #
 # Diff-only emission (matcher = startup only):
@@ -26,8 +26,9 @@
 #   node is the runtime Claude Code itself depends on, so it is a safe
 #   assumption and removes a previously-common fail-safe trigger.
 #
-#   resume / clear / compact matchers do not run diff comparison (the work
-#   context is continuous; only the cold-start rule literal is re-anchored).
+#   resume / clear / compact / fork matchers do not run diff comparison (the
+#   work context is continuous; only the cold-start rule literal is
+#   re-anchored).
 export PATH="$HOME/.local/bin:$PATH"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
@@ -61,7 +62,19 @@ if ! command -v gh >/dev/null 2>&1; then
   case "$HOST_KERNEL" in
     Linux*)
       GH_INSTALL_LOG=$(mktemp 2>/dev/null || echo "/tmp/liplus-gh-install-$$.log")
-      {
+      # Subshell, NOT a brace group. A brace group runs in the current shell,
+      # so `set -e` inside it applied to the whole hook: a curl/tar failure
+      # aborted the process before the `failed:` status below could be built
+      # (no gh install banner, no LI_PLUS_UPDATE_STATUS marker, no language
+      # contract banner), and on success errexit stayed armed for the remaining
+      # ~780 lines, where several bare command substitutions exit non-zero in
+      # normal operation (`gh release list` unauthenticated, `gh issue list`,
+      # the state-file read whose `$?` fail-safe check would never be reached).
+      # The subshell confines errexit to the install steps, which is what the
+      # "Failure/guidance does NOT abort the hook" note above already promised.
+      # No variable assigned inside is read outside it; the result is observed
+      # through the installed binary and the log file.
+      (
         set -e
         mkdir -p "$HOME/.local/bin"
         GH_VERSION="2.62.0"
@@ -81,7 +94,7 @@ if ! command -v gh >/dev/null 2>&1; then
         mv "$GH_EXTRACT_DIR/bin/gh" "$HOME/.local/bin/gh"
         chmod +x "$HOME/.local/bin/gh"
         rm -rf "$GH_EXTRACT_DIR" "$GH_TARBALL"
-      } > "$GH_INSTALL_LOG" 2>&1
+      ) > "$GH_INSTALL_LOG" 2>&1
       if [ -x "$HOME/.local/bin/gh" ]; then
         GH_INSTALL_STATUS="installed"
       else
@@ -116,6 +129,14 @@ fi
 # Claude Code passes the SessionStart payload as JSON on stdin. We read it once
 # (non-blocking with a short timeout) and extract the matcher. Empty / unreadable
 # stdin falls back to "startup" so the diff-only path is the default.
+#
+# The payload field is `source`, NOT `matcher`: `matcher` is the settings.json
+# filter key and never appears in the payload the host sends. Reading `matcher`
+# with a `hook_event_name` fallback (the shape before #1632) resolved every
+# production payload to the literal "SessionStart", which matches no branch
+# below, so resume / clear / compact / fork all silently ran the startup path.
+# `matcher` is kept first for hand-fed payloads, and `session_source` trails it
+# for parity with adapter/codex/hooks/on-session-start.sh.
 HOOK_INPUT=""
 if [ -t 0 ]; then
   HOOK_INPUT=""
@@ -135,7 +156,7 @@ if [ -n "$HOOK_INPUT" ]; then
       process.stdin.on("end", () => {
         try {
           const payload = JSON.parse(raw);
-          const v = payload.matcher || payload.hook_event_name || "";
+          const v = payload.matcher || payload.source || payload.session_source || "";
           process.stdout.write(String(v));
         } catch (e) {
           // leave stdout empty; caller falls back to regex extraction
@@ -143,14 +164,15 @@ if [ -n "$HOOK_INPUT" ]; then
       });
     ' 2>/dev/null)
   fi
-  # Fallback: regex-extract "matcher":"value" from the JSON payload, used when
-  # node is unavailable or JSON parsing above yielded nothing.
-  # The matcher key is a flat string field per Claude Code SessionStart contract.
+  # Fallback: regex-extract "source":"value" (or "matcher":"value") from the
+  # JSON payload, used when node is unavailable or JSON parsing above yielded
+  # nothing. Both are flat string fields per the Claude Code SessionStart
+  # contract.
   if [ -z "$EXTRACTED" ]; then
-    EXTRACTED=$(printf '%s' "$HOOK_INPUT" | sed -n 's/.*"matcher"[[:space:]]*:[[:space:]]*"\([a-z]*\)".*/\1/p' | head -n 1)
+    EXTRACTED=$(printf '%s' "$HOOK_INPUT" | sed -n 's/.*"\(matcher\|source\)"[[:space:]]*:[[:space:]]*"\([a-z]*\)".*/\2/p' | head -n 1)
   fi
   case "$EXTRACTED" in
-    startup|resume|clear|compact)
+    startup|resume|clear|compact|fork)
       MATCHER="$EXTRACTED"
       ;;
   esac
@@ -403,31 +425,87 @@ register_section "self_eval_head" "Self-evaluation log head (most recent)" "$SEL
 # --- promotion candidates (memory → Li+ source) ---
 # Evolution Loop observe stage: surface pattern-detection candidates at cold-start
 # so that AI sees promotion candidates without waiting for passive noticing.
+# rules/evolution/evolution.md "Pattern Detection Surfacing At Cold-start" fixes
+# the three detection targets (self-evaluation log repetition / recent memory
+# additions / keyword overlap with Li+ source) and delegates the thresholds and
+# the concrete logic to the adapter, which is this block.
 # All three detectors are best-effort; silent skip when sources are absent.
 # Threshold is adjustable via THRESHOLD_N (initial value = 2, see issue #1080).
+# SURFACE_CAP bounds the two list-shaped detectors. This is an orientation
+# surface read at session opening, and a list past roughly this length stops
+# being scannable; the full count is still printed, so a truncated list never
+# hides that more exists.
+#
+# #1632 F3: every detector below used to read a format nothing writes, so the
+# section was empty on every session and an empty surface could not be told
+# apart from "nothing crossed the noise floor". Detector 1 matched a
+# `root_cause:` / `tags:` line syntax that no spec defines and the log has never
+# used; detectors 2 and 3 scanned the flat feedback.md / project.md pair that the
+# one-memory-per-file host layout replaced. The formats read below are the ones
+# the live artifacts actually carry.
 THRESHOLD_N=2
+SURFACE_CAP=10
 
 # A candidate qualifies as MEMORY_DIR only when it holds at least one file that
 # some MEMORY_DIR consumer reads. Directory existence alone is not the criterion:
 # an empty higher-precedence directory would otherwise shadow a populated
 # lower-precedence one and silence every consumer at once.
-# The marker set is the files MEMORY_DIR consumers read (feedback / project
-# detectors, self-evolution observation surface), plus self-evaluation_log.md so
-# that both resolution paths agree on what counts as a memory directory. That
-# added member never decides a case in practice: the self-eval lookup above
-# scans the same candidate directories, so whenever that file exists the primary
-# path has already claimed the directory before this check runs.
+# The marker set is the files MEMORY_DIR consumers read: the observation surface,
+# the per-topic entry-file prefixes the promotion detectors scan, plus
+# self-evaluation_log.md so that both resolution paths agree on what counts as a
+# memory directory. That last member never decides a case in practice: the
+# self-eval lookup above scans the same candidate directories, so whenever that
+# file exists the primary path has already claimed the directory before this
+# check runs.
+# The prefixes replace the former flat feedback.md / project.md pair (#1632 F3):
+# the host auto-memory layout is one memory per file, so a live memory directory
+# holds feedback_<topic>.md / project_<topic>.md / reference_<topic>.md /
+# user_<topic>.md and neither flat name exists. Matching prefixes rather than any
+# *.md is deliberate — an unrelated file must not let a directory claim the slot.
 memory_dir_populated() {
   for markerfile in \
     self-evaluation_log.md \
-    feedback.md \
-    project.md \
     self-evolution-observation.md; do
     if [ -f "$1/$markerfile" ]; then
       return 0
     fi
   done
+  for markerglob in "$1"/feedback*.md "$1"/project*.md "$1"/reference*.md "$1"/user*.md; do
+    if [ -f "$markerglob" ]; then
+      return 0
+    fi
+  done
   return 1
+}
+
+# Memory entry files inside a resolved MEMORY_DIR, under the same one-memory-
+# per-file layout. Excluded are the index and the three transient operational
+# files, each of which has its own dedicated reader. Flat feedback.md /
+# project.md are NOT excluded, so a workspace that has not migrated is still
+# scanned. Sorted, because the detector output is sha256-fingerprinted for
+# diff-only emission and must not depend on directory order.
+memory_entry_files() {
+  find "$1" -maxdepth 1 -type f -name '*.md' 2>/dev/null | sort | while IFS= read -r entryfile; do
+    case "${entryfile##*/}" in
+      MEMORY.md|promotion_tally.md|self-evaluation_log.md|self-evolution-observation.md) ;;
+      *) printf '%s\n' "$entryfile" ;;
+    esac
+  done
+}
+
+# Title of one memory entry = its frontmatter `name:` (written by the host
+# auto-memory) when present, else the filename stem. Under the flat-file layout
+# the equivalent unit was a `## ` section header; with one memory per file the
+# file itself is the entry, so the title moves to the frontmatter.
+memory_entry_title() {
+  local title
+  title=$(head -n 10 "$1" 2>/dev/null | sed -n 's/^name:[[:space:]]*//p' | head -n 1 \
+    | tr -d '\r' | sed 's/[[:space:]]*$//')
+  if [ -z "$title" ]; then
+    title="${1##*/}"
+    title="${title%.md}"
+  fi
+  printf '%s' "$title"
 }
 
 # Resolve memory directory using the same lookup path as self-evaluation_log.md.
@@ -461,48 +539,73 @@ fi
 
 PROMOTION_BODY=""
 
-# Detector 1: repeated (root_cause, domain-tag) combinations in self-evaluation_log.md.
-# Log entries use lines like "root_cause: <category>" and "tags: <t1>, <t2>, ...".
-# We pair each root_cause with the first tag on the following tags line and
-# count duplicates. Any pair seen >= THRESHOLD_N times is surfaced.
+# Detector 1: the same observational axis tagged `miss` across several
+# self-evaluation entries. That repetition is the one the spec names:
+# `skills/evolution-self-eval/SKILL.md` Recording — "Repeated miss on the same
+# axis across entries = weakness region = distill candidate for evolution loop".
+#
+# Two entry layouts are in live use and both are read:
+#   **Axis tags**: <axis>: <verdict> / <axis>: <verdict> / ...   (one line)
+#   **Axis tags (10-axis)**:                                     (header, then)
+#   - <axis>: <verdict>                                          (bullets)
+# A verdict counts as a miss when the word appears anywhere in it, so
+# `**miss (primary)**` and `miss→hit` both register as an observed miss.
+# Axis names are lowercased before tallying; `**` emphasis is stripped.
 if [ -n "$SELFEVAL_FOUND" ] && [ -f "$SELFEVAL_FOUND" ]; then
-  PAIR_DUPES=$(awk -v n="$THRESHOLD_N" '
-    /^[[:space:]]*root_cause:[[:space:]]*/ {
-      sub(/^[[:space:]]*root_cause:[[:space:]]*/, "")
-      rc=$0
+  AXIS_MISSES=$(awk -v n="$THRESHOLD_N" '
+    function record(pair,   sep, axis, verdict) {
+      sep = index(pair, ":")
+      if (sep == 0) return
+      axis = substr(pair, 1, sep - 1)
+      verdict = substr(pair, sep + 1)
+      gsub(/\*/, "", axis)
+      sub(/^[[:space:]]+/, "", axis)
+      sub(/[[:space:]]+$/, "", axis)
+      axis = tolower(axis)
+      if (axis == "") return
+      if (index(tolower(verdict), "miss") == 0) return
+      count[axis]++
+    }
+    /^[[:space:]]*\*\*Axis tags/ {
+      # Everything past the closing "**:" of the label is the inline pair list;
+      # an empty remainder means the bullet layout follows.
+      label_end = index($0, "**:")
+      rest = (label_end > 0) ? substr($0, label_end + 3) : ""
+      if (rest ~ /[^[:space:]]/) {
+        pairs = split(rest, part, / \/ /)
+        for (i = 1; i <= pairs; i++) record(part[i])
+        in_axis_block = 0
+      } else {
+        in_axis_block = 1
+      }
       next
     }
-    /^[[:space:]]*tags:[[:space:]]*/ && rc != "" {
-      sub(/^[[:space:]]*tags:[[:space:]]*/, "")
-      split($0, t, /,[[:space:]]*/)
-      tag=t[1]
-      gsub(/[[:space:]]+$/, "", tag)
-      if (tag != "") {
-        key=rc "|" tag
-        count[key]++
-      }
-      rc=""
+    in_axis_block && /^[[:space:]]*-[[:space:]]/ {
+      bullet = $0
+      sub(/^[[:space:]]*-[[:space:]]*/, "", bullet)
+      record(bullet)
+      next
     }
+    in_axis_block { in_axis_block = 0 }
     END {
-      for (k in count) {
-        if (count[k] >= n) {
-          split(k, p, "|")
-          printf "  - (%s, %s) x%d\n", p[1], p[2], count[k]
+      for (axis in count) {
+        if (count[axis] >= n) {
+          printf "  - axis \"%s\" tagged miss x%d\n", axis, count[axis]
         }
       }
     }
-  ' "$SELFEVAL_FOUND")
-  if [ -n "$PAIR_DUPES" ]; then
-    PROMOTION_BODY="${PROMOTION_BODY}repeated (root_cause, domain-tag) pairs:
-${PAIR_DUPES}
+  ' "$SELFEVAL_FOUND" | sort)
+  if [ -n "$AXIS_MISSES" ]; then
+    PROMOTION_BODY="${PROMOTION_BODY}repeated self-evaluation axis misses:
+${AXIS_MISSES}
 "
   fi
 fi
 
-# Detector 2: recent section additions to memory/feedback.md or memory/project.md
-# (within the last 7 days). Section headers match lines starting with '## '.
-# Uses file mtime as the proxy for recency; if the file itself was modified
-# within 7 days, list all '## ' section titles and flag when count >= THRESHOLD_N.
+# Detector 2: memory entries written or rewritten within the last 7 days.
+# One memory is one file, so the entry is the unit of recency and file mtime is
+# the signal; the flat-file era counted '## ' sections inside two files instead.
+# Flagged when the count reaches THRESHOLD_N.
 #
 # Note: this 7d window is the memory-scan recency window (Cold-start observe
 # stage surface), independent from the 3d cluster window in
@@ -511,67 +614,144 @@ fi
 #   - 3d there = "has the same cluster crossed the noise floor for promotion?"
 # Do not unify the two values; they intentionally sit on different axes.
 if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
-  RECENT_SECTIONS=""
-  for memfile in "$MEMORY_DIR/feedback.md" "$MEMORY_DIR/project.md"; do
-    [ -f "$memfile" ] || continue
-    # file modified within last 7 days?
+  RECENT_ENTRIES=""
+  RECENT_COUNT=0
+  while IFS= read -r memfile; do
+    [ -n "$memfile" ] || continue
+    # entry modified within last 7 days?
     if find "$memfile" -mtime -7 -print 2>/dev/null | grep -q .; then
-      SECTIONS=$(grep -E '^## ' "$memfile" 2>/dev/null | sed 's/^## /  - /')
-      SEC_COUNT=$(printf '%s\n' "$SECTIONS" | grep -c '^  - ' 2>/dev/null)
-      if [ "${SEC_COUNT:-0}" -ge "$THRESHOLD_N" ]; then
-        RECENT_SECTIONS="${RECENT_SECTIONS}$(basename "$memfile") (modified within 7d, ${SEC_COUNT} sections):
-${SECTIONS}
+      RECENT_COUNT=$((RECENT_COUNT + 1))
+      if [ "$RECENT_COUNT" -le "$SURFACE_CAP" ]; then
+        RECENT_ENTRIES="${RECENT_ENTRIES}  - ${memfile##*/} [$(memory_entry_title "$memfile")]
 "
       fi
     fi
-  done
-  if [ -n "$RECENT_SECTIONS" ]; then
-    PROMOTION_BODY="${PROMOTION_BODY}recent memory additions (<= 7d):
-${RECENT_SECTIONS}"
+  done < <(memory_entry_files "$MEMORY_DIR")
+  if [ "$RECENT_COUNT" -ge "$THRESHOLD_N" ]; then
+    # A consolidate pass rewrites every entry at once, so the cap is a normal
+    # occurrence rather than an edge case.
+    if [ "$RECENT_COUNT" -gt "$SURFACE_CAP" ]; then
+      RECENT_ENTRIES="${RECENT_ENTRIES}  - ... and $((RECENT_COUNT - SURFACE_CAP)) more
+"
+    fi
+    PROMOTION_BODY="${PROMOTION_BODY}recent memory additions (<= 7d, ${RECENT_COUNT} entries):
+${RECENT_ENTRIES}"
   fi
 fi
 
-# Detector 3: simple keyword overlap between memory section titles and Li+ source files.
-# For each '## ' header in feedback.md / project.md, extract alphanumeric tokens of
-# length >= 4 and check whether any token appears in a Li+ source file. Matches are
-# surfaced as "possible overlap" candidates — not a promotion decision, only a hint.
+# Detector 3: keyword overlap between memory entry titles and Li+ source files.
+# Tokens are the >= 4-char ASCII alphanumeric words of an entry title; a hit
+# means the entry's topic already has a surface in rules/ or skills/. Surfaced
+# as a "possible overlap" hint — not a promotion decision.
+#
+# The four entry-type prefixes are dropped: under the per-topic naming scheme
+# they classify the entry rather than name its topic, so they would match nearly
+# every source file and drown the real signal. A non-ASCII title yields no
+# tokens and is simply skipped, as before.
+#
+# A pair is reported only once at least THRESHOLD_N distinct title tokens land in
+# the same source file. One shared common word ("identity", "answer") is
+# coincidence at this corpus size and produced hundreds of lines when measured
+# against the live memory set; two independent words of one title meeting in one
+# file is topical adjacency, which is what this detector is looking for.
+#
+# The source is named by its path relative to the clone, not by basename: every
+# skill file is called SKILL.md, so a basename label identifies nothing.
+#
+# One awk pass over the whole source set replaces the previous nested loop,
+# which re-read every source file once per title (title count x source count
+# whole-file reads, plus one grep per token). Source paths are handed over as a
+# list file and read with getline, so a workspace path containing spaces stays
+# intact. awk emits every qualifying pair; the sort and the cap are applied
+# after it, in that order. Sorting first is what makes the truncation stable —
+# awk's `for (k in array)` order is unspecified, so capping inside awk would
+# pick a different subset per run and churn the sha256 the diff-only emission
+# compares against.
 if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
   OVERLAP=""
-  TMP_HEADERS=$(mktemp 2>/dev/null || echo "/tmp/liplus-headers-$$")
+  OVERLAP_ALL=""
   TMP_TOKENS=$(mktemp 2>/dev/null || echo "/tmp/liplus-tokens-$$")
-  for memfile in "$MEMORY_DIR/feedback.md" "$MEMORY_DIR/project.md"; do
-    [ -f "$memfile" ] || continue
-    grep -E '^## ' "$memfile" 2>/dev/null > "$TMP_HEADERS" || true
-    while IFS= read -r header; do
-      [ -n "$header" ] || continue
-      title=$(printf '%s' "$header" | sed 's/^## //')
-      # Extract tokens (>=4 ASCII alnum chars). Non-ASCII titles yield no tokens.
-      # Lowercase tokens (avoids unstable -iF combo on MinGW grep).
-      printf '%s' "$title" | tr 'A-Z' 'a-z' | tr -cs 'a-z0-9' '\n' \
-        | awk 'length($0) >= 4' > "$TMP_TOKENS"
-      [ -s "$TMP_TOKENS" ] || continue
-      while IFS= read -r src; do
-        [ -f "$src" ] || continue
-        HIT=""
-        # Lowercase source snapshot for case-insensitive match without -iF combo.
-        SRC_LC=$(tr 'A-Z' 'a-z' < "$src")
-        while IFS= read -r tok; do
-          [ -n "$tok" ] || continue
-          if printf '%s' "$SRC_LC" | grep -qF "$tok" 2>/dev/null; then
-            HIT="${HIT}${tok} "
-          fi
-        done < "$TMP_TOKENS"
-        if [ -n "$HIT" ]; then
-          OVERLAP="${OVERLAP}  - $(basename "$memfile") [${title}] ~ $(basename "$src") (tokens: ${HIT% })
+  TMP_SRCLIST=$(mktemp 2>/dev/null || echo "/tmp/liplus-srclist-$$")
+  : > "$TMP_TOKENS"
+  while IFS= read -r memfile; do
+    [ -n "$memfile" ] || continue
+    entry_title=$(memory_entry_title "$memfile")
+    entry_label="${memfile##*/} [${entry_title}]"
+    printf '%s' "$entry_title" | tr 'A-Z' 'a-z' | tr -cs 'a-z0-9' '\n' \
+      | awk -v lbl="$entry_label" '
+          length($0) >= 4 &&
+          $0 != "feedback" && $0 != "project" && $0 != "reference" && $0 != "user" {
+            print lbl "\t" $0
+          }' >> "$TMP_TOKENS"
+  done < <(memory_entry_files "$MEMORY_DIR")
+  find "$LIPLUS_DIR/rules" -type f -name '*.md' 2>/dev/null > "$TMP_SRCLIST"
+  find "$LIPLUS_DIR/skills" -maxdepth 2 -type f -name 'SKILL.md' 2>/dev/null >> "$TMP_SRCLIST"
+  if [ -s "$TMP_TOKENS" ] && [ -s "$TMP_SRCLIST" ]; then
+    OVERLAP_ALL=$(awk -v n="$THRESHOLD_N" -v root="$LIPLUS_DIR/" '
+      # pass 1: "<entry label>\t<token>" lines
+      NR == FNR {
+        sep = index($0, "\t")
+        if (sep == 0) next
+        tn++
+        tlabel[tn] = substr($0, 1, sep - 1)
+        ttok[tn] = substr($0, sep + 1)
+        wanted[ttok[tn]] = 1
+        next
+      }
+      # pass 2: one Li+ source path per line
+      {
+        path = $0
+        if (path == "") next
+        src = path
+        if (substr(src, 1, length(root)) == root) src = substr(src, length(root) + 1)
+        gsub(/\\/, "/", src)
+        while ((getline srcline < path) > 0) {
+          words = tolower(srcline)
+          gsub(/[^a-z0-9]+/, " ", words)
+          wc = split(words, w, " ")
+          for (i = 1; i <= wc; i++) {
+            if (!(w[i] in wanted)) continue
+            if ((src SUBSEP w[i]) in seen) continue
+            seen[src SUBSEP w[i]] = 1
+            srcs[w[i]] = srcs[w[i]] " " src
+          }
+        }
+        close(path)
+      }
+      END {
+        for (j = 1; j <= tn; j++) {
+          if (!(ttok[j] in srcs)) continue
+          fc = split(srcs[ttok[j]], f, " ")
+          for (i = 1; i <= fc; i++) {
+            if (f[i] == "") continue
+            key = tlabel[j] SUBSEP f[i]
+            hit[key] = hit[key] " " ttok[j]
+            depth[key]++
+          }
+        }
+        for (key in hit) {
+          if (depth[key] < n) continue
+          split(key, part, SUBSEP)
+          # Rank prefix = inverted token count, zero padded, so a plain
+          # lexicographic sort orders strongest adjacency first and falls back
+          # to the line text for ties. Keeping the ordering inside plain `sort`
+          # avoids depending on a field-separator flag; `cut` strips the prefix.
+          printf "%03d\t  - %s ~ %s (tokens:%s)\n", 999 - depth[key], part[1], part[2], hit[key]
+        }
+      }
+    ' "$TMP_TOKENS" "$TMP_SRCLIST" | sort | cut -f2-)
+  fi
+  rm -f "$TMP_TOKENS" "$TMP_SRCLIST"
+  if [ -n "$OVERLAP_ALL" ]; then
+    OVERLAP_COUNT=$(printf '%s\n' "$OVERLAP_ALL" | grep -c '^  - ')
+    OVERLAP=$(printf '%s\n' "$OVERLAP_ALL" | head -n "$SURFACE_CAP")
+    if [ "${OVERLAP_COUNT:-0}" -gt "$SURFACE_CAP" ]; then
+      OVERLAP="${OVERLAP}
+  - ... and $((OVERLAP_COUNT - SURFACE_CAP)) more"
+    fi
+    PROMOTION_BODY="${PROMOTION_BODY}possible keyword overlap with Li+ source (${OVERLAP_COUNT} pairs):
+${OVERLAP}
 "
-        fi
-      done < <(find "$LIPLUS_DIR/rules" -type f -name '*.md' 2>/dev/null; find "$LIPLUS_DIR/skills" -maxdepth 2 -type f -name 'SKILL.md' 2>/dev/null)
-    done < "$TMP_HEADERS"
-  done
-  rm -f "$TMP_HEADERS" "$TMP_TOKENS"
-  if [ -n "$OVERLAP" ]; then
-    PROMOTION_BODY="${PROMOTION_BODY}possible keyword overlap with Li+ source:
-${OVERLAP}"
   fi
 fi
 register_section "promotion_candidates" "Promotion candidates (memory → Li+ source)" "$PROMOTION_BODY"
@@ -664,14 +844,15 @@ fi
 # Always emit cold-start rule literal first (drift recovery anchor).
 emit_section "Cold-start Synthesis (rules/evolution/cold-start-synthesis.md literal)" "$COLDSTART_LITERAL"
 
-# Non-startup matchers (resume / clear / compact): only the cold-start anchor is
-# emitted. The work context is continuous; re-emitting the full material set
-# would be the redundant noise this diff-only design exists to eliminate.
+# Non-startup matchers (resume / clear / compact / fork): only the cold-start
+# anchor is emitted. The work context is continuous; re-emitting the full
+# material set would be the redundant noise this diff-only design exists to
+# eliminate.
 if [ "$MATCHER" != "startup" ]; then
   cat <<EOF
 ━━━ Cold-start Synthesis: instruction ━━━
-Matcher = ${MATCHER}. Session is continuous (resume/clear/compact). Only the
-cold-start rule literal is re-anchored above. Treat the prior session's
+Matcher = ${MATCHER}. Session is continuous (resume/clear/compact/fork). Only
+the cold-start rule literal is re-anchored above. Treat the prior session's
 in-context state as authoritative; do not re-orient from scratch.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

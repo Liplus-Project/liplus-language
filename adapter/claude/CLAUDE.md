@@ -37,7 +37,7 @@ All Li+ rules/*.md files are loaded via `.claude/rules/` (always in context, sur
 
 All Li+ skills/*/SKILL.md files are loaded via `.claude/skills/` (skill auto-invocation). Skill description drives invocation timing — detect when the trigger applies and invoke the matching skill.
 
-Cold-start Synthesis is not a skill. Its content lives in `rules/evolution/cold-start-synthesis.md` and is emitted as session-opening material via `on-session-start.sh` hook (matchers: startup / resume / clear / compact).
+Cold-start Synthesis is not a skill. Its content lives in `rules/evolution/cold-start-synthesis.md` and is emitted as session-opening material via `on-session-start.sh` hook (matchers: startup / resume / clear / compact / fork).
 
 character_Instance.md is loaded via `.claude/output-styles/character_Instance.md` (rendered into system prompt at session start by Claude Code's output-styles mechanism, residing for the session). Activation: `"outputStyle": "character_Instance"` in `settings.json` (Li+ template default). User-customizable. Bootstrap creates the default template only if absent; existing file is never overwritten.
 

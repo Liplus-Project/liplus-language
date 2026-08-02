@@ -221,8 +221,11 @@ Note: Claude Code's skill discovery does NOT recurse into subdirectories under `
     (permissions / env / theme / additional hooks / additional MCP entries) belong in
     {workspace_root}/.claude/settings.local.json which Li+ never touches and
     Claude Code merges with settings.json at runtime.
-  - SessionStart uses four matchers (startup / resume / clear / compact) so Cold-start Synthesis
-    material is emitted for every session entry point, not only compact.
+  - SessionStart uses all five documented matchers (startup / resume / clear / compact / fork)
+    so Cold-start Synthesis material is emitted for every session entry point, not only compact.
+    An unregistered matcher does not fall through to another entry — the hook simply does not
+    run there, leaving that entry point with no LI_PLUS_UPDATE_STATUS marker and no language
+    contract banner.
 - {workspace_root}/.claude/hooks/*.sh tag-tracked regeneration:
   - Check the source tag in existing files
     (e.g. "# Source: adapter/claude/hooks/on-session-start.sh (build-2026-03-30.14)").

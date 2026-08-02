@@ -177,7 +177,7 @@ host OS は adapter 種別（runtime=claude / runtime=codex）から推測しな
 - `{workspace_root}/.claude/settings.json` が存在しない:
   - `adapter/claude/hooks-settings.md` の JSON コードブロックから settings.json を生成
   - `{workspace_root}/.claude/hooks/` を作成し、`adapter/claude/hooks/*.sh` をすべてコピー
-  - SessionStart は startup / resume / clear / compact の 4 matcher を使用し、Cold-start Synthesis 素材がどのセッション入口でも出力されるようにする
+  - SessionStart は startup / resume / clear / compact / fork の 5 matcher（一次ソースの matcher 表の全件）を使用し、Cold-start Synthesis 素材がどのセッション入口でも出力されるようにする。未登録の matcher は他の entry にフォールバックせず単に hook が発火しないため、その入口では `LI_PLUS_UPDATE_STATUS` マーカーも language contract banner も出ない
 - `{workspace_root}/.claude/settings.json` が存在する:
   - settings.json は変更しない。workspace が所有するファイルであり、Li+ はユーザー追加キー（permissions / env / theme / 他コンポーネント hook）を暗黙に書き換えない
   - 既存の `{workspace_root}/.claude/hooks/*.sh` 内のソースタグを確認（例: `# Source: adapter/claude/hooks/on-session-start.sh (build-2026-03-30.14)`）
@@ -201,7 +201,7 @@ host OS は adapter 種別（runtime=claude / runtime=codex）から推測しな
   ローカルスコープの gitignore により、state がバージョン管理されているホストワークスペースに混入しないようにする。トップレベルの `.gitignore` には触れない。state 本体（`last-cold-start-emit.json`）は hook が初回実行時に生成する。
 - このステップは冪等：既存ディレクトリと既存 `.gitignore` はそのまま残す
 
-`on-session-start.sh` の matcher 別挙動（startup の diff-only、resume/clear/compact の rule literal 再 anchor、fail-safe full emit）の詳細は [6. Adapter — on-session-start.sh](6.-Adapter#on-session-startsh) を参照する。
+`on-session-start.sh` の matcher 別挙動（startup の diff-only、resume/clear/compact/fork の rule literal 再 anchor、fail-safe full emit）の詳細は [6. Adapter — on-session-start.sh](6.-Adapter#on-session-startsh) を参照する。
 
 **4c.6. `.claude/agents/` ファイル生成（Create-only ミラー）**
 

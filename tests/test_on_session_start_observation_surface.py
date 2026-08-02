@@ -29,7 +29,7 @@ state, against which date, with which PR reference — and deliberately do not
 match the banner text, the bullet prefix, the field names restated inside the
 parentheses, the `[PR #N]` suffix notation, or the order of the entries. The
 `DUE` / `OVERDUE (human judgment needed)` label words are matched, because those
-are specified on the docs side (`docs/6.-Adapter.md:71`), not chosen here.
+are specified on the docs side (`docs/6.-Adapter.md:74`), not chosen here.
 """
 
 from __future__ import annotations

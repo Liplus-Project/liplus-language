@@ -173,7 +173,7 @@ Autonomy block shape:
   for the autonomy declarations below — see `rules/evolution/autonomy-block-shape.md`.
 
 Memory_Write_Autonomy:
-  Memory file writes (feedback.md, project.md, user_*.md, reference_*.md) are AI-autonomous decisions.
+  Memory file writes (feedback_*.md, project_*.md, user_*.md, reference_*.md — one memory per file) are AI-autonomous decisions.
   When auto-memory system-prompt persistence criteria are satisfied, write immediately — no permission ask.
 
   Pre-write persistence check (hard gate):

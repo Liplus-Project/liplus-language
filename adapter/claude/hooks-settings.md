@@ -107,6 +107,15 @@ Target: `{workspace_root}/.claude/settings.json`
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/on-session-start.sh\""
           }
         ]
+      },
+      {
+        "matcher": "fork",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/on-session-start.sh\""
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -130,7 +139,16 @@ Real files, copied verbatim into `{workspace_root}/.claude/hooks/` on bootstrap
 (with `{LI_PLUS_TAG}` placeholder replaced by the resolved target tag):
 
 - `adapter/claude/hooks/on-user-prompt.sh` — per-turn Trigger Check Gate re-arm + webhook check (Character_Instance is loaded via output-styles, not per-turn re-notify)
-- `adapter/claude/hooks/on-session-start.sh` — Cold-start Synthesis material emitter (matcher-aware: `startup` runs diff-only against `{workspace_root}/.claude/state/last-cold-start-emit.json`; `resume` / `clear` / `compact` re-anchor only the cold-start rule literal — see `rules/evolution/cold-start-synthesis.md` for the emission-state table)
+- `adapter/claude/hooks/on-session-start.sh` — Cold-start Synthesis material emitter (matcher-aware: `startup` runs diff-only against `{workspace_root}/.claude/state/last-cold-start-emit.json`; `resume` / `clear` / `compact` / `fork` re-anchor only the cold-start rule literal — see `rules/evolution/cold-start-synthesis.md` for the emission-state table)
+
+  All five documented SessionStart matchers are registered. An unregistered
+  matcher does not fall through to another entry — the hook simply does not run
+  for that entry point, so a `fork` session would start with no
+  `LI_PLUS_UPDATE_STATUS` marker (adapter CLAUDE.md then runs the full
+  Li+update walkthrough) and no language-contract banner (ask-human). `fork`
+  covers `--fork-session` with `--resume` / `--continue`, the `/fork`
+  background copy, and `/branch`; before Claude Code v2.1.214 those sessions
+  reported `resume` instead, which is why the earlier four-matcher set held.
 - `adapter/claude/hooks/post-tool-use.sh` — sub-issue refs auto-append on PR create
 
 Each script carries a `# Source: ... ({LI_PLUS_TAG})` comment line near the top as

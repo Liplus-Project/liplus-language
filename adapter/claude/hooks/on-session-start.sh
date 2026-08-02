@@ -5,7 +5,7 @@
 # The hook does NOT synthesize — it only gathers material. AI performs synthesis
 # through Character_Instance using the emitted material plus its own loaded layers.
 #
-# Matchers: startup / resume / clear / compact (see hooks-settings.md).
+# Matchers: startup / resume / clear / compact / fork (see hooks-settings.md).
 # Keep total output modest (a few KB). Truncate rather than skip when sources are large.
 #
 # Diff-only emission (matcher = startup only):
@@ -26,8 +26,9 @@
 #   node is the runtime Claude Code itself depends on, so it is a safe
 #   assumption and removes a previously-common fail-safe trigger.
 #
-#   resume / clear / compact matchers do not run diff comparison (the work
-#   context is continuous; only the cold-start rule literal is re-anchored).
+#   resume / clear / compact / fork matchers do not run diff comparison (the
+#   work context is continuous; only the cold-start rule literal is
+#   re-anchored).
 export PATH="$HOME/.local/bin:$PATH"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
@@ -116,6 +117,14 @@ fi
 # Claude Code passes the SessionStart payload as JSON on stdin. We read it once
 # (non-blocking with a short timeout) and extract the matcher. Empty / unreadable
 # stdin falls back to "startup" so the diff-only path is the default.
+#
+# The payload field is `source`, NOT `matcher`: `matcher` is the settings.json
+# filter key and never appears in the payload the host sends. Reading `matcher`
+# with a `hook_event_name` fallback (the shape before #1632) resolved every
+# production payload to the literal "SessionStart", which matches no branch
+# below, so resume / clear / compact / fork all silently ran the startup path.
+# `matcher` is kept first for hand-fed payloads, and `session_source` trails it
+# for parity with adapter/codex/hooks/on-session-start.sh.
 HOOK_INPUT=""
 if [ -t 0 ]; then
   HOOK_INPUT=""
@@ -135,7 +144,7 @@ if [ -n "$HOOK_INPUT" ]; then
       process.stdin.on("end", () => {
         try {
           const payload = JSON.parse(raw);
-          const v = payload.matcher || payload.hook_event_name || "";
+          const v = payload.matcher || payload.source || payload.session_source || "";
           process.stdout.write(String(v));
         } catch (e) {
           // leave stdout empty; caller falls back to regex extraction
@@ -143,14 +152,15 @@ if [ -n "$HOOK_INPUT" ]; then
       });
     ' 2>/dev/null)
   fi
-  # Fallback: regex-extract "matcher":"value" from the JSON payload, used when
-  # node is unavailable or JSON parsing above yielded nothing.
-  # The matcher key is a flat string field per Claude Code SessionStart contract.
+  # Fallback: regex-extract "source":"value" (or "matcher":"value") from the
+  # JSON payload, used when node is unavailable or JSON parsing above yielded
+  # nothing. Both are flat string fields per the Claude Code SessionStart
+  # contract.
   if [ -z "$EXTRACTED" ]; then
-    EXTRACTED=$(printf '%s' "$HOOK_INPUT" | sed -n 's/.*"matcher"[[:space:]]*:[[:space:]]*"\([a-z]*\)".*/\1/p' | head -n 1)
+    EXTRACTED=$(printf '%s' "$HOOK_INPUT" | sed -n 's/.*"\(matcher\|source\)"[[:space:]]*:[[:space:]]*"\([a-z]*\)".*/\2/p' | head -n 1)
   fi
   case "$EXTRACTED" in
-    startup|resume|clear|compact)
+    startup|resume|clear|compact|fork)
       MATCHER="$EXTRACTED"
       ;;
   esac
@@ -664,14 +674,15 @@ fi
 # Always emit cold-start rule literal first (drift recovery anchor).
 emit_section "Cold-start Synthesis (rules/evolution/cold-start-synthesis.md literal)" "$COLDSTART_LITERAL"
 
-# Non-startup matchers (resume / clear / compact): only the cold-start anchor is
-# emitted. The work context is continuous; re-emitting the full material set
-# would be the redundant noise this diff-only design exists to eliminate.
+# Non-startup matchers (resume / clear / compact / fork): only the cold-start
+# anchor is emitted. The work context is continuous; re-emitting the full
+# material set would be the redundant noise this diff-only design exists to
+# eliminate.
 if [ "$MATCHER" != "startup" ]; then
   cat <<EOF
 ━━━ Cold-start Synthesis: instruction ━━━
-Matcher = ${MATCHER}. Session is continuous (resume/clear/compact). Only the
-cold-start rule literal is re-anchored above. Treat the prior session's
+Matcher = ${MATCHER}. Session is continuous (resume/clear/compact/fork). Only
+the cold-start rule literal is re-anchored above. Treat the prior session's
 in-context state as authoritative; do not re-orient from scratch.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

@@ -266,6 +266,21 @@ class Workspace:
         target.write_text(content, encoding="utf-8")
         return target
 
+    def seed_coldstart_rule(self, token: str) -> Path:
+        """Minimal `rules/evolution/cold-start-synthesis.md` in the fixture clone.
+
+        The fixture's `liplus-language` directory is otherwise empty, so the
+        always-emitted anchor has an empty body and "the rule literal is
+        re-anchored" cannot be observed at all. `token` is planted past the
+        frontmatter and the H1 so it survives every port's strip.
+        """
+        return self.write(
+            self.liplus / "rules" / "evolution",
+            "cold-start-synthesis.md",
+            "---\nalwaysApply: true\n---\n\n# Cold-start Synthesis\n\n"
+            f"{token} anchor body.\n",
+        )
+
     def memory_candidates(self, adapter: str) -> tuple[Path, Path]:
         """(higher precedence, lower precedence) memory directory for an adapter."""
         if adapter == "claude_sh":
@@ -304,13 +319,30 @@ class Workspace:
         return env
 
     def _command_and_stdin(self, adapter: str, matcher: str) -> tuple[list[str], str]:
+        """Hook invocation plus the SessionStart payload the host actually sends.
+
+        The shape is production's, not the hook's convenience. `matcher` is the
+        settings.json filter key, not a payload field: the host reports how the
+        session started in `source`, alongside a `hook_event_name` fixed at
+        `"SessionStart"`. Feeding the claude hook a `{"matcher": ...}` object is
+        what kept #1632 F1 green in CI — it read `payload.matcher` and fell back
+        to `payload.hook_event_name`, so every production resume / clear /
+        compact resolved to the startup default while the test passed.
+        """
         hook = HOOKS[adapter]
+        payload = {
+            "session_id": "test-session",
+            "hook_event_name": "SessionStart",
+            "source": matcher,
+        }
         if adapter == "claude_sh":
-            return [BASH, posix_path(hook)], json.dumps({"matcher": matcher})
-        if adapter == "codex_sh":
-            payload = {"cwd": posix_path(self.workspace), "source": matcher}
+            payload["cwd"] = posix_path(self.workspace)
+            payload["transcript_path"] = posix_path(self.root / "transcript.jsonl")
             return [BASH, posix_path(hook)], json.dumps(payload)
-        payload = {"cwd": slash_path(self.workspace), "source": matcher}
+        if adapter == "codex_sh":
+            payload["cwd"] = posix_path(self.workspace)
+            return [BASH, posix_path(hook)], json.dumps(payload)
+        payload["cwd"] = slash_path(self.workspace)
         return [PWSH, "-NoProfile", "-NonInteractive", "-File", str(hook)], json.dumps(payload)
 
     def run(self, adapter: str, matcher: str = "startup") -> str:
@@ -374,7 +406,12 @@ class ObservationSurfaceTestCase(unittest.TestCase):
             self.observation_text(*lines),
         )
 
-    def run_hook(self, adapter: str, workspace: Workspace | None = None) -> str:
+    def run_hook(
+        self,
+        adapter: str,
+        workspace: Workspace | None = None,
+        matcher: str = "startup",
+    ) -> str:
         """Run a hook, guarding against a local-midnight rollover.
 
         Fixture dates are offsets from `date.today()` while the hooks read their
@@ -384,7 +421,7 @@ class ObservationSurfaceTestCase(unittest.TestCase):
         """
         workspace = workspace if workspace is not None else self.ws
         started_on = date.today()
-        output = workspace.run(adapter)
+        output = workspace.run(adapter, matcher)
         if date.today() != started_on:
             self.skipTest("local date rolled over mid-test; fixture offsets are stale")
         return output
@@ -762,6 +799,100 @@ class NoNewMaterialMarkerTest(ObservationSurfaceTestCase):
                     "surfacing an overdue entry and declaring no new material in "
                     "the same emission is self-contradictory",
                 )
+
+
+class MatcherResolutionTest(ObservationSurfaceTestCase):
+    """Coverage area 5: SessionStart matcher resolution (#1632 F1 / F6).
+
+    `rules/evolution/cold-start-synthesis.md:28-29` — on a non-startup matcher
+    "Only the cold-start rule literal is re-anchored. The work context is
+    continuous; the diff-only set is not re-evaluated"; `docs/6.-Adapter.md`
+    adds that the state file is not updated.
+
+    Both halves are read out of behaviour rather than out of banner text. A
+    token planted in the cold-start rule stands for the anchor, a token planted
+    in the self-evaluation log stands for the diff-only set, and the state file
+    is compared byte for byte. The diff-set token is *changed between the two
+    runs* on purpose: an unchanged section is suppressed by diff-only mode
+    anyway, so a still-startup hook would look identical to a correct one.
+    Changing it makes the two paths diverge — a hook that resolved the matcher
+    would stay silent, a hook that fell back to startup re-emits and rewrites.
+    """
+
+    # `fork` is claude-only here. It is registered in the Claude settings
+    # template (F6) against the documented SessionStart matcher set; the codex
+    # hooks.json matcher set is out of this issue's scope and unchanged.
+    NON_STARTUP = {
+        "claude_sh": ("resume", "clear", "compact", "fork"),
+        "codex_sh": ("resume", "clear", "compact"),
+        "codex_ps1": ("resume", "clear", "compact"),
+    }
+
+    ANCHOR_TOKEN = "QQANCHORTOKENQQ"
+    FIRST_TOKEN = "QQDIFFSETONEQQ"
+    SECOND_TOKEN = "QQDIFFSETTWOQQ"
+
+    def prepared_workspace(self, adapter: str) -> Workspace:
+        if adapter in ("claude_sh", "codex_sh") and not NODE:
+            require_runtime("node", "diff-only state handling in the shell hooks")
+        workspace = self.new_workspace()
+        workspace.seed_coldstart_rule(self.ANCHOR_TOKEN)
+        self.write_self_eval(workspace, self.FIRST_TOKEN)
+        return workspace
+
+    def write_self_eval(self, workspace: Workspace, token: str) -> None:
+        workspace.write(
+            workspace.shared_memory,
+            "self-evaluation_log.md",
+            f"# Self-Evaluation Log\n\n## entry\n{token}\n",
+        )
+
+    def test_non_startup_matcher_reanchors_only_and_leaves_state_untouched(self) -> None:
+        for adapter in ADAPTERS:
+            for matcher in self.NON_STARTUP[adapter]:
+                with self.subTest(adapter=adapter, matcher=matcher):
+                    workspace = self.prepared_workspace(adapter)
+
+                    startup = self.run_hook(adapter, workspace)
+                    self.assertIn(
+                        self.FIRST_TOKEN,
+                        startup,
+                        "the startup run must emit the diff-only set, otherwise "
+                        "the non-startup assertion below is vacuous",
+                    )
+                    state = workspace.state_file(adapter)
+                    self.assertTrue(
+                        state.is_file(),
+                        f"{adapter} did not persist {state}; the state-untouched "
+                        "assertion has nothing to compare",
+                    )
+                    before = state.read_bytes()
+
+                    # Move the diff-only set, so a hook that re-evaluated it
+                    # cannot be mistaken for one that correctly stayed silent.
+                    self.write_self_eval(workspace, self.SECOND_TOKEN)
+                    emission = self.run_hook(adapter, workspace, matcher=matcher)
+
+                    self.assertIn(
+                        self.ANCHOR_TOKEN,
+                        emission,
+                        f"{adapter} did not re-anchor the cold-start rule "
+                        f"literal on matcher {matcher!r}",
+                    )
+                    self.assertNotIn(
+                        self.SECOND_TOKEN,
+                        emission,
+                        f"{adapter} re-evaluated the diff-only set on matcher "
+                        f"{matcher!r}; the payload reports it in `source`, so a "
+                        "hook reading `matcher` falls back to startup",
+                    )
+                    self.assertEqual(
+                        before,
+                        state.read_bytes(),
+                        f"{adapter} rewrote the cold-start state file on matcher "
+                        f"{matcher!r}; the diff baseline must not move on a "
+                        "continuous session",
+                    )
 
 
 if __name__ == "__main__":

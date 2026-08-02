@@ -62,7 +62,19 @@ if ! command -v gh >/dev/null 2>&1; then
   case "$HOST_KERNEL" in
     Linux*)
       GH_INSTALL_LOG=$(mktemp 2>/dev/null || echo "/tmp/liplus-gh-install-$$.log")
-      {
+      # Subshell, NOT a brace group. A brace group runs in the current shell,
+      # so `set -e` inside it applied to the whole hook: a curl/tar failure
+      # aborted the process before the `failed:` status below could be built
+      # (no gh install banner, no LI_PLUS_UPDATE_STATUS marker, no language
+      # contract banner), and on success errexit stayed armed for the remaining
+      # ~780 lines, where several bare command substitutions exit non-zero in
+      # normal operation (`gh release list` unauthenticated, `gh issue list`,
+      # the state-file read whose `$?` fail-safe check would never be reached).
+      # The subshell confines errexit to the install steps, which is what the
+      # "Failure/guidance does NOT abort the hook" note above already promised.
+      # No variable assigned inside is read outside it; the result is observed
+      # through the installed binary and the log file.
+      (
         set -e
         mkdir -p "$HOME/.local/bin"
         GH_VERSION="2.62.0"
@@ -82,7 +94,7 @@ if ! command -v gh >/dev/null 2>&1; then
         mv "$GH_EXTRACT_DIR/bin/gh" "$HOME/.local/bin/gh"
         chmod +x "$HOME/.local/bin/gh"
         rm -rf "$GH_EXTRACT_DIR" "$GH_TARBALL"
-      } > "$GH_INSTALL_LOG" 2>&1
+      ) > "$GH_INSTALL_LOG" 2>&1
       if [ -x "$HOME/.local/bin/gh" ]; then
         GH_INSTALL_STATUS="installed"
       else

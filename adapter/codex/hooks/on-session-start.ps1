@@ -413,8 +413,10 @@ function Test-MemoryDirPopulated {
 # files, each of which has its own dedicated reader. Flat feedback.md /
 # project.md are NOT excluded, so a workspace that has not migrated is still
 # scanned. Ordinal sort, because the detector output is sha256-fingerprinted for
-# diff-only emission and must not depend on directory order — and because the
-# bash ports sort bytewise, which culture-aware sorting does not reproduce.
+# diff-only emission and must not depend on directory order — and to match the
+# bash ports, whose plain `sort` is bytewise under a C locale. No bash port pins
+# LC_ALL=C, so that match holds by environment rather than by enforcement; under
+# a culture-aware locale the bash order can differ from this one.
 function Get-MemoryEntryFiles {
   param([string]$Dir)
   $skip = @('MEMORY.md', 'promotion_tally.md', 'self-evaluation_log.md', 'self-evolution-observation.md')
@@ -615,7 +617,13 @@ if ($memoryDir -and (Test-Path -LiteralPath $memoryDir)) {
         $srcHits[$word] += $rel
       }
     }
-    $pairs = @{}
+    # Ordinal comparer, not the `@{}` literal: a PowerShell hashtable literal
+    # keys case-insensitively, while the awk arrays the bash ports use are
+    # case-sensitive. This key carries the entry title and the source path at
+    # their original case, so the literal would merge two pairs the bash ports
+    # keep apart. ($wanted / $seen / $srcHits key on already-lowercased tokens,
+    # so the default comparer is equivalent there.)
+    $pairs = New-Object System.Collections.Hashtable ([System.StringComparer]::Ordinal)
     for ($j = 0; $j -lt $tokenNames.Count; $j++) {
       $tok = $tokenNames[$j]
       if (-not $srcHits.ContainsKey($tok)) { continue }

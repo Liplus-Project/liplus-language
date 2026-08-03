@@ -96,8 +96,53 @@ Long-list reflection mode is overcorrection (= base model leakage) and increases
 Each self-evaluation entry may tag one or more of these axes as hit / miss.
 Repeated miss on the same axis across entries = weakness region = distill candidate for evolution loop.
 Axis tags combine with the existing cause taxonomy (spec-gap / reading-drift / judgment-bias / success) and domain tags.
+The literal shape of the tag line is fixed below.
 
 </recording>
+
+<axis-tag-line-format>
+
+## Axis tag line format
+
+The cold-start promotion detector (`adapter/claude/hooks/on-session-start.sh` and its two codex ports) reads these lines to tally the repeated miss named above. The literals here are therefore load-bearing, not presentation: a log written outside them makes the detector report zero, which is indistinguishable from "no weakness region".
+
+Two layouts, both valid:
+
+```
+**Axis tags**: <axis>: <verdict> / <axis>: <verdict> / ...
+
+**Axis tags (10-axis)**:
+- <axis>: <verdict>
+- <axis>: <verdict>
+```
+
+Fields:
+
+- `<axis>` = the axis name. Take it verbatim from The 10 axes when the observation is one of them. A name outside that set is allowed and is tallied under itself; it just never merges with a canonical axis.
+- `<verdict>` = the reading. It counts as a miss when the word `miss` appears anywhere in it, so `**miss (primary)**` and `miss→hit` both register.
+- The first `:` of a pair ends the axis name; later `:` characters belong to the verdict.
+- ` / ` (space slash space) separates inline pairs. The same sequence inside parentheses is verdict text and does not separate.
+
+### Axis name normal form
+
+Two spellings of one axis must land on one tally, so a name is reduced before it is counted:
+
+1. drop `*` emphasis characters
+2. drop a parenthesized qualifier and everything after it (`Character(pronoun)` -> `Character`)
+3. replace `-` and `_` with a space
+4. collapse whitespace runs, then trim
+5. lowercase
+6. when the result is a word-boundary prefix of exactly one of The 10 axes, expand it to that axis (`character` -> `character drift`); otherwise keep it
+
+Step 6 is what makes The 10 axes the canonical vocabulary rather than a list to cross-reference by hand: a shorthand that unambiguously names one canonical axis is that axis, and no alias table is maintained beside the list. A shorthand matching two axes stays unexpanded — ambiguity is not resolved by guessing.
+
+### Inline list end
+
+The bullet layout ends each pair at the line break. The inline layout has no such boundary, so one is defined: the pair list ends at the first `。` outside parentheses, or at a `Root cause:` / `Domain:` label outside parentheses, whichever comes first.
+
+Trailing prose on the tag line is therefore read as prose instead of being folded into the last verdict — which is what previously let a free-form sentence reach the `miss` scan and let a parenthetical ` / ` inside that sentence register as a phantom axis. Putting the trailer on its own line avoids the question entirely and is preferred.
+
+</axis-tag-line-format>
 
 <non-scope>
 

@@ -406,7 +406,7 @@ class Workspace:
 
     # -- hook execution -------------------------------------------------------
 
-    def _env_for(self, adapter: str) -> dict[str, str]:
+    def _env_for(self, adapter: str, extra_env: dict[str, str] | None = None) -> dict[str, str]:
         env = dict(os.environ)
         env.pop("CODEX_PROJECT_DIR", None)
         if adapter == "claude_sh":
@@ -416,6 +416,8 @@ class Workspace:
             env["HOME"] = posix_path(self.home)
         else:
             env["PATH"] = str(self.stub_bin) + os.pathsep + env.get("PATH", "")
+        if extra_env:
+            env.update(extra_env)
         return env
 
     def _command_and_stdin(self, adapter: str, matcher: str) -> tuple[list[str], str]:
@@ -445,7 +447,12 @@ class Workspace:
         payload["cwd"] = slash_path(self.workspace)
         return [PWSH, "-NoProfile", "-NonInteractive", "-File", str(hook)], json.dumps(payload)
 
-    def run(self, adapter: str, matcher: str = "startup") -> str:
+    def run(
+        self,
+        adapter: str,
+        matcher: str = "startup",
+        extra_env: dict[str, str] | None = None,
+    ) -> str:
         """Run one hook and return its emitted context text."""
         if adapter in ("claude_sh", "codex_sh") and not BASH:
             require_runtime("bash", "claude / codex shell hooks")
@@ -458,7 +465,7 @@ class Workspace:
             input=stdin_payload.encode("utf-8"),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            env=self._env_for(adapter),
+            env=self._env_for(adapter, extra_env),
             timeout=HOOK_TIMEOUT,
         )
         stdout = completed.stdout.decode("utf-8", errors="replace")
@@ -511,6 +518,7 @@ class ObservationSurfaceTestCase(unittest.TestCase):
         adapter: str,
         workspace: Workspace | None = None,
         matcher: str = "startup",
+        extra_env: dict[str, str] | None = None,
     ) -> str:
         """Run a hook, guarding against a local-midnight rollover.
 
@@ -521,7 +529,7 @@ class ObservationSurfaceTestCase(unittest.TestCase):
         """
         workspace = workspace if workspace is not None else self.ws
         started_on = date.today()
-        output = workspace.run(adapter, matcher)
+        output = workspace.run(adapter, matcher, extra_env)
         if date.today() != started_on:
             self.skipTest("local date rolled over mid-test; fixture offsets are stale")
         return output
@@ -1088,9 +1096,11 @@ class PromotionCandidateDetectorTest(ObservationSurfaceTestCase):
         surface = surfaces["claude_sh"]
         self.assertEqual(
             surface.axis_misses,
-            {"character-drift": 2},
+            {"character drift": 2},
             "the repeated axis is the one the self-eval spec names as a weakness "
-            "region; the inline and the bullet layout must both count",
+            "region; the inline and the bullet layout must both count. The key is "
+            "the normal form of the skill's 'Axis name normal form', so the "
+            "hyphenated spelling in the fixture lands on the canonical axis",
         )
         self.assertEqual(surface.recent_total, 2)
         self.assertEqual(
@@ -1183,6 +1193,278 @@ class PromotionCandidateDetectorTest(ObservationSurfaceTestCase):
                 self.assertIsNone(
                     promotion_section(self.run_hook(adapter)),
                     f"{adapter} emitted a promotion section with nothing to report",
+                )
+
+
+class AxisTagFormatTest(ObservationSurfaceTestCase):
+    """Coverage area 7: the axis-tag line format the detector implements (#1651).
+
+    The three ports were repaired together on PR #1650 and came out of brake 1
+    sharing one ceiling rather than differing from each other: the axis tally
+    keyed on the raw spelling, the inline layout let the last segment run to end
+    of line, and no spec held the format the detector hardcodes. Each case below
+    runs all three ports, because a fix landing on one port is what would open a
+    new parity gap.
+
+    Fixtures here deliberately carry the shapes the earlier ones did not: mixed
+    spellings of one axis, a Japanese free-form trailer on the tag line, a ` / `
+    inside a verdict parenthetical, and non-ASCII entry titles.
+    """
+
+    def seed_self_eval(self, workspace: Workspace, *entries: str) -> None:
+        workspace.write(
+            workspace.shared_memory,
+            "self-evaluation_log.md",
+            "# Self-Evaluation Log\n\n" + "\n\n".join(entries) + "\n",
+        )
+
+    def axis_misses_for_all_adapters(self) -> dict[str, dict[str, int]]:
+        misses: dict[str, dict[str, int]] = {}
+        for adapter in ADAPTERS:
+            self.ws.clear_state()
+            misses[adapter] = promotion_surface(
+                promotion_section(self.run_hook(adapter))
+            ).axis_misses
+        return misses
+
+    def assert_axis_misses(self, expected: dict[str, int]) -> None:
+        """Every port must report `expected`, and must agree with the others."""
+        misses = self.axis_misses_for_all_adapters()
+        for adapter, reported in misses.items():
+            with self.subTest(adapter=adapter):
+                self.assertEqual(reported, expected)
+
+    # -- item 2: axis-name normal form ---------------------------------------
+
+    def test_spelling_variants_of_one_axis_tally_as_one(self) -> None:
+        """`Character drift` / `Character` / `Character(pronoun)` are one axis.
+
+        This is the live shape: the log names the primary axis four different
+        ways across entries. Keyed on the raw spelling they are four tallies of
+        one, and a weakness region that is in fact repeating stays under the
+        threshold. `skills/evolution-self-eval/SKILL.md` "Axis name normal form"
+        is what says they are one, and the ports implement that section.
+        """
+        self.seed_self_eval(
+            self.ws,
+            "## entry 1\n**Axis tags**: Character drift: **miss (primary)**",
+            "## entry 2\n**Axis tags**: Character: **miss**(再発)",
+            "## entry 3\n**Axis tags**: Character(pronoun): **miss**",
+            "## entry 4\n**Axis tags (10-axis)**:\n- character_drift: miss",
+        )
+        self.assert_axis_misses({"character drift": 4})
+
+    def test_a_name_outside_the_ten_axes_keeps_its_own_tally(self) -> None:
+        """Normalization folds spellings, not distinct axes.
+
+        The live log tags free-form axes (`Instrument validity`, `Frame check`)
+        that the 10-axis list does not carry. Those must normalize like any
+        other name and stay separate — collapsing them into a canonical axis
+        would manufacture a repeat that was never observed.
+        """
+        self.seed_self_eval(
+            self.ws,
+            "## entry 1\n**Axis tags**: Instrument-validity: **miss (primary)** / "
+            "Character: miss",
+            "## entry 2\n**Axis tags**: Instrument validity: miss / Character drift: miss",
+        )
+        self.assert_axis_misses({"instrument validity": 2, "character drift": 2})
+
+    # -- item 3: inline tag bleed --------------------------------------------
+
+    def test_free_form_trailer_stays_out_of_the_last_verdict(self) -> None:
+        """The inline list ends before the prose that follows it on the line.
+
+        The live log writes `Root cause:` / `Domain:` on the same physical line
+        as the tag list. With the last segment running to end of line, that
+        prose reached the `miss` substring scan, so an axis tagged `hit` was
+        counted as a miss whenever the sentence after it happened to discuss
+        one — and the ` / ` inside a parenthetical in that prose split off a
+        phantom axis. Both entries below tag `Request depth: hit`, so a reported
+        miss on it can only have come from the trailer.
+        """
+        trailer = (
+            "。Root cause: reading-drift (character application-moment / release gist)"
+            "。Domain: character-binding, release-flow。"
+        )
+        self.seed_self_eval(
+            self.ws,
+            "## entry 1\n**Axis tags**: Loop entry: **miss** / Request depth: hit" + trailer,
+            "## entry 2\n**Axis tags**: Loop entry: **miss** / Request depth: hit" + trailer,
+        )
+        self.assert_axis_misses({"loop entry": 2})
+
+    def test_a_separator_inside_a_verdict_parenthetical_does_not_split(self) -> None:
+        """` / ` between parentheses is verdict text, not a pair boundary.
+
+        Splitting on every ` / ` cut this verdict in half and fed the tail to
+        the pair reader, which is how a fragment of one verdict became an axis
+        of its own.
+        """
+        self.seed_self_eval(
+            self.ws,
+            "## entry 1\n**Axis tags**: Gist vs literal: **miss** "
+            "(release-scheme gist→行動前訂正 / wiki entry は literal 検証) / Loop entry: hit",
+            "## entry 2\n**Axis tags**: Gist vs literal: **miss** "
+            "(圧縮余地を印象で主張 / literal Read で訂正) / Loop entry: hit",
+        )
+        self.assert_axis_misses({"gist vs literal": 2})
+
+    # -- item 1: sort locale --------------------------------------------------
+
+    CULTURE_AWARE_ENV = {"LC_ALL": "en_US.UTF-8", "LC_COLLATE": "en_US.UTF-8", "LANG": "en_US.UTF-8"}
+
+    def test_every_ordering_site_is_pinned_to_a_locale_independent_comparer(self) -> None:
+        """No port may order on the ambient locale or culture.
+
+        This is asserted on the source, because the divergence it guards is not
+        observable on a host that has no culture-aware locale installed — and a
+        behavioural check that silently degrades to "passes everywhere" is the
+        weaker instrument here. GNU `sort` under a culture-aware locale is not
+        bytewise and `Sort-Object` is culture-aware by default, so an unpinned
+        site splits the ports on identical input. Because `SURFACE_CAP` truncates
+        two of the lists, ordering decides which items survive, not just the
+        order they appear in.
+        """
+        def statements(adapter: str) -> list[str]:
+            """Source lines that are not wholly a comment.
+
+            The rationale for each pin is written next to it, so a naive scan
+            matches the prose explaining the rule as well as a violation of it.
+            """
+            return [
+                line
+                for line in HOOKS[adapter].read_text(encoding="utf-8").splitlines()
+                if not line.lstrip().startswith("#")
+            ]
+
+        for adapter in ("claude_sh", "codex_sh"):
+            with self.subTest(adapter=adapter):
+                unpinned = [
+                    line
+                    for line in statements(adapter)
+                    if re.search(r"\|\s*sort\b", line)
+                    and not re.search(r"\|\s*LC_ALL=C sort\b", line)
+                ]
+                self.assertEqual(
+                    unpinned,
+                    [],
+                    f"{adapter} pipes into a `sort` that is not pinned to LC_ALL=C",
+                )
+
+        ps1_lines = statements("codex_ps1")
+        self.assertEqual(
+            [line for line in ps1_lines if re.search(r"\bSort-Object\b", line)],
+            [],
+            "codex_ps1 uses `Sort-Object`, which compares with the current "
+            "culture; the ordinal comparer is what matches the pinned bash sort",
+        )
+        self.assertTrue(
+            any("StringComparer]::Ordinal" in line for line in ps1_lines),
+            "codex_ps1 must order through an ordinal comparer",
+        )
+
+    def test_ports_agree_on_order_when_the_ambient_locale_is_culture_aware(self) -> None:
+        """Same fixture, same order, on all three ports.
+
+        The bash ports are handed a culture-aware locale here. The names differ
+        only in a punctuation character, which byte order ranks by code point
+        (`-` < `_` < `a`) and a culture-aware collation reorders, and they stay
+        distinct on a case-insensitive filesystem — a case-mixed fixture would
+        collapse to one file on Windows. Where the locale is not installed the
+        run degrades to the C collation and the assertion is merely redundant —
+        never wrong — which is why the source-level pin above carries the
+        regression guard.
+        """
+        stems = ("z-a", "z_a", "za")
+        for index, stem in enumerate(stems):
+            self.ws.write(
+                self.ws.shared_memory,
+                f"reference_{stem}.md",
+                f"---\nname: 観測 {index} {stem}\n---\n\nbody\n",
+            )
+        self.ws.write(self.ws.shared_memory, "self-evaluation_log.md", "# log\n")
+
+        orders: dict[str, list[str]] = {}
+        for adapter in ADAPTERS:
+            self.ws.clear_state()
+            body = promotion_section(
+                self.run_hook(adapter, extra_env=self.CULTURE_AWARE_ENV)
+            )
+            orders[adapter] = [
+                match.group(1)
+                for match in (_ENTRY_RE.search(line) for line in (body or "").split("\n"))
+                if match
+            ]
+
+        expected = sorted(
+            (f"reference_{stem}.md" for stem in stems),
+            key=lambda name: name.encode("utf-8"),
+        )
+        for adapter, order in orders.items():
+            with self.subTest(adapter=adapter):
+                self.assertEqual(
+                    order,
+                    expected,
+                    f"{adapter} did not list the entries in byte order",
+                )
+
+    # -- item 4: the format has a spec ---------------------------------------
+
+    def test_the_format_the_detectors_hardcode_is_written_down(self) -> None:
+        """The detector's literals must exist in the skill, not only in code.
+
+        Before #1651 `**Axis tags**:` appeared nowhere in Li+ source outside the
+        three hooks: the log's format was convention, and a convention that
+        drifts takes the detector down silently — which is exactly how #1632 F3
+        happened. Pinning the literals here means a format change has to pass
+        through the spec.
+        """
+        spec = (ROOT / "skills" / "evolution-self-eval" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        for literal in (
+            "**Axis tags**:",
+            "**Axis tags (10-axis)**:",
+            "Root cause:",
+            "Domain:",
+            "。",
+        ):
+            with self.subTest(literal=literal):
+                self.assertIn(
+                    literal,
+                    spec,
+                    "the detectors branch on this literal; the skill is where it "
+                    "is defined",
+                )
+
+        for axis in (
+            "Assumption surfacing",
+            "Contradiction catch",
+            "Deepening axis fit",
+            "Silence respect",
+            "Loop entry",
+            "Character drift",
+            "Review partition",
+            "Gist vs literal",
+            "Expansion limit",
+            "Request depth",
+        ):
+            with self.subTest(axis=axis):
+                self.assertIn(
+                    axis.lower(),
+                    spec.lower(),
+                    "the normal form expands a shorthand against The 10 axes, so "
+                    "the canonical list in the ports must be the skill's list",
+                )
+
+        for adapter in ADAPTERS:
+            with self.subTest(adapter=adapter):
+                self.assertIn(
+                    "evolution-self-eval/SKILL.md",
+                    HOOKS[adapter].read_text(encoding="utf-8"),
+                    "each port must name the spec it implements, so the next "
+                    "reader does not take the code for the source",
                 )
 
 

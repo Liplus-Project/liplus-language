@@ -153,6 +153,106 @@ def no_new_material_marker(hook_output: str) -> str | None:
     return None
 
 
+def promotion_section(hook_output: str) -> str | None:
+    """Body of the promotion-candidates section, or None when it was empty.
+
+    Located by topic for the same reason `observation_section` is: the banner
+    wording is an adapter choice. An empty body is never emitted at all, so
+    None is also how "every detector stayed silent" reads.
+    """
+    for banner, body in emitted_sections(hook_output):
+        if "promotion" in banner.lower():
+            return body
+    return None
+
+
+class PromotionSurface(NamedTuple):
+    """The judgment reported by the three promotion-candidate detectors.
+
+    Presentation is delegated to the adapter by `rules/evolution/evolution.md`
+    ("Threshold values and concrete detection logic belong to the adapter"), so
+    this reads out what was *judged* — which axis crossed the repeat threshold
+    with what tally, which memory entries counted as recent, which entry/source
+    pairs are adjacent over which tokens, and the totals each list declares —
+    and not the bullet shape, the header wording or the order of the lines.
+    """
+
+    axis_misses: dict[str, int]
+    recent_total: int | None
+    recent_listed: frozenset[str]
+    overlap_total: int | None
+    overlap_listed: frozenset[tuple[str, str, frozenset[str]]]
+    truncated: dict[str, int]
+
+
+_AXIS_MISS_RE = re.compile(r'axis\s+"([^"]+)".*?(\d+)\s*$')
+_TOTAL_RE = re.compile(r"(\d+)\s+(entries|pairs)")
+_MORE_RE = re.compile(r"\.\.\.\s*and\s+(\d+)\s+more")
+_ENTRY_RE = re.compile(r"(\S+\.md)\s*\[")
+_TOKENS_RE = re.compile(r"\(tokens:([^)]*)\)")
+
+
+def promotion_surface(section_body: str | None) -> PromotionSurface:
+    """Parse a promotion section into its judgments, layout-agnostically."""
+    axis_misses: dict[str, int] = {}
+    recent_total: int | None = None
+    recent_listed: set[str] = set()
+    overlap_total: int | None = None
+    overlap_listed: set[tuple[str, str, frozenset[str]]] = set()
+    truncated: dict[str, int] = {}
+    bucket = ""
+    for line in (section_body or "").split("\n"):
+        lowered = line.lower()
+        if not line.startswith(" ") and lowered.strip():
+            # A detector's own header line: it names the detector and, for the
+            # two list-shaped ones, declares the full count.
+            total = _TOTAL_RE.search(line)
+            if "axis" in lowered:
+                bucket = "axis"
+            elif "recent memory" in lowered:
+                bucket = "recent"
+                recent_total = int(total.group(1)) if total else None
+            elif "overlap" in lowered:
+                bucket = "overlap"
+                overlap_total = int(total.group(1)) if total else None
+            else:
+                bucket = ""
+            continue
+        more = _MORE_RE.search(line)
+        if more:
+            truncated[bucket] = int(more.group(1))
+            continue
+        if bucket == "axis":
+            match = _AXIS_MISS_RE.search(line)
+            if match:
+                axis_misses[match.group(1)] = int(match.group(2))
+        elif bucket == "recent":
+            match = _ENTRY_RE.search(line)
+            if match:
+                recent_listed.add(match.group(1))
+        elif bucket == "overlap":
+            entry, _, source = line.partition("~")
+            entry_match = _ENTRY_RE.search(entry)
+            tokens = _TOKENS_RE.search(source)
+            source_path = source.split("(tokens:")[0].strip()
+            if entry_match and source_path:
+                overlap_listed.add(
+                    (
+                        entry_match.group(1),
+                        source_path,
+                        frozenset(tokens.group(1).split()) if tokens else frozenset(),
+                    )
+                )
+    return PromotionSurface(
+        axis_misses=axis_misses,
+        recent_total=recent_total,
+        recent_listed=frozenset(recent_listed),
+        overlap_total=overlap_total,
+        overlap_listed=frozenset(overlap_listed),
+        truncated=truncated,
+    )
+
+
 class SurfacedEntry(NamedTuple):
     """The judgment reported for one observation entry."""
 
@@ -893,6 +993,197 @@ class MatcherResolutionTest(ObservationSurfaceTestCase):
                         f"{matcher!r}; the diff baseline must not move on a "
                         "continuous session",
                     )
+
+
+class PromotionCandidateDetectorTest(ObservationSurfaceTestCase):
+    """Coverage area 6: the three promotion-candidate detectors (#1632 F3 / #1636).
+
+    `rules/evolution/evolution.md` "Pattern Detection Surfacing At Cold-start"
+    fixes the three detection targets — self-evaluation log repetition, recent
+    memory additions, keyword overlap with Li+ source — and requires them to be
+    surfaced as observable material rather than left to passive noticing. It
+    delegates the threshold values and the concrete logic to the adapter, so the
+    assertions below read the judgment out of the emission and leave the
+    presentation alone (`promotion_surface`).
+
+    Every case runs all three ports against one fixture. That is the shape the
+    defect needed: #1635 repaired the claude port while both codex ports kept
+    reading the flat `feedback.md` / `project.md` pair and the invented
+    `root_cause:` line syntax, and a suite that exercised one port could not see
+    it. The live host layout is one memory per file, so a fixture written in
+    that layout is silent on every unrepaired port.
+    """
+
+    SOURCE_TOKEN_TEXT = "widget calibration harness notes\n"
+
+    def seed_source(self, workspace: Workspace) -> None:
+        """Two Li+ source files for the overlap detector to match against."""
+        workspace.write(
+            workspace.liplus / "rules" / "evolution",
+            "widgets.md",
+            f"# widgets\n\n{self.SOURCE_TOKEN_TEXT}",
+        )
+        workspace.write(
+            workspace.liplus / "skills" / "sample-skill",
+            "SKILL.md",
+            "# sample\n\nwidget calibration notes\n",
+        )
+
+    def seed_entry(self, workspace: Workspace, filename: str, title: str) -> None:
+        """One per-topic memory entry, titled through its frontmatter `name:`."""
+        workspace.write(
+            workspace.shared_memory,
+            filename,
+            f"---\nname: {title}\n---\n\nbody\n",
+        )
+
+    def seed_self_eval(self, workspace: Workspace, *entries: str) -> None:
+        workspace.write(
+            workspace.shared_memory,
+            "self-evaluation_log.md",
+            "# Self-Evaluation Log\n\n" + "\n\n".join(entries) + "\n",
+        )
+
+    def surfaces_for_all_adapters(self) -> dict[str, PromotionSurface]:
+        surfaces: dict[str, PromotionSurface] = {}
+        for adapter in ADAPTERS:
+            self.ws.clear_state()
+            surfaces[adapter] = promotion_surface(
+                promotion_section(self.run_hook(adapter))
+            )
+        return surfaces
+
+    def assert_ports_agree(self, surfaces: dict[str, PromotionSurface]) -> None:
+        reference = surfaces["claude_sh"]
+        for adapter, surface in surfaces.items():
+            with self.subTest(adapter=adapter):
+                self.assertEqual(
+                    surface,
+                    reference,
+                    f"{adapter} disagrees with claude_sh on identical input",
+                )
+
+    def test_all_three_ports_read_the_live_memory_layout(self) -> None:
+        """All three detectors fire, on the same input, in the same way.
+
+        The fixture carries no flat `feedback.md` / `project.md` and no
+        `root_cause:` line, which is what the live artifacts look like. A port
+        still reading either format reports nothing at all here.
+        """
+        self.seed_source(self.ws)
+        self.seed_self_eval(
+            self.ws,
+            "## entry 1\n**Axis tags**: character-drift: miss / source-check: hit",
+            "## entry 2\n**Axis tags (10-axis)**:\n"
+            "- character-drift: **miss (primary)**\n- frame-check: hit",
+        )
+        self.seed_entry(
+            self.ws, "feedback_widget_calibration.md", "widget calibration harness"
+        )
+        self.seed_entry(self.ws, "project_alpha.md", "alpha unrelated topic")
+
+        surfaces = self.surfaces_for_all_adapters()
+        self.assert_ports_agree(surfaces)
+
+        surface = surfaces["claude_sh"]
+        self.assertEqual(
+            surface.axis_misses,
+            {"character-drift": 2},
+            "the repeated axis is the one the self-eval spec names as a weakness "
+            "region; the inline and the bullet layout must both count",
+        )
+        self.assertEqual(surface.recent_total, 2)
+        self.assertEqual(
+            surface.recent_listed,
+            frozenset({"feedback_widget_calibration.md", "project_alpha.md"}),
+            "one memory is one file, so every freshly written entry counts",
+        )
+        self.assertEqual(
+            surface.overlap_listed,
+            frozenset(
+                {
+                    (
+                        "feedback_widget_calibration.md",
+                        "rules/evolution/widgets.md",
+                        frozenset({"widget", "calibration", "harness"}),
+                    ),
+                    (
+                        "feedback_widget_calibration.md",
+                        "skills/sample-skill/SKILL.md",
+                        frozenset({"widget", "calibration"}),
+                    ),
+                }
+            ),
+            "the adjacent entry must be named against the source path, and the "
+            "unrelated entry must not be reported",
+        )
+        self.assertEqual(surface.overlap_total, 2)
+        self.assertEqual(surface.truncated, {})
+
+    def test_single_observation_stays_below_every_threshold(self) -> None:
+        """One occurrence is noise on all three axes, on all three ports."""
+        self.seed_source(self.ws)
+        self.seed_self_eval(
+            self.ws,
+            "## entry 1\n**Axis tags**: character-drift: miss / source-check: hit",
+            "## entry 2\n**Axis tags**: source-check: hit / frame-check: hit",
+        )
+        # `widget` alone reaches the source files; one shared token is
+        # coincidence at corpus scale, so the pair must not be reported.
+        self.seed_entry(self.ws, "feedback_widget_only.md", "widget")
+
+        surfaces = self.surfaces_for_all_adapters()
+        self.assert_ports_agree(surfaces)
+
+        surface = surfaces["claude_sh"]
+        self.assertEqual(
+            surface.axis_misses, {}, "an axis missed once is not a weakness region"
+        )
+        self.assertIsNone(
+            surface.recent_total, "a single recent entry is below the threshold"
+        )
+        self.assertEqual(surface.overlap_listed, frozenset())
+
+    def test_surface_cap_truncates_the_list_and_still_reports_the_total(self) -> None:
+        """The cap bounds the list; the declared total keeps it honest.
+
+        A consolidate pass rewrites every entry at once, so hitting the cap is
+        normal operation rather than an edge case, and a truncated list that
+        dropped the count would hide how much it left out.
+        """
+        for index in range(14):
+            self.seed_entry(
+                self.ws, f"reference_topic{index:02d}.md", f"topic {index:02d}"
+            )
+
+        surfaces = self.surfaces_for_all_adapters()
+        self.assert_ports_agree(surfaces)
+
+        surface = surfaces["claude_sh"]
+        self.assertEqual(surface.recent_total, 14)
+        self.assertLess(
+            len(surface.recent_listed),
+            14,
+            "a list this long is past the point of being scannable; the cap "
+            "exists so the orientation surface stays readable",
+        )
+        self.assertEqual(
+            len(surface.recent_listed) + surface.truncated.get("recent", 0),
+            14,
+            "the surfaced entries plus the omitted count must add up to the "
+            "declared total, or the omission is hiding something",
+        )
+
+    def test_empty_memory_directory_is_a_silent_skip(self) -> None:
+        """No sources, no section — on every port."""
+        self.ws.write(self.ws.shared_memory, "self-evaluation_log.md", "# log\n")
+        for adapter in ADAPTERS:
+            with self.subTest(adapter=adapter):
+                self.ws.clear_state()
+                self.assertIsNone(
+                    promotion_section(self.run_hook(adapter)),
+                    f"{adapter} emitted a promotion section with nothing to report",
+                )
 
 
 if __name__ == "__main__":

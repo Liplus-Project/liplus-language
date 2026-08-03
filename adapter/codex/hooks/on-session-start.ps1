@@ -348,32 +348,118 @@ if ($selfEvalFound) {
 Register-Section 'self_eval_head' 'Self-evaluation log head (most recent)' $selfEvalHead
 
 # promotion candidates (memory -> Li+ source)
+# Evolution Loop observe stage: surface pattern-detection candidates at cold-start
+# so that AI sees promotion candidates without waiting for passive noticing.
+# rules/evolution/evolution.md "Pattern Detection Surfacing At Cold-start" fixes
+# the three detection targets (self-evaluation log repetition / recent memory
+# additions / keyword overlap with Li+ source) and delegates the thresholds and
+# the concrete logic to the adapter, which is this block.
+#
+# #1632 F3 / #1636: every detector below used to read a format nothing writes, so
+# the section was empty on every session and an empty surface could not be told
+# apart from "nothing crossed the noise floor". Detector 1 matched a
+# `root_cause:` / `tags:` line syntax that no spec defines and the log has never
+# used; detectors 2 and 3 scanned the flat feedback.md / project.md pair that the
+# one-memory-per-file host layout replaced. The formats read below are the ones
+# the live artifacts actually carry, and they are the same formats the sibling
+# ports read — the detection behavior is deliberately identical across
+# adapter/claude/hooks/on-session-start.sh, on-session-start.sh and this file.
+#
+# Case sensitivity: the bash ports match with awk / sed / `case`, which are
+# case-sensitive, so every comparison here that stands in for one of those uses
+# the case-sensitive operator (`-cmatch` / `-ccontains` / `-cnotcontains`) or an
+# ordinal comparer. `ToLowerInvariant` stands in for awk `tolower`, which is
+# ASCII-only and culture-independent.
 $thresholdN = 2
+# $surfaceCap bounds the two list-shaped detectors. This is an orientation
+# surface read at session opening, and a list past roughly this length stops
+# being scannable; the full count is still printed, so a truncated list never
+# hides that more exists.
+$surfaceCap = 10
+
 # A candidate qualifies as $memoryDir only when it holds at least one file that
 # some $memoryDir consumer reads. Directory existence alone is not the criterion:
 # an empty higher-precedence directory would otherwise shadow a populated
 # lower-precedence one and silence every consumer at once.
-# The marker set is the files $memoryDir consumers read (feedback / project
-# detectors, self-evolution observation surface), plus self-evaluation_log.md so
-# that both resolution paths agree on what counts as a memory directory. That
-# added member never decides a case in practice: the self-eval lookup above
-# scans the same candidate directories, so whenever that file exists the primary
-# path has already claimed the directory before this check runs.
+# The marker set is the files $memoryDir consumers read: the observation surface,
+# the per-topic entry-file prefixes the promotion detectors scan, plus
+# self-evaluation_log.md so that both resolution paths agree on what counts as a
+# memory directory. That last member never decides a case in practice: the
+# self-eval lookup above scans the same candidate directories, so whenever that
+# file exists the primary path has already claimed the directory before this
+# check runs.
+# The prefixes replace the former flat feedback.md / project.md pair: the host
+# auto-memory layout is one memory per file, so a live memory directory holds
+# feedback_<topic>.md / project_<topic>.md / reference_<topic>.md /
+# user_<topic>.md and neither flat name exists. Matching prefixes rather than any
+# *.md is deliberate — an unrelated file must not let a directory claim the slot.
 function Test-MemoryDirPopulated {
   param([string]$Dir)
   foreach ($markerFile in @(
       'self-evaluation_log.md',
-      'feedback.md',
-      'project.md',
       'self-evolution-observation.md')) {
     if (Test-Path -LiteralPath (Join-Path $Dir $markerFile) -PathType Leaf) { return $true }
+  }
+  foreach ($markerPrefix in @('feedback', 'project', 'reference', 'user')) {
+    $hit = Get-ChildItem -LiteralPath $Dir -Filter "$markerPrefix*.md" -File -ErrorAction SilentlyContinue |
+      Select-Object -First 1
+    if ($hit) { return $true }
   }
   return $false
 }
 
+# Memory entry files inside a resolved $memoryDir, under the same one-memory-
+# per-file layout. Excluded are the index and the three transient operational
+# files, each of which has its own dedicated reader. Flat feedback.md /
+# project.md are NOT excluded, so a workspace that has not migrated is still
+# scanned. Ordinal sort, because the detector output is sha256-fingerprinted for
+# diff-only emission and must not depend on directory order — and to match the
+# bash ports, whose plain `sort` is bytewise under a C locale. No bash port pins
+# LC_ALL=C, so that match holds by environment rather than by enforcement; under
+# a culture-aware locale the bash order can differ from this one.
+function Get-MemoryEntryFiles {
+  param([string]$Dir)
+  $skip = @('MEMORY.md', 'promotion_tally.md', 'self-evaluation_log.md', 'self-evolution-observation.md')
+  $names = [string[]]@(
+    Get-ChildItem -LiteralPath $Dir -Filter '*.md' -File -ErrorAction SilentlyContinue |
+      Where-Object { $skip -cnotcontains $_.Name } |
+      ForEach-Object { $_.Name })
+  if ($names.Count -eq 0) { return @() }
+  [Array]::Sort($names, [System.StringComparer]::Ordinal)
+  return @($names | ForEach-Object { Join-Path $Dir $_ })
+}
+
+# Title of one memory entry = its frontmatter `name:` (written by the host
+# auto-memory) when present, else the filename stem. Under the flat-file layout
+# the equivalent unit was a `## ` section header; with one memory per file the
+# file itself is the entry, so the title moves to the frontmatter.
+function Get-MemoryEntryTitle {
+  param([string]$Path)
+  $title = ''
+  foreach ($line in @(Get-Content -LiteralPath $Path -TotalCount 10 -ErrorAction SilentlyContinue)) {
+    if ($line -cmatch '^name:[ \t]*(.*)$') { $title = $matches[1]; break }
+  }
+  $title = ($title -replace "`r", '') -replace '\s+$', ''
+  if (-not $title) { return [System.IO.Path]::GetFileNameWithoutExtension($Path) }
+  return $title
+}
+
+# One (axis, verdict) pair out of a self-evaluation entry's axis-tag list.
+# Counted only when the verdict carries the word `miss`.
+function Add-AxisMiss {
+  param([hashtable]$Tally, [string]$Pair)
+  $sep = $Pair.IndexOf(':')
+  if ($sep -lt 0) { return }
+  $axis = ($Pair.Substring(0, $sep) -replace '\*', '').Trim().ToLowerInvariant()
+  $verdict = $Pair.Substring($sep + 1)
+  if (-not $axis) { return }
+  if ($verdict.ToLowerInvariant().IndexOf('miss') -lt 0) { return }
+  if ($Tally.ContainsKey($axis)) { $Tally[$axis]++ } else { $Tally[$axis] = 1 }
+}
+
 # Probe the directory directly when self-evaluation_log.md is absent: the other
-# $memoryDir readers (feedback/project detectors, self-evolution observation
-# surface) must not be silenced by the absence of an unrelated file.
+# $memoryDir readers (promotion detectors, self-evolution observation surface)
+# must not be silenced by the absence of an unrelated file.
 $memoryDir = ''
 if ($selfEvalFound) {
   $memoryDir = Split-Path -Parent $selfEvalFound
@@ -384,75 +470,194 @@ if ($selfEvalFound) {
 }
 $promotionBody = ''
 
-# Detector 1: repeated (root_cause, first-tag) pairs in self-evaluation_log.md.
+# Detector 1: the same observational axis tagged `miss` across several
+# self-evaluation entries. That repetition is the one the spec names:
+# `skills/evolution-self-eval/SKILL.md` Recording — "Repeated miss on the same
+# axis across entries = weakness region = distill candidate for evolution loop".
+#
+# Two entry layouts are in live use and both are read:
+#   **Axis tags**: <axis>: <verdict> / <axis>: <verdict> / ...   (one line)
+#   **Axis tags (10-axis)**:                                     (header, then)
+#   - <axis>: <verdict>                                          (bullets)
+# A verdict counts as a miss when the word appears anywhere in it, so
+# `**miss (primary)**` and `miss→hit` both register as an observed miss.
+# Axis names are lowercased before tallying; `**` emphasis is stripped.
 if ($selfEvalFound -and (Test-Path -LiteralPath $selfEvalFound)) {
-  $pairCount = @{}
-  $rc = ''
-  foreach ($l in (Get-Content -LiteralPath $selfEvalFound -ErrorAction SilentlyContinue)) {
-    if ($l -match '^\s*root_cause:\s*(.*)$') { $rc = $matches[1].Trim(); continue }
-    if ($l -match '^\s*tags:\s*(.*)$' -and $rc -ne '') {
-      $tag = (($matches[1] -split ',')[0]).Trim()
-      if ($tag) { $key = "$rc|$tag"; if ($pairCount.ContainsKey($key)) { $pairCount[$key]++ } else { $pairCount[$key] = 1 } }
-      $rc = ''
+  $axisCount = @{}
+  $inAxisBlock = $false
+  foreach ($l in @(Get-Content -LiteralPath $selfEvalFound -ErrorAction SilentlyContinue)) {
+    if ($l -cmatch '^\s*\*\*Axis tags') {
+      # Everything past the closing "**:" of the label is the inline pair list;
+      # an empty remainder means the bullet layout follows.
+      $labelEnd = $l.IndexOf('**:')
+      $rest = if ($labelEnd -ge 0) { $l.Substring($labelEnd + 3) } else { '' }
+      if ($rest -match '\S') {
+        foreach ($part in ($rest -split ' / ')) { Add-AxisMiss $axisCount $part }
+        $inAxisBlock = $false
+      } else {
+        $inAxisBlock = $true
+      }
+      continue
     }
-  }
-  $dupes = ''
-  foreach ($k in $pairCount.Keys) {
-    if ($pairCount[$k] -ge $thresholdN) {
-      $p = $k -split '\|'
-      $dupes += "  - ($($p[0]), $($p[1])) x$($pairCount[$k])`n"
+    if ($inAxisBlock -and ($l -match '^\s*-\s')) {
+      Add-AxisMiss $axisCount ($l -replace '^\s*-\s*', '')
+      continue
     }
+    if ($inAxisBlock) { $inAxisBlock = $false }
   }
-  if ($dupes) { $promotionBody += "repeated (root_cause, domain-tag) pairs:`n$dupes" }
+  $axisLines = [string[]]@(
+    $axisCount.Keys |
+      Where-Object { $axisCount[$_] -ge $thresholdN } |
+      ForEach-Object { '  - axis "{0}" tagged miss x{1}' -f $_, $axisCount[$_] })
+  if ($axisLines.Count -gt 0) {
+    [Array]::Sort($axisLines, [System.StringComparer]::Ordinal)
+    $promotionBody += "repeated self-evaluation axis misses:`n" + ($axisLines -join "`n") + "`n"
+  }
 }
 
-# Detector 2: recent (<=7d) memory section additions in feedback.md / project.md.
+# Detector 2: memory entries written or rewritten within the last 7 days.
+# One memory is one file, so the entry is the unit of recency and file mtime is
+# the signal; the flat-file era counted '## ' sections inside two files instead.
+# Flagged when the count reaches $thresholdN.
+#
+# Note: this 7d window is the memory-scan recency window (Cold-start observe
+# stage surface), independent from the 3d cluster window in
+# rules/evolution/promotion-judgment.md. The two timers serve different axes:
+#   - 7d here = "did anything new land in memory recently? show it for AI review"
+#   - 3d there = "has the same cluster crossed the noise floor for promotion?"
+# Do not unify the two values; they intentionally sit on different axes.
 if ($memoryDir -and (Test-Path -LiteralPath $memoryDir)) {
-  $recentSections = ''
-  foreach ($mf in @((Join-Path $memoryDir 'feedback.md'), (Join-Path $memoryDir 'project.md'))) {
-    if (-not (Test-Path -LiteralPath $mf)) { continue }
+  $recentEntries = ''
+  $recentCount = 0
+  $recentCutoff = (Get-Date).AddDays(-7)
+  foreach ($mf in (Get-MemoryEntryFiles $memoryDir)) {
     $mtime = (Get-Item -LiteralPath $mf -ErrorAction SilentlyContinue).LastWriteTime
-    if ($mtime -and $mtime -ge (Get-Date).AddDays(-7)) {
-      $secs = Select-String -LiteralPath $mf -Pattern '^## ' -ErrorAction SilentlyContinue | ForEach-Object { '  - ' + ($_.Line -replace '^## ', '') }
-      if ($secs -and $secs.Count -ge $thresholdN) {
-        $recentSections += "$(Split-Path -Leaf $mf) (modified within 7d, $($secs.Count) sections):`n" + ($secs -join "`n") + "`n"
+    if ($mtime -and $mtime -ge $recentCutoff) {
+      $recentCount++
+      if ($recentCount -le $surfaceCap) {
+        $recentEntries += "  - $(Split-Path -Leaf $mf) [$(Get-MemoryEntryTitle $mf)]`n"
       }
     }
   }
-  if ($recentSections) { $promotionBody += "recent memory additions (<= 7d):`n$recentSections" }
+  if ($recentCount -ge $thresholdN) {
+    # A consolidate pass rewrites every entry at once, so the cap is a normal
+    # occurrence rather than an edge case.
+    if ($recentCount -gt $surfaceCap) {
+      $recentEntries += "  - ... and $($recentCount - $surfaceCap) more`n"
+    }
+    $promotionBody += "recent memory additions (<= 7d, $recentCount entries):`n$recentEntries"
+  }
 }
 
-# Detector 3: keyword overlap between memory section titles and Li+ source files.
+# Detector 3: keyword overlap between memory entry titles and Li+ source files.
+# Tokens are the >= 4-char ASCII alphanumeric words of an entry title; a hit
+# means the entry's topic already has a surface in rules/ or skills/. Surfaced
+# as a "possible overlap" hint — not a promotion decision.
+#
+# The four entry-type prefixes are dropped: under the per-topic naming scheme
+# they classify the entry rather than name its topic, so they would match nearly
+# every source file and drown the real signal. A non-ASCII title yields no
+# tokens and is simply skipped, as before.
+#
+# A pair is reported only once at least $thresholdN distinct title tokens land in
+# the same source file. One shared common word ("identity", "answer") is
+# coincidence at this corpus size and produced hundreds of lines when measured
+# against the live memory set; two independent words of one title meeting in one
+# file is topical adjacency, which is what this detector is looking for.
+#
+# The source is named by its path relative to the clone, not by basename: every
+# skill file is called SKILL.md, so a basename label identifies nothing.
+#
+# Matching is on whole words, not substrings: each source file is split on
+# non-alphanumeric runs exactly as the titles are, so `user` no longer hits
+# inside `users` and the two bash ports and this one agree on what a hit is.
+# The rank prefix (inverted token count, zero padded) makes a plain ordinal sort
+# order strongest adjacency first, and the cap is applied after the sort —
+# capping an unordered set would pick a different subset per run and churn the
+# sha256 the diff-only emission compares against.
 if ($memoryDir -and (Test-Path -LiteralPath $memoryDir)) {
-  $overlap = ''
+  # Parallel arrays, deliberately not de-duplicated: a token repeated inside one
+  # title counts twice, matching the bash ports.
+  $tokenLabels = @()
+  $tokenNames = @()
+  foreach ($mf in (Get-MemoryEntryFiles $memoryDir)) {
+    $entryTitle = Get-MemoryEntryTitle $mf
+    $entryLabel = "$(Split-Path -Leaf $mf) [$entryTitle]"
+    foreach ($tok in ($entryTitle.ToLowerInvariant() -split '[^a-z0-9]+')) {
+      if ($tok.Length -lt 4) { continue }
+      if (@('feedback', 'project', 'reference', 'user') -ccontains $tok) { continue }
+      $tokenLabels += $entryLabel
+      $tokenNames += $tok
+    }
+  }
   $srcFiles = @()
-  $srcFiles += Get-ChildItem -LiteralPath $rulesRoot -Recurse -Filter '*.md' -File -ErrorAction SilentlyContinue
+  if (Test-Path -LiteralPath $rulesRoot) {
+    $srcFiles += @(Get-ChildItem -LiteralPath $rulesRoot -Recurse -Filter '*.md' -File -ErrorAction SilentlyContinue)
+  }
   $skillsRoot = Join-Path $liplusDir 'skills'
   if (Test-Path -LiteralPath $skillsRoot) {
-    $srcFiles += Get-ChildItem -LiteralPath $skillsRoot -Recurse -Filter 'SKILL.md' -File -ErrorAction SilentlyContinue
+    $srcFiles += @(Get-ChildItem -LiteralPath $skillsRoot -Recurse -Depth 1 -Filter 'SKILL.md' -File -ErrorAction SilentlyContinue)
   }
-  $srcLc = @{}
-  foreach ($sf in $srcFiles) {
-    $c = Get-Content -LiteralPath $sf.FullName -Raw -ErrorAction SilentlyContinue
-    if ($c) { $srcLc[$sf.FullName] = $c.ToLower() }
-  }
-  foreach ($mf in @((Join-Path $memoryDir 'feedback.md'), (Join-Path $memoryDir 'project.md'))) {
-    if (-not (Test-Path -LiteralPath $mf)) { continue }
-    $headers = Select-String -LiteralPath $mf -Pattern '^## ' -ErrorAction SilentlyContinue
-    foreach ($h in $headers) {
-      $title = ($h.Line -replace '^## ', '')
-      $tokens = ($title.ToLower() -split '[^a-z0-9]+') | Where-Object { $_.Length -ge 4 } | Select-Object -Unique
-      if (-not $tokens) { continue }
-      foreach ($sfPath in $srcLc.Keys) {
-        $hit = @()
-        foreach ($tok in $tokens) { if ($srcLc[$sfPath].Contains($tok)) { $hit += $tok } }
-        if ($hit.Count -gt 0) {
-          $overlap += "  - $(Split-Path -Leaf $mf) [$title] ~ $(Split-Path -Leaf $sfPath) (tokens: $($hit -join ' '))`n"
+  if ($tokenNames.Count -gt 0 -and $srcFiles.Count -gt 0) {
+    $wanted = @{}
+    foreach ($tok in $tokenNames) { $wanted[$tok] = $true }
+    $srcHits = @{}
+    $rootPrefix = ($liplusDir -replace '\\', '/').TrimEnd('/') + '/'
+    foreach ($sf in $srcFiles) {
+      $rel = $sf.FullName -replace '\\', '/'
+      if ($rel.StartsWith($rootPrefix)) { $rel = $rel.Substring($rootPrefix.Length) }
+      $content = Get-Content -LiteralPath $sf.FullName -Raw -ErrorAction SilentlyContinue
+      if (-not $content) { continue }
+      $seen = @{}
+      foreach ($word in ($content.ToLowerInvariant() -split '[^a-z0-9]+')) {
+        if (-not $wanted.ContainsKey($word)) { continue }
+        if ($seen.ContainsKey($word)) { continue }
+        $seen[$word] = $true
+        if (-not $srcHits.ContainsKey($word)) { $srcHits[$word] = @() }
+        $srcHits[$word] += $rel
+      }
+    }
+    # Ordinal comparer, not the `@{}` literal: a PowerShell hashtable literal
+    # keys case-insensitively, while the awk arrays the bash ports use are
+    # case-sensitive. This key carries the entry title and the source path at
+    # their original case, so the literal would merge two pairs the bash ports
+    # keep apart. ($wanted / $seen / $srcHits key on already-lowercased tokens,
+    # so the default comparer is equivalent there.)
+    $pairs = New-Object System.Collections.Hashtable ([System.StringComparer]::Ordinal)
+    for ($j = 0; $j -lt $tokenNames.Count; $j++) {
+      $tok = $tokenNames[$j]
+      if (-not $srcHits.ContainsKey($tok)) { continue }
+      foreach ($rel in $srcHits[$tok]) {
+        $key = $tokenLabels[$j] + [char]28 + $rel
+        if ($pairs.ContainsKey($key)) {
+          $pairs[$key].Tokens += " $tok"
+          $pairs[$key].Depth++
+        } else {
+          $pairs[$key] = [pscustomobject]@{
+            Label  = $tokenLabels[$j]
+            Rel    = $rel
+            Tokens = " $tok"
+            Depth  = 1
+          }
         }
       }
     }
+    $overlapRanked = [string[]]@(
+      $pairs.Values |
+        Where-Object { $_.Depth -ge $thresholdN } |
+        ForEach-Object { ('{0:d3}' -f (999 - $_.Depth)) + "`t" + "  - $($_.Label) ~ $($_.Rel) (tokens:$($_.Tokens))" })
+    if ($overlapRanked.Count -gt 0) {
+      [Array]::Sort($overlapRanked, [System.StringComparer]::Ordinal)
+      $overlapCount = $overlapRanked.Count
+      $overlapText = (@($overlapRanked |
+        Select-Object -First $surfaceCap |
+        ForEach-Object { $_.Substring($_.IndexOf("`t") + 1) }) -join "`n")
+      if ($overlapCount -gt $surfaceCap) {
+        $overlapText += "`n  - ... and $($overlapCount - $surfaceCap) more"
+      }
+      $promotionBody += "possible keyword overlap with Li+ source ($overlapCount pairs):`n$overlapText`n"
+    }
   }
-  if ($overlap) { $promotionBody += "possible keyword overlap with Li+ source:`n$overlap" }
 }
 Register-Section 'promotion_candidates' 'Promotion candidates (memory → Li+ source)' $promotionBody
 

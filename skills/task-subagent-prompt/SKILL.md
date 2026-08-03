@@ -70,7 +70,7 @@ Detection signs:
 
 # Memory-only knowledge does not transfer to subagent
 
-Parent-side memory (workspace memory/feedback.md, memory/project.md, in-session corrections) is NOT auto-loaded into the subagent's context. The subagent only sees the issue body, the auto-loaded Li+ rules and skills, and the delegation prompt itself.
+Parent-side memory (the per-topic entry files `memory/feedback_<topic>.md`, `memory/project_<topic>.md` and their siblings, plus in-session corrections) is NOT auto-loaded into the subagent's context. The subagent only sees the issue body, the auto-loaded Li+ rules and skills, and the delegation prompt itself.
 
 If subagent behavior depends on memory content, the parent MUST inject the relevant literal into the delegation prompt. "Memory has it, so subagent will pick it up" has failed multiple times in past sessions; pattern-match this assumption and reject it at delegation-construction time.
 

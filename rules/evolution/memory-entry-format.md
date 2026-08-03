@@ -13,7 +13,7 @@ layer: L2-evolution
 ## Position
 
 Layer = L2 Evolution Layer
-Entry format and maintenance discipline for the memory file set (`feedback.md` / `project.md` / `MEMORY.md` / `promotion_tally.md` / `self-evaluation_log.md` etc.).
+Entry format and maintenance discipline for the memory file set: the per-topic entry files (`feedback_<topic>.md` / `project_<topic>.md` / `reference_<topic>.md` / `user_<topic>.md` — one memory per file) plus the index and the operational files (`MEMORY.md` / `promotion_tally.md` / `self-evaluation_log.md` / `self-evolution-observation.md`).
 Requires = L2 Evolution Layer (persistence-tiering / promotion-judgment surroundings)
 Load timing = always-on (memory writes occur across the entire session)
 Single source. Replace the operational note at the head of each memory file with a reference to this rule (avoid double-holding drift).

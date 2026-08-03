@@ -106,16 +106,14 @@ Release create completion report contains release URL + post-release task comple
 Real-device verification structure:
 Real-device verification is multi-session continuous observation by human, not a single-session event. Normal session operation after a release IS the verification. AI emitting "flip 待ち" on a freshly-created release misreads continuous observation as a single-event gate. Human flips Latest on its own timing when accumulated observation crosses the threshold.
 
-Application moments (apply discipline at):
-- Release create completion report (the primary trigger).
-- Cold-start synthesis: when release tag list is surfaced and Latest flag is observed on a prior version, do NOT surface "Latest behind / flip pending" as unique insight. Hook surfaces raw material; AI side stays silent on the Latest position.
-- Any AI-side mention of release state outside an explicit human inquiry.
+Scope: AI-side surfacing of release state. A human's explicit inquiry about release state is outside it — answer that directly.
+
+Application moment = the release create completion report. The cold-start synthesis moment sits outside this skill's routing and is carried by `rules/evolution/cold-start-synthesis.md` Operational criterion.
 
 Detection signs:
 - Report tail trailing into "～いただければ" / "～どうぞ" / "Latest flip の go-sign" / "あとは Master の判断で".
 - "次のステップ" / "あとは" surfacing in release completion report.
 - "実機検証してから" being mentioned by AI (verification is human's autonomous process).
-- Cold-start synthesis about to surface "v1.x.y が出ているが Latest は前版" as unique insight.
 
 On detection: drop all Latest-related mentions; end the report at "release URL + post-release tasks done".
 

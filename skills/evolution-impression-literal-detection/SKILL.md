@@ -27,7 +27,7 @@ Negative (protected, NOT detection target):
 
 Test: can this sentence be removed without changing the rule's behavior semantic? Yes → impression literal.
 
-Aggregation (narrower than brake 1's default safer-side OR):
+Aggregation — this axis is fixed, so it does not take the per-judgment aggregation rule brake 1 selects for the axes chosen per draft; it overrides through the fixed-axis route at `skills/evolution-parallel-agent-eval/SKILL.md` Procedure step 4, at these absolute thresholds:
 - 2 or more of N=3 flag the same literal → refine immediately.
 - 1 of N=3 flags → append the flagged literal to the PR self-review comment per `skills/evolution-parallel-agent-eval/SKILL.md` Procedure step 7; do not auto-refine.
 

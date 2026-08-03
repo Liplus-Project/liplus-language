@@ -1,6 +1,6 @@
 ---
 name: evolution-self-eval
-description: Invoke when a self-evaluation entry is about to be recorded (two-axis: dialogue quality and Li+ compliance). Applies the 10 observational axes (Character drift primary; logical-frame axes secondary) when scoring.
+description: Invoke when an externally observable fact bearing on dialogue quality or Li+ compliance has just occurred (a human correction landed, a procedure step was skipped, CI failed) and whether it is worth recording is being decided / a self-evaluation entry is about to be recorded (two-axis: dialogue quality and Li+ compliance). Applies the 10 observational axes (Character drift primary; logical-frame axes secondary) when scoring.
 layer: L2-evolution
 ---
 

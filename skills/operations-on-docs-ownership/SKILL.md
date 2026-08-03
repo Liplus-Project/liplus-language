@@ -1,6 +1,6 @@
 ---
 name: operations-on-docs-ownership
-description: Invoke when a behavior or spec change is about to be committed. Ensures the requirements spec and docs are updated in the same PR.
+description: Invoke when a behavior or spec change is about to be committed / a normative sentence or a parity block that is duplicated across files is about to be edited. Ensures the requirements spec and docs are updated in the same PR, and provides the pre-edit and post-edit grep-sweep pair that keeps a synchronized set from drifting.
 layer: L4-operations
 ---
 

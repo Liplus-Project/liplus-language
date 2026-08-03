@@ -370,7 +370,7 @@ Naive single-shot RAG consumption fails on corpus boundary, recognition bias, an
 ## Observation and evolution
 
 Single environment cannot benchmark this skill against alternatives. Observation loop instead:
-- log failure cases (hit State C, escalation chosen, outcome) to `memory/feedback.md` or self-evaluation log when notable
+- log failure cases (hit State C, escalation chosen, outcome) to a `memory/feedback_<topic>.md` entry or the self-evaluation log when notable
 - side-by-side compare with naive single-shot consumption when retrospectively visible
 - feed observations into evolution loop observe stage (`skills/evolution-loop/SKILL.md`)
 

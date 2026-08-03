@@ -1,6 +1,6 @@
 ---
 name: operations-on-sub-issue
-description: Invoke when a sub-issue is about to be created / a sub-issue needs classifying against a sibling issue / a sub-issue is about to be linked to its parent. Enforces the single parent PR flow and the sub-issue versus sibling classification.
+description: Invoke when a sub-issue is about to be created / a sub-issue needs classifying against a sibling issue / a sub-issue is about to be linked to its parent / a commit is about to carry a change that exceeds the parent issue body literal (a negative-constraint clause or the enumerated target-file set). Enforces the single parent PR flow, the sub-issue versus sibling classification, and the pre-commit scope-exceed dialogue confirm.
 layer: L4-operations
 ---
 

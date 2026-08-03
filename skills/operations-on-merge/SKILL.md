@@ -1,6 +1,6 @@
 ---
 name: operations-on-merge
-description: Invoke when self-review has passed and the mode gate has cleared. Provides the mergeable state check, squash merge, and parent auto-close on merge.
+description: Invoke when self-review has passed and the mode gate has cleared. Provides the mergeable state check, squash merge, parent auto-close on merge, and the post-merge obligations that outlive it (real device test on main, and the L1 runtime observation for a PR touching L1 Model Layer source).
 layer: L4-operations
 ---
 

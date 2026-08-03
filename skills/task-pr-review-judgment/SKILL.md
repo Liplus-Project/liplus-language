@@ -1,6 +1,6 @@
 ---
 name: task-pr-review-judgment
-description: Invoke when a PR review result is about to be judged. Mode-dependent: auto and semi_auto use self-review by the main agent, semi_auto adding a type-gated human check; trigger handles external review APPROVED and CHANGES_REQUESTED.
+description: Invoke when the main agent is about to judge a PR review result (actor axis: this is the main-agent surface, and it reaches the judgment without reading the operations skills; a delegated subagent at its own review surface takes `skills/operations-on-pr-review/SKILL.md` instead). Mode-dependent: auto and semi_auto use self-review by the main agent, semi_auto adding a type-gated human check; trigger handles external review APPROVED and CHANGES_REQUESTED.
 layer: L3-task
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: model-trigger-check-gate-actions
-description: Invoke when non-trivial speech or action is about to be emitted / external content has just been read / speech about spec or rules or past judgment is about to be composed / a "confident to say" feeling arises (gist-memory misreliance) / a side heads-up or for-your-information remark is about to be emitted / multiple drift corrections have just happened (ingratiation-closing risk) / a version classification (patch, minor or major) is about to be written / the cost or weight or token-load of a Li+ component is about to be characterized / a subagent delegation prompt is about to be composed. Provides the Trigger moments expanded list and the Retrieval tools table for one-tempo-slower verification of the 5-axis Trigger Check Gate.
+description: Invoke when non-trivial speech or action is about to be emitted / external content has just been read / speech about spec or rules or past judgment is about to be composed / Character or tone or closing is about to be chosen / a "confident to say" feeling arises (gist-memory misreliance) / a side heads-up or for-your-information remark is about to be emitted / multiple drift corrections have just happened (ingratiation-closing risk) / a version classification (patch, minor or major) is about to be written / the cost or weight or token-load of a Li+ component is about to be characterized / a subagent delegation prompt is about to be composed. Provides the Trigger moments expanded list and the Retrieval tools table for one-tempo-slower verification of the 5-axis Trigger Check Gate.
 layer: L1-model
 ---
 
@@ -34,7 +34,8 @@ Fire the Gate at these signals.
 - About to write a version classification (patch / minor / major) in PR title, commit body, or issue body — Read `rules/operations/release-version-rule.md` literally before deciding. The "large" modifier on minor / major is the recurring miss under judgment heat.
 - About to characterize cost / weight / token-load of a Li+ component — verify wiring (hook / frontmatter / cache surface) before asserting. `alwaysApply: true` and "survives compaction" mean session-resident, not per-turn re-injection.
 - About to compose a subagent delegation prompt — verify every factual claim in the prompt (release versions, file paths, prior-self quotes, tool / config state) against current state via Read / gh / RAG before sending. Gist memory of recent state is the recurring failure mode at delegation moment; the cost of pre-send verify is far below the cost of a subagent stop-and-clarify round trip.
-- Before responding to a dialogue-side opinion question containing time-variant keywords ("latest" / "recent" / "current" / "now") — even when the agent feels confident from internal knowledge, invoke `skills/model-agentic-search/SKILL.md` because the category-side gate fires on these keywords in comparison-informative domains (the spin-wheel domain suppressor — language / math / logic / pure internal judgment — narrows it; see the skill's mode-gate-and-domain-modulators section). The calibration-side gate fires independently when the agent's confidence is low / fuzzy / mixed with speculation, and is never suppressed by domain.
+
+Time-variant keyword input ("latest" / "recent" / "current" / "now") is not enumerated here — `skills/model-agentic-search/SKILL.md` owns that firing moment on its own description, and the Retrieval tools row below carries the pointer.
 
 </trigger-moments>
 

@@ -95,7 +95,7 @@ description: Invoke when <条件1> / <条件2> / <条件3>. <何を提供する�
 
 ### 適用状況
 
-`skills/*/SKILL.md` 全件がこの形。例外は `skills/model-agentic-search/SKILL.md`（`layer: L1-model`、brake 2 対象のため #1599 で別 PR 実施）。
+`skills/*/SKILL.md` 全件がこの形。唯一の例外だった `skills/model-agentic-search/SKILL.md`（`layer: L1-model`）は #1641 で house 形へ整合させ、例外は解消した。
 
 ## scope と除外
 

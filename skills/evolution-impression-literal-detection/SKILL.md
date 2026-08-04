@@ -31,6 +31,10 @@ Aggregation — this axis is fixed, so it does not take the per-judgment aggrega
 - 2 or more of N=3 flag the same literal → refine immediately.
 - 1 of N=3 flags → append the flagged literal to the PR self-review comment per `skills/evolution-parallel-agent-eval/SKILL.md` Procedure step 7; do not auto-refine.
 
+These two numbers are absolute for this axis and rest on the Rationale below, not on a count of agreeing evaluators. They do not license reading a ratio as a verdict on the axes selected per draft — there, a ratio is a triage signal only (`skills/evolution-parallel-agent-eval/SKILL.md` Design Dimensions, Ratio is a triage signal).
+
+A split on this axis (1-of-3, or 2-of-3) is a divergence, so it also runs the same-question check → why-diverged pair in that file's Divergence handling. The pair can find the split tracing to the Positive / Negative lists above being ambiguous at the flagged phrase, and that finding is recorded; the threshold action above fires independently of what the pair returns.
+
 False-negative backstop: all-3-miss cases route to post-merge observation per `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format (2-week cycle). Post-merge drift surfacing is on a separate axis from this pre-merge detection.
 
 Rationale: behavior-vs-impression boundary is context-dependent, so N=1 flag carries false-positive risk. The threshold prevents over-trimming load-bearing L1 spec phrasing.

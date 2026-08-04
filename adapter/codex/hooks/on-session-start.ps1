@@ -574,9 +574,13 @@ $promotionBody = ''
 #   **Axis tags (10-axis)**:                                     (header, then)
 #   - <axis>: <verdict>                                          (bullets)
 if ($selfEvalFound -and (Test-Path -LiteralPath $selfEvalFound)) {
-  # Ordinal comparer for the same reason the overlap detector below uses one:
-  # the `@{}` literal keys case-insensitively while the awk arrays of the bash
-  # ports are case-sensitive.
+  # Ordinal comparer to match the awk arrays of the bash ports, which key
+  # case-sensitively while a `@{}` literal does not. Unlike the overlap detector
+  # below, no input reaches this table still carrying case: Get-AxisNormalForm
+  # lowercases on every return path, so the comparer cannot change a tally today.
+  # It is set anyway because the parity it holds is with awk's semantics, not
+  # with the current normalizer — a normalizer that stopped lowercasing would
+  # otherwise split this port's tally away from the bash ports silently.
   $axisCount = New-Object System.Collections.Hashtable ([System.StringComparer]::Ordinal)
   $inAxisBlock = $false
   foreach ($l in @(Get-Content -LiteralPath $selfEvalFound -ErrorAction SilentlyContinue)) {

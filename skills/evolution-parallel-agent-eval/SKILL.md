@@ -1,6 +1,6 @@
 ---
 name: evolution-parallel-agent-eval
-description: Invoke when a self-evolution PR reaches CI green and the merge gate is next (mandatory brake 1) / a Li+ rules or skills or adapter edit draft has converged outside a PR flow and needs verification before it is carried into one / an evolution-loop observe or evaluate stage needs an empirical verdict / an N=1 self-check on an edit feels positive and the overconfidence needs an outside measurement / a spec revision proposal needs orthogonal verification on the rule semantic consistency axis. Provides parallel subagent eval (default: N=3 subagents each answering all observation axes; the aggregation rule is not fixed, it is chosen per the asymmetry of the judgment under eval), which catches introspection-gap-driven overconfidence: the N, M and P design dimensions, the 7-step procedure with operational copy apply and restore, the N=3 and model floors, and the single-round cap.
+description: Invoke when a self-evolution PR reaches CI green and the merge gate is next (mandatory brake 1) / a Li+ rules or skills or adapter edit draft has converged outside a PR flow and needs verification before it is carried into one / an evolution-loop observe or evaluate stage needs an empirical verdict / an N=1 self-check on an edit feels positive and the overconfidence needs an outside measurement / a spec revision proposal needs orthogonal verification on the rule semantic consistency axis. Provides parallel subagent eval (default: N=3 subagents each answering all observation axes; the aggregation rule is not fixed, it is chosen per the asymmetry of the judgment under eval), which catches introspection-gap-driven overconfidence: the N, M and P design dimensions, the 7-step procedure with operational copy apply and restore, the N=3 and model floors, the single-round cap, the divergence handling pair (same-question check, then why-diverged) and the rule that a ratio is a triage signal rather than a judgment input.
 layer: L2-evolution
 ---
 
@@ -59,6 +59,23 @@ Choose based on the asymmetry of the judgment:
 - adopt/reject binary where erroneous adoption is costly -> require unanimous agreement (AND)
 - intermediate -> three-value classification: consistent / partial / negative
 
+### Divergence handling
+
+When evaluators split on one axis, ask two questions once each, in this order, before the verdict is written:
+
+1. **Same-question check** - did they answer the same question? A split is often not disagreement: two evaluators checked one reading of the axis and the third checked another, so no one contradicted anyone. No here puts the finding on the axis wording (one axis name carried more than one question), not on the criteria.
+2. **Why-diverged** - asked only when 1 answers yes: does the split trace to ambiguity in the judgment criteria, or to variance in applying a criterion that is already clear?
+
+"They answered the same question, and the criteria sufficed" answers both and closes the divergence. This is a check to pass through, not a hunt: the shape is `rules/model/trigger-check-gate.md`, where one No pauses to retrieve and verify and then proceeds, and confirming nothing is wrong is a normal outcome. Writing up a criteria gap because the step expects one is the failure mode here (`rules/model/subtractive-structural-beauty.md` push surplus).
+
+Answers go to the PR self-review comment, the surface the fixed axis's 1-of-3 flag already uses (Procedure step 7). No new record surface. A criteria gap found this way is routed like any other spec-gap observation (`rules/evolution/promotion-judgment.md`); it does not gate the merge on its own.
+
+### Ratio is a triage signal
+
+The ratio of evaluators reporting a finding (3/3, 2/3, 1/3) is a cheap prior on where to spend verification effort first. It is not a judgment input. The verdict on a finding comes from checking its literal against the source: a 1/3 finding that holds up is adopted, and a 3/3 finding that does not is dropped. The ratio is kept rather than discarded because verifying every finding at equal cost is not practical and the parent's own literal check is not infallible either. Reporting form is fixed at Procedure step 7.
+
+The one place this skill fixes a count as a threshold is the fixed axis (`skills/evolution-impression-literal-detection/SKILL.md` Aggregation), whose numbers come from the asymmetry of that judgment - over-trimming load-bearing spec phrasing is the costly error - not from counting votes. The per-judgment aggregation rule above is likewise selected from asymmetry; majority is not among its options.
+
 </design-dimensions>
 
 <procedure>
@@ -82,10 +99,10 @@ Choose based on the asymmetry of the judgment:
    - the no-write literal verbatim (see Constraint: Evaluator does not modify the evaluation target)
    - the retrieval commands, so the evaluator does not assume a clone is needed: `gh pr diff <n> --repo <owner>/<repo>` returns the diff and `gh api repos/<owner>/<repo>/contents/<path>?ref=<SHA>` returns any file body at that SHA
    - the allowance that an axis needing a repository-wide sweep clones into the evaluator's own working directory, which is off the shared surface. GitHub code search is unreliable on this repository (total hits 0), so the sweep has nowhere else to go
-4. **Aggregate verdict** - Aggregate cross-axis judgment per the Design Dimensions aggregation rule. Fixed axes may override the default per-axis (see `skills/evolution-impression-literal-detection/SKILL.md` Aggregation)
+4. **Aggregate verdict** - Aggregate cross-axis judgment per the Design Dimensions aggregation rule. Fixed axes may override the default per-axis (see `skills/evolution-impression-literal-detection/SKILL.md` Aggregation). Where evaluators split on an axis, run Design Dimensions Divergence handling before the verdict is written
 5. **Runtime restore** - Restore `.claude/` to tag-match state (revert the operational copy to pre-draft). Skipping it carries the draft into the parent session's behavior and leaves it there for subsequent sessions. Skip only when step 2 applied nothing (skills/* direct-Read path, or permission-gate fallback): no write occurred, so there is nothing to restore
 6. **Judgment** - consistent -> push the spec change toward implementation. partial / negative -> the parent adjudicates each finding against the source, revises the draft, and takes the revised draft to self-review. Or abort. **Single round**: steps 2-4 produce one verdict per draft, and the revised draft ships without re-verification (see Non-scope: what the single-round cap gives up). The cap does not block step 2's `rules/*` retry path, and that path only: there, a refused apply leaves the round with no verdict, so re-running from a session that can apply IS the round, not a re-verification of it. Do not generalize this to any round that failed to produce a verdict — an evaluator crash, a malformed prompt, or a timeout does not earn a fresh round. Its other two branches (`skills/*` direct-Read fallback, `rules/*` proceeding on a reduced-confidence deviation record) produce a verdict and are unaffected
-7. **Externalize** - Record the verdict and the adoption judgment in the parent issue body / PR self-review, so the judgment survives the session. If the judgment has settled, also append to decision structure per `skills/evolution-decision-structure-write`
+7. **Externalize** - Record the verdict and the adoption judgment in the parent issue body / PR self-review, so the judgment survives the session. A reported count occupies its own field, separate from the adjudication and from the literal that adjudication rests on; do not write the count as the reason (see Design Dimensions, Ratio is a triage signal). If the judgment has settled, also append to decision structure per `skills/evolution-decision-structure-write`
 
 </procedure>
 

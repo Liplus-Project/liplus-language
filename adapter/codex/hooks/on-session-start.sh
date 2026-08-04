@@ -138,7 +138,7 @@ fi
 # Runs on EVERY matcher (Codex has no folder-level persistence).
 # ===================================================================
 if [ -d "$RULES_ROOT" ]; then
-  RULE_FILES=$(cd "$LIPLUS_DIR" && find rules -type f -name '*.md' 2>/dev/null | sort)
+  RULE_FILES=$(cd "$LIPLUS_DIR" && find rules -type f -name '*.md' 2>/dev/null | LC_ALL=C sort)
   if [ -n "$RULE_FILES" ]; then
     emit "━━━ Li+ rules (always-on; injected because Codex has no .claude/rules equivalent) ━━━"
     while IFS= read -r rel; do
@@ -268,7 +268,7 @@ DECISION_HEAD=""
 register_section "decision_structure_head" "Decision structure index (docs/Decision-Structure.md head)" "$DECISION_HEAD"
 
 RULES_TREE=""
-[ -d "$RULES_ROOT" ] && RULES_TREE=$(cd "$LIPLUS_DIR" && find rules -type f -name '*.md' 2>/dev/null | sort)
+[ -d "$RULES_ROOT" ] && RULES_TREE=$(cd "$LIPLUS_DIR" && find rules -type f -name '*.md' 2>/dev/null | LC_ALL=C sort)
 register_section "rules_tree" "Rules tree (fetch address table for rules/ cache)" "$RULES_TREE"
 
 LATEST_RELEASE=$(gh release list -R Liplus-Project/liplus-language --limit 3 2>/dev/null | head -n 3)
@@ -349,7 +349,7 @@ memory_dir_populated() {
 # scanned. Sorted, because the detector output is sha256-fingerprinted for
 # diff-only emission and must not depend on directory order.
 memory_entry_files() {
-  find "$1" -maxdepth 1 -type f -name '*.md' 2>/dev/null | sort | while IFS= read -r entryfile; do
+  find "$1" -maxdepth 1 -type f -name '*.md' 2>/dev/null | LC_ALL=C sort | while IFS= read -r entryfile; do
     case "${entryfile##*/}" in
       MEMORY.md|promotion_tally.md|self-evaluation_log.md|self-evolution-observation.md) ;;
       *) printf '%s\n' "$entryfile" ;;
@@ -390,25 +390,89 @@ PROMOTION_BODY=""
 # `skills/evolution-self-eval/SKILL.md` Recording — "Repeated miss on the same
 # axis across entries = weakness region = distill candidate for evolution loop".
 #
-# Two entry layouts are in live use and both are read:
+# The line format this reads is specified, not inferred: `skills/evolution-self-eval/SKILL.md`
+# "Axis tag line format" fixes the two layouts, the axis-name normal form and the
+# inline list terminator. Everything below implements that section and nothing
+# beyond it; when the two disagree, the skill is the source. Before #1651 no spec
+# held the format at all, so the log drifted and the detector went quiet.
+#
 #   **Axis tags**: <axis>: <verdict> / <axis>: <verdict> / ...   (one line)
 #   **Axis tags (10-axis)**:                                     (header, then)
 #   - <axis>: <verdict>                                          (bullets)
-# A verdict counts as a miss when the word appears anywhere in it, so
-# `**miss (primary)**` and `miss→hit` both register as an observed miss.
-# Axis names are lowercased before tallying; `**` emphasis is stripped.
 if [ -n "$SELFEVAL_FOUND" ] && [ -f "$SELFEVAL_FOUND" ]; then
   AXIS_MISSES=$(awk -v n="$THRESHOLD_N" '
+    BEGIN {
+      # The 10 axes, verbatim and lowercased. Canonical vocabulary for the
+      # normal form: a shorthand that is a word-boundary prefix of exactly one
+      # of these expands to it, which is why no alias table exists.
+      canon_n = split("assumption surfacing,contradiction catch,deepening axis fit," \
+                      "silence respect,loop entry,character drift,review partition," \
+                      "gist vs literal,expansion limit,request depth", canon, ",")
+    }
+    # First position of needle in hay that sits outside parentheses, or 0.
+    # Only ASCII parens are inspected and every offset comes from index() and
+    # substr() over one string, so the scan reads the same whether this awk
+    # counts in bytes or in characters.
+    function outer_index(hay, needle,   base, rel, pos, ch, depth, cursor) {
+      base = 0; depth = 0; cursor = 1
+      while (1) {
+        rel = index(substr(hay, base + 1), needle)
+        if (rel == 0) return 0
+        pos = base + rel
+        while (cursor < pos) {
+          ch = substr(hay, cursor, 1)
+          if (ch == "(") depth++
+          else if (ch == ")" && depth > 0) depth--
+          cursor++
+        }
+        if (depth == 0) return pos
+        base = pos
+      }
+    }
+    # Inline list end: the pair list stops at the first outside-parentheses
+    # sentence terminator or `Root cause:` / `Domain:` label. Without this the
+    # last segment ran to end of line and swallowed the free-form trailer, which
+    # both fed that prose to the miss scan and split a parenthetical " / " inside
+    # it into a phantom axis.
+    function cut_trailer(rest,   best, p, k, marks) {
+      split("。,Root cause:,Domain:", marks, ",")
+      best = 0
+      for (k = 1; k <= 3; k++) {
+        p = outer_index(rest, marks[k])
+        if (p > 0 && (best == 0 || p < best)) best = p
+      }
+      return (best > 0) ? substr(rest, 1, best - 1) : rest
+    }
+    # Axis name normal form, step for step as the skill lists it.
+    function normalize_axis(axis,   p, k, hits, expanded) {
+      gsub(/\*/, "", axis)
+      p = index(axis, "(")
+      if (p > 0) axis = substr(axis, 1, p - 1)
+      gsub(/[-_]/, " ", axis)
+      gsub(/[[:space:]]+/, " ", axis)
+      sub(/^ /, "", axis)
+      sub(/ $/, "", axis)
+      axis = tolower(axis)
+      if (axis == "") return ""
+      hits = 0
+      for (k = 1; k <= canon_n; k++) {
+        if (canon[k] == axis) return axis
+        if (substr(canon[k], 1, length(axis) + 1) == axis " ") {
+          hits++
+          expanded = canon[k]
+        }
+      }
+      # Ambiguous shorthand stays as written; guessing would merge two axes.
+      return (hits == 1) ? expanded : axis
+    }
     function record(pair,   sep, axis, verdict) {
       sep = index(pair, ":")
       if (sep == 0) return
-      axis = substr(pair, 1, sep - 1)
+      axis = normalize_axis(substr(pair, 1, sep - 1))
       verdict = substr(pair, sep + 1)
-      gsub(/\*/, "", axis)
-      sub(/^[[:space:]]+/, "", axis)
-      sub(/[[:space:]]+$/, "", axis)
-      axis = tolower(axis)
       if (axis == "") return
+      # A verdict counts as a miss when the word appears anywhere in it, so
+      # `**miss (primary)**` and `miss→hit` both register.
       if (index(tolower(verdict), "miss") == 0) return
       count[axis]++
     }
@@ -418,8 +482,12 @@ if [ -n "$SELFEVAL_FOUND" ] && [ -f "$SELFEVAL_FOUND" ]; then
       label_end = index($0, "**:")
       rest = (label_end > 0) ? substr($0, label_end + 3) : ""
       if (rest ~ /[^[:space:]]/) {
-        pairs = split(rest, part, / \/ /)
-        for (i = 1; i <= pairs; i++) record(part[i])
+        rest = cut_trailer(rest)
+        while ((sep_pos = outer_index(rest, " / ")) > 0) {
+          record(substr(rest, 1, sep_pos - 1))
+          rest = substr(rest, sep_pos + 3)
+        }
+        record(rest)
         in_axis_block = 0
       } else {
         in_axis_block = 1
@@ -427,6 +495,8 @@ if [ -n "$SELFEVAL_FOUND" ] && [ -f "$SELFEVAL_FOUND" ]; then
       next
     }
     in_axis_block && /^[[:space:]]*-[[:space:]]/ {
+      # One bullet is one pair: the line break already ends the verdict, so the
+      # inline terminator does not apply here.
       bullet = $0
       sub(/^[[:space:]]*-[[:space:]]*/, "", bullet)
       record(bullet)
@@ -440,7 +510,7 @@ if [ -n "$SELFEVAL_FOUND" ] && [ -f "$SELFEVAL_FOUND" ]; then
         }
       }
     }
-  ' "$SELFEVAL_FOUND" | sort)
+  ' "$SELFEVAL_FOUND" | LC_ALL=C sort)
   [ -n "$AXIS_MISSES" ] && PROMOTION_BODY="${PROMOTION_BODY}repeated self-evaluation axis misses:
 ${AXIS_MISSES}
 "
@@ -581,7 +651,7 @@ if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
           printf "%03d\t  - %s ~ %s (tokens:%s)\n", 999 - depth[key], part[1], part[2], hit[key]
         }
       }
-    ' "$TMP_TOKENS" "$TMP_SRCLIST" | sort | cut -f2-)
+    ' "$TMP_TOKENS" "$TMP_SRCLIST" | LC_ALL=C sort | cut -f2-)
   fi
   rm -f "$TMP_TOKENS" "$TMP_SRCLIST"
   if [ -n "$OVERLAP_ALL" ]; then

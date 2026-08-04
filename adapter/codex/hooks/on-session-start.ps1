@@ -112,15 +112,20 @@ if (-not (Test-Path -LiteralPath $liplusDir)) {
 # the always-on rules surface for Codex. Runs on EVERY matcher (startup and
 # resume/clear/compact) because Codex has no folder-level persistence — the
 # only always-on substrate is re-injection per session boundary.
+# Ordered on the forward-slashed relative path with an ordinal comparer, so the
+# emission order matches the bash ports' `find rules ... | LC_ALL=C sort` on both
+# axes at once: `Sort-Object` is culture-aware, and `FullName` would order on the
+# native separator instead of the `/` the bash ports compare.
 $rulesRoot = Join-Path $liplusDir 'rules'
 if (Test-Path -LiteralPath $rulesRoot) {
-  $ruleFiles = Get-ChildItem -LiteralPath $rulesRoot -Recurse -Filter '*.md' -File -ErrorAction SilentlyContinue |
-    Sort-Object FullName
-  if ($ruleFiles) {
+  $ruleFiles = [string[]]@(
+    Get-ChildItem -LiteralPath $rulesRoot -Recurse -Filter '*.md' -File -ErrorAction SilentlyContinue |
+      ForEach-Object { $_.FullName.Substring($liplusDir.Length).TrimStart('\', '/') -replace '\\', '/' })
+  if ($ruleFiles.Count -gt 0) {
+    [Array]::Sort($ruleFiles, [System.StringComparer]::Ordinal)
     Emit '━━━ Li+ rules (always-on; injected because Codex has no .claude/rules equivalent) ━━━'
-    foreach ($rf in $ruleFiles) {
-      $rel = $rf.FullName.Substring($liplusDir.Length).TrimStart('\','/') -replace '\\','/'
-      $content = Get-Content -LiteralPath $rf.FullName -Raw -ErrorAction SilentlyContinue
+    foreach ($rel in $ruleFiles) {
+      $content = Get-Content -LiteralPath (Join-Path $liplusDir $rel) -Raw -ErrorAction SilentlyContinue
       Emit "----- $rel -----"
       Emit $content
       Emit ''
@@ -313,9 +318,12 @@ Register-Section 'decision_structure_head' 'Decision structure index (docs/Decis
 # rules tree (fetch address table)
 $rulesTree = ''
 if (Test-Path -LiteralPath $rulesRoot) {
-  $rel = Get-ChildItem -LiteralPath $rulesRoot -Recurse -Filter '*.md' -File -ErrorAction SilentlyContinue |
-    ForEach-Object { 'rules/' + ($_.FullName.Substring($rulesRoot.Length).TrimStart('\','/') -replace '\\','/') } |
-    Sort-Object
+  # Ordinal, to match the bash ports' `LC_ALL=C sort`; `Sort-Object` is
+  # culture-aware and would reorder this list under some locales.
+  $rel = [string[]]@(
+    Get-ChildItem -LiteralPath $rulesRoot -Recurse -Filter '*.md' -File -ErrorAction SilentlyContinue |
+      ForEach-Object { 'rules/' + ($_.FullName.Substring($rulesRoot.Length).TrimStart('\','/') -replace '\\','/') })
+  if ($rel.Count -gt 0) { [Array]::Sort($rel, [System.StringComparer]::Ordinal) }
   $rulesTree = ($rel -join "`n")
 }
 Register-Section 'rules_tree' 'Rules tree (fetch address table for rules/ cache)' $rulesTree
@@ -414,9 +422,10 @@ function Test-MemoryDirPopulated {
 # project.md are NOT excluded, so a workspace that has not migrated is still
 # scanned. Ordinal sort, because the detector output is sha256-fingerprinted for
 # diff-only emission and must not depend on directory order — and to match the
-# bash ports, whose plain `sort` is bytewise under a C locale. No bash port pins
-# LC_ALL=C, so that match holds by environment rather than by enforcement; under
-# a culture-aware locale the bash order can differ from this one.
+# bash ports, which pin `LC_ALL=C sort` (#1651) so that their order is bytewise
+# by enforcement rather than by whatever locale the session happens to carry.
+# Byte order over UTF-8 and ordinal order over UTF-16 agree on the BMP, which is
+# the range these names live in.
 function Get-MemoryEntryFiles {
   param([string]$Dir)
   $skip = @('MEMORY.md', 'promotion_tally.md', 'self-evaluation_log.md', 'self-evolution-observation.md')
@@ -444,16 +453,96 @@ function Get-MemoryEntryTitle {
   return $title
 }
 
+# The 10 axes of `skills/evolution-self-eval/SKILL.md`, verbatim and lowercased.
+# Canonical vocabulary for the axis-name normal form: a shorthand that is a
+# word-boundary prefix of exactly one of these expands to it, which is why no
+# alias table exists beside the list.
+$axisCanon = @(
+  'assumption surfacing', 'contradiction catch', 'deepening axis fit',
+  'silence respect', 'loop entry', 'character drift', 'review partition',
+  'gist vs literal', 'expansion limit', 'request depth')
+
+# Inline pair-list terminators, in the order the skill lists them.
+$axisTerminators = @('。', 'Root cause:', 'Domain:')
+
+# First index of $Needle in $Hay that sits outside parentheses, or -1.
+# Ordinal throughout: the `IndexOf(string)` overload without a comparison
+# argument is culture-aware and would not agree with the awk ports.
+function Get-OuterIndex {
+  param([string]$Hay, [string]$Needle)
+  $base = 0
+  $depth = 0
+  $cursor = 0
+  while ($true) {
+    if ($base -gt $Hay.Length) { return -1 }
+    $pos = $Hay.IndexOf($Needle, $base, [System.StringComparison]::Ordinal)
+    if ($pos -lt 0) { return -1 }
+    while ($cursor -lt $pos) {
+      $ch = $Hay[$cursor]
+      if ($ch -eq '(') { $depth++ } elseif ($ch -eq ')' -and $depth -gt 0) { $depth-- }
+      $cursor++
+    }
+    if ($depth -eq 0) { return $pos }
+    $base = $pos + 1
+  }
+}
+
+# Inline pair list of one `**Axis tags**:` line, per the skill's "Inline list
+# end": the list stops at the first outside-parentheses terminator, then splits
+# on outside-parentheses ' / '. Without the stop the last segment ran to end of
+# line and swallowed the free-form trailer, which both fed that prose to the
+# miss scan and split a parenthetical ' / ' inside it into a phantom axis.
+function Split-AxisPairs {
+  param([string]$Rest)
+  $best = -1
+  foreach ($mark in $axisTerminators) {
+    $p = Get-OuterIndex $Rest $mark
+    if ($p -ge 0 -and ($best -lt 0 -or $p -lt $best)) { $best = $p }
+  }
+  if ($best -ge 0) { $Rest = $Rest.Substring(0, $best) }
+  $pairs = New-Object System.Collections.Generic.List[string]
+  while ($true) {
+    $p = Get-OuterIndex $Rest ' / '
+    if ($p -lt 0) { break }
+    $pairs.Add($Rest.Substring(0, $p))
+    $Rest = $Rest.Substring($p + 3)
+  }
+  $pairs.Add($Rest)
+  return $pairs
+}
+
+# Axis name normal form, step for step as the skill lists it.
+function Get-AxisNormalForm {
+  param([string]$Axis)
+  $name = $Axis -replace '\*', ''
+  $p = $name.IndexOf([char]'(')
+  if ($p -ge 0) { $name = $name.Substring(0, $p) }
+  $name = (($name -replace '[-_]', ' ') -replace '\s+', ' ').Trim().ToLowerInvariant()
+  if (-not $name) { return '' }
+  $hits = 0
+  $expanded = ''
+  foreach ($c in $axisCanon) {
+    if ($c -ceq $name) { return $name }
+    if ($c.Length -gt $name.Length -and ($c.Substring(0, $name.Length + 1) -ceq ($name + ' '))) {
+      $hits++
+      $expanded = $c
+    }
+  }
+  # Ambiguous shorthand stays as written; guessing would merge two axes.
+  if ($hits -eq 1) { return $expanded }
+  return $name
+}
+
 # One (axis, verdict) pair out of a self-evaluation entry's axis-tag list.
 # Counted only when the verdict carries the word `miss`.
 function Add-AxisMiss {
   param([hashtable]$Tally, [string]$Pair)
-  $sep = $Pair.IndexOf(':')
+  $sep = $Pair.IndexOf([char]':')
   if ($sep -lt 0) { return }
-  $axis = ($Pair.Substring(0, $sep) -replace '\*', '').Trim().ToLowerInvariant()
+  $axis = Get-AxisNormalForm $Pair.Substring(0, $sep)
   $verdict = $Pair.Substring($sep + 1)
   if (-not $axis) { return }
-  if ($verdict.ToLowerInvariant().IndexOf('miss') -lt 0) { return }
+  if ($verdict.ToLowerInvariant().IndexOf('miss', [System.StringComparison]::Ordinal) -lt 0) { return }
   if ($Tally.ContainsKey($axis)) { $Tally[$axis]++ } else { $Tally[$axis] = 1 }
 }
 
@@ -475,24 +564,33 @@ $promotionBody = ''
 # `skills/evolution-self-eval/SKILL.md` Recording — "Repeated miss on the same
 # axis across entries = weakness region = distill candidate for evolution loop".
 #
-# Two entry layouts are in live use and both are read:
+# The line format this reads is specified, not inferred: `skills/evolution-self-eval/SKILL.md`
+# "Axis tag line format" fixes the two layouts, the axis-name normal form and the
+# inline list terminator. Everything below implements that section and nothing
+# beyond it; when the two disagree, the skill is the source. Before #1651 no spec
+# held the format at all, so the log drifted and the detector went quiet.
+#
 #   **Axis tags**: <axis>: <verdict> / <axis>: <verdict> / ...   (one line)
 #   **Axis tags (10-axis)**:                                     (header, then)
 #   - <axis>: <verdict>                                          (bullets)
-# A verdict counts as a miss when the word appears anywhere in it, so
-# `**miss (primary)**` and `miss→hit` both register as an observed miss.
-# Axis names are lowercased before tallying; `**` emphasis is stripped.
 if ($selfEvalFound -and (Test-Path -LiteralPath $selfEvalFound)) {
-  $axisCount = @{}
+  # Ordinal comparer to match the awk arrays of the bash ports, which key
+  # case-sensitively while a `@{}` literal does not. Unlike the overlap detector
+  # below, no input reaches this table still carrying case: Get-AxisNormalForm
+  # lowercases on every return path, so the comparer cannot change a tally today.
+  # It is set anyway because the parity it holds is with awk's semantics, not
+  # with the current normalizer — a normalizer that stopped lowercasing would
+  # otherwise split this port's tally away from the bash ports silently.
+  $axisCount = New-Object System.Collections.Hashtable ([System.StringComparer]::Ordinal)
   $inAxisBlock = $false
   foreach ($l in @(Get-Content -LiteralPath $selfEvalFound -ErrorAction SilentlyContinue)) {
     if ($l -cmatch '^\s*\*\*Axis tags') {
       # Everything past the closing "**:" of the label is the inline pair list;
       # an empty remainder means the bullet layout follows.
-      $labelEnd = $l.IndexOf('**:')
+      $labelEnd = $l.IndexOf('**:', [System.StringComparison]::Ordinal)
       $rest = if ($labelEnd -ge 0) { $l.Substring($labelEnd + 3) } else { '' }
       if ($rest -match '\S') {
-        foreach ($part in ($rest -split ' / ')) { Add-AxisMiss $axisCount $part }
+        foreach ($part in (Split-AxisPairs $rest)) { Add-AxisMiss $axisCount $part }
         $inAxisBlock = $false
       } else {
         $inAxisBlock = $true
@@ -500,6 +598,8 @@ if ($selfEvalFound -and (Test-Path -LiteralPath $selfEvalFound)) {
       continue
     }
     if ($inAxisBlock -and ($l -match '^\s*-\s')) {
+      # One bullet is one pair: the line break already ends the verdict, so the
+      # inline terminator does not apply here.
       Add-AxisMiss $axisCount ($l -replace '^\s*-\s*', '')
       continue
     }

@@ -121,7 +121,7 @@ One-shot, before the first sync.
      ```
      Empty `to_copy` AND empty `to_delete` = no drift; skip the commit and push steps, go straight to cleanup (step 8), and report the no-op outcome.
   5. Stage both copies and deletes: git -C {tmpdir} add -A
-  6. Commit: git -C {tmpdir} commit -m "sync: docs → wiki ({release_tag})"
+  6. Commit: git -C {tmpdir} commit -m "sync: docs -> wiki ({release_tag})"
   7. Push: git -C {tmpdir} push
   8. Cleanup: rm -rf {tmpdir}
 If push fails on permission, escalate to human. Do not skip.

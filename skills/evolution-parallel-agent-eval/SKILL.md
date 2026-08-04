@@ -68,7 +68,7 @@ When evaluators split on one axis, ask two questions once each, in this order, b
 
 "They answered the same question, and the criteria sufficed" answers both and closes the divergence. This is a check to pass through, not a hunt: the shape is `rules/model/trigger-check-gate.md`, where one No pauses to retrieve and verify and then proceeds, and confirming nothing is wrong is a normal outcome. Writing up a criteria gap because the step expects one is the failure mode here (`rules/model/subtractive-structural-beauty.md` push surplus).
 
-Answers go to the PR self-review comment, the surface the fixed axis's 1-of-3 flag already uses (Procedure step 7). No new record surface. A criteria gap found this way is routed like any other spec-gap observation (`rules/evolution/promotion-judgment.md`); it does not gate the merge on its own.
+Answers go to the PR self-review comment, the surface the fixed axis's 1-of-3 flag already uses (Procedure step 7). No new record surface. Neither outcome gates the merge on its own: a criteria gap from question 2 is routed like any other spec-gap observation (`rules/evolution/promotion-judgment.md`), and an axis-wording finding from question 1 is a note on how this eval was framed, carried into how the next one words that axis. Stating this for one branch and not the other would put the pressure back where the paragraph above removes it.
 
 ### Ratio is a triage signal
 

@@ -1,6 +1,6 @@
 ---
 name: evolution-decision-structure-write
-description: Invoke when a judgment has just settled on a human go-sign / an accepted-tradeoff close has just happened / a spec-axis decision has just been fixed in dialogue. Writes or updates a Decision Structure Wiki entry, the writer-side counterpart to evolution-judgment-learning.
+description: Invoke when a judgment has just settled on a human go-sign / an accepted-tradeoff close has just happened / a spec-axis decision has just been fixed in dialogue / a failure's root cause has just been identified and become reproducible learning / a premise has just been verified and the result settled, success or failure alike / repetition of the same investigation across multiple sessions has just been noticed. Writes or updates a Decision Structure Wiki entry, the writer-side counterpart to evolution-judgment-learning.
 layer: L2-evolution
 ---
 
@@ -22,7 +22,8 @@ Decision Structure is a semantic graph of judgment nodes joined by supersede / d
 - an Accepted Tradeoff close is confirmed
 - a spec-axis judgment settles in dialogue (architecture choice, naming convention, operational policy)
 - a failure's root cause is identified and becomes reproducible learning
-- judgment knowledge emerges that would otherwise be lost across sessions
+- a premise is verified and the result settles, success or failure alike
+- the same investigation is noticed to have been repeated across multiple sessions
 
 `docs/Decision-Structure.md` carries the same accumulation conditions as the index's own spec; keep the two aligned rather than letting them drift apart.
 

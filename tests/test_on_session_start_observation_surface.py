@@ -1320,10 +1320,13 @@ class AxisTagFormatTest(ObservationSurfaceTestCase):
         aside as if it stood outside one: the pair list ends early and the axes
         written after the aside are never counted. `skills/evolution-self-eval/
         SKILL.md` "Axis tag line format" is what says the two kinds are one
-        class. One fixture runs in both kinds here, and the ASCII run is the
-        reference the full-width run has to match — same defect class as the
-        parenthetical split #1650 repaired, reached through a different
-        character.
+        class. One fixture runs in every combination of the two kinds here, and
+        the ASCII run is the reference the others have to match — same defect
+        class as the parenthetical split #1650 repaired, reached through a
+        different character. The mixed openings are what "one class" means: the
+        spec names `（… / …)` as bounding an aside, so an implementation that
+        pairs each kind only with its own would satisfy the two same-kind runs
+        and still contradict that sentence.
         """
 
         def entries(opener: str, closer: str) -> tuple[str, ...]:
@@ -1334,7 +1337,12 @@ class AxisTagFormatTest(ObservationSurfaceTestCase):
             )
             return (f"## entry 1\n{line}", f"## entry 2\n{line}")
 
-        for opener, closer in (("(", ")"), ("（", "）")):
+        for opener, closer in (
+            ("(", ")"),
+            ("（", "）"),
+            ("(", "）"),
+            ("（", ")"),
+        ):
             with self.subTest(brackets=opener + closer):
                 self.seed_self_eval(self.ws, *entries(opener, closer))
                 self.assert_axis_misses({"loop entry": 2, "character drift": 2})
@@ -1347,9 +1355,11 @@ class AxisTagFormatTest(ObservationSurfaceTestCase):
         so everything after it collapsed into one verdict and the axes written
         there went uncounted. That direction is a regression against the plain
         split this scan replaced, which counted them — which is why both
-        orientations of the stray run here and must agree.
+        orientations of the stray run here and must agree. Both kinds run as
+        well: the full-width stray reaches the same code path only if the
+        bracket class is what the scan tracks.
         """
-        for stray in ("(", ")"):
+        for stray in ("(", ")", "（", "）"):
             with self.subTest(stray=stray):
                 line = (
                     f"**Axis tags**: Loop entry: **miss** {stray}再発 / "

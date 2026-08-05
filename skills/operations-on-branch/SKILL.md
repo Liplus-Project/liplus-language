@@ -28,6 +28,10 @@ NOW     -> label=in-progress + branch create
 SOON    -> label=backlog     + no branch
 SOMEDAY -> label=deferred    + no branch
 
+The tiers table decides which tier applies, not what the `in-progress` transition consists of.
+That transition (label + issue assignee, one moment) is specified in
+`skills/task-subagent-state-labels/SKILL.md` Work start. Do not restate its steps here.
+
 Axis separation:
 Lifecycle labels = when to act.
 Maturity labels  = how converged the issue body is.
@@ -46,8 +50,9 @@ If local only   = gh issue develop still allowed (local will be overwritten).
 If not exists   = proceed normally.
 
 Branch creation:
-command  = gh issue develop {issue_number} -R {owner}/{repo} --name {session-branch} --base main
-assignee = gh issue edit {issue_number} -R {owner}/{repo} --add-assignee "@me"
+command = gh issue develop {issue_number} -R {owner}/{repo} --name {session-branch} --base main
+Branch creation carries no assignee step. The actor axis is bound to the `in-progress`
+transition, not to branch creation (`skills/task-subagent-state-labels/SKILL.md` Actor axis).
 
 Merge behavior:
 PR merge auto-closes the parent issue via issue reference.

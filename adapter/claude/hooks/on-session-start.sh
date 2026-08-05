@@ -562,28 +562,83 @@ if [ -n "$SELFEVAL_FOUND" ] && [ -f "$SELFEVAL_FOUND" ]; then
       canon_n = split("assumption surfacing,contradiction catch,deepening axis fit," \
                       "silence respect,loop entry,character drift,review partition," \
                       "gist vs literal,expansion limit,request depth", canon, ",")
+      # Bracket tokens the scans below track. ASCII and full-width are one
+      # class: an opener of either kind is closed by a closer of either kind.
+      # Tracking a further pair is one more entry in this table, not another
+      # character test wired into the walk — comparing characters inline is
+      # what left the full-width pair untracked while the ASCII pair worked.
+      tok_n = 0
+      tok_k = split("(,（", tok_src, ",")
+      for (tok_i = 1; tok_i <= tok_k; tok_i++) {
+        tok_n++; brk_tok[tok_n] = tok_src[tok_i]; brk_tok_open[tok_n] = 1
+      }
+      tok_k = split("),）", tok_src, ",")
+      for (tok_i = 1; tok_i <= tok_k; tok_i++) {
+        tok_n++; brk_tok[tok_n] = tok_src[tok_i]; brk_tok_open[tok_n] = 0
+      }
     }
-    # First position of needle in hay that sits outside parentheses, or 0.
-    # Only ASCII parens are inspected and every offset comes from index() and
-    # substr() over one string, so the scan reads the same whether this awk
-    # counts in bytes or in characters.
-    function outer_index(hay, needle,   base, rel, pos, ch, depth, cursor) {
-      base = 0; depth = 0; cursor = 1
+    # Bracket occurrences in hay, positions ascending, with the ones that have
+    # no partner dropped. Both ends must be present before the span between them
+    # counts as bracketed: a stray `)` was always ignored, while a stray `(`
+    # used to hold the rest of the line inside brackets, so every pair written
+    # after it went uncounted. Results land in occ_*; the return is the count.
+    function bracket_map(hay,   n, cursor, k, p, best, bestk, seg, i, top, stack) {
+      split("", occ_pos, ","); split("", occ_open, ","); split("", occ_live, ",")
+      n = 0; cursor = 1
+      while (1) {
+        seg = substr(hay, cursor)
+        best = 0; bestk = 0
+        for (k = 1; k <= tok_n; k++) {
+          p = index(seg, brk_tok[k])
+          if (p > 0 && (best == 0 || p < best)) { best = p; bestk = k }
+        }
+        if (best == 0) break
+        n++
+        occ_pos[n] = cursor + best - 1
+        occ_open[n] = brk_tok_open[bestk]
+        occ_live[n] = 0
+        cursor = occ_pos[n] + length(brk_tok[bestk])
+      }
+      top = 0
+      for (i = 1; i <= n; i++) {
+        if (occ_open[i]) { top++; stack[top] = i }
+        else if (top > 0) { occ_live[stack[top]] = 1; occ_live[i] = 1; top-- }
+      }
+      return n
+    }
+    # First position of needle in hay that sits outside brackets, or 0.
+    # Every offset comes from index(), substr() and length() over one string, so
+    # the scan reads the same whether this awk counts in bytes or in characters.
+    function outer_index(hay, needle,   n, base, rel, pos, i, depth) {
+      n = bracket_map(hay)
+      base = 0
       while (1) {
         rel = index(substr(hay, base + 1), needle)
         if (rel == 0) return 0
         pos = base + rel
-        while (cursor < pos) {
-          ch = substr(hay, cursor, 1)
-          if (ch == "(") depth++
-          else if (ch == ")" && depth > 0) depth--
-          cursor++
+        depth = 0
+        for (i = 1; i <= n; i++) {
+          if (occ_pos[i] >= pos) break
+          if (occ_live[i] == 0) continue
+          if (occ_open[i]) depth++
+          else depth--
         }
         if (depth == 0) return pos
         base = pos
       }
     }
-    # Inline list end: the pair list stops at the first outside-parentheses
+    # First position of a bracket opener in s, or 0. Matching is not required
+    # here: the normal form drops the qualifier and everything after it.
+    function open_index(s,   k, p, best) {
+      best = 0
+      for (k = 1; k <= tok_n; k++) {
+        if (brk_tok_open[k] == 0) continue
+        p = index(s, brk_tok[k])
+        if (p > 0 && (best == 0 || p < best)) best = p
+      }
+      return best
+    }
+    # Inline list end: the pair list stops at the first outside-brackets
     # sentence terminator or `Root cause:` / `Domain:` label. Without this the
     # last segment ran to end of line and swallowed the free-form trailer, which
     # both fed that prose to the miss scan and split a parenthetical " / " inside
@@ -600,7 +655,7 @@ if [ -n "$SELFEVAL_FOUND" ] && [ -f "$SELFEVAL_FOUND" ]; then
     # Axis name normal form, step for step as the skill lists it.
     function normalize_axis(axis,   p, k, hits, expanded) {
       gsub(/\*/, "", axis)
-      p = index(axis, "(")
+      p = open_index(axis)
       if (p > 0) axis = substr(axis, 1, p - 1)
       gsub(/[-_]/, " ", axis)
       gsub(/[[:space:]]+/, " ", axis)

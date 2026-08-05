@@ -1310,6 +1310,56 @@ class AxisTagFormatTest(ObservationSurfaceTestCase):
         )
         self.assert_axis_misses({"gist vs literal": 2})
 
+    # -- #1653: the bracket class the separator scan tracks -------------------
+
+    def test_full_width_brackets_bound_an_aside_like_ascii_ones(self) -> None:
+        """`（` `）` and `(` `)` are one bracket class, on all three ports.
+
+        The Japanese log writes its asides in full-width brackets, so a scan
+        inspecting only the ASCII pair reads a `。` or a ` / ` inside such an
+        aside as if it stood outside one: the pair list ends early and the axes
+        written after the aside are never counted. `skills/evolution-self-eval/
+        SKILL.md` "Axis tag line format" is what says the two kinds are one
+        class. One fixture runs in both kinds here, and the ASCII run is the
+        reference the full-width run has to match — same defect class as the
+        parenthetical split #1650 repaired, reached through a different
+        character.
+        """
+
+        def entries(opener: str, closer: str) -> tuple[str, ...]:
+            aside = f"{opener}前提を確認せず。Root cause: 二度目 / 別軸: miss{closer}"
+            line = (
+                f"**Axis tags**: Loop entry: **miss** {aside} / "
+                f"Character{opener}pronoun{closer}: **miss**"
+            )
+            return (f"## entry 1\n{line}", f"## entry 2\n{line}")
+
+        for opener, closer in (("(", ")"), ("（", "）")):
+            with self.subTest(brackets=opener + closer):
+                self.seed_self_eval(self.ws, *entries(opener, closer))
+                self.assert_axis_misses({"loop entry": 2, "character drift": 2})
+
+    def test_pairs_after_an_unmatched_bracket_are_still_counted(self) -> None:
+        """A bracket with no partner is text, not the start of an aside.
+
+        A stray `)` was always ignored, but a stray `(` raised the depth for the
+        remainder of the line: no later ` / ` and no later terminator applied,
+        so everything after it collapsed into one verdict and the axes written
+        there went uncounted. That direction is a regression against the plain
+        split this scan replaced, which counted them — which is why both
+        orientations of the stray run here and must agree.
+        """
+        for stray in ("(", ")"):
+            with self.subTest(stray=stray):
+                line = (
+                    f"**Axis tags**: Loop entry: **miss** {stray}再発 / "
+                    "Character drift: **miss**"
+                )
+                self.seed_self_eval(
+                    self.ws, f"## entry 1\n{line}", f"## entry 2\n{line}"
+                )
+                self.assert_axis_misses({"loop entry": 2, "character drift": 2})
+
     # -- item 1: sort locale --------------------------------------------------
 
     CULTURE_AWARE_ENV = {"LC_ALL": "en_US.UTF-8", "LC_COLLATE": "en_US.UTF-8", "LANG": "en_US.UTF-8"}
@@ -1429,6 +1479,8 @@ class AxisTagFormatTest(ObservationSurfaceTestCase):
             "Root cause:",
             "Domain:",
             "。",
+            "（",
+            "）",
         ):
             with self.subTest(literal=literal):
                 self.assertIn(

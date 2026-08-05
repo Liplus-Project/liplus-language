@@ -465,22 +465,79 @@ $axisCanon = @(
 # Inline pair-list terminators, in the order the skill lists them.
 $axisTerminators = @('。', 'Root cause:', 'Domain:')
 
-# First index of $Needle in $Hay that sits outside parentheses, or -1.
+# Bracket tokens the scans below track. ASCII and full-width are one class: an
+# opener of either kind is closed by a closer of either kind. Tracking a further
+# pair is one more entry in these tables, not another character test wired into
+# the walk — comparing characters inline is what left the full-width pair
+# untracked while the ASCII pair worked.
+$axisBracketOpen = @('(', '（')
+$axisBracketClose = @(')', '）')
+
+# First index of a bracket opener in $Text, or -1. Matching is not required
+# here: the normal form drops the qualifier and everything after it.
+function Get-OpenIndex {
+  param([string]$Text)
+  $best = -1
+  foreach ($t in $axisBracketOpen) {
+    $p = $Text.IndexOf($t, [System.StringComparison]::Ordinal)
+    if ($p -ge 0 -and ($best -lt 0 -or $p -lt $best)) { $best = $p }
+  }
+  return $best
+}
+
+# Bracket occurrences in $Text, positions ascending, with the ones that have no
+# partner dropped. Both ends must be present before the span between them counts
+# as bracketed: a stray `)` was always ignored, while a stray `(` used to hold
+# the rest of the line inside brackets, so every pair written after it went
+# uncounted.
+function Get-BracketMap {
+  param([string]$Text)
+  $occ = New-Object System.Collections.Generic.List[psobject]
+  $cursor = 0
+  while ($cursor -lt $Text.Length) {
+    $best = -1
+    $bestLen = 0
+    $bestOpen = $false
+    foreach ($t in $axisBracketOpen) {
+      $p = $Text.IndexOf($t, $cursor, [System.StringComparison]::Ordinal)
+      if ($p -ge 0 -and ($best -lt 0 -or $p -lt $best)) { $best = $p; $bestLen = $t.Length; $bestOpen = $true }
+    }
+    foreach ($t in $axisBracketClose) {
+      $p = $Text.IndexOf($t, $cursor, [System.StringComparison]::Ordinal)
+      if ($p -ge 0 -and ($best -lt 0 -or $p -lt $best)) { $best = $p; $bestLen = $t.Length; $bestOpen = $false }
+    }
+    if ($best -lt 0) { break }
+    $occ.Add([pscustomobject]@{ Pos = $best; IsOpen = $bestOpen; Live = $false })
+    $cursor = $best + $bestLen
+  }
+  $stack = New-Object System.Collections.Generic.Stack[int]
+  for ($i = 0; $i -lt $occ.Count; $i++) {
+    if ($occ[$i].IsOpen) {
+      $stack.Push($i)
+    } elseif ($stack.Count -gt 0) {
+      $occ[$stack.Pop()].Live = $true
+      $occ[$i].Live = $true
+    }
+  }
+  return ,$occ
+}
+
+# First index of $Needle in $Hay that sits outside brackets, or -1.
 # Ordinal throughout: the `IndexOf(string)` overload without a comparison
 # argument is culture-aware and would not agree with the awk ports.
 function Get-OuterIndex {
   param([string]$Hay, [string]$Needle)
+  $occ = Get-BracketMap $Hay
   $base = 0
-  $depth = 0
-  $cursor = 0
   while ($true) {
     if ($base -gt $Hay.Length) { return -1 }
     $pos = $Hay.IndexOf($Needle, $base, [System.StringComparison]::Ordinal)
     if ($pos -lt 0) { return -1 }
-    while ($cursor -lt $pos) {
-      $ch = $Hay[$cursor]
-      if ($ch -eq '(') { $depth++ } elseif ($ch -eq ')' -and $depth -gt 0) { $depth-- }
-      $cursor++
+    $depth = 0
+    foreach ($t in $occ) {
+      if ($t.Pos -ge $pos) { break }
+      if (-not $t.Live) { continue }
+      if ($t.IsOpen) { $depth++ } else { $depth-- }
     }
     if ($depth -eq 0) { return $pos }
     $base = $pos + 1
@@ -488,8 +545,8 @@ function Get-OuterIndex {
 }
 
 # Inline pair list of one `**Axis tags**:` line, per the skill's "Inline list
-# end": the list stops at the first outside-parentheses terminator, then splits
-# on outside-parentheses ' / '. Without the stop the last segment ran to end of
+# end": the list stops at the first outside-brackets terminator, then splits
+# on outside-brackets ' / '. Without the stop the last segment ran to end of
 # line and swallowed the free-form trailer, which both fed that prose to the
 # miss scan and split a parenthetical ' / ' inside it into a phantom axis.
 function Split-AxisPairs {
@@ -515,7 +572,7 @@ function Split-AxisPairs {
 function Get-AxisNormalForm {
   param([string]$Axis)
   $name = $Axis -replace '\*', ''
-  $p = $name.IndexOf([char]'(')
+  $p = Get-OpenIndex $name
   if ($p -ge 0) { $name = $name.Substring(0, $p) }
   $name = (($name -replace '[-_]', ' ') -replace '\s+', ' ').Trim().ToLowerInvariant()
   if (-not $name) { return '' }

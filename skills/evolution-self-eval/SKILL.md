@@ -121,15 +121,15 @@ Fields:
 - `<axis>` = the axis name. Take it verbatim from The 10 axes when the observation is one of them. A name outside that set is allowed and is tallied under itself; it just never merges with a canonical axis.
 - `<verdict>` = the reading. It counts as a miss when the word `miss` appears anywhere in it, matched case-insensitively, so `**miss (primary)**`, `miss→hit` and `**MISS**` all register.
 - The first `:` of a pair ends the axis name; later `:` characters belong to the verdict.
-- ` / ` (space slash space) separates inline pairs. The same sequence inside parentheses is verdict text and does not separate.
-- Parentheses throughout this section means the ASCII pair `(` `)`. Full-width `（` `）` is not tracked, so a separator or terminator inside a full-width aside is read as if it were outside one. An unmatched `(` puts the rest of the line inside parentheses for the remainder of the scan, so no later separator or terminator applies to it — pairs written after a stray `(` are not counted.
+- ` / ` (space slash space) separates inline pairs. The same sequence inside brackets is verdict text and does not separate.
+- Brackets throughout this section means the ASCII pair `(` `)` and the full-width pair `（` `）`, tracked as one class: an opener of either kind is closed by a closer of either kind, so `（… / …)` bounds an aside just as `(… / …)` does. Both ends are required — an opener with no closer after it, and a closer with no opener before it, are read as ordinary text. A stray `(` therefore does not hold the rest of the line inside brackets, and the pairs written after it are still counted.
 
 ### Axis name normal form
 
 Two spellings of one axis must land on one tally, so a name is reduced before it is counted:
 
 1. drop `*` emphasis characters
-2. drop a parenthesized qualifier and everything after it, ASCII `(` only (`Character(pronoun)` -> `Character`)
+2. drop a bracketed qualifier and everything after it, from the first opener of either kind (`Character(pronoun)` and `Character（pronoun）` both -> `Character`). The opener alone cuts here; unlike the separator scan, no closer is required
 3. replace `-` and `_` with a space
 4. collapse whitespace runs, then trim
 5. lowercase
@@ -139,9 +139,9 @@ Step 6 is what makes The 10 axes the canonical vocabulary rather than a list to 
 
 ### Inline list end
 
-The bullet layout ends each pair at the line break. The inline layout has no such boundary, so one is defined: the pair list ends at the first `。` outside parentheses, or at a `Root cause:` / `Domain:` label outside parentheses, whichever comes first.
+The bullet layout ends each pair at the line break. The inline layout has no such boundary, so one is defined: the pair list ends at the first `。` outside brackets, or at a `Root cause:` / `Domain:` label outside brackets, whichever comes first.
 
-Trailing prose on the tag line is therefore read as prose instead of being folded into the last verdict — which is what previously let a free-form sentence reach the `miss` scan and let a parenthetical ` / ` inside that sentence register as a phantom axis.
+Trailing prose on the tag line is therefore read as prose instead of being folded into the last verdict — which is what previously let a free-form sentence reach the `miss` scan and let a bracketed ` / ` inside that sentence register as a phantom axis.
 
 </axis-tag-line-format>
 

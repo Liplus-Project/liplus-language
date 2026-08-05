@@ -30,6 +30,8 @@ if execution_mode == trigger:
   Subagent executes: branch, implementation, commit, push, PR, CI loop, self-review, merge.
   Stop condition = `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition.
 
+The `branch` item above is conditional on the delegation using no worktree, in every mode. A worktree delegation arrives with the branch already created — the branch is what the worktree is checked out from, so creating one inside the delegation has nothing to attach to — and the subagent works in the path it was given. The condition is stated here because this is the file that owns the execution split; an adapter that scoped it from its own side alone would be a later layer redefining an earlier one (`rules/model/layer-definition.md` Cross-layer rule), which that rule sends back to the boundary rather than resolving by precedence.
+
 Do not convey: step-by-step procedure, branch name, commit message, intent.
 Intent is already in issue body.
 

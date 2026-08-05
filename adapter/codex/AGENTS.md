@@ -84,7 +84,7 @@ Main agent after completion:
   For release: confirm version type and tag with human.
 
 Worktree lifecycle — main agent owns all worktree operations:
-  1. Create branch: `gh issue develop` (establishes issue link). One branch per issue.
+  1. Create branch: `gh issue develop` (establishes issue link). One branch per issue. Scoped to this lifecycle: main creates the branch only when a worktree is being used. Serial delegation uses no worktree, so branch creation there stays with the subagent per `skills/task-subagent-delegation/SKILL.md`.
   2. Create worktree: `git worktree add workspace/.worktrees/{repo}-{issue_number}/ {branch_name}`
   3. Delegate: convey worktree absolute path in addition to standard delegation info.
   4. Subagent works entirely within the given worktree path.

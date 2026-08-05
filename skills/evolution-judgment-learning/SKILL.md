@@ -1,6 +1,6 @@
 ---
 name: evolution-judgment-learning
-description: Invoke when a new judgment is about to be formed and past judgment on the same point may already exist. Retrieves past judgment via RAG MCP (primary) or gh search (fallback).
+description: Invoke when the request asks why the project decided or is built a certain way / the request revisits a topic or design choice that may already be settled / the request names a past issue, PR or decision as context / the request challenges an existing rule or proposes changing one. Retrieves past judgment via RAG MCP (primary) or gh search (fallback).
 layer: L2-evolution
 ---
 

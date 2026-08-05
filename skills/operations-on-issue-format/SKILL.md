@@ -1,6 +1,6 @@
 ---
 name: operations-on-issue-format
-description: Invoke when an issue is about to be created / an issue body is about to be edited. Defines title and body language, the canonical convergence fields (purpose, premise, constraints, target files), the rewrite-on-change rule, and the memo-mode rapid intake path that skips the convergence fields when issue creation is interrupting the human's main task.
+description: Invoke when the request asks to file, open or write up an issue / the request reports a bug, spec gap or observation that should survive the session as a work unit / the request asks to rewrite or update an issue body / the request asks for a quick silent memo while the human's main task continues. Defines title and body language, the canonical convergence fields (purpose, premise, constraints, target files), the rewrite-on-change rule, and the memo-mode rapid intake path.
 layer: L4-operations
 ---
 

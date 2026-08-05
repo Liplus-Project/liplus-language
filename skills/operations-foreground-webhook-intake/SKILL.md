@@ -1,6 +1,6 @@
 ---
 name: operations-foreground-webhook-intake
-description: Invoke when a user turn starts. Inspects pending webhook events via MCP or the local helper and reports foreground-relevant or notable items only.
+description: Invoke when the turn carries a github-webhook-mcp channel event or an injected pending-webhook status / the request asks whether anything arrived from GitHub, or names webhook events, pending events or mark_processed / a GitHub operation just run needs arrival confirmation. Inspects pending webhook events via MCP or the local helper and reports foreground-relevant or notable items only.
 layer: L4-operations
 ---
 

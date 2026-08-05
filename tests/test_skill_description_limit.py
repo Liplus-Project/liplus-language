@@ -26,23 +26,41 @@ def frontmatter_lines(text: str) -> list[str]:
     return []
 
 
+def unquote_flow_scalar(value: str) -> str:
+    """Strip one matching pair of YAML flow-scalar quotes from `value`.
+
+    One pair only. The goal is to keep the delimiters out of the length and
+    non-empty checks, not to reimplement YAML escape decoding: a doubled inner
+    quote stays doubled, which over-counts length and so errs strict.
+    """
+    for quote in ('"', "'"):
+        if len(value) >= 2 and value.startswith(quote) and value.endswith(quote):
+            return value[1:-1]
+    return value
+
+
 def description_value(text: str) -> str | None:
     """Return the `description` value of a SKILL.md frontmatter, or None when absent.
 
     Single-line values and multi-line values (block scalar or wrapped continuation)
     both resolve, so the length check does not depend on the current one-line layout.
+    A quoted value resolves to its content, so `description: ""` reads as empty
+    rather than as a two-character string. Quotes inside a block scalar are body
+    text and are left alone.
     """
     lines = frontmatter_lines(text)
     for index, line in enumerate(lines):
         if not line.startswith("description:"):
             continue
         head = line[len("description:") :].strip()
+        block_scalar = head[:1] in ("|", ">")
         parts = [] if head[:1] in ("", "|", ">") else [head]
         for continuation in lines[index + 1 :]:
             if continuation.strip() and not continuation[:1].isspace():
                 break
             parts.append(continuation.strip())
-        return " ".join(part for part in parts if part)
+        value = " ".join(part for part in parts if part)
+        return value if block_scalar else unquote_flow_scalar(value)
     return None
 
 
@@ -65,16 +83,50 @@ class SkillDescriptionLimitTest(unittest.TestCase):
             with self.subTest(skill=name):
                 self.assertLessEqual(len(description or ""), DESCRIPTION_MAX_CHARS)
 
-    def test_extractor_resolves_both_frontmatter_layouts(self) -> None:
+    def test_extractor_resolves_every_frontmatter_layout(self) -> None:
         layouts = {
             "single_line": "---\nname: x\ndescription: Invoke when A. Provides B.\nlayer: L2-evolution\n---\n",
             "block_scalar": "---\nname: x\ndescription: >-\n  Invoke when A.\n  Provides B.\nlayer: L2-evolution\n---\n",
             "wrapped_continuation": "---\nname: x\ndescription: Invoke when A.\n  Provides B.\nlayer: L2-evolution\n---\n",
+            "double_quoted": '---\nname: x\ndescription: "Invoke when A. Provides B."\nlayer: L2-evolution\n---\n',
+            "single_quoted": "---\nname: x\ndescription: 'Invoke when A. Provides B.'\nlayer: L2-evolution\n---\n",
+            "quoted_wrapped": '---\nname: x\ndescription: "Invoke when A.\n  Provides B."\nlayer: L2-evolution\n---\n',
         }
         for name, text in layouts.items():
             with self.subTest(layout=name):
                 self.assertEqual(description_value(text), "Invoke when A. Provides B.")
         self.assertIsNone(description_value("---\nname: x\nlayer: L2-evolution\n---\n"))
+
+    def test_a_quoted_empty_value_reads_as_empty(self) -> None:
+        for name, text in {
+            "double_quoted": '---\nname: x\ndescription: ""\n---\n',
+            "single_quoted": "---\nname: x\ndescription: ''\n---\n",
+        }.items():
+            with self.subTest(layout=name):
+                self.assertEqual(description_value(text), "")
+
+    def test_extractor_leaves_quotes_that_are_not_delimiters(self) -> None:
+        cases = {
+            "block_scalar_body": (
+                '---\nname: x\ndescription: >-\n  "Invoke when A."\n---\n',
+                '"Invoke when A."',
+            ),
+            "unbalanced": (
+                '---\nname: x\ndescription: "Invoke when A.\n---\n',
+                '"Invoke when A.',
+            ),
+            "mismatched_pair": (
+                "---\nname: x\ndescription: \"Invoke when A.'\n---\n",
+                "\"Invoke when A.'",
+            ),
+            "inner_only": (
+                '---\nname: x\ndescription: Invoke when "A". Provides B.\n---\n',
+                'Invoke when "A". Provides B.',
+            ),
+        }
+        for name, (text, expected) in cases.items():
+            with self.subTest(case=name):
+                self.assertEqual(description_value(text), expected)
 
 
 if __name__ == "__main__":

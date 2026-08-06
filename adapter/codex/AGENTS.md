@@ -144,6 +144,18 @@ Subagent_Delegation:
   This host-specific binding does not change the L3 context-isolation semantics, the independent `model`
   policy, or the evaluator model floor / N / M / P / self-contained-prompt contracts.
 
+  Resume mechanism (brake adjudication phase):
+  - The implementation subagent is resumed via the `resume_agent` tool, which restores the agent from its
+    saved rollout. Retain the agent id from the phase-1 spawn.
+  - `fork_turns` is a spawn-call argument and has no bearing here; a resume inherits the agent's own saved
+    context by construction, which is the property the phase depends on.
+  - Fallback: when `resume_agent` is unavailable, spawn a fresh subagent into the author role and let it
+    reconstruct from the issue body, the PR diff, and the PR comments. The role is unchanged.
+  - What goes into the resume message = `skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary.
+  - Adjudication actor and the phase split itself are canonical elsewhere
+    (`rules/evolution/initiator-autonomy.md` Two-stage brake / `skills/task-subagent-delegation/SKILL.md` Rules).
+    This block carries the Codex-side wiring only.
+
   Serial delegation does not require worktrees.
 
   Worktree vs commit serialization axis separation:

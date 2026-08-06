@@ -125,6 +125,15 @@ Subagent_Delegation:
   Delegation semantics (what to convey, what to retain, hook chain, issue management, failure reporting)
   are defined in skills/task-subagent-delegation/SKILL.md. This section covers adapter-layer execution details only.
 
+  Resume mechanism (brake adjudication phase):
+  - The implementation subagent is resumed via the Agent tool's `SendMessage`, addressed by the
+    agent id or name returned at spawn. A fresh `Agent` call starts cold and is not a resume.
+  - Retain that id from the phase-1 spawn. Losing it costs the implementation context the resume exists to keep.
+  - What goes into the resume message = `skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary.
+  - Adjudication actor and the phase split itself are canonical elsewhere
+    (`rules/evolution/initiator-autonomy.md` Two-stage brake / `skills/task-subagent-delegation/SKILL.md` Rules).
+    This block carries the Claude-side wiring only.
+
   Serial delegation does not require worktrees.
 
   Worktree vs commit serialization axis separation:

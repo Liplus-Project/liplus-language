@@ -33,7 +33,7 @@ Inject into the resume prompt:
 
   > Do not run or post the self-review, and do not merge. The self-review actor is the agent holding the merge decision, which is the parent in this mode. Report at your stop condition and exit.
 
-- (c) where the findings are: the PR URL, and that the evaluators posted their findings as PR comments. The parent does not paste the findings into the resume message — routing them through parent context is the cost this whole path removes (`skills/evolution-parallel-agent-eval/SKILL.md` Constraint: Findings route to the PR, not to the parent). At brake 2 the parent does carry the named deviation inline, because that evaluator has no PR surface to post to.
+- (c) where the findings are: the PR URL, and that the evaluators posted their findings as PR comments. The parent does not paste the findings into the resume message — routing them through parent context is the cost this whole path removes (`skills/evolution-parallel-agent-eval/SKILL.md` Constraint: Findings route to the PR, not to the parent). At brake 2 the parent posts the named deviation to the PR itself, because that evaluator has no PR surface to post to; the deviation and the author's answer then sit on the same thread the self-review reads, exactly as at brake 1. Carrying it only inside the resume message would leave the one finding class that blocks merge with no durable record.
 
 The Codex fallback takes the same three items. When `resume_agent` is unavailable, the parent spawns a fresh subagent into the author role and it reconstructs from the issue body, the PR diff, and the PR comments; the role is unchanged, so the boundary injected into it is unchanged.
 

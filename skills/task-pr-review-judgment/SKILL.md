@@ -13,7 +13,7 @@ layer: L3-task
 ## Responsibilities
 
 Main agent judges PR review without reading operations skills (skills/operations-on-pr-review/SKILL.md, skills/operations-on-merge/SKILL.md, etc.) directly.
-Judgment basis = issue body + PR diff + CI result.
+Judgment basis = issue body + PR diff + CI result + the brake finding thread on the PR when the brakes ran.
 
 if execution_mode == auto:
   Self-review (after CI pass):

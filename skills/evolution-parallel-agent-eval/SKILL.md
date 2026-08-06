@@ -137,7 +137,7 @@ The one place this skill fixes a count as a threshold is the fixed axis (`skills
 
 Procedure step 6 caps the eval at one round. Three defect classes are dropped by that cap. They are enumerated here so a later reader reads them as dropped, not missed (#1563) — read as an unfixed-bug list, they invite someone to restore the rounds without going through the re-evaluation trigger:
 
-- Defects introduced by the parent's own fix. Observed at PR #1560 G2 and PR #1555 R2 / R3. `#1562` test coverage is the receptacle for the behavior-defect subset.
+- Defects introduced by the adjudicator's own fix — the resumed author under the current actor split, the parent in the earlier regime the observations below come from. Observed at PR #1560 G2 and PR #1555 R2 / R3. `#1562` test coverage is the receptacle for the behavior-defect subset.
 - Prose-layer findings that surface only in later rounds. Observed at PR #1550 R4 (a still-live description deleted during a rewrite). Tests do not catch this class.
 - Behavior defects present in the initial implementation that round 1 did not reach. Observed at PR #1543 R3 (chunk-boundary multibyte corruption) and PR #1533 R2 (a spec category missing from an enumeration).
 

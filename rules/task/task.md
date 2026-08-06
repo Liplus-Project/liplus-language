@@ -93,8 +93,8 @@ blocked        = human input wait. stop state. Issue comment with reason is requ
 backlog        = accepted, not yet scheduled
 deferred       = not doing this time, revisit later
 
-State-machine subset = `in-progress` / `review-pending` / `waiting` / `blocked`. subagent + parent both edit. Exactly one holds at a time.
-Boundary among the waiting states = what the wait is about. `review-pending` covers every wait whose subject is the finished implementation, human PR review in `semi_auto` minor / major included: that wait asks the human for a verdict on finished work, not for input the work needs, so it does not become `blocked`. `blocked` is human input the work needs to continue or to form judgment. `waiting` is a non-human dependency.
+State-machine subset = `in-progress` / `review-pending` / `waiting` / `blocked`. subagent + parent both edit. At most one of the four is attached at a time; co-listing is prohibited.
+Boundary among the waiting states = what the wait is about. `review-pending` covers every wait whose subject is the finished implementation, human PR review in `semi_auto` minor / major included: that wait asks the human for a verdict on finished work, not for input the work needs, so it does not become `blocked`. `blocked` is human input the work needs to continue or to form judgment.
 Non-state lifecycle = `backlog` / `deferred`. parent retain.
 Close operation = parent retain.
 Detailed subagent application: see `skills/task-subagent-state-labels/SKILL.md`.

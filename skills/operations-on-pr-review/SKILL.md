@@ -25,8 +25,16 @@ Self-review procedure (all modes):
 Delegated-subagent stop condition (canonical, split by mode):
   if execution_mode == auto or execution_mode == semi_auto:
     Stop at `PR open + CI green`. The subagent neither runs nor posts the self-review; it reports there and exits.
-    The parent then runs brake 1 (and brake 2 when the PR touches L1 Model Layer source) at the position fixed by
-    `rules/evolution/initiator-autonomy.md` Two-stage brake, adjudicates the findings, self-reviews, and merges.
+    This point is reached twice, and the literal above is the whole condition at both:
+      first pass  - the issue's change is implemented. The parent then runs brake 1 (and brake 2 when the PR
+                    touches L1 Model Layer source) at the position fixed by `rules/evolution/initiator-autonomy.md`
+                    Two-stage brake.
+      second pass - the parent has resumed this subagent with the findings on the PR; it has adjudicated them,
+                    answered each on the PR, and pushed what it accepted. Reaching CI green again ends the
+                    delegation. If nothing was accepted, the same point is reached with no new commit.
+    Adjudication happens between the two passes and belongs to the resumed subagent, not to the parent
+    (`rules/evolution/initiator-autonomy.md` Two-stage brake, Adjudication actor). The parent self-reviews and
+    merges after the second pass.
   if execution_mode == trigger:
     Stop at `PR open + auto-merge enabled + CI green + self-review posted + awaiting human review`.
     Self-review precedes the human gate in every mode and the subagent is its actor in this mode, so it lands

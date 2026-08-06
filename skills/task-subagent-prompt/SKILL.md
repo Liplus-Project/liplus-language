@@ -1,6 +1,6 @@
 ---
 name: task-subagent-prompt
-description: Invoke when a subagent delegation prompt is being composed / example artifact text such as a suggested PR title or commit body is about to be written into a delegation prompt / a delegation runs in trigger execution mode and merge-gate context must be injected / subagent behavior depends on something that exists only in parent-side memory / a bounded read-only investigation prompt is being written and recursive subagent spawn must be prohibited. Provides the mode-specific injection items for trigger mode, field-scoped language hygiene for quotable example text, the recursive-spawn prohibition literal, and the memory-does-not-transfer rule with its injection or promotion cure.
+description: Invoke when a subagent delegation prompt is being composed / example artifact text such as a suggested PR title or commit body is about to be written into a delegation prompt / a delegation runs in trigger execution mode and merge-gate context must be injected / an implementation subagent is about to be resumed to adjudicate brake findings / subagent behavior depends on something that exists only in parent-side memory / a bounded read-only investigation prompt is being written and recursive subagent spawn must be prohibited. Provides the mode-specific injection items for trigger mode, the resume-phase authority boundary literal that keeps the resumed author off self-review and merge, field-scoped language hygiene for quotable example text, the recursive-spawn prohibition literal, and the memory-does-not-transfer rule with its injection or promotion cure.
 layer: L3-task
 ---
 
@@ -17,6 +17,27 @@ The minimal "issue URL only" pattern works for `auto` and `semi_auto` because th
 These three are out of scope for the broader "do not convey procedure" rule (`skills/task-subagent-delegation/SKILL.md` Rules) because they are not procedure — they are gate-state decisions specific to trigger-mode merge timing.
 
 </mode-specific-delegation-injection>
+
+<resume-phase-authority-boundary>
+
+# Resume-phase authority boundary
+
+In `auto` / `semi_auto`, the parent resumes the implementation subagent after the brakes report so the author adjudicates the findings (`rules/evolution/initiator-autonomy.md` Two-stage brake, Adjudication actor). The resume message is a prompt like any other, and the same injection reasoning as `mode-specific-delegation-injection` applies to it: the authority boundary at the resume point is a gate-state decision, not procedure, so conveying it does not collide with "do not convey step-by-step procedure".
+
+It has to be injected rather than left to the auto-loaded rules. The subagent resumes holding a session in which it has already run the whole implementation and is one CI-green away from a mergeable PR; the pull toward "finish it" is strongest exactly there. #1628 recorded a delegated subagent in `semi_auto` overrunning this boundary and executing both the self-review post and the merge.
+
+Inject into the resume prompt:
+
+- (a) the stop condition literal for this mode, read from `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition. Do not restate it here.
+- (b) the two negatives, verbatim:
+
+  > Do not run or post the self-review, and do not merge. The self-review actor is the agent holding the merge decision, which is the parent in this mode. Report at your stop condition and exit.
+
+- (c) where the findings are: the PR URL, and that the evaluators posted their findings as PR comments. The parent does not paste the findings into the resume message — routing them through parent context is the cost this whole path removes (`skills/evolution-parallel-agent-eval/SKILL.md` Constraint: Findings route to the PR, not to the parent). At brake 2 the parent does carry the named deviation inline, because that evaluator has no PR surface to post to.
+
+The Codex fallback takes the same three items. When `resume_agent` is unavailable, the parent spawns a fresh subagent into the author role and it reconstructs from the issue body, the PR diff, and the PR comments; the role is unchanged, so the boundary injected into it is unchanged.
+
+</resume-phase-authority-boundary>
 
 <delegation-prompt-hygiene-field-scoped-language>
 

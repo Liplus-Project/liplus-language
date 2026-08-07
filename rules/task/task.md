@@ -86,14 +86,15 @@ Description required on creation.
 ### Responsibilities
 
 Lifecycle:
-in-progress = work started, implementation ongoing
-done        = implementation phase finished, awaiting orchestration (review / merge / close). Executor-agnostic semantic. subagent: mandate at exit (just before parent report). main: best-effort at PR open + CI green + self-review pass.
-waiting     = external dependency wait (CI / dependent issue / environment). pause state. Issue comment with reason is required at transition.
-blocked     = human input wait. stop state. Issue comment with reason is required at transition.
-backlog     = accepted, not yet scheduled
-deferred    = not doing this time, revisit later
+in-progress    = work started, implementation ongoing
+review-pending = implementation phase finished, awaiting orchestration (review / merge / close). Executor-agnostic semantic. subagent: mandate at exit (just before parent report). main: best-effort at PR open + CI green + self-review pass.
+waiting        = external dependency wait (CI / dependent issue / environment). pause state. Issue comment with reason is required at transition.
+blocked        = human input wait. stop state. Issue comment with reason is required at transition.
+backlog        = accepted, not yet scheduled
+deferred       = not doing this time, revisit later
 
-State-machine subset = `in-progress` / `done` / `waiting` / `blocked`. subagent + parent both edit.
+State-machine subset = `in-progress` / `review-pending` / `waiting` / `blocked`. subagent + parent both edit. At most one of the four is attached at a time; co-listing is prohibited.
+Boundary among the waiting states = what the wait is about. `review-pending` covers every wait whose subject is the finished implementation, human PR review in `semi_auto` minor / major included: that wait asks the human for a verdict on finished work, not for input the work needs, so it does not become `blocked`. `blocked` is human input the work needs to continue or to form judgment.
 Non-state lifecycle = `backlog` / `deferred`. parent retain.
 Close operation = parent retain.
 Detailed subagent application: see `skills/task-subagent-state-labels/SKILL.md`.

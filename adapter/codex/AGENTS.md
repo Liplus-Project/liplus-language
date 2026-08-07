@@ -149,8 +149,10 @@ Subagent_Delegation:
     saved rollout. Retain the agent id from the phase-1 spawn.
   - `fork_turns` is a spawn-call argument and has no bearing here; a resume inherits the agent's own saved
     context by construction, which is the property the phase depends on.
-  - Fallback: when `resume_agent` is unavailable, spawn a fresh subagent into the author role and let it
-    reconstruct from the issue body, the PR diff, and the PR comments. The role is unchanged.
+  - No resume target: when `resume_agent` is unavailable, or when the parent does not hold the phase-1 id —
+    the standing case when adjudication runs in a later session than the implementation — the reconstruction
+    fallback applies (`skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary). Its condition
+    and form are canonical there; this block names only that the Codex side produces both forms of it.
   - What goes into the resume message = `skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary.
   - Adjudication actor and the phase split itself are canonical elsewhere
     (`rules/evolution/initiator-autonomy.md` Two-stage brake / `skills/task-subagent-delegation/SKILL.md` Rules).

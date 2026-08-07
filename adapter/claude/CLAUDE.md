@@ -129,6 +129,10 @@ Subagent_Delegation:
   - The implementation subagent is resumed via the Agent tool's `SendMessage`, addressed by the
     agent id or name returned at spawn. A fresh `Agent` call starts cold and is not a resume.
   - Retain that id from the phase-1 spawn. Losing it costs the implementation context the resume exists to keep.
+  - The id lives in the spawning session's context. A parent that does not hold it has no resume target, which
+    is the standing case when adjudication runs in a later session than the implementation; the reconstruction
+    fallback then applies (`skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary). Its condition
+    and form are canonical there; this block names only that the Claude side produces the lost-id form of it.
   - What goes into the resume message = `skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary.
   - Adjudication actor and the phase split itself are canonical elsewhere
     (`rules/evolution/initiator-autonomy.md` Two-stage brake / `skills/task-subagent-delegation/SKILL.md` Rules).

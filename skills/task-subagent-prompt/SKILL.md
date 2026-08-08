@@ -8,13 +8,14 @@ layer: L3-task
 
 # Mode-specific delegation injection
 
-The minimal "issue URL only" pattern works for `auto` and `semi_auto` because the subagent's auto-loaded operations rules already cover the merge gate. `trigger` mode is the exception: the merge gate involves human approval timing, and three pieces of context need explicit injection because they are parent-side decisions, not subagent-discovered facts:
+The minimal "issue URL only" pattern works for `auto` and `semi_auto` because the subagent's auto-loaded operations rules already cover the merge gate. `trigger` mode is the exception: the merge gate involves human approval timing, and two pieces of context need explicit injection because they are parent-side decisions, not subagent-discovered facts:
 
-- (a) commit body language: the destination artifact's governing language contract and repository governance (liplus-language requires Japanese). Auto-loaded operations.md states the repository rule, but missed-application is the recurring failure mode; explicit reminder in the delegation prompt prevents drift.
-- (b) auto-merge enablement: include `gh pr merge {pr} --auto --squash` as a step the subagent runs after PR creation. Without this, the merge sits idle after human approval because trigger-mode PRs do not auto-merge by default.
-- (c) stop condition: the `trigger` form is longer than the `auto` / `semi_auto` one and ends short of merge complete. Read it at `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition, which splits by mode; inject that mode's literal into the prompt. Do not restate it here.
+- (a) auto-merge enablement: include `gh pr merge {pr} --auto --squash` as a step the subagent runs after PR creation. Without this, the merge sits idle after human approval because trigger-mode PRs do not auto-merge by default.
+- (b) stop condition: the `trigger` form is longer than the `auto` / `semi_auto` one and ends short of merge complete. Read it at `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition, which splits by mode; inject that mode's literal into the prompt. Do not restate it here.
 
-These three are out of scope for the broader "do not convey procedure" rule (`skills/task-subagent-delegation/SKILL.md` Rules) because they are not procedure — they are gate-state decisions specific to trigger-mode merge timing.
+These two are out of scope for the broader "do not convey procedure" rule (`skills/task-subagent-delegation/SKILL.md` Rules) because they are not procedure — they are gate-state decisions specific to trigger-mode merge timing.
+
+Artifact body language is not on this list, and its absence is not a `trigger`-mode exemption: that item is required in every mode and lives at Delegation prompt hygiene below. What disqualifies it here is this list's own criterion — nothing about the body language turns on trigger-mode merge timing, so an entry here could only restate the universal item, and the restating copy is the one that drifted: it carried a resolved language name until #1580.
 
 </mode-specific-delegation-injection>
 
@@ -53,14 +54,17 @@ This is not the substrate-absence fallback of `skills/task-subagent-delegation/S
 
 Example artifact text MUST follow the destination artifact's governing language contract; being example text does not create an independent ASCII-only category. Resolve the language from (1) an explicit human language instruction for that artifact, (2) an accepted thread agreement, then (3) the destination repository / workspace project-language default (`LI_PLUS_PROJECT_LANGUAGE` when applicable), while also satisfying destination-repository governance. A host workspace language contract does not override `LI_PLUS_REPO` governance.
 
-Issue / PR / commit title examples MUST be ASCII English only. Body examples (issue / PR / commit bodies and wiki entries) MUST follow the resolved governing language contract and MUST NOT be rewritten under an ASCII-only rule. In liplus-language, issue / PR / commit bodies contain Japanese as required by repository governance.
+Issue / PR / commit title examples MUST be ASCII English only. Body examples (issue / PR / commit bodies and wiki entries) MUST follow the resolved governing language contract and MUST NOT be rewritten under an ASCII-only rule.
+
+That precedence resolves to a value the subagent cannot reach on its own: `CLAUDE.md` and `rules/**` reach subagent context in full while hook firing output does not, and `LI_PLUS_BASE_LANGUAGE` / `LI_PLUS_PROJECT_LANGUAGE` are exactly what the session-start hook emits into the parent's session (`skills/evolution-parallel-agent-eval/SKILL.md` Report shape, Language holds the same asymmetry on the evaluator side). The parent therefore resolves the value before the spawn and names it in the prompt as the value for that run. No resolved language name goes into this file or any other Li+ source: the source ships to every workspace while the value is per-workspace, so a name written here arrives elsewhere wearing the contract's face (Decision Structure `distributed-source-carries-no-resolved-config-value`). The bound runs in the other direction too — a value named for one run is not a value to write into a file the subagent edits, and that is the path by which one re-entered this section's own literal (#1704).
 
 Subagents mirror the prompt's literal style when emitting artifacts. Non-ASCII typographic characters (em-dash `—` / en-dash `–` / box-drawing `─` / smart quotes `' " ' "` / JA characters in example titles) can leak from a prompt into an ASCII-English-governed title field. Body fields are validated as well-formed UTF-8 that renders without mojibake, not as ASCII byte sequences.
 
 How to apply:
 - For issue / PR / commit title examples, rewrite into ASCII English before sending the prompt: em-dash -> `-` / `--`, en-dash -> `-`, box-drawing horizontal -> `-` / `=`, smart quotes -> ASCII `'` `"`, and JA example-title text -> translate / rewrite into ASCII English or omit.
 - For issue / PR / commit body and wiki-entry examples, resolve the destination artifact's governing language contract using the precedence above; validate well-formed UTF-8 and inspect rendered text for mojibake. Do not use an ASCII-only check as body validation.
-- Add an explicit instruction to the prompt: "Use ASCII English only in issue, PR, and commit titles. Resolve issue/PR/commit bodies and wiki entries from each destination artifact's governing language contract: an explicit human language instruction for that artifact, then an accepted thread agreement, then the destination repository/workspace project-language default, while satisfying destination-repository governance. The host workspace language contract does not override LI_PLUS_REPO governance; in liplus-language, issue/PR/commit bodies require Japanese. Never apply an ASCII-only rule to bodies. Apply `od -c` byte-level verification to title fields, and verify body text is well-formed UTF-8 and renders without mojibake."
+- Add an explicit instruction to the prompt: "Use ASCII English only in issue, PR, and commit titles. Resolve issue/PR/commit bodies and wiki entries from each destination artifact's governing language contract: an explicit human language instruction for that artifact, then an accepted thread agreement, then the destination repository/workspace project-language default, while satisfying destination-repository governance. The host workspace language contract does not override LI_PLUS_REPO governance. Never apply an ASCII-only rule to bodies. Apply `od -c` byte-level verification to title fields, and verify body text is well-formed UTF-8 and renders without mojibake."
+- Name the resolved body language next to that instruction. The instruction states the contract; the value it resolves to is the parent's to supply, per the paragraph above. Give it as the resolved value for this run, and say it is not to be written into any file the subagent edits.
 - The prompt's surrounding prose is outside title-field ASCII checks; every example field the subagent might copy follows its own destination-field contract.
 
 Detection signs:
@@ -68,6 +72,8 @@ Detection signs:
 - Example PR title field contains JA characters or smart quotes.
 - Example body is forced to ASCII or omits the resolved governing language contract or destination-repository governance.
 - A host workspace language default is used to override `LI_PLUS_REPO` governance.
+- A resolved language name is about to be written into the quoted instruction above, or into any other Li+ source line, instead of being named per run.
+- The prompt is about to be sent with the contract named and no resolved value, leaving the subagent the prompt's own language as its only signal.
 - `od -c` or another byte-level ASCII check is applied to body content as an acceptance criterion instead of UTF-8 / mojibake validation.
 - One instruction groups title and body fields under the same ASCII-only clause.
 

@@ -56,13 +56,12 @@ Sub-issues commit on the parent branch. No individual branches for sub-issues.
 Parent issue with sub-issues = single parent PR. Per-sub-issue PR is prohibited.
 Per-commit CI visibility uses draft PR opened early on the parent branch, not split PRs.
 Commit title = ASCII English only, single line.
-Japanese commit title is prohibited.
 Commit body is not optional.
 Commit body must contain: change summary + intent or background + issue number.
-Minimum one Japanese sentence required in commit body.
-English-only commit body is prohibited.
+Commit body must contain at least one sentence in `LI_PLUS_PROJECT_LANGUAGE`.
 PR title = ASCII English only, single line.
-PR body = Japanese.
+PR body = `LI_PLUS_PROJECT_LANGUAGE`.
+The two title lines sit on an axis separate from the body lines: ASCII English there is the GitHub-side convention for a single-line title, not a value `LI_PLUS_PROJECT_LANGUAGE` resolves, so a title stays ASCII English in a workspace whose project language is something else. Parameterizing the title lines while the body lines are read as contract references is the misreading this states against.
 Docs update must be in same PR as implementation. Split docs PR is prohibited.
 docs/ is source of truth. Wiki is mirror, not source. `docs/` in this line = the repository's numbered requirements specs and lettered reference docs. It is not the `docs-tier` of `skills/evolution-persistence-tiering`, which is a persistence rank that spans the wiki as well; same word, different axis.
 Exception = Decision Structure entries. Their body is authored directly in the wiki under `Decision_Structure_Write_Autonomy` and exists nowhere else, so for those entries the wiki is source; `docs/Decision-Structure.md` holds the operating index only. Spec = `docs/Decision-Structure.md`; do not restate it here.

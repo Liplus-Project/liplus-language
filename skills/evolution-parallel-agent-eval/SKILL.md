@@ -1,6 +1,6 @@
 ---
 name: evolution-parallel-agent-eval
-description: Invoke when a self-evolution PR reaches CI green and the merge gate is next (mandatory brake 1) / a Li+ rules/skills/adapter edit draft has converged outside a PR flow and needs verification before entering one / an evolution-loop observe/evaluate stage needs an empirical verdict / an N=1 self-check on an edit feels positive and needs outside measurement / a spec revision proposal needs orthogonal verification on rule semantic consistency / a brake 1 evaluator comment or an author's answer to a finding is being composed. Provides parallel subagent eval (default N=3, all axes per subagent; aggregation per judgment asymmetry) against introspection-gap overconfidence: N/M/P design dimensions, 7-step procedure with operational copy apply/restore, findings-to-PR-comment routing, adjudication on the resumed author, N=3/model floors, single-round cap, divergence pair (same-question, why-diverged), ratio as triage signal not judgment input, asymmetric report shape (finding/rejection full, clean/accepted one line).
+description: Invoke when a self-evolution PR reaches CI green and the merge gate is next (mandatory brake 1) / a Li+ rules/skills/adapter edit draft has converged outside a PR flow and needs verification before entering one / an evolution-loop observe/evaluate stage needs an empirical verdict / an N=1 self-check on an edit feels positive and needs outside measurement / a spec revision proposal needs orthogonal verification on rule semantic consistency / a brake 1 evaluator comment or an author's answer to a finding is being composed. Provides parallel subagent eval (default N=3, all axes per subagent) against introspection-gap overconfidence: N/M/P design dimensions, 7-step procedure with operational copy apply/restore, findings-to-PR-comment routing, adjudication on the resumed author, N=3/model floors, single-round cap, divergence pair (same-question, why-diverged), ratio as triage signal not judgment input, axis statement form, asymmetric report shape (finding/rejection full, clean/accepted one line).
 layer: L2-evolution
 ---
 
@@ -68,7 +68,7 @@ When evaluators split on one axis, ask two questions once each, in this order, b
 
 "They answered the same question, and the criteria sufficed" answers both and closes the divergence. This is a check to pass through, not a hunt: the shape is `rules/model/trigger-check-gate.md`, where one No pauses to retrieve and verify and then proceeds, and confirming nothing is wrong is a normal outcome. Writing up a criteria gap because the step expects one is the failure mode here (`rules/model/subtractive-structural-beauty.md` push surplus).
 
-Answers go on the PR alongside the author's answers to the findings themselves, the surface the fixed axis's 1-of-3 flag already uses; the parent reads them there at Procedure step 7. No new record surface. Neither outcome gates the merge on its own: a criteria gap from question 2 is routed like any other spec-gap observation (`rules/evolution/promotion-judgment.md`), and an axis-wording finding from question 1 is a note on how this eval was framed, carried into how the next one words that axis. Stating this for one branch and not the other would put the pressure back where the paragraph above removes it.
+Answers go on the PR alongside the author's answers to the findings themselves, the surface the fixed axis's 1-of-3 flag already uses; the parent reads them there at Procedure step 7. No new record surface. Neither outcome gates the merge on its own: a criteria gap from question 2 is routed like any other spec-gap observation (`rules/evolution/promotion-judgment.md`), and an axis-wording finding from question 1 names the part of Axis statement form that did not hold, which is where it lands. Stating this for one branch and not the other would put the pressure back where the paragraph above removes it.
 
 ### Ratio is a triage signal
 
@@ -95,7 +95,7 @@ The one place this skill fixes a count as a threshold is the fixed axis (`skills
 
    On the brake 1 path the material named in the prompt is the PR URL, the pushed commit SHA, and the green CI run URL — never a path inside the parent's clone, which would put every evaluator on a baseline any one of them can move. The reason that set is fixed is canonical in `rules/evolution/initiator-autonomy.md` Two-stage brake. The rule governs what the prompt *names*, so step 2's operational copy is unaffected: it reaches the evaluator as auto-injected context, not as a named path.
 
-   Five things go into the prompt alongside the material:
+   Each selected axis goes into the prompt in the form fixed at Axis statement form. Five more things go in alongside the axes and the material:
    - the no-write literal verbatim (see Constraint: Evaluator does not modify the evaluation target)
    - the retrieval commands, so the evaluator does not assume a clone is needed: `gh pr diff <n> --repo <owner>/<repo>` returns the diff and `gh api repos/<owner>/<repo>/contents/<path>?ref=<SHA>` returns any file body at that SHA
    - the allowance that an axis needing a repository-wide sweep clones into the evaluator's own working directory, which is off the shared surface. GitHub code search is unreliable on this repository (total hits 0), so the sweep has nowhere else to go
@@ -107,6 +107,28 @@ The one place this skill fixes a count as a threshold is the fixed axis (`skills
 7. **Externalize** - Record the verdict and the adoption judgment in the parent issue body / PR self-review, so the judgment survives the session. On the brake 1 path the findings and the accept / reject answers are already externalized as the PR comment thread at steps 3 and 6; the self-review does not transcribe them, it reads them and records what the thread does not carry — the merge judgment over it, including whether a rejection left standing looks right. A reported count occupies its own field, separate from the adjudication and from the literal that adjudication rests on; do not write the count as the reason (see Design Dimensions, Ratio is a triage signal). If the judgment has settled, also append to decision structure per `skills/evolution-decision-structure-write`
 
 </procedure>
+
+<axis-statement-form>
+
+## Axis statement form
+
+Fixes the form each selected axis is written in. Trigger, Axis selection picks which axes are asked; this fixes how one is stated once picked, and it applies at Procedure step 3, where the axes enter the prompt.
+
+The gap it closes: the parent authors the instrument in the same moment it is reading the instrument's target literally, and the literal check that reaches the target does not reach the instrument. Observed seven times in three days (#1692), five of them one axis name carrying more than one question.
+
+Each axis ships as five labeled parts, all of them payload — they enter the evaluator's prompt as written, and none is a check whose output is discarded once it passes. That is what the form rests on: a part left unwritten is a missing label in the text the evaluator will read, where a check that was never recalled leaves nothing behind at all. Visibility on the artifact is what that buys, short of the execution guarantee `rules/model/subtractive-structural-beauty.md` asks for when it requires a procedure be replaced by a structure — and it is the ground on which `#1630` rejected relocating a dropped step as one more line to be remembered. Each part is a phrase, not a paragraph; the form fixes what an axis names, not how much of it there is.
+
+- **Question** — one interrogative, and one only. Two clauses joined by "and" or by a comma are two axes: split them, or drop one. It must also be answerable in the order its material arrives — an axis cannot ask for a judgment formed before reading what the prompt itself carries.
+- **Unit** — what a single verdict covers: a sentence, a paragraph, a file, a claim, an occurrence. Unstated, evaluators pick different ones and the resulting split reads as disagreement when nobody disagreed.
+- **Scope** — the surface the axis ranges over: this PR's diff, one named file, the repository, the repository and the wiki. An axis whose verdict is an absence claim states what it swept, an absence being only as wide as what was read.
+- **Verdict terms** — what a yes and a no mean here, in this axis's own words. Design Dimensions' aggregation vocabulary is about the judgment on the draft, so on an axis asking "did anything drop?" a finding answers yes while being negative for the draft; an axis that does not name its own polarity inherits the wrong one. This is the part Report shape presumes when it asks a clean axis for the verdict in that axis's own terms.
+- **Basis** — every statement the axis makes about the target or about the criteria carries a pointer that resolves at the named SHA: the criterion at its `path`, or quoted with `path:line`; an illustrative example quoted from where it actually occurs rather than composed to look like one; and, where the answer turns on how many of something there are, the body to count from instead of a number. What this excludes is assertion from the parent's memory of a body the parent itself authored — the gist read this form exists to cut. Resolvability is the property the return leg already rests on (Report shape, What the pointer carries on a clean axis). An argument the parent is relying on is restated inside every axis that needs it: an axis does not inherit what was written next to it.
+
+### Where this meets the post-hoc check
+
+Design Dimensions, Divergence handling asks the same-question check after the eval; Question above asks it before the spawn. Neither replaces the other. The post-hoc check catches the axis whose parts were filled but filled loosely, and it keeps working on axes worded before this form existed. What moves is where its No lands: on the part of this form that did not hold, a surface that persists, instead of on the next run's framing, which is where every prior No landed while the cluster recurred seven times.
+
+</axis-statement-form>
 
 <report-shape>
 

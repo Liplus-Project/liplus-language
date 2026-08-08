@@ -17,9 +17,27 @@ Detailed scope spec for `Evolution_Initiator_Autonomy` (`adapter/claude/CLAUDE.m
 A PR is a "self-evolution PR" when both conditions hold:
 
 1. It is filed under the `Evolution_Initiator_Autonomy` initiator path (AI-authored issue → AI implementation).
-2. It modifies Li+ source — `rules/**/*.md`, `skills/**/SKILL.md`, or `adapter/**/*` files in the `LI_PLUS_REPO` repository.
+2. It changes a governed surface in the `LI_PLUS_REPO` repository (criterion below).
+
+Both, and neither alone. Condition 1 is the one that gets read as sufficient: on 2026-08-08 a delegated report on a `docs/`-only PR stated that brake 1 applied and brake 2 did not (#1700), having settled the initiator path and stopped there. The PR failed condition 2 and was not a self-evolution PR at all. The miss ran safer-side, so it changed no output and appeared only in that one sentence of the report.
 
 Bug-fix PRs on user repos and PRs filed by human at the issue stage are outside this definition (different gate surfaces apply).
+
+### Governed surface (condition 2)
+
+brake 1's detector is a reader — N>=3 agents reading the diff. Condition 2 therefore holds for a changed file when both are true of it: it constrains how the system behaves, and reading is the only thing that would catch it being wrong. What closes condition 2 is that criterion, not the entries below; the entries are the cases that have come up.
+
+- `rules/**/*.md`, `skills/**/SKILL.md`, `adapter/**/*`, `Li+update.md` — prose the agent loads and runs as its own instruction. Nothing executes it, so a drifted line raises no failure and the reader is the only detector.
+- `tests/**` — the contract tests holding those surfaces to a structure, which `rules/model/subtractive-structural-beauty.md` requires wherever a procedure's execution is not guaranteed. This is executed code, and it is the carve-out from the executed-code exclusion below: a test that has stopped checking what it claims still reports green, so the enforcement disappears with no signal and reading is again the only detector. #1670 arrived here on judgment; the criterion now arrives by literal.
+
+Excluded, each by the property that excludes it:
+
+- **Record surfaces** — `docs/**`, the wiki, `README.md`, `LICENSE`, `NOTICE`. Read on demand as a record of past judgment or as description. Nothing here is loaded as instruction, so no behavior is constrained, and a wrong line costs one re-read at retrieval time. #1698 read this off the absence of `docs/` from the old enumeration; it is now the literal.
+- **Executed code that reports its own failure** — `scripts/**`, `.github/**`. A defect surfaces as a run failure or a red check, which is a detector other than reading. `tests/**` is carved out of this exclusion above.
+
+A changed file the criterion places on neither side is on the firing side. A needless eval costs one eval; a missed one costs the gate.
+
+`docs/` is in Scope below and excluded here. The two lists run on different axes — Scope is what the AI may initiate, condition 2 is what brake 1 gates — and `docs/` is the entry where they disagree, so reading either membership off the other is what produces the wrong answer.
 
 </self-evolution-pr-definition>
 
@@ -27,7 +45,9 @@ Bug-fix PRs on user repos and PRs filed by human at the issue stage are outside 
 
 ## Scope ("L2-L6 improvement issues in general")
 
-In-scope = any Li+ source file with `layer: L2-evolution` / `L3-task` / `L4-operations` / `L5-notifications` / `L6-adapter` frontmatter, plus `docs/`, `adapter/`, `scripts/`, `hooks/`, and `Li+update.md`.
+In-scope = any Li+ source file with `layer: L2-evolution` / `L3-task` / `L4-operations` / `L5-notifications` / `L6-adapter` frontmatter, plus `docs/`, `adapter/`, `scripts/`, `tests/`, `.github/`, and `Li+update.md`. Hooks get no entry of their own: they live at `adapter/claude/hooks/` and `adapter/codex/hooks/`, which `adapter/` already covers, and the top-level `hooks/` this list used to name is not a path in the tree.
+
+`tests/` and `.github/` are named because the initiator path has already run on both — #1670 on `tests/`, #1404 / #1408 / #1568 / #1571 on `.github/`. Naming them records authority that was exercised; it does not extend any. A path enters this list on a measured run, not on the prospect of one.
 
 Out-of-scope = L1 Model Layer source (`layer: L1-model`, typically `rules/model/`; L1-tagged adapter files such as `adapter/claude/agents/l1-gate-eval.md` count), which routes to brake 2. The `layer: L1-model` frontmatter wins over directory location — an L1-tagged file under `adapter/` is out-of-scope despite the `adapter/` blanket above.
 

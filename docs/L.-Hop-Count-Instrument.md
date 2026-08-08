@@ -45,11 +45,11 @@
 
 | ID | 適用瞬間 | 起点 `file:line` | ツール | 文脈内 |
 |---|---|---|---:|---:|
-| S1 | self-evolution PR が CI green → 次に何を走らせるか | `rules/evolution/initiator-autonomy.md:40` | 3 | 0 |
+| S1 | self-evolution PR が CI green → 次に何を走らせるか | `rules/evolution/initiator-autonomy.md:60` | 3 | 0 |
 | S2 | subagent 完了 → 親の次の行動 | `adapter/claude/CLAUDE.md:75` | 1 | 0 |
 | S3 | webhook イベント到着 → 処理と `mark_processed` | `adapter/claude/CLAUDE.md:200` | 2 | 0 |
 | S4 | sub-issue が親の本文範囲を超える | `rules/task/task.md:38` | 1 | 0 |
-| S5 | L1 evaluator の判定基準そのもの | `rules/evolution/initiator-autonomy.md:43` | 1 | 0 |
+| S5 | L1 evaluator の判定基準そのもの | `rules/evolution/initiator-autonomy.md:69` | 1 | 0 |
 | S6 | patch / minor / major の分類 | `rules/operations/release-version-rule.md:25` | 0 | 0 |
 | S7 | Li+update 実行要否の判定 | `adapter/claude/CLAUDE.md:22` | 0 | 0 |
 | S8 | memory 書き込み直前の persistence 判定 | `adapter/claude/CLAUDE.md:161` | 1 | 1 |

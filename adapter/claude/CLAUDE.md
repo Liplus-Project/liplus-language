@@ -41,7 +41,7 @@ Cold-start Synthesis is not a skill. Its content lives in `rules/evolution/cold-
 
 character_Instance.md is loaded via `.claude/output-styles/character_Instance.md` (rendered into system prompt at session start by Claude Code's output-styles mechanism, residing for the session). Activation: `"outputStyle": "character_Instance"` in `settings.json` (Li+ template default). User-customizable. Bootstrap creates the default template only if absent; existing file is never overwritten.
 
-Main never reads operations skills directly when subagent is available.
+Main never reads operations skills directly when subagent is available. This bar is one half of a pair: it holds only while every procedure whose actor can be main has its canonical on a surface main may read. `rules/operations/main-agent-procedures.md` states the pair and holds those procedures.
 
 Subagent does not create, move, or remove worktrees.
 

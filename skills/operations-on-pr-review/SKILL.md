@@ -1,6 +1,6 @@
 ---
 name: operations-on-pr-review
-description: Invoke when CI has passed and the PR has reached its review surface / a delegated subagent has reached its stop condition and needs that mode literal. Makes AI self-review mandatory in every mode, records the formal review via gh pr review --comment, defines the mode-specific human gate, holds the canonical delegated-subagent stop condition split by mode, and carries the follow-through on items the self-review deferred, which lands after merge in the same session.
+description: Invoke when CI has passed and the PR has reached its review surface / a delegated subagent has reached its stop condition and needs that mode literal. Makes AI self-review mandatory in every mode, routes the formal review record to its canonical in rules/operations/main-agent-procedures.md, defines the mode-specific human gate, holds the canonical delegated-subagent stop condition split by mode, and carries the follow-through on items the self-review deferred, which lands after merge in the same session.
 layer: L4-operations
 ---
 
@@ -19,7 +19,7 @@ Review basis:
 Self-review procedure (all modes):
   Actor = the agent holding the merge decision per `skills/task-subagent-delegation/SKILL.md` Rules: parent in `auto` / `semi_auto`, subagent in `trigger`.
   That agent reviews the PR diff against issue requirements (see `skills/task-pr-review-judgment/SKILL.md`).
-  self-review pass -> post formal review record (below) -> proceed to mode-specific human gate.
+  self-review pass -> post formal review record (`rules/operations/main-agent-procedures.md` Self-review formal record) -> proceed to mode-specific human gate.
   self-review fail -> fix and recommit (restart [CI Loop]).
 
 Delegated-subagent stop condition (canonical, split by mode):
@@ -43,20 +43,19 @@ Delegated-subagent stop condition (canonical, split by mode):
   Other surfaces point here. Do not restate the condition; the second copy is what drifts.
 
 Self-review formal record (all modes, mandatory):
-  After internal self-review pass, AI MUST post the self-review outcome as a formal GitHub PR review:
-    gh pr review {pr} -R {owner}/{repo} --comment --body "<summary of self-review outcome>"
-  Rationale: creates audit trail visible on the PR's Reviews tab, separating AI's review record from PR author authorship.
-  Mechanism note: GitHub rejects `--add-reviewer` self-assignment silently; only `gh pr review --comment` works for PR author self-review records (empirically verified 2026-04-20 on PR #1095).
-  Review body must include: acceptance-criteria check result, scope deviations (if any), next-step expectation (e.g. "awaiting human review" for trigger / minor-major semi_auto).
+  Canonical = `rules/operations/main-agent-procedures.md` Self-review formal record. The requirement, the
+  `gh pr review --comment` command, and the required body items live there, not here: the actor is the parent in
+  `auto` / `semi_auto`, and the parent does not read this file (that file's The bar and its pair). Do not restate
+  them here; the second copy is what drifts.
 
 Mode-specific human gate after self-review:
 
 if execution_mode == auto:
-  No human gate. Self-review pass -> proceed to [Merge].
+  No human gate. Self-review pass -> proceed to [Merge Execution].
 
 if execution_mode == semi_auto:
   Type-gated human check.
-  patch -> no human gate. Self-review pass -> proceed to [Merge].
+  patch -> no human gate. Self-review pass -> proceed to [Merge Execution].
   minor / major -> human check required after self-review pass (procedure = trigger mode's Review approval check below).
   Version type is the same judgment axis used at release (see `rules/operations/release-version-rule.md`). AI proposes type at PR creation time; on unclear, default to the safer side (minor) and ask human.
 
@@ -77,7 +76,7 @@ if execution_mode == trigger:
       Wait = human signals review done (do not poll).
       On signal:
         gh pr view {pr} -R {owner}/{repo} --json reviewDecision --jq '.reviewDecision'
-  reviewDecision=="APPROVED" -> proceed to [Merge].
+  reviewDecision=="APPROVED" -> proceed to [Merge Execution].
   reviewDecision=="CHANGES_REQUESTED" -> read review comments -> fix and recommit (restart [CI Loop]).
 
 <follow-through-on-deferred-items>

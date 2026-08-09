@@ -107,9 +107,11 @@ S2 のみ #1564 実測2 の記録（ツール2 / 文脈内2）と一致しない
 **S10** — anchor: `A drift / pattern observation occurring at any moment`
 - 閾値表（同一ファイル `:70-75`）まで同一ファイル内。跳躍ゼロ。
 
-**S11** — anchor: `Invocation anchor: this procedure runs through skills/operations-on-merge/SKILL.md`
-- → `skills/operations-on-merge/SKILL.md` `[tool]`
+**S11** — anchor: `Invocation anchor: this procedure is named at the merge moment by rules/operations/main-agent-procedures.md Merge Execution`
+- → `rules/operations/main-agent-procedures.md` `## Merge Execution` `[ctx]`
 - → `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format（miss verdict の escalation 先）`[ctx]`
+
+`[tool]` から `[ctx]` へ変わっているのは #1708 の移設による。旧アンカーは `skills/operations-on-merge/SKILL.md` の invoke を指していたが、この手続きの実行主体は `auto` / `semi_auto` では親であり、親は operations 系 skill を読まない。跳躍先が実行主体にとって開けない `[tool]` だったものが、常駐で保持される `[ctx]` になった。
 
 **S12** — anchor: `Trigger = session start, after Li+config.md execution completes.`
 - → `docs/Decision-Structure.md`（Action step 1）`[tool]`

@@ -11,7 +11,7 @@ layer: L3-task
 The minimal "issue URL only" pattern works for `auto` and `semi_auto` because the subagent's auto-loaded operations rules already cover the merge gate. `trigger` mode is the exception: the merge gate involves human approval timing, and two pieces of context need explicit injection because they are parent-side decisions, not subagent-discovered facts:
 
 - (a) auto-merge enablement: include `gh pr merge {pr} --auto --squash` as a step the subagent runs after PR creation. Without this, the merge sits idle after human approval because trigger-mode PRs do not auto-merge by default.
-- (b) stop condition: the `trigger` form is longer than the `auto` / `semi_auto` one and ends short of merge complete. Read it at `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition, which splits by mode; inject that mode's literal into the prompt. Do not restate it here.
+- (b) stop condition: the `trigger` form is longer than the `auto` / `semi_auto` one and ends short of merge complete. What the parent injects is the pointer, not the literal — direct the subagent to read its own stop condition for this mode at `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition, which splits by mode, and to restate it before it starts. The parent cannot inject the literal without first reading that file, which is barred to it (`rules/operations/main-agent-procedures.md` The bar and its pair); the subagent reading it is the ordinary route. Do not restate the condition here either.
 
 These two are out of scope for the broader "do not convey procedure" rule (`skills/task-subagent-delegation/SKILL.md` Rules) because they are not procedure — they are gate-state decisions specific to trigger-mode merge timing.
 
@@ -29,7 +29,7 @@ It has to be injected rather than left to the auto-loaded rules. The subagent re
 
 Inject into the resume prompt:
 
-- (a) the stop condition literal for this mode, read from `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition. Do not restate it here.
+- (a) an instruction to read its own stop condition for this mode at `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition and restate it before acting. The parent carries the pointer, not the literal: injecting the literal requires the parent to read that file first, and it may not (`rules/operations/main-agent-procedures.md` The bar and its pair). This item is the one place the bar is repaired by a pointer rather than by a move — the literal's actor is the subagent, which reads that file on its own route, so there is nothing here to relocate to a main-readable surface. What #1628 measured is that leaving the boundary to auto-load alone did not hold it at the resume point; the boundary itself is carried by (b), which stays verbatim, and a directed read with a restatement is a stronger form than a pasted paragraph skimmed in passing.
 - (b) the two negatives, verbatim:
 
   > Do not run or post the self-review, and do not merge. The self-review actor is the agent holding the merge decision, which is the parent in this mode. Report at your stop condition and exit.

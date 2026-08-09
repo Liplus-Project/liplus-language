@@ -35,7 +35,11 @@ if execution_mode == auto or execution_mode == semi_auto:
   procedure. The phase-2 answers on the PR are the author's replies to findings, a
   different artifact; posting them is not the self-review record and does not become it.
 if execution_mode == trigger:
-  Subagent executes: branch, implementation, commit, push, PR, CI loop, self-review, merge.
+  Subagent executes: branch, implementation, commit, push, PR, CI loop, self-review.
+  `merge` is not on that list. What the mode matrix's `AI` merge executor names here is
+  enabling the GitHub auto-merge handoff at PR creation (`rules/operations/operations.md`
+  PR auto-merge policy), and the `PR` item already covers that act. GitHub fires the merge
+  itself on human approval, by which time this session has ended.
   Stop condition = `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition.
 
 The `branch` item above is conditional on the delegation using no worktree, in every mode. A worktree delegation arrives with the branch already created — the branch is what the worktree is checked out from, so creating one inside the delegation has nothing to attach to — and the subagent works in the path it was given. The condition is stated here because this is the file that owns the execution split; an adapter that scoped it from its own side alone would be a later layer redefining an earlier one (`rules/model/layer-definition.md` Cross-layer rule), which that rule sends back to the boundary rather than resolving by precedence.

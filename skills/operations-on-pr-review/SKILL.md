@@ -17,7 +17,9 @@ Review basis:
     local-only success does not close review
 
 Self-review procedure (all modes):
-  Actor = the agent holding the merge decision per `skills/task-subagent-delegation/SKILL.md` Rules: parent in `auto` / `semi_auto`, subagent in `trigger`.
+  Actor = parent in `auto` / `semi_auto`, subagent in `trigger` (`skills/task-subagent-delegation/SKILL.md` Rules).
+  In the first two it is the agent that merges; in `trigger` no agent merges, and the actor is the subagent
+  because its self-review lands before its own stop point (Delegated-subagent stop condition below).
   That agent reviews the PR diff against issue requirements (see `skills/task-pr-review-judgment/SKILL.md`).
   self-review pass -> post formal review record (`rules/operations/main-agent-procedures.md` Self-review formal record) -> proceed to mode-specific human gate.
   self-review fail -> fix and recommit (restart [CI Loop]).
@@ -76,7 +78,8 @@ if execution_mode == trigger:
       Wait = human signals review done (do not poll).
       On signal:
         gh pr view {pr} -R {owner}/{repo} --json reviewDecision --jq '.reviewDecision'
-  reviewDecision=="APPROVED" -> proceed to [Merge Execution].
+  reviewDecision=="APPROVED" -> the auto-merge handoff enabled at PR creation fires the merge
+    (`rules/operations/main-agent-procedures.md` Merge Execution). Nothing runs a merge command here.
   reviewDecision=="CHANGES_REQUESTED" -> read review comments -> fix and recommit (restart [CI Loop]).
 
 <follow-through-on-deferred-items>

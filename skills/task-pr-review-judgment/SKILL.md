@@ -38,7 +38,9 @@ if execution_mode == semi_auto:
 
 if execution_mode == trigger:
   External review judgment:
-    APPROVED → proceed (delegate merge execution to subagent if available).
+    APPROVED → the merge fires on this approval from the auto-merge handoff enabled at PR
+               creation (`rules/operations/main-agent-procedures.md` Merge Execution). There is
+               no merge command left to run, and therefore none to delegate.
     CHANGES_REQUESTED → read review comments, judge against issue requirements, delegate fix to subagent.
 
 </responsibilities>

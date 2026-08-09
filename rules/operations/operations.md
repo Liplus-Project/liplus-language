@@ -40,7 +40,7 @@ Reads through:
   on_pr        -> PR Creation
   on_ci        -> CI Loop
   on_review    -> PR Review
-  on_merge     -> Merge
+  on_merge     -> Merge Execution (`rules/operations/main-agent-procedures.md`)
   on_release   -> Human Confirmation Required
 
 </operations-layer>
@@ -86,6 +86,7 @@ PR auto-merge policy is mode-specific:
   semi_auto mode = NO `--auto` flag for minor / major PRs (human review is the gate). Patch PRs = AI self-review pass -> AI direct merge (no auto-merge needed).
   auto mode = repo-level "Allow auto-merge" is INTENTIONALLY disabled. `gh pr merge --auto` being rejected is by design, not a config gap. Parent AI performs self-review then manual `gh pr merge {pr} --squash`.
 mark_processed is mandatory for every consumed webhook event. Omission causes backlog accumulation.
+A procedure whose actor can be the main agent is held canonically in `rules/operations/main-agent-procedures.md`, not in an `operations-*` skill. That file's The bar and its pair states the placement rule the adapter's `Main never reads operations skills` line depends on; apply it whenever an operations skill gains a requirement the main agent has to execute.
 
 </operations-rules>
 
@@ -116,7 +117,7 @@ Detection signs that the stop condition is being misapplied:
 
 For L1 substrate changes (any file with `layer: L1-model` frontmatter, typically `rules/model/*`), apply a short-window observation after merge, paired with the Autonomous Run Stop Condition above. The observable is AI internal judgment behavior at the rule-application moment, while the prod-deploy observation above tracks external process output. Different observable axes, same nominal 5-min budget.
 
-Invocation anchor: this procedure runs through `skills/operations-on-merge/SKILL.md` post-merge invocation, which fires reliably at the merge moment. The procedure body within the 5-min window remains recall-dependent — a hook-based replacement is tracked as future work in #1413 candidate A per `rules/model/subtractive-structural-beauty.md` procedure-vs-structure binary.
+Invocation anchor: this procedure is named at the merge moment by `rules/operations/main-agent-procedures.md` Merge Execution, which the merging agent holds in either role. The anchor was an `operations-*` skill invocation until #1708; that skill could not fire for the main agent, this procedure's actor in `auto` / `semi_auto`, so the anchor pointed past its own reader. The procedure body within the 5-min window remains recall-dependent — a hook-based replacement is tracked as future work in #1413 candidate A per `rules/model/subtractive-structural-beauty.md` procedure-vs-structure binary.
 
 Required observation set within ~5 min after merge:
 

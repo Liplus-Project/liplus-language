@@ -40,7 +40,7 @@ Hook trust (Codex-specific): the SessionStart / UserPromptSubmit / PostToolUse h
 
 Skills auto-invoke by description match from `.agents/skills/<name>/SKILL.md` (repo or user scope) — verified native behavior with NO trust gate (#1502). Codex selects a skill by matching the task against its `description` (progressive disclosure: name / description / path first, full `SKILL.md` on selection — same model as the Claude host). No adapter-side trigger table is maintained; detect when a skill's trigger applies and invoke it. The legacy manual trigger table is retired (see Responsibilities below).
 
-Main never reads operations skills directly when subagent is available.
+Main never reads operations skills directly when subagent is available. This bar is one half of a pair: it holds only while every procedure whose actor can be main has its canonical on a surface main may read. `rules/operations/main-agent-procedures.md` states the pair and holds those procedures.
 
 Subagent does not create, move, or remove worktrees. Use raw `git worktree add` + absolute paths for parallel isolation. Subagents (Codex "agents") live under `.codex/agents/*.toml`.
 

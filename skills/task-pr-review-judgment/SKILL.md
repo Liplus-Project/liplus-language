@@ -12,20 +12,27 @@ layer: L3-task
 
 ## Responsibilities
 
-Main agent judges PR review without reading operations skills (skills/operations-on-pr-review/SKILL.md, skills/operations-on-merge/SKILL.md, etc.) directly.
+Main agent judges PR review without reading operations skills (`skills/operations-on-pr-review/SKILL.md` etc.) directly.
 Judgment basis = issue body + PR diff + CI result + the brake finding thread on the PR when the brakes ran.
+
+What the main agent has to execute around that judgment — the self-review formal record and the merge procedure —
+is not on this surface and not on the barred one either: both are canonical in
+`rules/operations/main-agent-procedures.md`, which is resident. That file's The bar and its pair is why they sit
+there rather than in an operations skill. This skill holds the judgment; that file holds the acts the judgment
+releases.
 
 if execution_mode == auto:
   Self-review (after CI pass):
     Main agent reviews PR diff against issue requirements.
     Subagent-created PR = separate perspective verification. Especially valuable.
     Self-created PR = diff re-check before merge.
-    pass → proceed to merge.
+    pass → post the self-review formal record, then merge
+           (`rules/operations/main-agent-procedures.md` Self-review formal record / Merge Execution).
     fail → fix and recommit (restart CI loop).
 
 if execution_mode == semi_auto:
   Self-review: same as auto. The main agent performs it; the subagent does not.
-  On pass, a type-gated human check is layered on top before merge.
+  The formal record is posted on pass, as in auto. A type-gated human check is then layered on top before merge.
   Gate detail (patch direct-merge / minor / major human check / per-PR exception /
   L1 brake 2 override) lives in `rules/operations/execution-mode.md`. Read it there.
 

@@ -4,7 +4,7 @@ description: Invoke when an evaluator is answering the fixed impression-literal 
 layer: L2-evolution
 ---
 
-<impression-literal-detection-axis>
+<fixed-axis-impression-literal-detection>
 
 # Fixed axis: impression-literal detection
 
@@ -39,4 +39,4 @@ False-negative backstop: all-3-miss cases route to post-merge observation per `r
 
 Rationale: behavior-vs-impression boundary is context-dependent, so N=1 flag carries false-positive risk. The threshold prevents over-trimming load-bearing L1 spec phrasing.
 
-</impression-literal-detection-axis>
+</fixed-axis-impression-literal-detection>

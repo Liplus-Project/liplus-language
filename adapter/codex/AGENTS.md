@@ -80,7 +80,7 @@ Cold-start Synthesis: the `on-session-start` hook emits the `rules/evolution/col
 
 Main agent after completion:
   Receive the report and decide next action.
-  For CHANGES_REQUESTED: read review comments, judge against issue requirements, then fix.
+  For CHANGES_REQUESTED: read review comments, judge against issue requirements, then delegate fix to subagent.
   For release: confirm version type and tag with human.
 
 Worktree lifecycle — main agent owns all worktree operations:

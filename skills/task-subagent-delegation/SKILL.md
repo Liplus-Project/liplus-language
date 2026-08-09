@@ -16,7 +16,9 @@ Implementation is always delegated to a subagent. The parent does not implement.
 Boundary: the implementation this rule delegates is the issue's change, and the delegation does not end when the PR opens. Revision on brake findings after CI green belongs to the same subagent, resumed (`rules/evolution/initiator-autonomy.md` Two-stage brake, Adjudication actor). There is no parent-side revision window to bound, so the rule needs no clause bounding one — the earlier carve-out ("the parent may apply what an adjudicated finding calls for") is removed rather than narrowed. Nothing the author writes into the PR is parent work at any size.
 
 Parent agent delegates implementation and operations to subagent.
-Parent retains: issue creation, issue management (non-state lifecycle labels / type / maturity / marker / close), review judgment.
+Parent retains: issue creation, issue management (non-state lifecycle labels / type / maturity / marker / close), the issue assignee, review judgment.
+
+The assignee is set at the delegation moment, by the parent, in the same act as the spawn: `gh issue edit {issue_number} -R {owner}/{repo} --add-assignee "@me"` (parent and delegated subagent authenticate as the same GitHub actor, so `@me` names the account that will hold the issue). It is not a label and does not join the state-machine subset — `in-progress` stays the subagent's, raised when its work starts (`skills/task-subagent-state-labels/SKILL.md`). The two sit on separate actors and separate moments by design: the delegation moment is a point the parent already occupies, so nothing has to be read to locate it, whereas `Work start` is read by the executor and #1714 measured that reading arriving late. Additivity is unchanged — `--add-assignee` does not displace a prior assignee, and the reading rules for the field are held at that skill's Actor axis.
 if execution_mode == auto or execution_mode == semi_auto:
   Subagent executes, in two phases against one delegation:
     phase 1 - branch, implementation, commit, push, PR, CI loop.

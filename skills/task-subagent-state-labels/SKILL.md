@@ -10,7 +10,7 @@ layer: L3-task
 
 Subagent MUST fire state-machine labels at role boundaries:
 
-- Work start → add `in-progress` (remove any prior `review-pending` / `waiting` / `blocked`) **and self-assign the issue** with `gh issue edit {issue_number} -R {owner}/{repo} --add-assignee "@me"`. The pair is the transition; firing one without the other leaves it half-executed. Detail = Actor axis below.
+- Work start → add `in-progress` (remove any prior `review-pending` / `waiting` / `blocked`). The label is the whole of this transition. The assignee is not part of it and is not the subagent's to set — the parent sets it when it delegates. Detail = Actor axis below.
 - Role completion (the phase's work is finished, orchestration awaited) → switch `in-progress` → `review-pending` immediately before reporting to parent and exiting. In `auto` / `semi_auto` what the parent does next after phase 1 is the brakes, not the review; the brakes evaluate the finished implementation, so the wait's subject is the one `rules/task/task.md` Boundary assigns to `review-pending`, and phase 1 needs no state of its own.
 - Resumed for brake adjudication (`auto` / `semi_auto` phase 2) → switch `review-pending` → `in-progress` before touching the PR. Reading the findings, answering them on the PR and pushing what was accepted is work running.
 - Pause on external dependency (CI / dependent issue / environment) → switch to `waiting` + write issue comment with reason. The reason comment is mandatory cross-session handoff context.
@@ -29,7 +29,11 @@ Label authority canonical spec is in `rules/task/task.md` Task Label Definitions
 
 The state axis (`in-progress`) reads whether work is running. The actor axis (assignee) reads who is running it. A single-actor setup is complete on the state axis alone; the moment two or more actors can touch one issue, "running" without "who is running it" is incomplete, and the actor axis becomes load-bearing.
 
-Assignment is additive and stays additive. `--add-assignee` does not displace a prior assignee, and that is the specification, not a defect: a takeover mid-issue is itself information, and the record of who has held the issue is kept rather than overwritten. Do not remove a previous assignee to install yourself.
+Two axes, two actors, two moments. The subagent raises `in-progress` when its work starts. The parent sets the assignee when it delegates, and that act is held on its own surface (`skills/task-subagent-delegation/SKILL.md` Rules). Do not self-assign. Arriving at an issue that already names you in the Assignees field is the ordinary shape of a delegation, not a state to reconcile.
+
+Why they sit apart rather than together: `Work start` is a moment the executor has to read, and #1714 measured that reading landing behind the implementation read — six minutes after spawn neither the label nor the assignee had fired, and it was the human who noticed. The delegation moment is not read at all; the parent is already standing on it. Moving the actor axis there removes the interpretation instead of adding a check over it. `in-progress` keeps the executor-read moment, which is the right one for a label that names when work actually began, and its lateness is the label being accurate rather than a defect to repair.
+
+Assignment is additive and stays additive. `--add-assignee` does not displace a prior assignee, and that is the specification, not a defect: a takeover mid-issue is itself information, and the record of who has held the issue is kept rather than overwritten. Do not remove a previous assignee to install the incoming one.
 
 Handoff record on takeover (both, they carry different content):
 - issue body = who the current owner is — a snapshot of state, per `rules/task/task.md` `Issue body = latest requirements snapshot, not history log`.
@@ -37,7 +41,7 @@ Handoff record on takeover (both, they carry different content):
 
 Consequence of additivity: your own account appearing in the Assignees field does not establish that you are the current owner. Current ownership is read from the handoff record, never from the assignee field alone.
 
-A new session finding itself assigned and `in-progress` with no memory of starting is a normal detection signal, not an anomaly. Read the handoff record, determine whether the current owner is you or another actor, and only then judge whether to resume.
+A new session finding an issue `in-progress` with no memory of starting is a normal detection signal, not an anomaly. Read the handoff record, determine whether the current owner is you or another actor, and only then judge whether to resume. The Assignees field carries no part of that signal: the parent assigns at delegation, so your own account standing there is the expected state of work that has just been handed to you.
 
 </actor-axis-issue-assignee>
 

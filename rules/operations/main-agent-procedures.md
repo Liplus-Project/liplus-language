@@ -42,7 +42,7 @@ Detection sign: a procedure written into an `operations-*` skill whose actor is 
 
 Mandatory in every mode (trigger / semi_auto / auto).
 Canonical. `skills/operations-on-pr-review/SKILL.md` owns the surrounding self-review flow and points here.
-Actor = the agent holding the merge decision: the parent in `auto` / `semi_auto`, the subagent in `trigger` (`skills/task-subagent-delegation/SKILL.md` Rules).
+Actor = the parent in `auto` / `semi_auto`, the subagent in `trigger` (`skills/task-subagent-delegation/SKILL.md` Rules). In the first two it is the agent that merges. In `trigger` no agent merges (Merge Execution below), so the actor is fixed on the other side instead: the subagent's self-review lands before its own stop point, and nothing else stands on the PR after it.
 
 After the internal self-review passes, that agent MUST post the outcome as a formal GitHub PR review:
 
@@ -58,12 +58,16 @@ Mechanism note: GitHub rejects `--add-reviewer` self-assignment silently; only `
 
 ## Merge Execution
 
-Canonical. `skills/operations-on-merge/SKILL.md` held this until #1708 and was removed rather than reduced to a pointer: at its own firing moment — `self-review has passed and the mode gate has cleared` — it had no reader both present and permitted. In `auto` / `semi_auto` the agent standing there is the parent, which the bar keeps out. In `trigger` the gate clears after the delegated subagent's session has ended (`skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition), so no subagent is there to invoke it either. The removal does not rest on settling which actor merges in `trigger`: whichever agent is put there reads this file, because `rules/**` loads without being invoked, which is strictly more available than the skill it replaces.
+Canonical. `skills/operations-on-merge/SKILL.md` held this until #1708 and was removed rather than reduced to a pointer: at its own firing moment — `self-review has passed and the mode gate has cleared` — it had no reader both present and permitted. In `auto` / `semi_auto` the agent standing there is the parent, which the bar keeps out. In `trigger` the gate clears after the delegated subagent's session has ended (`skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition), so no subagent is there to invoke it either. The removal does not rest on settling which actor merges in `trigger`: whichever agent is put there reads this file, because `rules/**` loads without being invoked, which is strictly more available than the skill it replaces. #1715 has since settled the question — no agent is put there, the merge being a GitHub handoff (Merge Execution below) — and the removal is untouched by that, which is what not resting on it means.
 
-Merge executor is AI in every mode (trigger / semi_auto / auto).
-AI runs `gh pr merge` after all preconditions pass (self-review + mode-specific human gate, and mergeable state check). GitHub auto-merge handoff (`--auto`) is used only in trigger mode, where it fires merge on human approval; semi_auto and auto modes use AI direct merge (no `--auto`). Authoritative: `rules/operations/operations.md` PR auto-merge policy.
+Merge executor is AI in every mode (trigger / semi_auto / auto). That is the actor axis; the act it names differs by mode. Reading the act off the actor is what split the source until #1715 — four surfaces, two on each reading of who merges in `trigger`.
 
-Pre-merge mergeable state check:
+- `semi_auto` / `auto` = direct merge. AI runs `gh pr merge` (no `--auto`) after all preconditions pass: self-review, the mode-specific human gate, and the mergeable state check below.
+- `trigger` = handoff. The AI act is enabling GitHub auto-merge (`gh pr merge --auto`) at PR creation, and GitHub fires the merge itself on human approval. No agent runs a merge command at the approval moment, and none stands there to run one (`skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition).
+
+Authoritative for the mode split: `rules/operations/operations.md` PR auto-merge policy.
+
+Pre-merge mergeable state check (direct-merge path only — in `trigger` the PR sits with auto-merge armed until GitHub can merge it, and no agent is present to check):
   gh pr view {pr} -R {owner}/{repo} --json mergeStateStatus --jq '.mergeStateStatus'
   CLEAN -> proceed to merge.
   BEHIND -> git fetch origin main && git rebase origin/main && git push --force-with-lease -> restart [CI Loop] from step1.
@@ -73,8 +77,9 @@ Pre-merge mergeable state check:
   BLOCKED or UNKNOWN -> wait and recheck (GitHub may still be computing)
 
 Merge strategy:
-  Default = squash (repo convention).
-  All modes = AI runs: gh pr merge {pr} -R {owner}/{repo} --squash
+  Default = squash (repo convention), in every mode.
+  Direct-merge path = AI runs: gh pr merge {pr} -R {owner}/{repo} --squash
+  Handoff path (`trigger`) = the same strategy is fixed on the `--auto --squash` enable at PR creation.
   Deviation from squash = AI pauses and asks human.
 
 Parent close condition: closed automatically on merge via issue reference.

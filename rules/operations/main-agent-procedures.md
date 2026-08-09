@@ -23,7 +23,7 @@ Load timing = always-on (the main agent is barred from the skill surface, so res
 
 ## The bar and its pair
 
-`adapter/claude/CLAUDE.md` and `adapter/codex/AGENTS.md` each carry one line: `Main never reads operations skills directly when subagent is available.` It was never a standalone bar. #881 (`5333c16`) introduced it together with the move that pays for it — the PR review criteria went to the layer the main agent already holds, so barring the skill surface cost the main agent nothing it needed. The intent is role separation (subagent executes procedures, main judges reports), not context economy.
+`adapter/claude/CLAUDE.md` and `adapter/codex/AGENTS.md` each carry one line: `Main never reads operations skills directly when subagent is available.` It was never a standalone bar. #881 (`5333c16`) introduced it together with the move that pays for it — the PR review criteria went to the layer the main agent already holds. The intent is role separation (subagent executes procedures, main judges reports), not context economy.
 
 The pair, stated once: **the bar holds only while every procedure whose actor can be the main agent has its canonical text on a surface the main agent may read.** Main-readable = every Li+ surface except `skills/operations-*/SKILL.md`. The subagent reads all of them, so a main-readable surface is also the surface both actors reach, and a canonical placed there needs no second copy for the other actor.
 
@@ -58,7 +58,7 @@ Mechanism note: GitHub rejects `--add-reviewer` self-assignment silently; only `
 
 ## Merge Execution
 
-Canonical. `skills/operations-on-merge/SKILL.md` held this until #1708 and was removed rather than reduced to a pointer: its trigger was `self-review has passed and the mode gate has cleared`, and the agent standing at that moment is the parent in `auto` / `semi_auto` and GitHub's auto-merge in `trigger`, so the skill had no reader permitted to invoke it.
+Canonical. `skills/operations-on-merge/SKILL.md` held this until #1708 and was removed rather than reduced to a pointer: at its own firing moment — `self-review has passed and the mode gate has cleared` — it had no reader both present and permitted. In `auto` / `semi_auto` the agent standing there is the parent, which the bar keeps out. In `trigger` the gate clears after the delegated subagent's session has ended (`skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition), so no subagent is there to invoke it either. The removal does not rest on settling which actor merges in `trigger`: whichever agent is put there reads this file, because `rules/**` loads without being invoked, which is strictly more available than the skill it replaces.
 
 Merge executor is AI in every mode (trigger / semi_auto / auto).
 AI runs `gh pr merge` after all preconditions pass (self-review + mode-specific human gate, and mergeable state check). GitHub auto-merge handoff (`--auto`) is used only in trigger mode, where it fires merge on human approval; semi_auto and auto modes use AI direct merge (no `--auto`). Authoritative: `rules/operations/operations.md` PR auto-merge policy.

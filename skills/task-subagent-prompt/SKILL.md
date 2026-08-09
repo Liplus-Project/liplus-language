@@ -48,7 +48,7 @@ This is not the substrate-absence fallback of `skills/task-subagent-delegation/S
 
 </resume-phase-authority-boundary>
 
-<delegation-prompt-hygiene-field-scoped-language>
+<delegation-prompt-hygiene-field-scoped-artifact-language>
 
 # Delegation prompt hygiene (field-scoped artifact language)
 
@@ -77,7 +77,7 @@ Detection signs:
 - `od -c` or another byte-level ASCII check is applied to body content as an acceptance criterion instead of UTF-8 / mojibake validation.
 - One instruction groups title and body fields under the same ASCII-only clause.
 
-</delegation-prompt-hygiene-field-scoped-language>
+</delegation-prompt-hygiene-field-scoped-artifact-language>
 
 <bounded-delegation-prohibit-recursive-subagent-spawn>
 

@@ -46,6 +46,7 @@ Li+ source ファイル (`rules/*.md` / `skills/*/SKILL.md`) の構造的 wrap �
 - **wrap 対象外**: H3 / H4 は plain markdown のまま (H2 wrap 内に nest)
 - **tag 配置**: opening tag が heading の前 (`<tag>` → 空行 → `# heading` の順、Option Y)
 - **tag name 生成**: heading text を slugify (lowercase, kebab-case, em-dash 等は hyphen に変換または削除)
+- **語中の `+`**: 前後がともに単語文字なら hyphen に変換する (`Li+AI` → `li-ai`)。後ろが区切り (空白・記号・行末) なら削除する (`Li+ Coding Rule` → `li-coding-rule`)。削除で一律に処理すると `Li+AI` が `liai` となり token 境界が消えるため、位置で割る
 - **空行**: 各 `<tag>` の後と各 `</tag>` の前に空行 1 行 (GFM type-7 HTML block を 1 行で閉じるため、後続 markdown を正常 render させる)
 - **frontmatter 保持**: 既存 YAML frontmatter 不変
 - **body 内容**: 不変 (purely additive wrap)
@@ -60,7 +61,8 @@ Li+ source ファイル (`rules/*.md` / `skills/*/SKILL.md`) の構造的 wrap �
 | `## Evolution Layer` | `<evolution-layer>` |
 | `## Source Check — Two-Pillar Verify` | `<source-check-two-pillar-verify>` (em-dash 削除) |
 | `# Characters` | `<characters>` |
-| `# Li+ Coding Rule` | `<li-coding-rule>` (`+` は slugify で削除) |
+| `# Li+ Coding Rule` | `<li-coding-rule>` (`+` の後ろが区切りなので削除) |
+| `## Phase framing (Li+AI compile pipeline)` | `<phase-framing-li-ai-compile-pipeline>` (語中の `+` は hyphen) |
 
 ## skill `description` の固定形
 

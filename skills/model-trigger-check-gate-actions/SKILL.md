@@ -45,10 +45,10 @@ Time-variant keyword input ("latest" / "recent" / "current" / "now") is not enum
 
 | Purpose | Tool |
 |---|---|
-| Past judgment surface (similar situation, prior spec) | `mcp__GitHub_RAG_MCP__search_issues` (semantic) |
+| Past judgment surface (similar situation, prior spec) | `mcp__github-rag-mcp__search` (semantic; narrow with `type: "issue"` / `"pull_request"`, or leave `"all"`) |
 | Source literal confirmation | `Read` / `git show` / `gh api` |
 | Author / timeline / attribution | `git log` / `git blame` / `git shortlog` |
-| Docs semantic search | `mcp__GitHub_RAG_MCP__get_doc_content` |
+| Docs semantic search | `mcp__github-rag-mcp__search` with `type: "doc"` / `"wiki_doc"` (add `include_content: true` to inline the body) |
 | Memory body check | memory grep (feedback / project / self-eval) |
 | Time-variant external fact | `WebSearch` / `WebFetch` (search gate + Web-side consumption discipline both in `skills/model-agentic-search/SKILL.md`) |
 | Broad search axis (Web / RAG / gh / Read / memory) under low-calibration or time-variant keyword input | `skills/model-agentic-search/SKILL.md` |

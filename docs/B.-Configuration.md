@@ -159,7 +159,7 @@ webhook 通知がセッションへ届く方法を指定します。`mcp__github
 ## 注意事項
 
 - `GH_TOKEN` はチャットに出力されません
-- セッションを跨いでgh CLIのPATHは保持されないため、常にフルパス（`~/.local/bin/gh`）で実行されます
+- gh CLI をどう呼ぶかはホストによって変わります。Linux ホストでは hook が `~/.local/bin/gh` へ自動インストールしますが、このディレクトリがセッションを跨いで PATH に載っている保証は無いため、フルパス（`~/.local/bin/gh`）で実行します。macOS（`brew install gh`）と Windows の Git-Bash / MSYS2 / Cygwin（`winget install --id GitHub.cli`）は自動インストールの対象外で、導入済みを前提条件として扱うため、PATH 上の `gh` をそのまま呼びます。ホスト分岐の正本は [6. Adapter](6.-Adapter) の on-session-start.sh 節（`━━━ gh install ━━━` マーカー）です
 - `LI_PLUS_MODE=clone` の場合、初回セッションはcloneのため時間がかかります。2回目以降はfetch & checkoutのみです
 - `LI_PLUS_MODE=clone` の場合、既存 clone が対象タグとずれていれば、AI は起動時に人間へ更新可否を確認します
 - `LI_PLUS_WEBHOOK_STATE_DIR` を使う場合、`LI_PLUS_MODE=clone` を推奨します。`api` モードでは bundled helper の利用を前提にできません

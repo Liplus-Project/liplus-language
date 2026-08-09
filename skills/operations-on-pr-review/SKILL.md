@@ -60,16 +60,11 @@ if execution_mode == semi_auto:
   minor / major -> human check required after self-review pass (procedure = trigger mode's Review approval check below).
   Version type is the same judgment axis used at release (see `rules/operations/release-version-rule.md`). AI proposes type at PR creation time; on unclear, default to the safer side (minor) and ask human.
 
-  Per-PR exception (content-based axis, ref `rules/operations/execution-mode.md` `semi_auto mode:` label):
-    Even when the parent issue is minor / major, if the PR's own modification qualifies
-    as patch under `rules/operations/release-version-rule.md` (e.g. language alignment,
-    typo, comment, internal literal, docs alignment), the human-check requirement is
-    waived; AI direct-merges.
-    AI must record the exception judgment reason in the self-review comment, e.g.
-    "no user/system observable impact, internal literal only, exception applied as
-    patch-equivalent for review purposes".
-    If uncertain about exception applicability, default to base axis (parent's release
-    type) for safer-side fallback.
+  Per-PR exception (content-based axis) and the L1 brake 2 override that supersedes it live in
+  `rules/operations/execution-mode.md` `semi_auto mode:`. Read them there before waiving the human
+  check. The exception was restated here once and the override, added to the canonical file later,
+  never reached the copy — a PR touching L1 Model Layer source then read as patch-waived at this
+  surface, which is the merge gate's own. Do not restate either; the second copy is what drifts.
 
 if execution_mode == trigger:
   Human check required on every PR after self-review pass.

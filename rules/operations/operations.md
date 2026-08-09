@@ -39,7 +39,7 @@ Reads through:
   on_commit    -> Commit And Push
   on_pr        -> PR Creation
   on_ci        -> CI Loop
-  on_review    -> PR Review
+  on_review    -> PR Review (approval wait = Review approval check, `rules/operations/main-agent-procedures.md`)
   on_merge     -> Merge Execution (`rules/operations/main-agent-procedures.md`)
   on_release   -> Human Confirmation Required
 

@@ -34,6 +34,8 @@ Maintenance rule, applied when an `operations-*` skill gains a requirement whose
 
 Detection sign: a procedure written into an `operations-*` skill whose actor is mode-dependent, or stated as "the agent holding the merge decision". That agent is the parent in `auto` / `semi_auto` (`skills/task-subagent-delegation/SKILL.md` Rules), so the requirement lands where its actor cannot read it. Three measured instances preceded this rule (#1708, all in `semi_auto`): the self-review formal record and the merge procedure, both moved here, and the resume-prompt stop condition, which is not moved — its actor is the subagent and the parent was only the carrier, so the parent now carries a pointer instead of the literal (`skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary).
 
+A fourth instance (#1714) is the first the sign caught rather than preceded: the review approval check, moved to Review approval check below. It was found while #1713 was implementing the sign itself and left outside that PR's scope, so the sign shipped holding a known positive. Being found by the sign changes nothing about the repair — the same maintenance rule applies, and the move is the same one.
+
 </the-bar-and-its-pair>
 
 <self-review-formal-record>
@@ -53,6 +55,28 @@ Rationale: creates an audit trail visible on the PR's Reviews tab, separating th
 Mechanism note: GitHub rejects `--add-reviewer` self-assignment silently; only `gh pr review --comment` works for PR author self-review records (empirically verified 2026-04-20 on PR #1095).
 
 </self-review-formal-record>
+
+<review-approval-check>
+
+## Review approval check
+
+Canonical. `skills/operations-on-pr-review/SKILL.md` owns which modes raise a human gate and points here for the procedure.
+Actor = the parent, in every mode that raises the gate. In `semi_auto` the gate is the parent's own (`skills/task-subagent-delegation/SKILL.md` Rules, `Parent retains: ... review judgment`; `rules/operations/execution-mode.md` Mode matrix puts the human PR check on minor / major). In `trigger` the delegated subagent has already stopped at `awaiting human review` (`skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition, settled by #1715), so the approval arrives after its session has ended. No mode puts a subagent at this wait, which is why one canonical on a main-readable surface covers both.
+
+Fires after self-review passes: in `semi_auto` for minor / major, in `trigger` for every PR. `auto` raises no human gate and never reaches here.
+
+Prefer webhook over polling.
+  if mcp__github-webhook-mcp available:
+    poll get_pending_status every 60 seconds
+    on pull_request_review pending: list_pending_events -> get_event for this PR -> check state -> mark_processed
+  else:
+    Wait = human signals review done (do not poll).
+    On signal:
+      gh pr view {pr} -R {owner}/{repo} --json reviewDecision --jq '.reviewDecision'
+
+The decision read here is the input to the review judgment, not the judgment. What APPROVED and CHANGES_REQUESTED release is `skills/task-pr-review-judgment/SKILL.md`, the main agent's own surface and already main-readable; on APPROVED the mode's merge path is Merge Execution below. Do not restate either here; the second copy is what drifts.
+
+</review-approval-check>
 
 <merge-execution>
 

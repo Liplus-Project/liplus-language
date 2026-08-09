@@ -15,11 +15,12 @@ layer: L3-task
 Main agent judges PR review without reading operations skills (`skills/operations-on-pr-review/SKILL.md` etc.) directly.
 Judgment basis = issue body + PR diff + CI result + the brake finding thread on the PR when the brakes ran.
 
-What the main agent has to execute around that judgment — the self-review formal record and the merge procedure —
-is not on this surface and not on the barred one either: both are canonical in
-`rules/operations/main-agent-procedures.md`, which is resident. That file's The bar and its pair is why they sit
-there rather than in an operations skill. This skill holds the judgment; that file holds the acts the judgment
-releases.
+What the main agent has to execute around that judgment — the self-review formal record, the review approval
+check, and the merge procedure — is not on this surface and not on the barred one either: all three are canonical
+in `rules/operations/main-agent-procedures.md`, which is resident. That file's The bar and its pair is why they
+sit there rather than in an operations skill. This skill holds the judgment; that file holds the acts the
+judgment releases, the approval check among them — it detects the review decision, and the judgment on that
+decision is here.
 
 if execution_mode == auto:
   Self-review (after CI pass):

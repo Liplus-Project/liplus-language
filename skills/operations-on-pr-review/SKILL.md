@@ -58,7 +58,7 @@ if execution_mode == auto:
 if execution_mode == semi_auto:
   Type-gated human check.
   patch -> no human gate. Self-review pass -> proceed to [Merge Execution].
-  minor / major -> human check required after self-review pass (procedure = trigger mode's Review approval check below).
+  minor / major -> human check required after self-review pass (procedure = `rules/operations/main-agent-procedures.md` Review approval check).
   Version type is the same judgment axis used at release (see `rules/operations/release-version-rule.md`). AI proposes type at PR creation time; on unclear, default to the safer side (minor) and ask human.
 
   Per-PR exception (content-based axis) and the L1 brake 2 override that supersedes it live in
@@ -69,18 +69,12 @@ if execution_mode == semi_auto:
 
 if execution_mode == trigger:
   Human check required on every PR after self-review pass.
-  Review approval check:
-    Prefer webhook over polling.
-    if mcp__github-webhook-mcp available:
-      poll get_pending_status every 60 seconds
-      on pull_request_review pending: list_pending_events -> get_event for this PR -> check state -> mark_processed
-    else:
-      Wait = human signals review done (do not poll).
-      On signal:
-        gh pr view {pr} -R {owner}/{repo} --json reviewDecision --jq '.reviewDecision'
-  reviewDecision=="APPROVED" -> the auto-merge handoff enabled at PR creation fires the merge
-    (`rules/operations/main-agent-procedures.md` Merge Execution). Nothing runs a merge command here.
-  reviewDecision=="CHANGES_REQUESTED" -> read review comments -> fix and recommit (restart [CI Loop]).
+  Procedure = `rules/operations/main-agent-procedures.md` Review approval check. The wait itself, the
+  webhook-preferred detection, the `gh pr view --json reviewDecision` fallback, and what the decision
+  releases all live there, not here: the actor at this wait is the parent in every mode that raises the
+  gate — in this mode the approval arrives after the delegated subagent's session has ended (Delegated-subagent
+  stop condition above) — and the parent does not read this file (`rules/operations/main-agent-procedures.md`
+  The bar and its pair). Do not restate them here; the second copy is what drifts.
 
 <follow-through-on-deferred-items>
 

@@ -65,6 +65,23 @@ Compact reminders for the surfaces (A) / (B) / (C) most often touch. Operational
 
 </application-notes>
 
+<criterion-resident-provenance-in-git>
+
+## Criterion resident, provenance in git
+
+Application of (A) on the State surface, to the text of `rules/` and `skills/`.
+
+What an application moment consumes is the criterion and the current state. How they came to be written — which issue raised it, which PR settled it, which commit moved it — is consumed by nobody standing at that moment. The number carrying that history is therefore not resident state, and it falls without exception: issue number, PR number, commit SHA, and sample values shaped like one.
+
+Reachability is not what is traded away. `skills/model-trigger-check-gate-actions/SKILL.md` Retrieval tools already routes a provenance question elsewhere — attribution and timeline to `git log` / `git blame`, past judgment to RAG over issues and PRs — never to the rule text. `docs/` and the wiki are the retrieval surface that holds provenance on purpose and stay outside this.
+
+Two things this is not:
+
+- Not licence to remove a sentence's basis. Strip the number only where the criterion it backed stays stated. A number pulled out of a sentence that stated no criterion leaves an assertion with nothing behind it; the repair is to state the criterion, not to keep the number.
+- Not deletion, where the number sits in a format sample. A sample number and a live reference are indistinguishable at read time, so the sample takes placeholder form like the rest of its block.
+
+</criterion-resident-provenance-in-git>
+
 <artifact-deletion-calibration>
 
 ## Artifact deletion calibration
@@ -115,6 +132,11 @@ These domains gain strength from explicit redundancy; (C) destructive-by-default
 ## Detection signs
 
 About to break structural beauty when:
+
+Provenance-in-text tells (A):
+- An issue / PR number or commit SHA about to be written into `rules/` or `skills/` — a format sample included, where it reads as a live reference.
+- A rule sentence narrating how the rule came to be written (what it replaced, who caught it, when it moved) in place of what it now requires.
+- A resident rule pointing at a transient artifact the ruleset itself expires — the pointer resolves to nothing at the moment a reader follows it.
 
 Push surplus tells (B):
 - Phrases like "just in case", "in the unlikely event", "optionally", "as insurance", "may also list", "as a safety net", "fallback" about to appear in spec / rule / issue / PR / commit draft.

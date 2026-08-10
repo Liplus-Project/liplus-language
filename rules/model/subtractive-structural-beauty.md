@@ -71,9 +71,9 @@ Compact reminders for the surfaces (A) / (B) / (C) most often touch. Operational
 
 Application of (A) on the State surface, to the text of `rules/` and `skills/`.
 
-What an application moment consumes is the criterion and the current state. How they came to be written — which issue raised it, which PR settled it, which commit moved it — is consumed by nobody standing at that moment. The number carrying that history is therefore not resident state, and it falls without exception: issue number, PR number, commit SHA, and sample values shaped like one. The criterion fires; the number that produced the criterion fires nothing.
+What an application moment consumes is the criterion and the current state. How they came to be written — which issue raised it, which PR settled it, which commit moved it — is consumed by nobody standing at that moment. The number carrying that history is therefore not resident state, and it falls without exception: issue number, PR number, commit SHA, and sample values shaped like one.
 
-Reachability is not what is traded away. `skills/model-trigger-check-gate-actions/SKILL.md` Retrieval tools already routes a provenance question elsewhere — attribution and timeline to `git log` / `git blame`, past judgment to RAG over issues and PRs — never to the rule text. `docs/` and the wiki are the retrieval surface that holds provenance on purpose and stay outside this. Removing a number from a rule leaves it standing on the surface that was already answering for it.
+Reachability is not what is traded away. `skills/model-trigger-check-gate-actions/SKILL.md` Retrieval tools already routes a provenance question elsewhere — attribution and timeline to `git log` / `git blame`, past judgment to RAG over issues and PRs — never to the rule text. `docs/` and the wiki are the retrieval surface that holds provenance on purpose and stay outside this.
 
 Two things this is not:
 

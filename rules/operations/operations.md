@@ -62,7 +62,7 @@ Commit body must contain at least one sentence in `LI_PLUS_PROJECT_LANGUAGE`.
 PR title = ASCII English only, single line.
 PR body = `LI_PLUS_PROJECT_LANGUAGE`.
 PR body must contain an issue reference.
-Issue reference form = `#<issue number>`. The `#` prefix is part of the form: `issue <number>` or a bare `<number>` is not an issue reference. Applies to the commit body and PR body lines above.
+Issue reference form = `#<issue number>`. The `#` prefix is part of the form: `issue <number>` or a bare `<number>` is not an issue reference. Applies wherever an issue reference is required.
 The two title lines sit on an axis separate from the body lines: ASCII English there is the GitHub-side convention for a single-line title, not a value `LI_PLUS_PROJECT_LANGUAGE` resolves, so a title stays ASCII English in a workspace whose project language is something else. Parameterizing the title lines while the body lines are read as contract references is the misreading this states against.
 Docs update must be in same PR as implementation. Split docs PR is prohibited.
 docs/ is source of truth. Wiki is mirror, not source. `docs/` in this line = the repository's numbered requirements specs and lettered reference docs. It is not the `docs-tier` of `skills/evolution-persistence-tiering`, which is a persistence rank that spans the wiki as well; same word, different axis.

@@ -73,11 +73,11 @@ Application of (A) on the State surface.
 
 What an application moment consumes is the criterion and the current state. How they came to be written — which issue raised it, which PR settled it, which commit moved it — is consumed by nobody standing at that moment. What falls is the statement of that history. A number is one way the history is carried, not the unit it is carried in: provenance narrated without a number falls the same, and a number sitting on a sentence that does state the criterion falls off that sentence alone.
 
-Scope = the text that loads into a session as instruction. `rules/`, `skills/`, and every `adapter/` file whose content reaches a session that way — host instruction file, agent prompt definition, and the values inside them.
+Scope = the text that loads into a session as instruction. `rules/`, `skills/`, and every `adapter/` file whose content reaches a session that way — host instruction file, agent prompt definition, the values inside them, and the strings a hook emits into a session.
 
 Outside it, each by the property that puts it there:
 
-- **Not loaded at an application moment** — hook script comments (`.sh` / `.ps1`), comment lines in agent config, and specs read only at bootstrap. The discipline rests on what is consumed while standing at the rule; nothing here stands there, so there is no resident state for it to be.
+- **Not loaded at an application moment** — hook script comments (`.sh` / `.ps1`), comment lines in agent config, and specs read only at bootstrap. The discipline rests on what is consumed while standing at the rule; nothing here stands there, so there is no resident state for it to be. A hook script is the sharpest case of one file taking the line through it: its comments are out, and the text it emits is in, because a reader stands at that text the moment it is emitted.
 - **Retrieval surfaces holding provenance on purpose** — `docs/` and the wiki. `skills/model-trigger-check-gate-actions/SKILL.md` Retrieval tools already routes a provenance question to them, and to `git log` / `git blame` and RAG over issues and PRs — never to the rule text. Reachability is not traded away here; it stays where it already was.
 
 Neither extension nor directory decides the scope, and one file can have the line running through it — a comment on the excluded side, a prompt value on the included side. Reading it off "does this load as instruction" also leaves the layer-axis / directory-axis question moot for an L1-tagged file under `adapter/`: both readings land on the same set, so the axis need not be picked.
@@ -89,6 +89,13 @@ Three shapes, and the operation each takes:
 | (a) | the sentence states the rule; the number is decoration on it | drop the number, keep the sentence |
 | (b) | the sentence is the history | drop the sentence |
 | (c) | one passage carries both the current state and the history | keep the state, drop the history |
+
+The shapes are outcomes of one test, not bins to sort into first: remove the history and read what is left standing. Still states the rule — (a). Part of it still states the current state — (c). Nothing states a criterion or a state — (b).
+
+Two riders on the operation, both against the failure this section exists to correct — a mechanical application leaving something worse than what it edited:
+
+- The unit of removal is the span carrying the history, not a fixed sentence; a clause or a parenthetical where that is what carries it. Taking only the number out of a parenthetical that also dates and attests the claim leaves a fragment — the original defect in miniature.
+- Removal is unfinished while later text leans on what went. A dropped sentence takes its antecedents with it; repair what referred to it in the same edit.
 
 Two things this is not:
 

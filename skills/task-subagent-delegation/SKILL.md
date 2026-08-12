@@ -13,7 +13,7 @@ layer: L3-task
 ## Rules
 
 Implementation is always delegated to a subagent. The parent does not implement. Scope = all of Li+: self-evolution PRs in `LI_PLUS_REPO` and work in the user repositories `USER_REPO<N>` alike. No exception by diff size. A rule that branches demands a judgment at its application moment, and simplicity of the rule is the axis this one was decided on (judgment record: wiki `implementation-always-delegated`). Accepted cost: a one-line change still carries the cost of writing a delegation prompt.
-Boundary: the implementation this rule delegates is the issue's change, and the delegation does not end when the PR opens. Revision on brake findings after CI green belongs to the same subagent, resumed (`rules/evolution/initiator-autonomy.md` Two-stage brake, Adjudication actor). There is no parent-side revision window to bound, so the rule needs no clause bounding one — the earlier carve-out ("the parent may apply what an adjudicated finding calls for") is removed rather than narrowed. Nothing the author writes into the PR is parent work at any size.
+Boundary: the implementation this rule delegates is the issue's change, and the delegation does not end when the PR opens. Revision on brake findings after CI green belongs to the same subagent, resumed (`rules/evolution/initiator-autonomy.md` Two-stage brake, Adjudication actor). There is no parent-side revision window to bound, so the rule needs no clause bounding one — the earlier carve-out ("the parent may apply what an adjudicated finding calls for") is removed rather than narrowed. Nothing the author writes — into the branch or onto the PR — is parent work at any size.
 
 Parent agent delegates implementation and operations to subagent.
 Parent retains: issue creation, issue management (non-state lifecycle labels / type / maturity / marker / close), the issue assignee, review judgment.
@@ -22,20 +22,26 @@ The assignee is set at the delegation moment, by the parent, in the same act as 
 if execution_mode == auto or execution_mode == semi_auto:
   Subagent executes, in two phases against one delegation:
     phase 1 - branch, implementation, commit, push, PR, CI loop.
-    phase 2 (resumed by the parent after the brakes report) - read the evaluators'
-      PR comments, adjudicate each finding, answer it on the PR with an accept or a
-      reject, apply what was accepted, commit, push, CI loop.
+    phase 2 (resumed by the parent after the brakes report) - read the parent's
+      aggregated findings comment, adjudicate each finding, record the accept or
+      reject and its reason in the commit body, apply what was accepted, commit,
+      push, CI loop. A resume carrying a parent correction on that adjudication
+      re-enters this same phase; the parent opens as many as convergence needs
+      (`skills/evolution-parallel-agent-eval/SKILL.md` Procedure, Inspect the adjudication).
   Stop condition = `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition.
-    It is reached twice, once per phase; the literal is the same at both.
-  Parent retains: spawning the brake evaluators, resuming the subagent between the
-  phases, self-review, merge decision. Adjudication is not parent-side.
+    It is reached at the end of each phase, and again at the end of each correction
+    round; the literal is the same at all of them.
+  Parent retains: spawning the brake evaluators, consolidating their findings into the
+  one PR comment, resuming the subagent between the phases, inspecting the adjudication,
+  self-review, merge decision. Adjudication is not parent-side.
   The two modes share one subagent boundary: what differs is the human PR check
   (`semi_auto` adds one for minor / major per `rules/operations/execution-mode.md`),
   and that is a parent-side gate, not a subagent execution step.
   Subagent does not post the self-review record, in either phase: it is a PR comment,
   and the actor is fixed by `skills/operations-on-pr-review/SKILL.md` Self-review
-  procedure. The phase-2 answers on the PR are the author's replies to findings, a
-  different artifact; posting them is not the self-review record and does not become it.
+  procedure. In phase 2 the subagent posts no PR comment at all — its adjudication
+  goes in the commit body — so nothing it writes there is available to be mistaken
+  for the self-review record.
 if execution_mode == trigger:
   Subagent executes: branch, implementation, commit, push, PR, CI loop, self-review.
   `merge` is not on that list. What the mode matrix's `AI` merge executor names here is

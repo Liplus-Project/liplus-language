@@ -13,7 +13,7 @@ Skipping self-review before merge is a spec violation. Self-review runs first; e
 
 Review basis:
   repository-state-first:
-    review basis = issue body + linked branch + PR diff + CI result + the brake finding thread on the PR when the brakes ran
+    review basis = issue body + linked branch + PR diff + CI result + when the brakes ran, the parent's aggregated findings comment on the PR and the commit bodies carrying the author's adjudication of it
     local-only success does not close review
 
 Self-review procedure (all modes):
@@ -31,12 +31,16 @@ Delegated-subagent stop condition (canonical, split by mode):
       first pass  - the issue's change is implemented. The parent then runs brake 1 (and brake 2 when the PR
                     touches L1 Model Layer source) at the position fixed by `rules/evolution/initiator-autonomy.md`
                     Two-stage brake.
-      second pass - the parent has resumed this subagent with the findings on the PR; it has adjudicated them,
-                    answered each on the PR, and pushed what it accepted. Reaching CI green again ends the
-                    delegation. If nothing was accepted, the same point is reached with no new commit.
-    Adjudication happens between the two passes and belongs to the resumed subagent, not to the parent
+      second pass - the parent has resumed this subagent with its aggregated findings comment on the PR; it has
+                    adjudicated them, recorded each accept or reject and its reason in the commit body, and
+                    pushed what it accepted. Reaching CI green again ends this pass. If nothing was accepted,
+                    the same point is reached with no new commit, and the adjudication travels in the report.
+                    The parent then inspects that adjudication and may resume this subagent again with a
+                    correction named; each such round ends at this same point, and the count is uncapped
+                    (`skills/evolution-parallel-agent-eval/SKILL.md` Procedure, Inspect the adjudication).
+    Adjudication belongs to the resumed subagent, not to the parent
     (`rules/evolution/initiator-autonomy.md` Two-stage brake, Adjudication actor). The parent self-reviews and
-    merges after the second pass.
+    merges after the last pass.
   if execution_mode == trigger:
     Stop at `PR open + auto-merge enabled + CI green + self-review posted + awaiting human review`.
     Self-review precedes the human gate in every mode and the subagent is its actor in this mode, so it lands

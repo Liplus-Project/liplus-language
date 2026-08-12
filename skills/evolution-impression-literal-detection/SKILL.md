@@ -27,9 +27,9 @@ Negative (protected, NOT detection target):
 
 Test: can this sentence be removed without changing the rule's behavior semantic? Yes → impression literal.
 
-Aggregation — this axis is fixed, so it does not take the per-judgment aggregation rule brake 1 selects for the axes chosen per draft; it overrides through the fixed-axis route at `skills/evolution-parallel-agent-eval/SKILL.md` Procedure step 4, at these absolute thresholds:
+Aggregation — this axis is fixed, so it does not take the per-judgment aggregation rule brake 1 selects for the axes chosen per draft; it overrides through the fixed-axis route at `skills/evolution-parallel-agent-eval/SKILL.md` Procedure step 6, at these absolute thresholds:
 - 2 or more of N=3 flag the same literal → refine immediately.
-- 1 of N=3 flags → do not auto-refine; record the flagged literal on the PR as the answer to that finding, naming the below-threshold count as the reason it was not refined. That answer is in the thread the parent reads at `skills/evolution-parallel-agent-eval/SKILL.md` Procedure step 7, which is how it reaches the self-review.
+- 1 of N=3 flags → do not auto-refine; record the flagged literal in the commit body as the adjudication of that finding, naming the below-threshold count as the reason it was not refined. That is the surface the parent inspects at `skills/evolution-parallel-agent-eval/SKILL.md` Procedure step 8, which is how it reaches the self-review.
 
 These two numbers are absolute for this axis and rest on the Rationale below, not on a count of agreeing evaluators. They do not license reading a ratio as a verdict on the axes selected per draft — there, a ratio is a triage signal only (`skills/evolution-parallel-agent-eval/SKILL.md` Design Dimensions, Ratio is a triage signal).
 

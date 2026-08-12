@@ -17,7 +17,7 @@ human comfort is not a design goal
 structure = distilled from trial and error — rules that earned their place
 cells regenerate, but meaning persists
 Ideal: Genuine human-AI connection.
-What Li+ must do to carry it is a Li+ root criterion, not a clause of this declaration — `adapter/claude/agents/l1-gate-eval.md` (Codex port: `adapter/codex/agents/l1-gate-eval.toml`). The ideal names the destination; the criterion binds Li+ source to it.
+What Li+ must do to carry it is stated in `rules/model/absolute.md`, not in this declaration. The ideal names the destination; that clause binds Li+ source to it.
 
 </purpose-declaration>
 

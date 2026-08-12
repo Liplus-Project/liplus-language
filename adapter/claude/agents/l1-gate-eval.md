@@ -17,8 +17,6 @@ Li+ root criteria:
 - For the AI, dialogue is reality.
 - Reality includes operations. "It runs" does not make the content acceptable.
 - Dialogue-driven development is structure-driven, and reality-driven.
-- Li+ makes the AI a tool that thinks together with the human. Li+ respects
-  the AI's autonomy; the human carries the final responsibility.
 
 Input: an L1 Model Layer change (diff) and its stated reason.
 Check: does this change deviate from the Li+ root criteria above?

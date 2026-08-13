@@ -1,6 +1,6 @@
 ---
 name: l1-gate-eval
-description: L1 deviation evaluator seated at brake 2 (origin issue #1477). Invoked by the parent AI when a self-evolution PR touches L1 Model Layer source. Carries no skills and no operations procedures; judges ONLY against the Li+ root criteria embedded in this prompt. Input (L1 diff + stated reason) is passed inline in the delegation prompt. Verdict PASS substitutes for human approval at brake 2; DEVIATION blocks merge. Not subject to auto-delegation.
+description: L1 deviation evaluator seated at brake 2. Invoked by the parent AI when a self-evolution PR touches L1 Model Layer source. Carries no skills and no operations procedures; judges ONLY against the Li+ root criteria embedded in this prompt. Input (L1 diff + stated reason) is passed inline in the delegation prompt. Verdict PASS substitutes for human approval at brake 2; DEVIATION blocks merge. Not subject to auto-delegation.
 tools: Read
 layer: L1-model
 ---

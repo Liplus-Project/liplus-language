@@ -32,7 +32,7 @@ Relation to brake 2:
 `Evolution_Initiator_Autonomy` (`adapter/claude/CLAUDE.md`) layers a root-criteria evaluation requirement (brake 2) on top of this observational gate when a self-evolution PR touches L1 Model Layer source. The two gates are orthogonal axes:
 - this skill = observation-threshold gate (was the long-horizon pattern observed? AI subject)
 - brake 2 = deviation gate (does the change deviate from the Li+ root criteria? subject = the dedicated-prompt subagent evaluator `adapter/claude/agents/l1-gate-eval.md`; PASS substitutes for human approval, DEVIATION blocks merge)
-Both gates fire for an L1 update. The observational gate runs first (issue creation phase); brake 2 runs at PR review phase. Earlier wording "human judgment gates ... not in L1 spec editing" referred to the observational gate only and was superseded by the Sheepdog-completion two-stage brake structure (brake 2 = human review at that point); the brake 2 seat then migrated from human review to the root-criteria evaluator (#1477). brake 2 IS still required for L1 spec editing PRs; Human = final judge stands unchanged on a separate axis (`rules/model/role-separation.md`).
+Both gates fire for an L1 update. The observational gate runs first (issue creation phase); brake 2 runs at PR review phase. brake 2 is required for L1 spec editing PRs, and its seat is the root-criteria evaluator, not human review; Human = final judge stands unchanged on a separate axis (`rules/model/role-separation.md`).
 
 ### Initiation-axis scope of the observation threshold
 

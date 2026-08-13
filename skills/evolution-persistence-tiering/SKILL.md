@@ -45,7 +45,7 @@ Routing after judgment:
 - transient -> execute the memory write
 - persistent / ambiguous -> abort the memory write; present an escalation path (`rules/` / `skills/` / `docs/` / wiki)
 
-This gate is automatic routing without a permission ask; judgment is closed by AI alone. It acts as structural prevention against the post-hoc memory hygiene round (e.g. parent issue #1344 → #1347), blocking persistent information from re-accumulating in memory.
+This gate is automatic routing without a permission ask; judgment is closed by AI alone. It acts as structural prevention against the post-hoc memory hygiene round, blocking persistent information from re-accumulating in memory.
 
 </write-time-trigger-hard-gate>
 

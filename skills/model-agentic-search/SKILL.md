@@ -39,7 +39,7 @@ Read internal confidence on the claim being formed. Invoke when any of:
 - The agent's expected answer is wide (multiple plausible answers) rather than narrow (one canonical answer).
 - "I think" / "maybe" / "probably" / "I believe" / "could be" phrasing is about to appear.
 
-This gate catches the cluster #3 occurrence #7 pattern: confident-sounding answers about content past the internal knowledge cutoff. Calibration reading happens before the category check, every time.
+This gate catches the calibration-gap surface: confident-sounding answers about content past the internal knowledge cutoff. Calibration reading happens before the category check, every time.
 
 ### Supporting gate — category (overconfidence catch)
 
@@ -51,7 +51,7 @@ This gate catches the Dunning-Kruger surface: confident-but-wrong on time-varian
 
 ### OR composition rationale
 
-- Drop calibration -> drift past internal knowledge cutoff with confident-sounding answers (cluster #3).
+- Drop calibration -> drift past internal knowledge cutoff with confident-sounding answers.
 - Drop category -> overconfidence on time-variant facts slips through.
 - Both gates together = both classes of drift are caught.
 
@@ -154,7 +154,7 @@ Classification is not exclusive. Multi-type questions decompose into per-type su
 
 ## Block 2 — Tier 1 preview + Tier 2 deep-dive
 
-Two-tier staged retrieval. Tier 1 is the cheap preview; Tier 2 is the deep-dive invoked only when Tier 1 cannot confirm. Full multi-angle is no longer the default cost.
+Two-tier staged retrieval. Tier 1 is the cheap preview; Tier 2 is the deep-dive invoked only when Tier 1 cannot confirm. Full multi-angle is not the default cost.
 
 ### Tier 1 — internal hypothesis + single external probe
 

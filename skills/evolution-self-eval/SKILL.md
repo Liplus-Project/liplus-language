@@ -141,7 +141,7 @@ Step 6 is what makes The 10 axes the canonical vocabulary rather than a list to 
 
 The bullet layout ends each pair at the line break. The inline layout has no such boundary, so one is defined: the pair list ends at the first `。` outside brackets, or at a `Root cause:` / `Domain:` label outside brackets, whichever comes first.
 
-Trailing prose on the tag line is therefore read as prose instead of being folded into the last verdict — which is what previously let a free-form sentence reach the `miss` scan and let a bracketed ` / ` inside that sentence register as a phantom axis.
+Trailing prose on the tag line is therefore read as prose instead of being folded into the last verdict — without that boundary a free-form sentence reaches the `miss` scan, and a bracketed ` / ` inside that sentence registers as a phantom axis.
 
 </axis-tag-line-format>
 

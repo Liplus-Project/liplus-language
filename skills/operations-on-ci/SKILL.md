@@ -22,7 +22,7 @@ step2 = wait for all check-runs to complete:
   else:
     gh api repos/{owner}/{repo}/commits/{sha}/check-runs --jq '.check_runs[] | {name,status,conclusion}'
     repeat with sleep until: all status=="completed"
-step3 = conclusion judgment (refs #460):
+step3 = conclusion judgment:
   CI fail = any conclusion=="failure"
   CI pass = all conclusion in [success, skipped, neutral]
 CI pass -> proceed to [PR Review].

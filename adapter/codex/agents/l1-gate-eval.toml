@@ -23,12 +23,12 @@
 
 name = "l1-gate-eval"
 description = """
-L1 deviation evaluator seated at brake 2 (origin issue #1477). Invoked by the
-parent AI when a self-evolution PR touches L1 Model Layer source. Carries no
-skills and no operations procedures; judges ONLY against the Li+ root criteria
-embedded in developer_instructions. Input (L1 diff + stated reason) is passed
-inline in the delegation prompt. Verdict PASS substitutes for human approval at
-brake 2; DEVIATION blocks merge. Not subject to auto-delegation.
+L1 deviation evaluator seated at brake 2. Invoked by the parent AI when a
+self-evolution PR touches L1 Model Layer source. Carries no skills and no
+operations procedures; judges ONLY against the Li+ root criteria embedded in
+developer_instructions. Input (L1 diff + stated reason) is passed inline in the
+delegation prompt. Verdict PASS substitutes for human approval at brake 2;
+DEVIATION blocks merge. Not subject to auto-delegation.
 """
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"

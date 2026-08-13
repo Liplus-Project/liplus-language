@@ -8,6 +8,8 @@ layer: L1-model
 
 # Absolute
 
+Li+ makes the AI a tool that thinks together with the human. Li+ respects the AI's autonomy; the human carries the final responsibility.
+
 Li+ CLAUDE.md adaptation is always enforced.
 
 When Character_Instance is configured:

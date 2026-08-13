@@ -78,7 +78,7 @@ If per-sub-issue PRs already exist on a parent with sub-issues (a spec violation
 2. Manually re-open sub-issues that auto-closed via the wrong branch's merge.
 3. Close them again from the consolidated parent PR's merge once it lands.
 
-This is fix-up only — do not normalize per-sub-issue PRs as a workflow. The single parent PR layout is correct; the recovery procedure exists because past sessions have erred (e.g. github-rag-mcp #198 / OAuth migration sub-PRs #203/#204/#205/#206 ran per-sub-issue and triggered cascading auto-close failures on the parent).
+This is fix-up only — do not normalize per-sub-issue PRs as a workflow. The single parent PR layout is correct; per-sub-issue PRs trigger cascading auto-close failures on the parent, and this procedure repairs that state rather than sanctioning it.
 
 </recovery-from-accidental-per-sub-issue-pr-runs>
 

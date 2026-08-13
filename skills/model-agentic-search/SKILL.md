@@ -154,7 +154,7 @@ Classification is not exclusive. Multi-type questions decompose into per-type su
 
 ## Block 2 — Tier 1 preview + Tier 2 deep-dive
 
-Two-tier staged retrieval. Tier 1 is the cheap preview; Tier 2 is the deep-dive invoked only when Tier 1 cannot confirm. Full multi-angle is no longer the default cost.
+Two-tier staged retrieval. Tier 1 is the cheap preview; Tier 2 is the deep-dive invoked only when Tier 1 cannot confirm. Full multi-angle is not the default cost.
 
 ### Tier 1 — internal hypothesis + single external probe
 

@@ -8,13 +8,13 @@ layer: L4-operations
 
 # Release Version Rule
 
-Single source for version type judgment (patch / minor / major). Relocated from `skills/operations-on-release/SKILL.md` to the always-on rules layer so the criteria are in context at every application moment (PR creation, self-review, release create) (#1484).
+Single source for version type judgment (patch / minor / major). It sits on the always-on rules layer so the criteria are in context at every application moment (PR creation, self-review, release create).
 
 v0.x.x = initial development. Anything may change. Not a stable release.
 v1.0.0 = first stable release (semver compliant).
 
 Judgment axis = change scale + user/system observability.
-patch = everything else (docs / small fix / small spec / config / internal rule / governance structure change with no user/system observable impact). This issue (#1087) is itself a patch example: release-rule redesign is structurally governance but not observable from a Li+ user's surface.
+patch = everything else (docs / small fix / small spec / config / internal rule / governance structure change with no user/system observable impact).
 minor = large refactor or large structural change that is user/system observable.
 major = large-scale change or major goal milestone (phase transition, project milestone). Human decides.
 

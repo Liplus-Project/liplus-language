@@ -119,7 +119,7 @@ Detection signs that the stop condition is being misapplied:
 
 For L1 substrate changes (any file with `layer: L1-model` frontmatter, typically `rules/model/*`), apply a short-window observation after merge, paired with the Autonomous Run Stop Condition above. The observable is AI internal judgment behavior at the rule-application moment, while the prod-deploy observation above tracks external process output. Different observable axes, same nominal 5-min budget.
 
-Invocation anchor: this procedure is named at the merge moment by `rules/operations/main-agent-procedures.md` Merge Execution, which the merging agent holds in either role. The anchor was an `operations-*` skill invocation until #1708; that skill could not fire for the main agent, this procedure's actor in `auto` / `semi_auto`, so the anchor pointed past its own reader. The procedure body within the 5-min window remains recall-dependent — a hook-based replacement is tracked as future work in #1413 candidate A per `rules/model/subtractive-structural-beauty.md` procedure-vs-structure binary.
+Invocation anchor: this procedure is named at the merge moment by `rules/operations/main-agent-procedures.md` Merge Execution, which the merging agent holds in either role. An `operations-*` skill cannot carry this anchor: it does not fire for the main agent, this procedure's actor in `auto` / `semi_auto`, so an anchor placed there points past its own reader. The procedure body within the 5-min window remains recall-dependent, which `rules/model/subtractive-structural-beauty.md` procedure-vs-structure binary puts on the replace side; a hook-based replacement is the open form of that repair.
 
 Required observation set within ~5 min after merge:
 

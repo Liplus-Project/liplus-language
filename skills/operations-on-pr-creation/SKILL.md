@@ -35,7 +35,7 @@ On PR created:
 1 = self-assign the authenticated GitHub CLI actor to PR assignees:
     gh pr edit {pr} -R {owner}/{repo} --add-assignee "@me"
     rationale: existing issue-side assignee does not auto-propagate to the PR entity. Self-assign makes "AI owns this PR" explicit in the Assignees field.
-    mechanism note: GitHub rejects `--add-reviewer` self-assignment silently, but allows `--add-assignee` self-assign for PR author (empirically verified 2026-04-20 on PR #1099).
+    mechanism note: GitHub rejects `--add-reviewer` self-assignment silently, but allows `--add-assignee` self-assign for PR author.
     scope: assignee self-assign is UI trail only; it does not replace the formal self-review record (`rules/operations/main-agent-procedures.md` Self-review formal record).
 2 = proceed to [CI Loop] immediately, no human instruction required.
 Merge execution: semi_auto / auto modes = AI direct merge (see [Merge Execution]); trigger mode = enable `gh pr merge {pr} --auto --squash` at PR creation, merge fires on human approval. Authoritative: `operations.md` PR auto-merge policy.

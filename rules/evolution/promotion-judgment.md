@@ -53,9 +53,9 @@ Format (YAML-like markdown):
 first_observation: 2026-04-27
 expires: 2026-04-30
 occurrences:
-  - 2026-04-27 self-eval#42 axis=character-drift
-  - 2026-04-27 feedback#15 borrowed-vocabulary
-  - 2026-04-28 task#1180 frame-swallowed
+  - 2026-04-27 self-eval#<entry> axis=character-drift
+  - 2026-04-27 feedback#<entry> borrowed-vocabulary
+  - 2026-04-28 task#<issue> frame-swallowed
 ```
 
 Each cluster runs a per-cluster timer with first_observation = t=0. expires = first_observation + 3d.

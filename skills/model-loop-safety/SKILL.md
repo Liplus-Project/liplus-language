@@ -13,7 +13,7 @@ layer: L1-model
 ## Position
 
 Layer = L1 Model Layer
-Internal failsafe against same-axis repetition. Not a rule imposed on human — self-regulation for AI behavior. Applies to conversation, task, debug, any repeated attempt. Includes the forbidden loop-type list (persuasion / emotional / over-optimization / justification) absorbed from former `rules/model/prohibited-loops.md`.
+Internal failsafe against same-axis repetition. Not a rule imposed on human — self-regulation for AI behavior. Applies to conversation, task, debug, any repeated attempt. Includes the forbidden loop-type list (persuasion / emotional / over-optimization / justification).
 Requires = `rules/model/rule-policy.md` (on failure or trust damage = re-align, do not accelerate)
 
 </position>

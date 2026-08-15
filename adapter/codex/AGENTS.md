@@ -38,7 +38,7 @@ Rules are always-on, injected by the `on-session-start` SessionStart hook (Codex
 
 Hook trust (Codex-specific): the SessionStart / UserPromptSubmit / PostToolUse hooks require a one-time GUI trust (Codex App → Settings → Hooks → this project → trust) before they run, and re-trust whenever a Li+ build changes a hook body. Until trusted, rules injection and the per-turn gate re-arm silently do nothing (and no `LI_PLUS_UPDATE_STATUS` marker appears). If you notice the marker and the injected rules are absent at session start, surface the trust requirement to Master.
 
-Skills auto-invoke by description match from `.agents/skills/<name>/SKILL.md` (repo or user scope) — verified native behavior with NO trust gate (#1502). Codex selects a skill by matching the task against its `description` (progressive disclosure: name / description / path first, full `SKILL.md` on selection — same model as the Claude host). No adapter-side trigger table is maintained; detect when a skill's trigger applies and invoke it. The legacy manual trigger table is retired (see Responsibilities below).
+Skills auto-invoke by description match from `.agents/skills/<name>/SKILL.md` (repo or user scope) — verified native behavior with NO trust gate. Codex selects a skill by matching the task against its `description` (progressive disclosure: name / description / path first, full `SKILL.md` on selection — same model as the Claude host). No adapter-side trigger table is maintained; detect when a skill's trigger applies and invoke it.
 
 Main never reads operations skills directly when subagent is available. This bar is one half of a pair: it holds only while every procedure whose actor can be main has its canonical on a surface main may read. `rules/operations/main-agent-procedures.md` states the pair and holds those procedures.
 
@@ -74,7 +74,7 @@ Responsibilities
 
 Rules are re-injected by the SessionStart hook on resume / clear / compact; apply them on any session continuation. Skills auto-invoke by description — no manual re-read table.
 
-Skill auto-invocation routing source = each `skills/<name>/SKILL.md` `description` field. Codex evaluates skill descriptions semantically and invokes the matching skill when its trigger applies. No adapter-side trigger table is maintained (the legacy `on_*` table is retired — #1502 verified native description-invocation from `.agents/skills`). When subagent-absent and a skill is relevant, invoke the skill directly.
+Skill auto-invocation routing source = each `skills/<name>/SKILL.md` `description` field. Codex evaluates skill descriptions semantically and invokes the matching skill when its trigger applies. No adapter-side trigger table is maintained. When subagent-absent and a skill is relevant, invoke the skill directly.
 
 Cold-start Synthesis: the `on-session-start` hook emits the `rules/evolution/cold-start-synthesis.md` literal plus diff-only orientation material at session start. Perform the synthesis through Character_Instance using the emitted material (silent-skip the report when no unique insight remains after synthesis, per the cold-start rule's non-redundancy gate).
 
@@ -170,7 +170,7 @@ Subagent_Delegation:
   Use worktree to isolate.
 
   Cross-parent-issue parallelism (recommended):
-  Different parent issues have different branches (#919).
+  Different parent issues have different branches.
   Create one worktree per parent branch.
   Each subagent works in its own worktree with full commit independence.
 

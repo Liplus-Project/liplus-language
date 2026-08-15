@@ -150,7 +150,7 @@ Subagent_Delegation:
   Use worktree to isolate.
 
   Cross-parent-issue parallelism (recommended):
-  Different parent issues have different branches (#919).
+  Different parent issues have different branches.
   Create one worktree per parent branch.
   Each subagent works in its own worktree with full commit independence.
 

@@ -36,7 +36,54 @@ Detection sign: a procedure written into an `operations-*` skill whose actor is 
 
 One shape resolves the other way: where the literal's actor is the subagent and the main agent is only the carrier, the canonical stays in the skill and the main agent carries a pointer to it instead (`skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary). Move the canonical when the main agent has to execute it; leave a pointer when the main agent only has to convey it.
 
+Relocating the canonical is half the move. A skill is invoked by its `description` matching the situation at hand, so a skill whose canonical has left but whose description still names a moment the main agent stands in keeps putting the main agent into the skill — the bar is then broken by the file's own trigger, not by any agent's choice, and the relocation has renamed the violation rather than repaired it. The second half: narrow the description to the reader the skill retains. Retained readers are the subagent, and the main agent under the substrate-absence fallback (`skills/task-subagent-delegation/SKILL.md` Autonomy) — that fallback fires only when no subagent is available, which is the condition under which the bar does not apply, so a description scoped to it does not fire against the bar. A skill that retains neither reader is empty and is deleted, not left as a pointer; `rules/model/subtractive-structural-beauty.md` Core principle (A) already refuses it its place. One thing other than a reader can hold such a file up: being the resolution target of a pointer that cannot itself be edited. That is load-bearing — deleting the file would leave the pointer dangling — so the file stays, as a redirect stub whose description declares it non-invocable rather than naming any moment at all.
+
+Adapter literals that point the main agent at an operations skill are repaired the same way where they are editable. Where one is not — `adapter/claude/CLAUDE.md` and `adapter/codex/AGENTS.md` `## Optional Webhook Notification Flow` is byte-frozen, because `Li+update.md` derives the legacy trailer it strips from installed files out of that very block and drift there silently breaks the migration for pre-migration installs — the redirect is carried here instead. Editing the adapter to satisfy the bar would trade a governance defect for a live migration defect; `rules/model/axis-separation.md` sends a cross-layer contradiction back to the boundary rather than resolving it by precedence, and this file is the boundary the main agent already loads. Detection sign that this shape is present: an adapter line naming an operations skill as where policy lives, in the same sentinel section as the bar.
+
 </the-bar-and-its-pair>
+
+<issue-format>
+
+## Issue format
+
+Canonical. `skills/operations-on-issue-format/SKILL.md` holds the pointer.
+Actor = the parent, unconditionally: `skills/task-subagent-delegation/SKILL.md` Rules puts `issue creation` and `issue management` on `Parent retains` with no mode branch. The subagent reaches this text too — it updates the issue body when premise or constraints change during implementation, and writes the failure-report comment — but it is not the actor the placement is decided on. One canonical on a main-readable surface covers both.
+
+Issue title language:
+Title = ASCII English only.
+Body  = LI_PLUS_PROJECT_LANGUAGE.
+Consistent with the commit title/body language convention (`rules/operations/operations.md` Operations Rules) and PR title convention.
+
+Issue may start from memo. Three fields are convergence target, not creation gate.
+Use only necessary headings. Do not force empty sections.
+Canonical convergence for implementation issue:
+  purpose
+  premise
+  constraints
+  target files (recommended at ready stage)
+Target files = list of files expected to change, with dependency notes (e.g. source⇔docs).
+Target files are optional during memo/forming. Recommended once issue reaches ready.
+Rewrite issue body whenever accepted understanding changes.
+Issue completion is managed through issue state plus PR/CI/release flow, not a dedicated issue-body field.
+
+Checklist = human judgment required (real device test, operational verification).
+Use checklist only when AI cannot judge.
+
+Memo-mode rapid intake (interrupt-minimal path):
+Triggered by human signaling "黙って" / "silent" / "quick memo" / equivalent intent: minimize the cognitive cost of issue creation while the human's main task continues.
+
+- title = ASCII English, bug/kind prefix only (e.g. `bug(rerank): cross-encoder not firing`). No deep verb structure.
+- body = observation fact (1-3 lines) + reproduction hint (1-2 lines). No purpose / premise / constraints / target files.
+- labels = one type label (bug / enhancement / spec / docs / tips) + maturity = `memo`.
+- assignee = unassigned.
+
+Discriminator: "Is this issue creation itself the main task, or is it interrupting the main task?"
+- Interrupting → rapid path.
+- Main task → full forming/ready intake.
+
+Treating "黙って" as "still do full intake but skip discussing it" defeats the interrupt-cost reduction the human asked for. Memo maturity is a valid resting state, not "incomplete and embarrassing"; promotion to forming/ready happens later when the issue itself is the focus (`skills/operations-on-issue-maturity/SKILL.md`).
+
+</issue-format>
 
 <self-review-formal-record>
 
@@ -115,5 +162,75 @@ Post-merge observation for L1 source changes:
 After merging any PR touching L1 Model Layer source (any file with `layer: L1-model` frontmatter, typically `rules/model/*`), apply `rules/operations/operations.md` Post-L1-Merge Runtime Observation. Separate observable axis from Real device test above (AI internal judgment behavior vs external process output).
 
 </merge-execution>
+
+<foreground-webhook-notification-intake>
+
+## Foreground webhook notification intake
+
+Canonical. `skills/operations-foreground-webhook-intake/SKILL.md` holds the pointer.
+Actor = the main agent, and only the main agent: the firing moment is the start of a user turn, and a subagent has none. Residency is therefore not a convenience here — a pull surface cannot reach an actor whose trigger is the turn boundary itself, which is the shape that was observed firing against the bar.
+
+Purpose:
+Keep the active foreground thread lightweight.
+Do not search GitHub broadly for "maybe new comment" when a delivered event source already exists.
+
+Use only in hosts that can run a local command before replying.
+
+source priority:
+  1 = mcp__github-webhook-mcp
+  2 = local webhook store via bundled helper
+  3 = none
+
+delivery mode interaction (LI_PLUS_WEBHOOK_DELIVERY):
+  poll (default) = each user turn, the AI calls mcp__github-webhook-mcp__get_pending_status.
+  channel        = MCP channel pushes events; AI does not poll, intake reads the channel surface.
+  mcp_hook       = the type=mcp_tool UserPromptSubmit hook entry shipped in the
+                   default settings.json template invokes
+                   mcp__github-webhook-mcp__get_pending_status directly at hook
+                   time and injects the result into prompt context. The AI does
+                   not issue the call itself; foreground handling reads the
+                   injected status as if it had been polled.
+                   Preconditions:
+                   - github-webhook-mcp >= v0.11.3 (earlier versions return
+                     generic JSON that Claude Code silently discards because it
+                     does not match a hook decision schema; v0.11.3 wraps the
+                     result in UserPromptSubmit decision shape on the local
+                     bridge side).
+                   - github-webhook-mcp registered as an MCP server in the host
+                     (CLI: .mcp.json / ~/.claude.json / claude mcp add;
+                     Desktop: claude_desktop_config.json). When unregistered,
+                     the mcp_tool resolver returns plain `not connected` text
+                     per turn — harmless but visible noise.
+  source priority above is unchanged across modes; only the *who initiates the
+  call* axis differs. Relevance judgment and destructive consume rules apply
+  identically.
+
+local webhook store:
+  precondition = LI_PLUS_MODE=clone
+  helper path = {workspace_root}/liplus-language/scripts/check_webhook_notifications.py
+  state dir resolution:
+    a = LI_PLUS_WEBHOOK_STATE_DIR from Li+config.md (absolute or workspace_root-relative)
+    b = {workspace_root}/github-webhook-mcp
+    c = {workspace_root}/../github-webhook-mcp
+  if helper missing or state dir unresolved = skip silently
+  helper output = inspect summary with foreground-matched items, notable items, and cleanup candidates
+  helper default = inspect only; preserve unmatched backlog
+  destructive actions = explicit `read` / `done` / `claim` / `cleanup-safe-success` calls only
+
+foreground handling:
+  each user turn start = inspect once before main reply
+  mention only = foreground-matched items or exceptional notable items
+  if relevance cannot be judged cheaply = preserve and stay silent
+  full payload = open only when deeper inspection is needed
+  separate AI process launch = prohibited for this flow
+
+own-operation arrival confirmation:
+  webhook notifications include results of own operations (push, PR, issue, release).
+  these serve as arrival confirmation = proof that the operation reached GitHub.
+  mark_processed own-operation events promptly during foreground check or after the triggering operation.
+  do not accumulate own-operation events for bulk clearing later.
+  external events (other users, bots) = preserve for foreground reporting or explicit handling.
+
+</foreground-webhook-notification-intake>
 
 </main-agent-procedures>

@@ -27,6 +27,6 @@ Subjective confidence is outside this criterion.
 A premise is verified only when external evidence (docs, spec, source, runtime probe, existing issue/PR record) is cited.
 "feels correct" is not verification.
 
-Memo maturity is a valid resting state, not "incomplete and embarrassing". The creation-time rapid path that produces a memo-maturity issue lives at `skills/operations-on-issue-format/SKILL.md` Memo-mode rapid intake, which fires at issue creation; promotion to forming/ready is judged here, later, when the issue itself is the focus.
+Memo maturity is a valid resting state, not "incomplete and embarrassing". The creation-time rapid path that produces a memo-maturity issue lives at `rules/operations/main-agent-procedures.md` Issue format, which fires at issue creation; promotion to forming/ready is judged here, later, when the issue itself is the focus.
 
 </issue-maturity>

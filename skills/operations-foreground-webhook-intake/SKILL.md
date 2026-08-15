@@ -1,6 +1,6 @@
 ---
 name: operations-foreground-webhook-intake
-description: Invoke when the turn carries a github-webhook-mcp channel event or an injected pending-webhook status / the turn carries the per-turn hook reminder to check pending notifications by running get_pending_status silently / the request asks whether anything arrived from GitHub, or names webhook events, pending events or mark_processed. Inspects pending webhook events via MCP or the local helper and reports foreground-relevant or notable items only.
+description: Do not invoke. Redirect stub with no invoke condition - the foreground webhook intake canonical lives in `rules/operations/main-agent-procedures.md` Foreground webhook notification intake, which loads without invocation. The actor is the main agent at a user-turn boundary, and `adapter/claude/CLAUDE.md` / `adapter/codex/AGENTS.md` bar the main agent from `skills/operations-*/SKILL.md`, so this file names no moment. It exists because the adapter `## Optional Webhook Notification Flow` block that points here is byte-frozen by the `Li+update.md` legacy-trailer migration and its pointer must resolve.
 layer: L4-operations
 ---
 
@@ -8,65 +8,10 @@ layer: L4-operations
 
 # Foreground Webhook Notification Intake
 
-Purpose:
-Keep the active foreground thread lightweight.
-Do not search GitHub broadly for "maybe new comment" when a delivered event source already exists.
+Redirect stub. Canonical = `rules/operations/main-agent-procedures.md` Foreground webhook notification intake: purpose, source priority, the `LI_PLUS_WEBHOOK_DELIVERY` mode interaction, the local webhook store resolution, foreground handling, and own-operation arrival confirmation all live there.
 
-Use only in hosts that can run a local command before replying.
+Why nothing is held here: the firing moment is the start of a user turn, which only the main agent has, and the bar keeps the main agent out of this surface. A pull surface cannot reach an actor whose trigger is the turn boundary itself — that mismatch is what was observed firing against the bar, and residency is the repair.
 
-source priority:
-  1 = mcp__github-webhook-mcp
-  2 = local webhook store via bundled helper
-  3 = none
-
-delivery mode interaction (LI_PLUS_WEBHOOK_DELIVERY):
-  poll (default) = each user turn, the AI calls mcp__github-webhook-mcp__get_pending_status.
-  channel        = MCP channel pushes events; AI does not poll, intake reads the channel surface.
-  mcp_hook       = the type=mcp_tool UserPromptSubmit hook entry shipped in the
-                   default settings.json template invokes
-                   mcp__github-webhook-mcp__get_pending_status directly at hook
-                   time and injects the result into prompt context. The AI does
-                   not issue the call itself; foreground handling reads the
-                   injected status as if it had been polled.
-                   Preconditions:
-                   - github-webhook-mcp >= v0.11.3 (earlier versions return
-                     generic JSON that Claude Code silently discards because it
-                     does not match a hook decision schema; v0.11.3 wraps the
-                     result in UserPromptSubmit decision shape on the local
-                     bridge side).
-                   - github-webhook-mcp registered as an MCP server in the host
-                     (CLI: .mcp.json / ~/.claude.json / claude mcp add;
-                     Desktop: claude_desktop_config.json). When unregistered,
-                     the mcp_tool resolver returns plain `not connected` text
-                     per turn — harmless but visible noise.
-  source priority above is unchanged across modes; only the *who initiates the
-  call* axis differs. Relevance judgment and destructive consume rules apply
-  identically.
-
-local webhook store:
-  precondition = LI_PLUS_MODE=clone
-  helper path = {workspace_root}/liplus-language/scripts/check_webhook_notifications.py
-  state dir resolution:
-    a = LI_PLUS_WEBHOOK_STATE_DIR from Li+config.md (absolute or workspace_root-relative)
-    b = {workspace_root}/github-webhook-mcp
-    c = {workspace_root}/../github-webhook-mcp
-  if helper missing or state dir unresolved = skip silently
-  helper output = inspect summary with foreground-matched items, notable items, and cleanup candidates
-  helper default = inspect only; preserve unmatched backlog
-  destructive actions = explicit `read` / `done` / `claim` / `cleanup-safe-success` calls only
-
-foreground handling:
-  each user turn start = inspect once before main reply
-  mention only = foreground-matched items or exceptional notable items
-  if relevance cannot be judged cheaply = preserve and stay silent
-  full payload = open only when deeper inspection is needed
-  separate AI process launch = prohibited for this flow
-
-own-operation arrival confirmation:
-  webhook notifications include results of own operations (push, PR, issue, release).
-  these serve as arrival confirmation = proof that the operation reached GitHub.
-  mark_processed own-operation events promptly during foreground check or after the triggering operation.
-  do not accumulate own-operation events for bulk clearing later.
-  external events (other users, bots) = preserve for foreground reporting or explicit handling.
+Why the file is not deleted: `adapter/claude/CLAUDE.md` and `adapter/codex/AGENTS.md` `## Optional Webhook Notification Flow` names this path, and that block is byte-frozen — `Li+update.md` derives the legacy trailer it strips from installed files out of that very block, so drift there breaks the migration for pre-migration installs. The pointer must resolve; this stub is what it resolves to. See `rules/operations/main-agent-procedures.md` The bar and its pair.
 
 </foreground-webhook-notification-intake>

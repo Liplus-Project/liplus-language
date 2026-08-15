@@ -27,7 +27,7 @@ step3 = conclusion judgment:
   CI pass = all conclusion in [success, skipped, neutral]
 CI pass -> proceed to [PR Review].
 CI fail -> fix and recommit (restart CI loop from step1).
-CI loop safety (ref: Li+core.md#Loop Safety task/debug threshold):
+CI loop safety (ref: `skills/model-loop-safety/SKILL.md` task/debug threshold):
 If still failing = externalize to issue comment, escalate to human.
 
 </ci-loop>

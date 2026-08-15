@@ -1,6 +1,6 @@
 ---
 name: operations-on-issue-format
-description: Invoke when the request asks to file, open or write up an issue / the request reports a bug, spec gap or observation that should survive the session as a work unit / the request asks to rewrite or update an issue body / the request asks for a quick silent memo while the human's main task continues. Defines title and body language, the canonical convergence fields (purpose, premise, constraints, target files), the rewrite-on-change rule, and the memo-mode rapid intake path.
+description: Invoke when a delegated subagent is about to update an issue body because premise or constraints changed during implementation / a delegated subagent is about to write a failure-report issue comment / subagent capability is unavailable and the parent is executing operations directly. Pointer only - the Issue Format canonical lives in `rules/operations/main-agent-procedures.md` Issue format. Issue creation and issue management are `Parent retains`, so the moments where the actor is the parent are not invoke conditions here; the canonical reaches that actor by residency instead.
 layer: L4-operations
 ---
 
@@ -8,44 +8,10 @@ layer: L4-operations
 
 # Issue Format
 
-Issue title language:
-Title = ASCII English only.
-Body  = LI_PLUS_PROJECT_LANGUAGE.
-Consistent with the commit title/body language convention (`rules/operations/operations.md` Operations Rules) and PR title convention.
+Pointer. Canonical = `rules/operations/main-agent-procedures.md` Issue format: title and body language, the convergence fields, the rewrite-on-change rule, the checklist bound, and the memo-mode rapid intake path all live there.
 
-Issue may start from memo. Three fields are convergence target, not creation gate.
-Use only necessary headings. Do not force empty sections.
-Canonical convergence for implementation issue:
-  purpose
-  premise
-  constraints
-  target files (recommended at ready stage)
-Target files = list of files expected to change, with dependency notes (e.g. source⇔docs).
-Target files are optional during memo/forming. Recommended once issue reaches ready.
-Rewrite issue body whenever accepted understanding changes.
-Issue completion is managed through issue state plus PR/CI/release flow, not a dedicated issue-body field.
+Why the canonical is not here: `skills/task-subagent-delegation/SKILL.md` Rules puts `issue creation` and `issue management` on `Parent retains` with no mode branch, and `adapter/claude/CLAUDE.md` / `adapter/codex/AGENTS.md` bar the main agent from `skills/operations-*/SKILL.md` while a subagent is available. A canonical held here would sit where its actor cannot read it. `rules/operations/main-agent-procedures.md` The bar and its pair states the placement rule; do not restate the canonical here, the second copy is what drifts.
 
-Checklist = human judgment required (real device test, operational verification).
-Use checklist only when AI cannot judge.
-
-<memo-mode-rapid-intake-interrupt-minimal-path>
-
-## Memo-mode rapid intake (interrupt-minimal path)
-
-Triggered by human signaling "黙って" / "silent" / "quick memo" / equivalent intent: minimize the cognitive cost of issue creation while the human's main task continues.
-
-Rapid path:
-- title = ASCII English, bug/kind prefix only (e.g. `bug(rerank): cross-encoder not firing`). No deep verb structure.
-- body = observation fact (1-3 lines) + reproduction hint (1-2 lines). No purpose / premise / constraints / target files.
-- labels = one type label (bug / enhancement / spec / docs / tips) + maturity = `memo`.
-- assignee = unassigned.
-
-Discriminator: "Is this issue creation itself the main task, or is it interrupting the main task?"
-- Interrupting → rapid path (this section).
-- Main task → full forming/ready intake.
-
-Treating "黙って" as "still do full intake but skip discussing it" defeats the interrupt-cost reduction the human asked for. Memo maturity is a valid resting state, not "incomplete and embarrassing"; promotion to forming/ready happens later when the issue itself is the focus (`skills/operations-on-issue-maturity/SKILL.md`).
-
-</memo-mode-rapid-intake-interrupt-minimal-path>
+The subagent still reaches the canonical — `rules/**` loads for it without invocation — so nothing it needs at issue-body update or failure-report time is lost by the move.
 
 </issue-format>

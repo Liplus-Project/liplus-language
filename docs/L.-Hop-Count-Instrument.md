@@ -80,7 +80,8 @@ S2 のみ #1564 実測2 の記録（ツール2 / 文脈内2）と一致しない
 **S3** — anchor: `Webhook intake policy and procedures:`
 - → `skills/operations-foreground-webhook-intake/SKILL.md` `[tool]`
 - → `adapter/claude/hooks-settings.md` `[tool]`
-- 非計数 — `rules/operations/operations.md`（`mark_processed` の義務）: 鎖のどこにも明示ポインタがない。`grep -n "operations\.md"` は `skills/operations-foreground-webhook-intake/SKILL.md` / `adapter/claude/hooks-settings.md` とも0件、アンカー（`:200`）が名指すのは skill のみ。計数規則（:14）により除外。なお `mark_processed` の実務リテラル自体は skill 本体（`:68`）に到達済みで、この参照は追加跳躍を要さない。
+- 非計数 — `rules/operations/operations.md`（`mark_processed` の義務）: 鎖のどこにも明示ポインタがない。`grep -n "operations\.md"` は `skills/operations-foreground-webhook-intake/SKILL.md` / `adapter/claude/hooks-settings.md` とも0件、アンカー（`:200`）が名指すのは skill のみ。計数規則（:14）により除外。なお `mark_processed` の実務リテラル自体は baseline 時点の skill 本体（`:68`）に到達済みで、この参照は追加跳躍を要さない。
+- 追記（#1762）—— baseline 以降、この鎖の到達先は `rules/operations/main-agent-procedures.md` の `## Foreground webhook notification intake` へ移り、skill 側はリダイレクトスタブになった。上の跳躍数は baseline タグ時点の実測なので書き換えない。
 
 **S4** — anchor: `Sub-issue work exceeding parent body literal ... requires dialogue confirm`
 - → `skills/operations-on-sub-issue/SKILL.md` scope-exceed dialogue confirm `[tool]`

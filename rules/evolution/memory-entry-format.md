@@ -14,6 +14,7 @@ layer: L2-evolution
 
 Layer = L2 Evolution Layer
 Entry format and maintenance discipline for the memory file set: the per-topic entry files (`feedback_<topic>.md` / `project_<topic>.md` / `reference_<topic>.md` / `user_<topic>.md` — one memory per file) plus the index and the operational files (`MEMORY.md` / `promotion_tally.md` / `self-evaluation_log.md` / `self-evolution-observation.md`).
+Also holds Artifact deletion calibration below. That table spans every artifact class, not memory alone — memory subfile is one of its rows, and other rows are read from outside this file.
 Requires = L2 Evolution Layer (persistence-tiering / promotion-judgment surroundings)
 Load timing = always-on (memory writes occur across the entire session)
 Single source. Replace the operational note at the head of each memory file with a reference to this rule (avoid double-holding drift).
@@ -75,9 +76,39 @@ Each entry has 3 core elements:
 Long Why paragraphs and human literal quotes are minimal (1-2 lines). Do not balloon entries with background explanation.
 If background is needed, split it out to the docs tier (see `skills/evolution-persistence-tiering/SKILL.md`).
 
-Maintenance discipline (handle duplicates by update / delete obsolete / no conflicting coexist / no promoted-rule tracking list) and deletion blast-radius judgment are consolidated in `rules/model/subtractive-structural-beauty.md`. Memory subfile sits at `low` caution in the deletion table.
+Maintenance discipline (handle duplicates by update / delete obsolete / no conflicting coexist / no promoted-rule tracking list) applies `rules/model/subtractive-structural-beauty.md` Core principles. Deletion blast-radius judgment is Artifact deletion calibration below; memory subfile sits at `low` caution in that table.
 
 </entry-format>
+
+<artifact-deletion-calibration>
+
+## Artifact deletion calibration
+
+Application of `rules/model/subtractive-structural-beauty.md` Core principle (A) with blast radius as the load-bearing criterion.
+
+Recovery difficulty proportional to deletion caution. Calibrate on blast radius, not on familiarity with content.
+
+Pre-delete single question: "If I delete this by mistake, what breaks? How many minutes to recover?"
+
+Blast radius = break scope * recovery cost.
+
+| target | break scope | recovery cost | caution |
+|---|---|---|---|
+| memory subfile (local, disposable) | low | medium | low |
+| temp file / work log | negligible | negligible | negligible |
+| source / docs (git-tracked) | wide | low (instant revert) | medium |
+| wiki page (re-sync from docs) | medium | low | low-medium |
+| local non-git config / state (gitignored, meaningful) | medium-wide | high | high |
+| force push to shared branch | wide | high (reflog dependent) | high |
+| release latest promotion (user-visible) | wide | high | high |
+| production data (non-git) | wide | high | high |
+| external send (API call, mail, payment) | wide | infinite | maximum |
+
+Maximum caution = irreversible external side effects only. Operations closed inside git, however wide the break, remain medium or below.
+
+Deletion judgment fails in both directions (instance of `rules/model/subtractive-structural-beauty.md` Core principle (C)): destructive (delete what should be kept) and preserve-by-default (keep what should be deleted). "Do not know -> keep" collapses into preserve-by-default.
+
+</artifact-deletion-calibration>
 
 <announce-vs-execute>
 
@@ -153,7 +184,7 @@ After running the skill, update the `**Last consolidate run:**` line in each mem
 
 ## Out of scope
 
-This rule defines the entry format and operation of memory only. The following are separate surfaces:
+Beyond Artifact deletion calibration above, this rule defines the entry format and operation of memory only. The following are separate surfaces:
 - cluster tally 3-day expire / sub-threshold deletion → `rules/evolution/promotion-judgment.md`
 - memory ↔ docs / wiki / rules sorting → `skills/evolution-persistence-tiering/SKILL.md`
 - self-evaluation 10-axis scoring → `skills/evolution-self-eval/SKILL.md`

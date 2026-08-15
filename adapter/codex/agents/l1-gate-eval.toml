@@ -16,9 +16,9 @@
 #   main session, absent in both a control subagent and a skills-disabled one),
 #   so the brake-2 skills-off / root-only isolation holds automatically. The
 #   per-skill enabled=false enumeration below is therefore defense-in-depth, NOT
-#   the sole guarantee — kept per subtractive-structural-beauty subtraction-
-#   safeguards (the auto-off is observed-not-contracted; brake-2 is an integrity
-#   surface). The bootstrap fills the placeholder block; a future global skills
+#   the sole guarantee — kept because the auto-off is observed-not-contracted and
+#   brake-2 is an integrity surface, where explicit redundancy outweighs the
+#   subtraction. The bootstrap fills the placeholder block; a future global skills
 #   toggle would replace the enumeration.
 
 name = "l1-gate-eval"

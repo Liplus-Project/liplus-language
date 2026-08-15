@@ -49,7 +49,7 @@ esac
 # mentions the command. The message is therefore worded conditionally; asserting
 # that refs were dropped would be false whenever the command merely named it.
 if ! command -v node >/dev/null 2>&1; then
-  printf '%s' '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"post-tool-use.sh: `node` not found on PATH, so this hook cannot run. If a PR was just created, its sub-issue `Closes #NNN` refs were not auto-appended — add them manually. See adapter/claude/hooks/post-tool-use.sh (#1540)."}}'
+  printf '%s' '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"post-tool-use.sh: `node` not found on PATH, so this hook cannot run. If a PR was just created, its sub-issue `Closes #NNN` refs were not auto-appended — add them manually. See adapter/claude/hooks/post-tool-use.sh."}}'
   exit 0
 fi
 

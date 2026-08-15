@@ -47,7 +47,7 @@ esac
 # node absence must stay observable. A static JSON literal is used because
 # building it would otherwise require the very interpreter that is missing.
 if ! command -v node >/dev/null 2>&1; then
-  printf '%s' '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"post-tool-use.sh: `node` not found on PATH, so this hook cannot run. If a PR was just created, its sub-issue `Closes #NNN` refs were not auto-appended — add them manually. See adapter/codex/hooks/post-tool-use.sh (#1632)."}}'
+  printf '%s' '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"post-tool-use.sh: `node` not found on PATH, so this hook cannot run. If a PR was just created, its sub-issue `Closes #NNN` refs were not auto-appended — add them manually. See adapter/codex/hooks/post-tool-use.sh."}}'
   exit 0
 fi
 

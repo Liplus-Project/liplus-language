@@ -995,6 +995,23 @@ class ColdstartAnchorCutTest(ObservationSurfaceTestCase):
                     f"{adapter} lost the anchor on a file with no H2 section",
                 )
 
+    def test_every_port_anchors_the_same_bytes(self) -> None:
+        """Strict equality, not token containment, across the three ports.
+
+        The cut is implemented three times by hand, and the two bash ports lean
+        on command substitution stripping trailing newlines where the PowerShell
+        port trims explicitly. Both land on the same value, and containment
+        assertions would not have said so — they pass on any superset. This is
+        the assertion that fails when one port is edited and the others are not.
+        """
+        sections: dict[str, str | None] = {}
+        for adapter in ADAPTERS:
+            workspace = self.new_workspace()
+            workspace.seed_coldstart_rule(self.PREAMBLE_TOKEN, self.H2_TOKEN)
+            sections[adapter] = anchor_section(self.run_hook(adapter, workspace))
+
+        self.assert_adapters_agree(sections)
+
 
 class MatcherResolutionTest(ObservationSurfaceTestCase):
     """Coverage area 5: SessionStart matcher resolution (#1632 F1 / F6).

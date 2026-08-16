@@ -201,7 +201,7 @@ host OS は adapter 種別（runtime=claude / runtime=codex）から推測しな
   ローカルスコープの gitignore により、state がバージョン管理されているホストワークスペースに混入しないようにする。トップレベルの `.gitignore` には触れない。state 本体（`last-cold-start-emit.json`）は hook が初回実行時に生成する。
 - このステップは冪等：既存ディレクトリと既存 `.gitignore` はそのまま残す
 
-`on-session-start.sh` の matcher 別挙動（startup の diff-only、resume/clear/compact/fork の rule literal 再 anchor、fail-safe full emit）の詳細は [6. Adapter — on-session-start.sh](6.-Adapter#on-session-startsh) を参照する。
+`on-session-start.sh` の matcher 別挙動（startup の diff-only、resume/clear/compact/fork の rule anchor 再出力、fail-safe full emit）の詳細は [6. Adapter — on-session-start.sh](6.-Adapter#on-session-startsh) を参照する。
 
 **4c.6. `.claude/agents/` ファイル生成（Create-only ミラー）**
 

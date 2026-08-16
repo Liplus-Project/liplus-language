@@ -1,6 +1,6 @@
 ---
 name: operations-on-pr-review
-description: Invoke when CI has passed and the PR has reached its review surface / a delegated subagent has reached its stop condition and needs that mode literal. Makes AI self-review mandatory in every mode and holds the canonical delegated-subagent stop condition split by mode.
+description: Invoke when CI has passed and the PR has reached its review surface / a delegated subagent has reached its stop condition and needs that mode literal. Makes AI self-review mandatory in every mode, holds the canonical delegated-subagent stop condition split by mode, and carries the follow-through on deferred items, which lands after merge in the same session.
 layer: L4-operations
 ---
 

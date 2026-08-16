@@ -1,9 +1,17 @@
-"""Agent Skills spec: the frontmatter `description` of every skill stays within 1024 characters.
+"""Agent Skills spec: the frontmatter `description` of every skill keeps its fixed form.
 
 Spec source: `docs/K.-Source-File-Format.md` (skill `description` fixed form).
-The limit is a hard constraint of the Agent Skills standard, and the handling of an
-over-limit value (truncation or validation error) is host-dependent, so the check is
-kept in CI rather than in per-edit attention.
+The 1024-character limit is a hard constraint of the Agent Skills standard, and the
+handling of an over-limit value (truncation or validation error) is host-dependent, so
+the check is kept in CI rather than in per-edit attention.
+
+The `. ` terminator is checked here for a different reason. It is what the condition
+count reads: the count is the first sentence split on ` / `, so a description that loses
+its terminator stops declaring a countable number of firing conditions. A trim that
+deletes the trailing "what it provides" sentence outright takes the terminator with it,
+and nothing else reports that loss. `rules/model/subtractive-structural-beauty.md` puts a
+procedure whose execution is not guaranteed on the replace-with-a-structure side; this is
+that structure.
 """
 
 from __future__ import annotations
@@ -82,6 +90,20 @@ class SkillDescriptionLimitTest(unittest.TestCase):
         for name, description in self.descriptions.items():
             with self.subTest(skill=name):
                 self.assertLessEqual(len(description or ""), DESCRIPTION_MAX_CHARS)
+
+    def test_description_keeps_the_condition_list_terminator(self) -> None:
+        """A `. ` terminator with a non-empty tail after it, on every skill.
+
+        The tail's content is not asserted — trimming it to a shorter sentence is the
+        point of the trim passes. What is asserted is that a tail survives at all, since
+        deleting it removes the `. ` the condition count reads from.
+        """
+        for name, description in self.descriptions.items():
+            with self.subTest(skill=name):
+                head, separator, tail = (description or "").partition(". ")
+                self.assertEqual(separator, ". ")
+                self.assertNotEqual(head.strip(), "")
+                self.assertNotEqual(tail.strip(), "")
 
     def test_extractor_resolves_every_frontmatter_layout(self) -> None:
         layouts = {

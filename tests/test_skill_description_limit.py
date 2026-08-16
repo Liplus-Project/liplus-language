@@ -7,10 +7,9 @@ the check is kept in CI rather than in per-edit attention.
 
 The `. ` terminator is checked here for a different reason. It is what the condition
 count reads: the count is the first sentence split on ` / `, so a description that loses
-its terminator stops declaring a countable number of firing conditions. The two
-description-trim passes (#1766, #1767) each had to preserve it by hand while compressing
-the trailing "what it provides" sentence, and a trim that deleted that sentence outright
-would take the terminator with it. `rules/model/subtractive-structural-beauty.md` puts a
+its terminator stops declaring a countable number of firing conditions. A trim that
+deletes the trailing "what it provides" sentence outright takes the terminator with it,
+and nothing else reports that loss. `rules/model/subtractive-structural-beauty.md` puts a
 procedure whose execution is not guaranteed on the replace-with-a-structure side; this is
 that structure.
 """

@@ -90,6 +90,8 @@ description: Invoke when <条件1> / <条件2> / <条件3>. <何を提供する�
 
 この規則は正規表現によるキーワード推測（`when|whenever|before|after` 等）を置き換えるために置いた。キーワード推測は `Invoke for A / B / C` 形や「1 個の `when` が 3 項目を束ねる」形を取りこぼし、実際に存在しない分類を生む事故を起こしている（#1598 の背景、判断構造 entry [skill-trigger-declaration-in-description](https://github.com/Liplus-Project/liplus-language/wiki/skill-trigger-declaration-in-description)）。
 
+`. ` 終端の存在は `tests/test_skill_description_limit.py` が CI で検査する。計数規則がこの終端を読む以上、終端の消失は「発火条件数が数えられない description」を無検出で通す。目録の削減作業（#1766 / #1767）は毎回この終端を手作業で保存してきたが、末尾文をまるごと削除する trim は終端ごと持っていくため、実行が保証されない手順を構造へ置き換えた（`rules/model/subtractive-structural-beauty.md`）。検査対象は終端と末尾文の非空のみで、末尾文の内容は検査しない（短縮そのものは削減作業の目的側）。
+
 ### 却下した代替
 
 - `metadata:` への構造化（案 B）: 標準準拠だが `description` との二重管理 + CI 整合チェックを要する。固定形の機械カウントが不足した場合の次手として保留

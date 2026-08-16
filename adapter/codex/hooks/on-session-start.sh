@@ -243,16 +243,26 @@ emit ""
 # ===================================================================
 # Cold-start material gathering
 # ===================================================================
+# Anchor = the H1 preamble only, cut at the first H2 semantic tag. The rule file
+# is always-on loaded, so emitting it whole put the same text in one session's
+# context twice. A file with no H2 section emits whole. Contract source =
+# rules/evolution/cold-start-synthesis.md Hook Emission Contract (Anchor cut).
 COLDSTART_LITERAL=""
 if [ -f "$COLDSTART_MD" ]; then
-  COLDSTART_LITERAL=$(awk '/^---$/{n++; next} n>=2' "$COLDSTART_MD" | sed '1{/^# /d;}' | sed '/./,$!d')
+  COLDSTART_LITERAL=$(awk '
+    /^---$/ { n++; next }
+    n < 2   { next }
+    seen_h1 && /^<[a-z0-9-]+>$/ { exit }
+    /^# /   { seen_h1 = 1 }
+            { print }
+  ' "$COLDSTART_MD" | sed '1{/^# /d;}' | sed '/./,$!d')
 fi
-emit_section "Cold-start Synthesis (rules/evolution/cold-start-synthesis.md literal)" "$COLDSTART_LITERAL"
+emit_section "Cold-start Synthesis (rules/evolution/cold-start-synthesis.md anchor)" "$COLDSTART_LITERAL"
 
 if [ "$MATCHER" != "startup" ]; then
   emit "━━━ Cold-start Synthesis: instruction ━━━"
   emit "Matcher = ${MATCHER}. Session is continuous (resume/clear/compact). Rules were"
-  emit "reinjected and the cold-start rule literal re-anchored above. Treat the prior"
+  emit "reinjected and the cold-start rule anchor re-anchored above. Treat the prior"
   emit "session's in-context state as authoritative; do not re-orient from scratch."
   emit "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   flush_json
@@ -927,7 +937,7 @@ if [ "$FAIL_SAFE_FULL_EMIT" -eq 1 ]; then
 else
   emit "━━━ Cold-start Synthesis: instruction ━━━"
   emit "Diff-only emission: only sections changed since the prior session are shown"
-  emit "above (rules + cold-start rule literal are always re-anchored). Using the diff"
+  emit "above (rules + cold-start rule anchor are always re-anchored). Using the diff"
   emit "plus your loaded layers, perform Cold-start Synthesis through Character_Instance:"
   emit "1. Summarize the current Li+ state delta (what changed; unresolved threads)."
   emit "2. Report synthesis to the human as the opening orientation — apply the"

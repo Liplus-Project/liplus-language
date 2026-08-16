@@ -21,10 +21,11 @@ no external dependency (`gh` is stubbed, dates are relative to today).
 
 What is pinned and what is not
 ------------------------------
-The contract (`rules/evolution/cold-start-synthesis.md:47-51`) fixes the date
-conditions, the pending filter and the overdue-wins fold; the presentation is
-explicitly delegated to the adapter (same file, :55). So the assertions here
-read the *judgment* out of the emission — which descriptor surfaces, under which
+The contract (`rules/evolution/cold-start-synthesis.md` Self-Evolution
+Observation Surface) fixes the date conditions, the pending filter and the
+overdue-wins fold; the presentation is explicitly delegated to the adapter
+(same section, "Material gathering ... belong to the adapter"). So the
+assertions here read the *judgment* out of the emission — which descriptor surfaces, under which
 state, against which date, with which PR reference — and deliberately do not
 match the banner text, the bullet prefix, the field names restated inside the
 parentheses, the `[PR #N]` suffix notation, or the order of the entries. The
@@ -67,9 +68,9 @@ NODE = shutil.which("node")
 # other branch, so tests that need diff-only assert this string is absent.
 FAIL_SAFE_MARK = "Fail-safe full emit"
 
-# `rules/evolution/cold-start-synthesis.md:26` — "A single 'No new orientation
-# material since last session' line is emitted". The line is the contract; the
-# banner it sits under is not.
+# `rules/evolution/cold-start-synthesis.md` Hook Emission Contract — "A single
+# 'No new orientation material since last session' line is emitted". The line is
+# the contract; the banner it sits under is not.
 NO_NEW_MATERIAL = "No new orientation material"
 
 
@@ -140,6 +141,21 @@ def observation_section(hook_output: str) -> str | None:
     """
     for banner, body in emitted_sections(hook_output):
         if "observation" in banner.lower():
+            return body
+    return None
+
+
+def anchor_section(hook_output: str) -> str | None:
+    """Body of the cold-start rule anchor section, or None when absent.
+
+    Located by topic for the same reason `observation_section` is. Scoping to
+    the section matters here beyond banner independence: the codex ports also
+    inject every `rules/**/*.md` body verbatim (Codex has no `.claude/rules`
+    equivalent), so the whole rule file is present in the emission either way
+    and only the anchor section can report what the cut did.
+    """
+    for banner, body in emitted_sections(hook_output):
+        if "anchor" in banner.lower():
             return body
     return None
 
@@ -366,19 +382,29 @@ class Workspace:
         target.write_text(content, encoding="utf-8")
         return target
 
-    def seed_coldstart_rule(self, token: str) -> Path:
+    def seed_coldstart_rule(self, token: str, h2_token: str | None = None) -> Path:
         """Minimal `rules/evolution/cold-start-synthesis.md` in the fixture clone.
 
         The fixture's `liplus-language` directory is otherwise empty, so the
-        always-emitted anchor has an empty body and "the rule literal is
-        re-anchored" cannot be observed at all. `token` is planted past the
+        always-emitted anchor has an empty body and "the rule anchor is
+        re-emitted" cannot be observed at all. `token` is planted past the
         frontmatter and the H1 so it survives every port's strip.
+
+        `h2_token` plants a second token inside an H2 section, which the anchor
+        cut drops. Left None the file has no H2 at all, which is the
+        emit-whole path.
         """
+        h2 = ""
+        if h2_token is not None:
+            h2 = (
+                "\n<hook-emission-contract>\n\n## Hook Emission Contract\n\n"
+                f"{h2_token} contract body.\n\n</hook-emission-contract>\n"
+            )
         return self.write(
             self.liplus / "rules" / "evolution",
             "cold-start-synthesis.md",
             "---\nalwaysApply: true\n---\n\n# Cold-start Synthesis\n\n"
-            f"{token} anchor body.\n",
+            f"{token} anchor body.\n{h2}",
         )
 
     def memory_candidates(self, adapter: str) -> tuple[Path, Path]:
@@ -825,9 +851,9 @@ class MemoryDirResolutionTest(ObservationSurfaceTestCase):
 class NoNewMaterialMarkerTest(ObservationSurfaceTestCase):
     """Coverage area 4: the marker's interaction with the observation surface.
 
-    `rules/evolution/cold-start-synthesis.md:26` — the marker fires when no
-    section changed AND no observation entry was surfaced. Both halves live in
-    the diff-only branch, which is entered only when a prior run left a state
+    `rules/evolution/cold-start-synthesis.md` Hook Emission Contract — the
+    marker fires when no section changed AND no observation entry was surfaced.
+    Both halves live in the diff-only branch, which is entered only when a prior run left a state
     file behind, so each test here runs one hook twice against one workspace.
     """
 
@@ -909,12 +935,90 @@ class NoNewMaterialMarkerTest(ObservationSurfaceTestCase):
                 )
 
 
+class ColdstartAnchorCutTest(ObservationSurfaceTestCase):
+    """The anchor cut: preamble in, H2 sections out, on all three ports (#1765).
+
+    `rules/evolution/cold-start-synthesis.md` Hook Emission Contract (Anchor
+    cut) — the rule file is always-on loaded, so re-emitting it whole put the
+    same text in one session's context twice. The hook re-anchors the H1
+    preamble and stops at the first H2 semantic tag.
+
+    Read out of behaviour, not out of the cut's implementation: a token in the
+    preamble stands for what must survive and a token inside an H2 section
+    stands for what must not, so a port whose regex or loop bound drifts is
+    caught by the emission rather than by a line-by-line port comparison. Three
+    hand-ported implementations are exactly where a silently one-sided cut is
+    possible.
+
+    The emit-whole path is asserted on its own: it is what keeps a rule file
+    that has no H2 section — or one whose section wrap changed shape — from
+    losing the anchor entirely, which is the worse failure of the two.
+    """
+
+    PREAMBLE_TOKEN = "QQPREAMBLETOKENQQ"
+    H2_TOKEN = "QQH2SECTIONTOKENQQ"
+
+    def test_h2_sections_are_cut_and_the_preamble_survives(self) -> None:
+        for adapter in ADAPTERS:
+            with self.subTest(adapter=adapter):
+                workspace = self.new_workspace()
+                workspace.seed_coldstart_rule(self.PREAMBLE_TOKEN, self.H2_TOKEN)
+
+                section = anchor_section(self.run_hook(adapter, workspace))
+
+                self.assertIsNotNone(
+                    section,
+                    f"{adapter} emitted no anchor section at all",
+                )
+                self.assertIn(
+                    self.PREAMBLE_TOKEN,
+                    section or "",
+                    f"{adapter} dropped the preamble; the anchor is the part the "
+                    "AI applies at the step 3 moment",
+                )
+                self.assertNotIn(
+                    self.H2_TOKEN,
+                    section or "",
+                    f"{adapter} anchored an H2 section; the rule file is already "
+                    "in context once, which is what the cut exists to stop",
+                )
+
+    def test_a_file_with_no_h2_section_is_anchored_whole(self) -> None:
+        for adapter in ADAPTERS:
+            with self.subTest(adapter=adapter):
+                workspace = self.new_workspace()
+                workspace.seed_coldstart_rule(self.PREAMBLE_TOKEN)
+
+                self.assertIn(
+                    self.PREAMBLE_TOKEN,
+                    anchor_section(self.run_hook(adapter, workspace)) or "",
+                    f"{adapter} lost the anchor on a file with no H2 section",
+                )
+
+    def test_every_port_anchors_the_same_bytes(self) -> None:
+        """Strict equality, not token containment, across the three ports.
+
+        The cut is implemented three times by hand, and the two bash ports lean
+        on command substitution stripping trailing newlines where the PowerShell
+        port trims explicitly. Both land on the same value, and containment
+        assertions would not have said so — they pass on any superset. This is
+        the assertion that fails when one port is edited and the others are not.
+        """
+        sections: dict[str, str | None] = {}
+        for adapter in ADAPTERS:
+            workspace = self.new_workspace()
+            workspace.seed_coldstart_rule(self.PREAMBLE_TOKEN, self.H2_TOKEN)
+            sections[adapter] = anchor_section(self.run_hook(adapter, workspace))
+
+        self.assert_adapters_agree(sections)
+
+
 class MatcherResolutionTest(ObservationSurfaceTestCase):
     """Coverage area 5: SessionStart matcher resolution (#1632 F1 / F6).
 
-    `rules/evolution/cold-start-synthesis.md:28-29` — on a non-startup matcher
-    "Only the cold-start rule literal is re-anchored. The work context is
-    continuous; the diff-only set is not re-evaluated"; `docs/6.-Adapter.md`
+    `rules/evolution/cold-start-synthesis.md` Hook Emission Contract — on a
+    non-startup matcher "Only the cold-start rule anchor is re-emitted. The work
+    context is continuous; the diff-only set is not re-evaluated"; the same line
     adds that the state file is not updated.
 
     Both halves are read out of behaviour rather than out of banner text. A

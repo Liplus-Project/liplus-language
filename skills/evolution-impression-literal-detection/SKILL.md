@@ -1,6 +1,6 @@
 ---
 name: evolution-impression-literal-detection
-description: Invoke when an evaluator is answering the fixed impression-literal axis on a Li+ source draft / a phrase in a rules or skills or adapter draft needs testing for whether it load-bears on behavior semantic / brake 1 findings on rhetorical drift are being adjudicated before merge / a Li+ source sentence is about to be kept or removed on a judgment that rests on impression rather than behavior. Provides the removal test (can this sentence go without changing the rule's behavior semantic), the positive detection targets and the protected negatives, the 2-of-3 refine threshold against the 1-of-3 record-only threshold, and the false-negative backstop routing to post-merge observation.
+description: Invoke when an evaluator is answering the fixed impression-literal axis on a Li+ source draft / a phrase in a rules or skills or adapter draft needs testing for whether it load-bears on behavior semantic / brake 1 findings on rhetorical drift are being adjudicated before merge / a Li+ source sentence is about to be kept or removed on a judgment that rests on impression rather than behavior. Provides the removal test and the refine thresholds.
 layer: L2-evolution
 ---
 

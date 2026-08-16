@@ -12,7 +12,7 @@
 #   Each material section is fingerprinted (sha256 of the raw body) and the
 #   fingerprint set is persisted at {workspace_root}/.claude/state/last-cold-start-emit.json.
 #   On the next startup the hook compares current fingerprints to the stored set
-#   and emits only sections whose body changed. The cold-start rule literal is
+#   and emits only sections whose body changed. The cold-start rule anchor is
 #   always emitted (drift recovery anchor), as is the self-evolution observation
 #   surface (date-driven trigger; see its gather block). When no section changed
 #   and no observation is due, a single
@@ -27,7 +27,7 @@
 #   assumption and removes a previously-common fail-safe trigger.
 #
 #   resume / clear / compact / fork matchers do not run diff comparison (the
-#   work context is continuous; only the cold-start rule literal is
+#   work context is continuous; only the cold-start rule anchor is
 #   re-anchored).
 export PATH="$HOME/.local/bin:$PATH"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
@@ -348,13 +348,28 @@ register_section() {
   SECTION_BODIES+=("$body")
 }
 
-# --- coldstart literal block from rules/evolution/cold-start-synthesis.md ---
+# --- coldstart anchor block from rules/evolution/cold-start-synthesis.md ---
 # This section is ALWAYS emitted (drift recovery anchor). It is not part of the
 # diff-only comparison set.
+#
+# Anchor = the H1 preamble only, cut at the first H2 semantic tag. The rule file
+# is always-on loaded, so emitting it whole put the same text in one session's
+# context twice; the preamble is the part the AI applies at the step 3 moment,
+# and the H2 sections below it (hook emission contract, observation surface) are
+# the hook's own behavior spec. A file with no H2 section emits whole: the cut is
+# an economy and losing the anchor is the worse failure. Contract source =
+# rules/evolution/cold-start-synthesis.md Hook Emission Contract (Anchor cut).
 COLDSTART_LITERAL=""
 if [ -f "$COLDSTART_MD" ]; then
-  # Strip frontmatter (lines between first two `---` markers) and H1 line
-  COLDSTART_LITERAL=$(awk '/^---$/{n++; next} n>=2' "$COLDSTART_MD" | sed '1{/^# /d;}' | sed '/./,$!d')
+  # Strip frontmatter (lines between first two `---` markers) and H1 line, then
+  # stop at the first H2 opening tag seen after the H1.
+  COLDSTART_LITERAL=$(awk '
+    /^---$/ { n++; next }
+    n < 2   { next }
+    seen_h1 && /^<[a-z0-9-]+>$/ { exit }
+    /^# /   { seen_h1 = 1 }
+            { print }
+  ' "$COLDSTART_MD" | sed '1{/^# /d;}' | sed '/./,$!d')
 fi
 
 # --- recent decision structure index entries (head of file = index) ---
@@ -889,7 +904,7 @@ register_section "promotion_candidates" "Promotion candidates (memory → Li+ so
 #                                                       human judgment needed"
 #
 # NOT registered via register_section — this section is deliberately outside the
-# diff-only comparison set (same treatment as the cold-start rule literal, for a
+# diff-only comparison set (same treatment as the cold-start rule anchor, for a
 # different reason). The trigger is date-driven while the body is content-driven:
 # an unresolved entry produces a byte-identical body day after day, so a
 # fingerprint comparison would surface it exactly once and then suppress it for
@@ -966,8 +981,8 @@ fi
 # Emission phase
 # ===================================================================
 #
-# Always emit cold-start rule literal first (drift recovery anchor).
-emit_section "Cold-start Synthesis (rules/evolution/cold-start-synthesis.md literal)" "$COLDSTART_LITERAL"
+# Always emit cold-start rule anchor first (drift recovery anchor).
+emit_section "Cold-start Synthesis (rules/evolution/cold-start-synthesis.md anchor)" "$COLDSTART_LITERAL"
 
 # Non-startup matchers (resume / clear / compact / fork): only the cold-start
 # anchor is emitted. The work context is continuous; re-emitting the full
@@ -977,7 +992,7 @@ if [ "$MATCHER" != "startup" ]; then
   cat <<EOF
 ━━━ Cold-start Synthesis: instruction ━━━
 Matcher = ${MATCHER}. Session is continuous (resume/clear/compact/fork). Only
-the cold-start rule literal is re-anchored above. Treat the prior session's
+the cold-start rule anchor is re-anchored above. Treat the prior session's
 in-context state as authoritative; do not re-orient from scratch.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -1163,7 +1178,7 @@ else
   cat <<'EOF'
 ━━━ Cold-start Synthesis: instruction ━━━
 Diff-only emission: only sections changed since the prior session are shown
-above (cold-start rule literal is always re-anchored). Using the diff plus
+above (cold-start rule anchor is always re-anchored). Using the diff plus
 your loaded layers, perform Cold-start Synthesis through Character_Instance:
 1. Summarize the current Li+ state delta (what changed; unresolved threads).
 2. Report synthesis to the human as the opening orientation — apply the

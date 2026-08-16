@@ -119,6 +119,10 @@ S2 のみ #1564 実測2 の記録（ツール2 / 文脈内2）と一致しない
 - → `adapter/claude/hooks/on-session-start.sh`（Hook coordination）`[tool]`
 - → `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format `[ctx]`
 
+`Hook coordination` 段落は #1765 で同一ファイル内の H2 `## Hook Emission Contract`（冒頭に「読むのは on demand、step 3 の適用瞬間には適用しない」と明示）へ移した。跳躍数は据え置き — 同一ファイル内の節移動は跳躍ではなく（計数規則 :15）、ポインタは同じファイルから解決するため。
+
+据え置きを選んだ判断は記録しておく（再計測手順 :31）。適用瞬間に要るのは anchor 内の Operational criterion だけで、そこが引く emit 状態（full / diff-only / marker）は「状態によらず silent」と言うためのものであり、marker 自体は emit 済みコンテキストに直接見える。この読みではツール跳躍は 1 に落ちる。それでも表を動かさないのは、表の数値が baseline tag 時点の実測だからで、後続 PR が読み替えで数値を動かすと before / after の比較面そのものが失われる。S2 / S3 の訂正は計数規則違反の是正であり、適用ステータスの読み替えとは別軸。
+
 ---
 
 ## 経路ゼロ検査

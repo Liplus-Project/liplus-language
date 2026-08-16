@@ -1,6 +1,6 @@
 ---
 name: evolution-full-run
-description: Invoke when the human explicitly requests a complete self-evolution sweep by naming it, for example "run evolution-full-run" / a scheduled-task body names evolution-full-run. Orchestrates memory consolidation, then a full Li+ self-evolution loop, then a necessity-driven full refactor across rules, skills, docs, wiki and memory. Does NOT release - release is appended by the invoker, never by this skill. Do not auto-invoke for ordinary single-stage evolution work (that is evolution-loop).
+description: Invoke when the human explicitly requests a complete self-evolution sweep by naming it, for example "run evolution-full-run" / a scheduled-task body names evolution-full-run. Orchestrates memory consolidation, a full Li+ self-evolution loop, then a necessity-driven full refactor. Does NOT release - release is appended by the invoker, never by this skill. Do not auto-invoke for ordinary single-stage evolution work (that is evolution-loop).
 layer: L2-evolution
 ---
 

@@ -76,7 +76,7 @@ Rules are re-injected by the SessionStart hook on resume / clear / compact; appl
 
 Skill auto-invocation routing source = each `skills/<name>/SKILL.md` `description` field. Codex evaluates skill descriptions semantically and invokes the matching skill when its trigger applies. No adapter-side trigger table is maintained. When subagent-absent and a skill is relevant, invoke the skill directly.
 
-Cold-start Synthesis: the `on-session-start` hook emits the `rules/evolution/cold-start-synthesis.md` literal plus diff-only orientation material at session start. Perform the synthesis through Character_Instance using the emitted material (silent-skip the report when no unique insight remains after synthesis, per the cold-start rule's non-redundancy gate).
+Cold-start Synthesis: the `on-session-start` hook emits the `rules/evolution/cold-start-synthesis.md` anchor (its H1 preamble; the H2 sections are the hook's own behavior spec) plus diff-only orientation material at session start. Perform the synthesis through Character_Instance using the emitted material (silent-skip the report when no unique insight remains after synthesis, per the cold-start rule's non-redundancy gate).
 
 Main agent after completion:
   Receive the report and decide next action.

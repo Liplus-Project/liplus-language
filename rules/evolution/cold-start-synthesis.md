@@ -17,17 +17,6 @@ Action:
 Steps 1-2 are internal AI priming. They run every session regardless of what the hook already emitted.
 Step 3 is conditional output gating, not unconditional report.
 
-Hook coordination:
-`on-session-start.sh` persists and surfaces at session open: decision structure index head, rules/ tree (fetch address table for cold-start-loaded rules cache), recent release tags, open in-progress issues, self-evaluation log head, promotion candidates, cold-start rule literal. The hook emits material in diff-only mode (matcher = startup): only sections whose body changed since the previous startup invocation are re-emitted. The cold-start rule literal is always re-anchored regardless of diff state.
-
-Hook emission states (matcher = startup):
-- full emit = first session after install, fail-safe (state missing / unreadable / sha256 unavailable / node unavailable), or every section changed. All sections shown. The four reasons are the bash port's set. The PowerShell port parses JSON natively so it has no node dependency, and it calls SHA256 unconditionally with no availability guard, so neither of those two reasons can fire there: its fail-safe set is the two state-file reasons alone.
-- diff-only = some sections changed since prior session. Only changed sections shown.
-- no-new-material marker = no section changed AND no self-evolution observation entry was surfaced. A single "No new orientation material since last session" line is emitted (silent skip is intentionally avoided so the human can still observe the session boundary). A surfaced observation entry (see Self-Evolution Observation Surface below) counts as material even though it carries no section key, so the marker is suppressed for that session; pairing an overdue entry with "no new material" would be self-contradictory output.
-
-Hook emission states (matcher = resume / clear / compact / fork):
-- Only the cold-start rule literal is re-anchored. The work context is continuous; the diff-only set is not re-evaluated, and the state file is not updated.
-
 Operational criterion (AI side, step 3 gating):
 - hook-surfaced items = silent (do not re-report what the human already received from the hook, regardless of full / diff-only / marker state)
 - unique synthesized insight = speak (structural shift, unresolved thread, cross-artifact pattern not visible in the raw hook material)
@@ -38,6 +27,27 @@ Operational criterion (AI side, step 3 gating):
 Goal = do not depend on human re-explanation of Li+ state at session start, while avoiding duplicate orientation noise. The hook handles raw surfacing (with diff-only economy on startup); step 3 handles synthesis delta only.
 
 Scope = Li+ state, not workspace task state. Workspace-specific orientation follows the adapter's own startup path.
+
+<hook-emission-contract>
+
+## Hook Emission Contract
+
+The hook's own behavior. Read on demand; not applied at the step 3 moment.
+
+Anchor cut: the hook re-anchors the preamble above (H1 body up to the first H2 section), not the whole file. This file is always-on loaded, so a full re-emit would put the same text in one session's context twice; the preamble is the part the AI applies at the step 3 moment, and the H2 sections below are not. A file with no H2 section is emitted whole — the cut is an economy, and losing the anchor is the worse failure.
+
+Hook coordination:
+`on-session-start.sh` persists and surfaces at session open: decision structure index head, rules/ tree (fetch address table for cold-start-loaded rules cache), recent release tags, open in-progress issues, self-evaluation log head, promotion candidates, cold-start rule anchor. The hook emits material in diff-only mode (matcher = startup): only sections whose body changed since the previous startup invocation are re-emitted. The cold-start rule anchor is always re-emitted regardless of diff state.
+
+Hook emission states (matcher = startup):
+- full emit = first session after install, fail-safe (state missing / unreadable / sha256 unavailable / node unavailable), or every section changed. All sections shown. The four reasons are the bash port's set. The PowerShell port parses JSON natively so it has no node dependency, and it calls SHA256 unconditionally with no availability guard, so neither of those two reasons can fire there: its fail-safe set is the two state-file reasons alone.
+- diff-only = some sections changed since prior session. Only changed sections shown.
+- no-new-material marker = no section changed AND no self-evolution observation entry was surfaced. A single "No new orientation material since last session" line is emitted (silent skip is intentionally avoided so the human can still observe the session boundary). A surfaced observation entry (see Self-Evolution Observation Surface below) counts as material even though it carries no section key, so the marker is suppressed for that session; pairing an overdue entry with "no new material" would be self-contradictory output.
+
+Hook emission states (matcher = resume / clear / compact / fork):
+- Only the cold-start rule anchor is re-emitted. The work context is continuous; the diff-only set is not re-evaluated, and the state file is not updated.
+
+</hook-emission-contract>
 
 <self-evolution-observation-surface>
 

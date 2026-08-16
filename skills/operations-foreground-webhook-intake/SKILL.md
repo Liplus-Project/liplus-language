@@ -1,6 +1,6 @@
 ---
 name: operations-foreground-webhook-intake
-description: Do not invoke. Redirect stub with no invoke condition - the foreground webhook intake canonical lives in `rules/operations/main-agent-procedures.md` Foreground webhook notification intake, which loads without invocation. The actor is the main agent at a user-turn boundary, and `adapter/claude/CLAUDE.md` / `adapter/codex/AGENTS.md` bar the main agent from `skills/operations-*/SKILL.md`, so this file names no moment. It exists because the adapter `## Optional Webhook Notification Flow` block that points here is byte-frozen by the `Li+update.md` legacy-trailer migration and its pointer must resolve.
+description: Do not invoke. Redirect stub with no invoke condition - the canonical lives in `rules/operations/main-agent-procedures.md` Foreground webhook notification intake, which loads without invocation.
 layer: L4-operations
 ---
 

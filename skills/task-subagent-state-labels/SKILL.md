@@ -1,6 +1,6 @@
 ---
 name: task-subagent-state-labels
-description: Invoke when a subagent starts work on an issue / a subagent has finished its implementation phase and is about to report to the parent and exit / a subagent has just been resumed by the parent to adjudicate brake findings / a subagent pauses on an external dependency such as CI or a dependent issue or the environment / a subagent pauses waiting on human input / a subagent reverts from review-pending to in-progress after a CI failure. Provides the subagent-side state-machine label mandate (in-progress, review-pending, waiting, blocked), the transitions that fire twice under the two-phase stop condition, the mandatory issue-comment requirement on waiting and blocked transitions, and the authority boundary against parent-retained label axes.
+description: Invoke when a subagent starts work on an issue / a subagent has finished its implementation phase and is about to report to the parent and exit / a subagent has just been resumed by the parent to adjudicate brake findings / a subagent pauses on an external dependency such as CI or a dependent issue or the environment / a subagent pauses waiting on human input / a subagent reverts from review-pending to in-progress after a CI failure. Provides the subagent-side state-machine label mandate and its authority boundary.
 layer: L3-task
 ---
 

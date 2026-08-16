@@ -1,6 +1,6 @@
 ---
 name: operations-on-release-state
-description: Invoke when a release state flag is about to be set or changed on a GitHub release (prerelease or latest) / a human go-sign to promote a release to Latest has arrived / a prerelease is about to be promoted to stable / several existing releases need their state normalized in bulk. Provides the release state rule (default no-state, prerelease as AI option, latest as human-decided), the Latest anchor requirement, the anchor flip procedure, bootstrap transient state, and bulk normalization ordering.
+description: Invoke when a release state flag is about to be set or changed on a GitHub release (prerelease or latest) / a human go-sign to promote a release to Latest has arrived / a prerelease is about to be promoted to stable / several existing releases need their state normalized in bulk. Provides the release state rule and the Latest anchor flip procedure.
 layer: L4-operations
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: operations-on-release
-description: Invoke when a release is about to be created / a branch is about to be deleted / a force push is about to run / a release completion report is about to be written. Provides the human confirmation list, the pre-create CD check, the canonical gh release create command, version base and tag or title conventions, and release completion report discipline. Release state flags live in `skills/operations-on-release-state/SKILL.md`; the mandatory post-release mirror lives in `skills/operations-on-wiki-sync/SKILL.md`; version type criteria (patch, minor, major) live in `rules/operations/release-version-rule.md` (always-on).
+description: Invoke when a release is about to be created / a branch is about to be deleted / a force push is about to run / a release completion report is about to be written. Provides the release create procedure and its human confirmation list. Release state flags live in `skills/operations-on-release-state/SKILL.md`; the mandatory post-release mirror lives in `skills/operations-on-wiki-sync/SKILL.md`; version type criteria (patch, minor, major) live in `rules/operations/release-version-rule.md` (always-on).
 layer: L4-operations
 ---
 

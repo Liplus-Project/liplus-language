@@ -1,6 +1,6 @@
 ---
 name: operations-on-pr-review
-description: Invoke when CI has passed and the PR has reached its review surface / a delegated subagent has reached its stop condition and needs that mode literal. Makes AI self-review mandatory in every mode, routes the formal review record to its canonical in rules/operations/main-agent-procedures.md, defines the mode-specific human gate, holds the canonical delegated-subagent stop condition split by mode, and carries the follow-through on items the self-review deferred, which lands after merge in the same session.
+description: Invoke when CI has passed and the PR has reached its review surface / a delegated subagent has reached its stop condition and needs that mode literal. Makes AI self-review mandatory in every mode and holds the canonical delegated-subagent stop condition split by mode.
 layer: L4-operations
 ---
 

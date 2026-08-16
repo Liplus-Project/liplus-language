@@ -1,6 +1,6 @@
 ---
 name: task-subagent-spawn
-description: Invoke when the Agent tool model parameter is about to be set or omitted for a subagent spawn / a brake evaluator subagent is about to be spawned / more than one subagent is about to be launched in a single batch / a second wave of subagents is about to be launched before the prior wave has reported. Provides the purpose-split model policy (brake evaluators pin an explicit sonnet-class floor, every other spawn omits the parameter and inherits the parent model) with its exhaustive category list, and the parallel-width cap of 5 in flight with its wave-sequencing binding condition and exemptions.
+description: Invoke when the Agent tool model parameter is about to be set or omitted for a subagent spawn / a brake evaluator subagent is about to be spawned / more than one subagent is about to be launched in a single batch / a second wave of subagents is about to be launched before the prior wave has reported. Provides the model policy for subagent spawns and the parallel-width cap.
 layer: L3-task
 ---
 

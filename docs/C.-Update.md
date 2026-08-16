@@ -183,7 +183,7 @@ host OS は adapter 種別（runtime=claude / runtime=codex）から推測しな
   - 既存の `{workspace_root}/.claude/hooks/*.sh` 内のソースタグを確認（例: `# Source: adapter/claude/hooks/on-session-start.sh (build-2026-03-30.14)`）
   - 現在のターゲットタグと一致 → スキップ（最新）
   - 不一致またはタグなし → `adapter/claude/hooks/*.sh` を再コピーし、`{LI_PLUS_TAG}` を現在のターゲットタグへ置換（settings.json は再生成しない）
-- `on-session-start.sh` が Cold-start Synthesis 素材の emitter。stdout はセッション開始コンテキストへ注入される（Claude Code SessionStart 契約）。素材は `rules/evolution/cold-start-synthesis.md` のリテラル、直近の `docs/Decision-Structure.md` 先頭、`rules/` のパスツリー、最新リリースタグ、open in-progress issue、self-evaluation 先頭、promotion candidates、self-evolution observation surface（due / overdue）。素材の正本一覧と section key は [6. Adapter — on-session-start.sh](6.-Adapter#on-session-startsh) を参照する。synthesis は hook ではなく Character_Instance を介して AI が行う
+- `on-session-start.sh` が Cold-start Synthesis 素材の emitter。stdout はセッション開始コンテキストへ注入される（Claude Code SessionStart 契約）。素材は `rules/evolution/cold-start-synthesis.md` の anchor（H1 preamble のみ）、直近の `docs/Decision-Structure.md` 先頭、`rules/` のパスツリー、最新リリースタグ、open in-progress issue、self-evaluation 先頭、promotion candidates、self-evolution observation surface（due / overdue）。素材の正本一覧と section key は [6. Adapter — on-session-start.sh](6.-Adapter#on-session-startsh) を参照する。synthesis は hook ではなく Character_Instance を介して AI が行う
 - `.sh` ファイルには実行権限を付与
 
 **4c.5. cold-start state ディレクトリの準備（diff-only 出力の永続化）**

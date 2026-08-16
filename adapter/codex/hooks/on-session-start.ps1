@@ -21,7 +21,7 @@
 # Matchers: startup / resume / clear / compact (see hooks.json / config.toml).
 #   startup            -> full pipeline: rules injection + update status +
 #                         diff-only cold-start material.
-#   resume/clear/compact -> rules re-injection + cold-start rule literal
+#   resume/clear/compact -> rules re-injection + cold-start rule anchor
 #                         re-anchor only (work context continuous; no diff eval).
 #
 # NOTE on rules injection + compact: #1502 leaves "does additionalContext survive
@@ -269,29 +269,38 @@ Emit ''
 # Cold-start material gathering
 # ===================================================================
 
-# --- coldstart literal block (ALWAYS emitted; drift recovery anchor) ---
+# --- coldstart anchor block (ALWAYS emitted; drift recovery anchor) ---
+# Anchor = the H1 preamble only, cut at the first H2 semantic tag. The rule file
+# is always-on loaded, so emitting it whole put the same text in one session's
+# context twice. A file with no H2 section emits whole. Contract source =
+# rules/evolution/cold-start-synthesis.md Hook Emission Contract (Anchor cut).
 $coldstartLiteral = ''
 if (Test-Path -LiteralPath $coldstartMd) {
   $lines = Get-Content -LiteralPath $coldstartMd -ErrorAction SilentlyContinue
   # Strip frontmatter (between first two --- markers) and a leading H1 line.
   $dashCount = 0
   $afterFm = @()
+  $seenH1 = $false
   foreach ($l in $lines) {
     if ($l -eq '---') { $dashCount++; continue }
-    if ($dashCount -ge 2) { $afterFm += $l }
+    if ($dashCount -lt 2) { continue }
+    if ($seenH1 -and $l -match '^<[a-z0-9-]+>$') { break }
+    if ($l -match '^# ') { $seenH1 = $true }
+    $afterFm += $l
   }
-  # Drop a leading H1, then drop leading blank lines.
+  # Drop a leading H1, then drop leading and trailing blank lines.
   if ($afterFm.Count -gt 0 -and $afterFm[0] -match '^# ') { $afterFm = @($afterFm | Select-Object -Skip 1) }
   while ($afterFm.Count -gt 0 -and $afterFm[0].Trim() -eq '') { $afterFm = @($afterFm | Select-Object -Skip 1) }
+  while ($afterFm.Count -gt 0 -and $afterFm[-1].Trim() -eq '') { $afterFm = @($afterFm | Select-Object -First ($afterFm.Count - 1)) }
   $coldstartLiteral = ($afterFm -join "`n")
 }
-Emit-Section 'Cold-start Synthesis (rules/evolution/cold-start-synthesis.md literal)' $coldstartLiteral
+Emit-Section 'Cold-start Synthesis (rules/evolution/cold-start-synthesis.md anchor)' $coldstartLiteral
 
 # Non-startup matchers: rules were re-injected + cold-start anchor emitted; stop.
 if ($matcher -ne 'startup') {
   Emit '━━━ Cold-start Synthesis: instruction ━━━'
   Emit "Matcher = $matcher. Session is continuous (resume/clear/compact). Rules were"
-  Emit 'reinjected and the cold-start rule literal re-anchored above. Treat the prior'
+  Emit 'reinjected and the cold-start rule anchor re-anchored above. Treat the prior'
   Emit "session's in-context state as authoritative; do not re-orient from scratch."
   Emit '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
   Flush-Json
@@ -955,7 +964,7 @@ if ($failSafeFull) {
 } else {
   Emit '━━━ Cold-start Synthesis: instruction ━━━'
   Emit 'Diff-only emission: only sections changed since the prior session are shown'
-  Emit 'above (rules + cold-start rule literal are always re-anchored). Using the diff'
+  Emit 'above (rules + cold-start rule anchor are always re-anchored). Using the diff'
   Emit 'plus your loaded layers, perform Cold-start Synthesis through Character_Instance:'
   Emit '1. Summarize the current Li+ state delta (what changed; unresolved threads).'
   Emit '2. Report synthesis to the human as the opening orientation — apply the'

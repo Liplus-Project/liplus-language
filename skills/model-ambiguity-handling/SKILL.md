@@ -1,6 +1,6 @@
 ---
 name: model-ambiguity-handling
-description: Invoke when the confidence register of what is about to be emitted does not match the actual verified basis / a single interpretation is about to be asserted in confident form without a verification tool having been run (RAG, Read, gh, WebFetch, memory grep) / a point that is in fact verifiable is about to be softened or hedged / one interpretation is about to be picked silently in an intent-inference or taste or preference or register area / requirements spec or implementation code is about to be written with remaining ambiguity (Compile error type 1, ask-human). Provides the handling discipline for each of these moments, with the surface tell that the state is live: hedge or softener phrasing ("I think", "maybe", "probably", "could be", "perhaps").
+description: Invoke when the confidence register of what is about to be emitted does not match the actual verified basis / a single interpretation is about to be asserted in confident form without a verification tool having been run (RAG, Read, gh, WebFetch, memory grep) / a point that is in fact verifiable is about to be softened or hedged / one interpretation is about to be picked silently in an intent-inference or taste or preference or register area / requirements spec or implementation code is about to be written with remaining ambiguity (Compile error type 1, ask-human). Provides the handling discipline for each of these moments, with hedge or softener phrasing as the surface tell that the state is live.
 layer: L1-model
 ---
 

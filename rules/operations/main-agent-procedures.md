@@ -52,7 +52,7 @@ Actor = the parent, unconditionally: `skills/task-subagent-delegation/SKILL.md` 
 Issue title language:
 Title = ASCII English only.
 Body  = LI_PLUS_PROJECT_LANGUAGE.
-Consistent with the commit title/body language convention (`rules/operations/operations.md` Operations Rules) and PR title convention.
+Consistent with the commit title/body language convention (`rules/operations/operations.md` Operations Rules) and PR title convention. That section governs both lines above on every axis it already carries — the title axis, and the carve-out where the repository being operated on is the repository at `LI_PLUS_REPO` itself and that repository's own governance resolves the Body line instead of `LI_PLUS_PROJECT_LANGUAGE`. Pointer only; do not restate the carve-out here.
 
 Issue may start from memo. Three fields are convergence target, not creation gate.
 Use only necessary headings. Do not force empty sections.

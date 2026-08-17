@@ -1,3 +1,19 @@
+"""Contract tests for the sentinel-owned region in adapter agent sources.
+
+Scope = the source files under `adapter/*/agents/` and the literal of
+`Li+update.md`. These assert the region's structural invariants and the
+presence of the clauses 4c.6 / 4x.5 promise.
+
+Not covered, and not statically coverable: the bootstrap's runtime behavior.
+`Li+update.md` is prose an AI executes, so branch (a) creation, the branch (c)
+ask and its two outcomes, "no stale removal", and the directory create / skip
+steps have no assertion here. Branch (b)'s replacement is exercised only
+against this module's own `apply_region_update()`, which is a proxy for the
+procedure and not the procedure itself. Reading is the detector for those
+(`rules/evolution/initiator-autonomy.md` Governed surface); green here does
+not mean a bootstrap run behaved as specified.
+"""
+
 from __future__ import annotations
 
 import re
@@ -19,6 +35,18 @@ REQUIRED_CARRIERS = (
     "adapter/claude/agents/l1-gate-eval.md",
     "adapter/codex/agents/l1-gate-eval.toml",
 )
+
+# Li+update.md 4c.6 names these as the worked example of the question-2 branch
+# (Li+-owned criteria interleaved with a Character_Instance literal, so no one
+# contiguous region separates them). Pinning them here tests a claim the spec
+# already makes by name; it is not a second enumeration of the criterion.
+NAMED_NON_CARRIERS = (
+    "adapter/claude/agents/dialogue-evaluator.md",
+    "adapter/codex/agents/dialogue-evaluator.toml",
+)
+
+# Instance-surface keys the Codex region must leave outside itself.
+CODEX_INSTANCE_KEYS = ("name = ", "description = ", "model_reasoning_effort = ", "sandbox_mode = ")
 
 SKILLS_DISABLE_MARKER = "# --- Skills disable enumeration (filled by bootstrap) ---"
 
@@ -77,6 +105,37 @@ class AgentSentinelContractTest(unittest.TestCase):
                 _, section, _ = split_region(text)
                 self.assertIn("Li+ root criteria:", section)
                 self.assertIn("verdict = PASS or DEVIATION", section)
+
+    def test_named_non_carriers_carry_no_region(self) -> None:
+        for name in NAMED_NON_CARRIERS:
+            with self.subTest(source=name):
+                self.assertIn(name, self.sources)
+                self.assertNotIn(BEGIN_LITERAL, self.sources[name])
+                self.assertNotIn(END_LITERAL, self.sources[name])
+
+    def test_non_carrier_toml_keeps_its_tag_in_the_source_header(self) -> None:
+        for name, text in self.sources.items():
+            if not name.endswith(".toml") or BEGIN_LITERAL in text:
+                continue
+            with self.subTest(source=name):
+                header = text.splitlines()[0]
+                self.assertTrue(header.startswith("# Source: "))
+                self.assertIn(TAG_TOKEN, header)
+
+    def test_codex_region_wraps_developer_instructions_only(self) -> None:
+        for name, text in self.carriers().items():
+            if not name.endswith(".toml"):
+                continue
+            with self.subTest(source=name):
+                before, section, _ = split_region(text)
+                # The criteria body is the region; the instance surface is not.
+                self.assertIn('developer_instructions = """', section)
+                self.assertNotIn('developer_instructions = """', before)
+                self.assertTrue(section.rstrip().endswith("---"))
+                self.assertIn('"""', section[section.index('developer_instructions = """') + 30 :])
+                for key in CODEX_INSTANCE_KEYS:
+                    self.assertIn(key, before)
+                    self.assertNotIn(key, section)
 
     def test_each_region_is_a_single_well_formed_span(self) -> None:
         for name, text in self.carriers().items():
@@ -159,6 +218,26 @@ class AgentSentinelContractTest(unittest.TestCase):
                 self.assertIn("If Target does not exist", section)
                 self.assertRegex(section, r"matches (the )?current target tag[:,] skip")
                 self.assertIn("ask user -- regenerate", section)
+
+    def test_update_procedure_keeps_the_promises_the_region_rests_on(self) -> None:
+        update = (ROOT / "Li+update.md").read_text(encoding="utf-8")
+        claude = update_section(
+            update,
+            "4c.6. Generate .claude/agents/ files (sentinel-owned region mirror):",
+            "### Phase 4 codex",
+        )
+        # Branch (b) must promise verbatim preservation outside the region.
+        self.assertIn("Preserve content outside this section verbatim", claude)
+        # The 4c.1 trailer migration must stay excluded from this branch: it
+        # would delete user content on a surface that has no legacy trailer.
+        self.assertIn(
+            "legacy webhook trailer migration does NOT apply on this branch", claude
+        )
+        # The carrier criterion must keep its second question; question 1 alone
+        # classifies a mixed file as a carrier.
+        self.assertIn("Can one contiguous region cover that body", claude)
+        # Branch (c)'s "skip" must name what re-raises the ask.
+        self.assertIn("Re-ask cadence", claude)
 
 
 if __name__ == "__main__":

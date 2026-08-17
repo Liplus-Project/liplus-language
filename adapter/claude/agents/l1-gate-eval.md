@@ -24,21 +24,21 @@ Check: does this change deviate from the Li+ root criteria above?
 Scope of the check:
 You judge the content of the change — whether what the diff adds is fit to
 stand as L1 as written. You do not judge whether enough evidence has been
-accumulated to justify making the change at all. The stated reason is context
-for reading the diff, not a submission whose sufficiency you score.
+accumulated to justify making the change at all; the evidentiary sufficiency
+of the stated reason is not an axis you score.
 
 Criterion 1 against an unmerged diff:
 - It bites on content: does the added text put correctness on the side of
-  explanation, intention, or internal consistency rather than real behavior?
+  explanation, intention, or internal consistency?
 - It does not bite on evidence volume: how much observation stands behind the
   change is not your axis.
 - "The change is unmerged, so it has no real behavior yet" is not an exemption.
   Criterion 1 applies to the content as usual.
-- The observation Li+ requires of an L1 change sits after the merge, not before
-  it (`rules/operations/operations.md` Post-L1-Merge Runtime Observation;
-  `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format).
-  Demanding it pre-merge demands an observation the block itself prevents from
-  existing.
+- The real-behavior observation this change itself owes sits after the merge,
+  not before it (`rules/operations/operations.md` Post-L1-Merge Runtime
+  Observation; `rules/evolution/memory-entry-format.md` Self-Evolution
+  Observation Format). Demanding it pre-merge demands an observation the block
+  itself prevents from existing.
 
 Output: verdict = PASS or DEVIATION. For DEVIATION, name the violated
 criterion and the concrete deviation.

@@ -242,12 +242,64 @@ If not linked = retry or escalate.
 
 </branch-and-label-flow>
 
+<pr-review>
+
+## PR review
+
+Canonical. `skills/operations-on-pr-review/SKILL.md` keeps the Delegated-subagent stop condition and points here.
+Actor = the parent in `auto` / `semi_auto`, the subagent in `trigger` (`skills/task-subagent-delegation/SKILL.md` Rules) — a mode-dependent actor, which is the detection sign named at The bar and its pair above. In the first two it is the agent that merges. In `trigger` no agent merges (Merge Execution below), so the actor is fixed on the other side instead: the subagent's self-review lands before its own stop point, and nothing else stands on the PR after it. The subagent reaches this text on that path, and `rules/**` loads for it without invocation.
+
+AI self-review is mandatory in every mode (trigger / semi_auto / auto).
+Skipping self-review before merge is a spec violation. Self-review runs first; external human check (if any) is layered on top, not in place of it.
+
+Review basis:
+  repository-state-first:
+    review basis = issue body + linked branch + PR diff + CI result + when the brakes ran, the parent's aggregated findings comment on the PR and the commit bodies carrying the author's adjudication of it
+    local-only success does not close review
+
+Self-review procedure (all modes):
+  That agent reviews the PR diff against issue requirements (see `skills/task-pr-review-judgment/SKILL.md`).
+  self-review pass -> post formal review record (Self-review formal record below) -> proceed to mode-specific human gate.
+  self-review fail -> fix and recommit (restart [CI Loop]).
+
+Mode-specific human gate after self-review:
+
+if execution_mode == auto:
+  No human gate. Self-review pass -> proceed to Merge Execution below.
+
+if execution_mode == semi_auto:
+  Type-gated human check.
+  patch -> no human gate. Self-review pass -> proceed to Merge Execution below.
+  minor / major -> human check required after self-review pass (procedure = Review approval check below).
+  Version type is the same judgment axis used at release (see `rules/operations/release-version-rule.md`). AI proposes type at PR creation time; on unclear, default to the safer side (minor) and ask human.
+
+  Per-PR exception (content-based axis) and the L1 brake 2 override that supersedes it live in
+  `rules/operations/execution-mode.md` `semi_auto mode:`. Read them there before waiving the human
+  check. The exception was restated on the skill surface once and the override, added to the canonical
+  file later, never reached the copy — a PR touching L1 Model Layer source then read as patch-waived at
+  the merge gate's own surface. Do not restate either; the second copy is what drifts.
+
+if execution_mode == trigger:
+  Human check required on every PR after self-review pass.
+  Procedure = Review approval check below.
+
+Follow-through on deferred items:
+Self-review records may legitimately defer items as "out of PR scope" (e.g. workspace memory cleanup, follow-up issue filing, doc-only follow-up). Deferred ≠ ignored:
+
+- Workspace-side deferrals (memory edits, local config) execute in the SAME session immediately after merge. Do not push them to the next session.
+- Repo-side deferrals (follow-up issues, separate PR for unrelated cleanup) are filed BEFORE merge so they are not lost.
+- Human APPROVED comments that contain "〜したんだよね？" / "did you also do X?" / similar embedded confirmations are part of the approval condition, not optional small talk. Treat the embedded confirmation as an additional gate and respond to it in the same session.
+
+Merge is not the closing bracket; the deferred-item handoff is.
+
+</pr-review>
+
 <self-review-formal-record>
 
 ## Self-review formal record
 
 Mandatory in every mode (trigger / semi_auto / auto).
-Canonical. `skills/operations-on-pr-review/SKILL.md` owns the surrounding self-review flow and points here.
+Canonical. PR review above holds the surrounding self-review flow.
 Actor = the parent in `auto` / `semi_auto`, the subagent in `trigger` (`skills/task-subagent-delegation/SKILL.md` Rules). In the first two it is the agent that merges. In `trigger` no agent merges (Merge Execution below), so the actor is fixed on the other side instead: the subagent's self-review lands before its own stop point, and nothing else stands on the PR after it.
 
 After the internal self-review passes, that agent MUST post the outcome as a formal GitHub PR review:
@@ -264,7 +316,7 @@ Mechanism note: GitHub rejects `--add-reviewer` self-assignment silently; only `
 
 ## Review approval check
 
-Canonical. `skills/operations-on-pr-review/SKILL.md` owns which modes raise a human gate and points here for the procedure.
+Canonical. PR review above holds which modes raise a human gate; the procedure is here.
 Actor = the parent, in every mode that raises the gate. In `semi_auto` the gate is the parent's own (`skills/task-subagent-delegation/SKILL.md` Rules, `Parent retains: ... review judgment`; `rules/operations/execution-mode.md` Mode matrix puts the human PR check on minor / major). In `trigger` the delegated subagent has already stopped at `awaiting human review` (`skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition), so the approval arrives after its session has ended. No mode puts a subagent at this wait, which is why one canonical on a main-readable surface covers both.
 
 Fires after self-review passes: in `semi_auto` for minor / major, in `trigger` for every PR. `auto` raises no human gate and never reaches here.

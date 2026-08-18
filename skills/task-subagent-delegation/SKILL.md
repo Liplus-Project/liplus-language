@@ -38,8 +38,8 @@ if execution_mode == auto or execution_mode == semi_auto:
   (`semi_auto` adds one for minor / major per `rules/operations/execution-mode.md`),
   and that is a parent-side gate, not a subagent execution step.
   Subagent does not post the self-review record, in either phase: it is a PR comment,
-  and the actor is fixed by `skills/operations-on-pr-review/SKILL.md` Self-review
-  procedure. In phase 2 the subagent posts no PR comment at all — its adjudication
+  and the actor is fixed by `rules/operations/main-agent-procedures.md` PR review,
+  Self-review procedure. In phase 2 the subagent posts no PR comment at all — its adjudication
   goes in the commit body — so nothing it writes there is available to be mistaken
   for the self-review record.
 if execution_mode == trigger:

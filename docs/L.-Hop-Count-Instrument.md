@@ -85,6 +85,7 @@ S2 のみ #1564 実測2 の記録（ツール2 / 文脈内2）と一致しない
 
 **S4** — anchor: `Sub-issue work exceeding parent body literal ... requires dialogue confirm`
 - → `skills/operations-on-sub-issue/SKILL.md` scope-exceed dialogue confirm `[tool]`
+- 追記（#1764）—— baseline 以降、この鎖の到達先は `rules/operations/main-agent-procedures.md` の `## Sub-issue rules` へ移り、skill 側はポインタになった。上の跳躍数は baseline タグ時点の実測なので書き換えない。
 
 **S5** — anchor: `brake 2 (L1 only)`
 - → `adapter/claude/agents/l1-gate-eval.md` `[tool]`

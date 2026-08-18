@@ -89,7 +89,7 @@ Treating "黙って" as "still do full intake but skip discussing it" defeats th
 
 ## Issue maturity
 
-Canonical. `skills/operations-on-issue-maturity/SKILL.md` is deleted; nothing points at it any more.
+Canonical, and held on the resident surface rather than in an `operations-*` skill.
 Actor = the parent, unconditionally: `skills/task-subagent-delegation/SKILL.md` Rules puts `issue management (non-state lifecycle labels / type / maturity / marker / close)` on `Parent retains`, naming `maturity` with no mode branch, and the parent close condition below is `close` on that same list. The subagent is delegated an issue that has already converged and never judges the transition, so no reader is left behind on the skill surface.
 
 memo/forming is not implementation-ready.
@@ -493,7 +493,7 @@ own-operation arrival confirmation:
 
 ## Notifications API
 
-Canonical. `skills/operations-notifications-api/SKILL.md` is deleted; nothing points at it any more.
+Canonical, and held on the resident surface rather than in an `operations-*` skill.
 Actor = the main agent. The direct-call moment is the foreground intake path above, which only the main agent stands in. The subagent's contact with webhook material is the CI loop, and that reads the MCP surface (`skills/operations-on-ci/SKILL.md`), never these endpoints, so no reader is left behind on the skill surface.
 
 PATCH  /notifications/threads/{id}   -> 205  read (stays in Inbox)
@@ -521,7 +521,7 @@ Do not leave meaningful progress only in local workspace or chat memory.
 
 ## Chat output limit
 
-Canonical. `skills/operations-chat-output-limit/SKILL.md` is deleted; nothing points at it any more.
+Canonical, and held on the resident surface rather than in an `operations-*` skill.
 Actor = the main agent. Chunking is a multi-message act, and the only surface carrying more than one message is the human-facing chat, which the main agent alone holds — a subagent emits one report and has nothing to chunk it across. No reader is left behind on the skill surface.
 
 Long output may stop = physical limit, not corruption.
@@ -533,7 +533,7 @@ Use chunking when needed.
 
 ## Discussions intake
 
-Canonical. `skills/operations-discussions/SKILL.md` is deleted; nothing points at it any more.
+Canonical, and held on the resident surface rather than in an `operations-*` skill.
 Actor = the main agent. What this constrains is how an externally-originated issue is read, and `skills/task-subagent-delegation/SKILL.md` Rules puts `issue management` on `Parent retains` with no mode branch. The subagent implements from an issue whose origin does not reach its work, so no reader is left behind on the skill surface.
 
 Discussions = external user entry point.

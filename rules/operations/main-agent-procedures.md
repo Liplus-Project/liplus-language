@@ -372,6 +372,53 @@ After merging any PR touching L1 Model Layer source (any file with `layer: L1-mo
 
 </merge-execution>
 
+<human-confirmation-required>
+
+## Human confirmation required
+
+Canonical. `skills/operations-on-release/SKILL.md` keeps the release execution procedure and points here.
+Actor = the main agent. Every item below is a confirmation asked of the human, and a subagent has no dialogue surface to ask on — the same reason `## Foreground webhook notification intake` below is main-only. `rules/operations/execution-mode.md` human judgment gate holds the gate list on the judgment-authority axis and is not restated here; what this section adds is the stop word, the branch-delete and trigger-mode items, and the confirmation's position ahead of the procedure.
+
+Stop immediately when:
+human says wait or stop or matte.
+
+Always confirm before:
+release create (version type and target tag) (after CD check passes)
+branch delete (when linked issue may close)
+force push
+Mode-dependent confirm (trigger mode only): issue selection, issue execution start.
+
+</human-confirmation-required>
+
+<release-completion-report-discipline>
+
+## Release completion report discipline
+
+Canonical. `skills/operations-on-release/SKILL.md` keeps the release execution procedure and points here.
+Actor = the main agent. The completion report is written to the human, which no subagent writes — its report goes to the parent.
+
+Release create completion report contains release URL + post-release task completion only. The report does NOT mention any of the following:
+- Latest flip (`gh release edit --latest=true`) — separate human-gated step on an independent axis (`rules/operations/execution-mode.md` human judgment gate)
+- Real-device verification / runtime check
+- go-sign solicitation phrasing ("いただければ" / "どうぞ" / "判断で")
+- Waiting / standby positioning ("Latest 未 flip = 待機状態")
+
+Real-device verification structure:
+Real-device verification is multi-session continuous observation by human, not a single-session event. Normal session operation after a release IS the verification. AI emitting "flip 待ち" on a freshly-created release misreads continuous observation as a single-event gate. Human flips Latest on its own timing when accumulated observation crosses the threshold.
+
+Scope: AI-side surfacing of release state. A human's explicit inquiry about release state is outside it — answer that directly.
+
+Application moment = the release create completion report. The cold-start synthesis moment sits outside this section's routing and is carried by `rules/evolution/cold-start-synthesis.md` Operational criterion.
+
+Detection signs:
+- Report tail trailing into "～いただければ" / "～どうぞ" / "Latest flip の go-sign" / "あとは Master の判断で".
+- "次のステップ" / "あとは" surfacing in release completion report.
+- "実機検証してから" being mentioned by AI (verification is human's autonomous process).
+
+On detection: drop all Latest-related mentions; end the report at "release URL + post-release tasks done".
+
+</release-completion-report-discipline>
+
 <foreground-webhook-notification-intake>
 
 ## Foreground webhook notification intake

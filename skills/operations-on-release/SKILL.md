@@ -1,6 +1,6 @@
 ---
 name: operations-on-release
-description: Invoke when a release is about to be created / a branch is about to be deleted / a force push is about to run / a release completion report is about to be written. Provides the release create procedure and its human confirmation list. Release state flags live in `skills/operations-on-release-state/SKILL.md`; the mandatory post-release mirror lives in `skills/operations-on-wiki-sync/SKILL.md`; version type criteria (patch, minor, major) live in `rules/operations/release-version-rule.md` (always-on).
+description: Invoke when a release is being executed after its human confirmation has already been given / a pre-create CD check is about to run / a release tag or title must be resolved against project convention / subagent capability is unavailable and the parent is executing operations directly. Provides the release create procedure; the human confirmation gates and the completion report discipline live in `rules/operations/main-agent-procedures.md`. Release state flags live in `skills/operations-on-release-state/SKILL.md`; the mandatory post-release mirror lives in `skills/operations-on-wiki-sync/SKILL.md`; version type criteria (patch, minor, major) live in `rules/operations/release-version-rule.md` (always-on).
 layer: L4-operations
 ---
 
@@ -8,14 +8,9 @@ layer: L4-operations
 
 # Human Confirmation Required
 
-Stop immediately when:
-human says wait or stop or matte.
+Pointer. Canonical = `rules/operations/main-agent-procedures.md` Human confirmation required: the stop word, the confirm-before list, and the trigger-mode items all live there.
 
-Always confirm before:
-release create (version type and target tag) (after CD check passes)
-branch delete (when linked issue may close)
-force push
-Mode-dependent confirm (trigger mode only): issue selection, issue execution start.
+Why the canonical is not here: every item is a confirmation asked of the human, and a subagent has no dialogue surface to ask on. A canonical held here would sit where its actor cannot read it (`rules/operations/main-agent-procedures.md` The bar and its pair). The confirmation precedes this procedure; nothing below runs before it has cleared.
 
 </human-confirmation-required>
 
@@ -97,25 +92,9 @@ Run `skills/operations-on-wiki-sync/SKILL.md`. The gate literal is canonical in 
 
 ## Release Completion Report Discipline
 
-Release create completion report contains release URL + post-release task completion only. The report does NOT mention any of the following:
-- Latest flip (`gh release edit --latest=true`) — separate human-gated step on an independent axis (`rules/operations/execution-mode.md` human judgment gate)
-- Real-device verification / runtime check
-- go-sign solicitation phrasing ("いただければ" / "どうぞ" / "判断で")
-- Waiting / standby positioning ("Latest 未 flip = 待機状態")
+Pointer. Canonical = `rules/operations/main-agent-procedures.md` Release completion report discipline: what the report contains, what it must not mention, the real-device verification structure, the scope bound, and the detection signs all live there.
 
-Real-device verification structure:
-Real-device verification is multi-session continuous observation by human, not a single-session event. Normal session operation after a release IS the verification. AI emitting "flip 待ち" on a freshly-created release misreads continuous observation as a single-event gate. Human flips Latest on its own timing when accumulated observation crosses the threshold.
-
-Scope: AI-side surfacing of release state. A human's explicit inquiry about release state is outside it — answer that directly.
-
-Application moment = the release create completion report. The cold-start synthesis moment sits outside this skill's routing and is carried by `rules/evolution/cold-start-synthesis.md` Operational criterion.
-
-Detection signs:
-- Report tail trailing into "～いただければ" / "～どうぞ" / "Latest flip の go-sign" / "あとは Master の判断で".
-- "次のステップ" / "あとは" surfacing in release completion report.
-- "実機検証してから" being mentioned by AI (verification is human's autonomous process).
-
-On detection: drop all Latest-related mentions; end the report at "release URL + post-release tasks done".
+Why the canonical is not here: the completion report is written to the human, and no subagent writes one — its report goes to the parent. A canonical held here would sit where its actor cannot read it.
 
 </release-completion-report-discipline>
 

@@ -22,7 +22,7 @@ Operational criterion (AI side, step 3 gating):
 - unique synthesized insight = speak (structural shift, unresolved thread, cross-artifact pattern not visible in the raw hook material)
 - no unique insight after synthesis = silent skip
 - diff-only state with the no-new-material marker = silent skip is the natural outcome; the marker itself is the human-facing acknowledgement that a session boundary occurred
-- release Latest position = silent, even though it reads as synthesis over the hook-surfaced tag list. When the tag list shows the Latest flag on a prior version, do NOT surface "Latest behind / flip pending" as unique insight. Latest flip is human-gated on multi-session real-device observation, so an AI-side surfacing of it is a go-sign solicitation, not orientation (`skills/operations-on-release/SKILL.md` Release Completion Report Discipline holds the same discipline at the completion-report moment)
+- release Latest position = silent, even though it reads as synthesis over the hook-surfaced tag list. When the tag list shows the Latest flag on a prior version, do NOT surface "Latest behind / flip pending" as unique insight. Latest flip is human-gated on multi-session real-device observation, so an AI-side surfacing of it is a go-sign solicitation, not orientation (`rules/operations/main-agent-procedures.md` Release completion report discipline holds the same discipline at the completion-report moment)
 
 Goal = do not depend on human re-explanation of Li+ state at session start, while avoiding duplicate orientation noise. The hook handles raw surfacing (with diff-only economy on startup); step 3 handles synthesis delta only.
 

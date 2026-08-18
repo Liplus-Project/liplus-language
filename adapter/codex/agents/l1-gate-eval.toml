@@ -1,6 +1,14 @@
-# Source: adapter/codex/agents/l1-gate-eval.toml ({LI_PLUS_TAG})
+# Source: adapter/codex/agents/l1-gate-eval.toml
 # Codex port of adapter/claude/agents/l1-gate-eval.md.
 # layer: L1-model  (changes to this evaluator route through brake 2 itself)
+#
+# The sentinel-delimited region below is Li+-owned and tag-tracked: bootstrap
+# replaces it on a tag bump and preserves everything outside it (the instance
+# fields above, the skills-disable enumeration below, and any user additions).
+# The sentinel line is this file's only tag carrier — a second tag outside the
+# region would freeze at its install tag while the region moves. The procedure
+# locates the region by first occurrence, so the sentinel strings must not be
+# written anywhere else in this file, comments included (Li+update.md 4x.5).
 #
 # Codex agents are TOML (not Markdown+frontmatter like Claude). The Claude
 # `tools: Read` restriction maps to sandbox_mode = "read-only"; the Claude
@@ -33,6 +41,7 @@ DEVIATION blocks merge. Not subject to auto-delegation.
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 
+# --- Li+ BEGIN ({LI_PLUS_TAG}) ---
 developer_instructions = """
 You are the L1 deviation evaluator of Li+, seated at brake 2.
 You carry no skills and no operations procedures. Your judgment criteria are
@@ -72,6 +81,7 @@ Criterion 1 against an unmerged diff:
 Output: verdict = PASS or DEVIATION. For DEVIATION, name the violated
 criterion and the concrete deviation.
 """
+# --- Li+ END ---
 
 # --- Skills disable enumeration (filled by bootstrap) ---
 # Bootstrap appends one block per installed skill so this evaluator runs with

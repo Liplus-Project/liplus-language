@@ -141,7 +141,7 @@ AIが自動的に：
 
 | 環境 | 生成されるファイル |
 |------|------------------|
-| Claude Code | `{workspace_root}/.claude/CLAUDE.md` + `{workspace_root}/.claude/settings.json` + `{workspace_root}/.claude/hooks/*.sh` + `{workspace_root}/.claude/skills/**` + `{workspace_root}/.claude/rules/**` + `{workspace_root}/.claude/agents/*.md`（adapter/claude/ 配下から生成） |
+| Claude Code | `{workspace_root}/.claude/CLAUDE.md` + `{workspace_root}/.claude/settings.json` + `{workspace_root}/.claude/hooks/*.sh` + `{workspace_root}/.claude/skills/**` + `{workspace_root}/.claude/rules/**` + `{workspace_root}/.claude/agents/*.md`（adapter/claude/ 配下から生成。agent ファイルは `.claude/CLAUDE.md` と同じく `Li+ BEGIN` / `Li+ END` 区画のみが差し替わり、frontmatter とあなたが足した記述は保持されます） |
 | CODEX | `{workspace_root}/AGENTS.md` + `{workspace_root}/.agents/skills/**`（ネイティブ skill 自動発火）+ `{workspace_root}/.codex/hooks/*.ps1`・`*.sh` + `{workspace_root}/.codex/hooks.json` + `{workspace_root}/.codex/agents/*.toml`（adapter/codex/ 配下から生成）。**生成後に一度だけ GUI で hook を trust する必要があります**（下記「CODEX: hook の GUI trust」参照） |
 
 ### 5. 次回以降のセッション
@@ -168,7 +168,7 @@ Claude Code は `.claude/CLAUDE.md` / `.claude/settings.json` / `.mcp.json` 等�
 - `"permissions": {"allow": ["Edit(**)", "Write(**)"]}` 設定
 - `--dangerously-skip-permissions` フラグ
 
-Li+ clone mode bootstrap は毎セッション、tag 差分があれば `.claude/CLAUDE.md` / `.claude/hooks/*.sh` を上書きします。tag 更新の度に許可プロンプトが出るため、頻繁な更新時の UX 負債になります。
+Li+ clone mode bootstrap は毎セッション、tag 差分があれば `.claude/CLAUDE.md` / `.claude/hooks/*.sh` / `.claude/agents/*.md`（sentinel 区画を持つもの）を上書きします。tag 更新の度に許可プロンプトが出るため、頻繁な更新時の UX 負債になります。
 
 **長期的な解決方向**: プラグイン化 (`~/.claude/plugins/` への移動) により harness 内部 file ops 経路を経由させ、sensitive-file gate を回避します。allowlist や bypass mode では `.claude/` 配下の摩擦は解消されないため、回避策提案前に実機検証を行ってください。
 
@@ -186,7 +186,7 @@ CODEX ホストでは bootstrap が以下を生成します（Claude の `.claud
 | `.agents/skills/<name>/SKILL.md` | skill 本体。**trust 不要**で `description` マッチにより自動発火（実機検証済み #1502） |
 | `.codex/hooks/*.ps1`・`*.sh` | hook 本体。`.ps1` が Windows ネイティブの主経路、`.sh` が POSIX フォールバック |
 | `.codex/hooks.json` | hook 登録ファイル。絶対パスで `.codex/hooks/*` を指す（Codex には `$CLAUDE_PROJECT_DIR` 相当が無いため） |
-| `.codex/agents/*.toml` | subagent（Codex "agents"）定義。brake-2 の `l1-gate-eval` は全 skill を無効化する enumeration を bootstrap が埋めます |
+| `.codex/agents/*.toml` | subagent（Codex "agents"）定義。Li+ が判定基準として所有する本文は `# --- Li+ BEGIN (<tag>) ---` / `# --- Li+ END ---` の区画に入っており、build 更新のたびにこの区画だけが差し替わります（区画外のあなたの記述は保持されます）。brake-2 の `l1-gate-eval` は全 skill を無効化する enumeration を bootstrap が区画の外側に埋めます |
 | `.codex/state/` | cold-start diff-only 出力の state。gitignore 同梱 |
 
 ### hook の一度きり GUI trust（Codex 固有の摩擦）

@@ -260,15 +260,29 @@ Note: Claude Code's skill discovery does NOT recurse into subdirectories under `
 - This step is idempotent: existing directory and existing `.gitignore` are
   left alone.
 
-4c.6. Generate .claude/agents/ files (Create-only mirror):
+4c.6. Generate .claude/agents/ files (sentinel-owned region mirror):
 - If LI_PLUS_REPO/adapter/claude/agents/ does not exist: skip this sub-phase entirely (adapter has no subagent definitions to mirror; non-claude adapters such as codex are unaffected).
 - If {workspace_root}/.claude/agents/ does not exist: create directory.
+- Replace {LI_PLUS_TAG} in all generated content with the resolved target tag from Phase 3.
+- Ownership boundary: an agent file carries two kinds of content at once — body Li+ owns as its judgment criteria (brake 2's root criteria and the scope of the evaluator's task), and the user's runtime instance around it (the frontmatter `name` / `description` / `tools` / `model` fields, plus anything the user appends). File-level ownership has to pick one and gets the other wrong in whichever direction it picks: Create-only freezes a merged criteria change out of every existing workspace, and whole-file overwrite destroys the instance. The `Li+ BEGIN` / `Li+ END` region moves the boundary inside the file so both hold. The region covers the prompt body only; the frontmatter stays outside it, because the frontmatter is where per-workspace runtime customization lives and because a Markdown frontmatter block cannot be preceded by a sentinel line. Accepted consequence on the Claude port: everything after the frontmatter becomes the subagent's system prompt, and Markdown has no comment form the host strips, so both sentinel lines sit inside that prompt. The Codex port pays nothing here — its sentinels are TOML comments outside the `developer_instructions` string, which the parser drops. Two inert markup lines in the prompt is the price of propagation on the Markdown port, and the only alternative that avoids them is having no region there at all.
+- Which sources carry a region is decided by criterion, not by enumeration. Two questions, asked in order:
+  1. **Does this file carry body that Li+ owns as its judgment criteria rather than as the user's instance?** No -> Create-only. A file the criterion cannot place on either side of this question also defaults to Create-only.
+  2. **Can one contiguous region cover that body without enclosing user-owned content?** Yes -> the file carries the region. No — the two kinds interleave — -> Create-only, and the propagation gap stays open on that file. A region drawn wide enough to span the interleaving would swallow the user's content, which is the failure the region exists to prevent; question 1 alone does not settle a mixed file, and reading it as though it did returns the wrong answer.
+- `adapter/*/agents/dialogue-evaluator.*` is the current question-2 case, and is named here as the worked example of that branch rather than as a list entry. It does carry Li+-owned criteria (the five evaluation axes, the scoring model, the middle-read requirement), and it carries a Character_Instance literal in the middle of them, so no single region separates the two. It stays Create-only. Consequence, stated rather than resolved: revisions to its axes do not reach existing workspaces. That is the same propagation gap on a file this criterion cannot close, not a file that was found to have nothing worth propagating.
+- A source carries at most one region, and the sentinel strings appear nowhere else in it (comments included): the region is located by first occurrence, so a second mention would be read as the boundary.
 - For each `*.md` directly under LI_PLUS_REPO/adapter/claude/agents/ (FLAT, no subdirectories):
   - Target = `{workspace_root}/.claude/agents/<filename>.md`.
-  - If Target does not exist: copy source verbatim.
-  - If Target exists: skip (Create-only). User customizations are preserved across updates.
-- No tag-based overwrite. No stale removal (a user may keep custom subagents that are not in the adapter source; treating them as stale would destroy user work).
-- The Create-only pattern mirrors `character_Instance.md` handling in 4c.2: subagent files are user-customizable runtime instances, not Li+-tag-tracked sources. Updates to the upstream adapter source therefore do not propagate to existing user files; users who want the latest version must delete their local copy and re-bootstrap.
+  - Source WITHOUT a "Li+ BEGIN" sentinel (Create-only): if Target does not exist, copy source verbatim; if Target exists, skip. User customizations are preserved across updates.
+  - Source WITH a "Li+ BEGIN" sentinel — region judgment (mirrors 4c.1, scoped to this file):
+    a. If Target does not exist: create it with the contents of the rendered source.
+    b. If Target exists and contains "Li+ BEGIN":
+       - Extract the tag from the sentinel (e.g. "Li+ BEGIN (build-2026-03-30.14)" -> "build-2026-03-30.14").
+       - If extracted tag matches current target tag: skip (up to date).
+       - If tag differs or is absent: replace the section between "Li+ BEGIN" and "Li+ END" (inclusive) with the rendered source's section. Preserve content outside this section verbatim — the frontmatter above it and anything the user appended below it.
+       - 4c.1's legacy webhook trailer migration does NOT apply on this branch. That migration exists for the byte-frozen `## Optional Webhook Notification Flow` block on the CLAUDE.md surface; agent files have no such pre-migration trailer, and running it here would delete user content.
+    c. If Target exists but does not contain "Li+ BEGIN": ask user -- regenerate this file from the current source, or skip? Every install predating the region enters here. Li+ cannot tell which bytes of an unsentineled file are user-authored, so regenerate replaces the whole file (any local edit to it is lost — advise the user to keep a copy first), and skip leaves the Li+-owned criteria at their installed version. Silent overwrite is prohibited for the same reason as 4c.1: it would destroy user-authored content without consent.
+       - Re-ask cadence, and what it is parasitic on: no state records the user's answer, and branch (c) is re-evaluated from the target file's own bytes on every run of this sub-phase, so a skipped file is asked about again the next time bootstrap runs. Bootstrap runs when the session-start marker reports `needed`, whose tag axis reads the sentinel in `.claude/CLAUDE.md` — not the agent files, which no surface inspects. 4c.1 refreshes that sentinel in the same walkthrough that reaches here, so the next re-ask lands at the next tag bump, i.e. the next release. Between releases a workspace that answered skip stays on its installed criteria with no further prompt. This is the residual of branch (c), not a defect it hides: the pre-region behavior had no prompt at all, ever.
+- No stale removal (a user may keep custom subagents that are not in the adapter source; treating them as stale would destroy user work).
 
 Note: bootstrap takes effect from the NEXT session. Current session continues with Li+config.md execution.
 
@@ -421,16 +435,26 @@ is expressed via the skill-name prefix convention (e.g. `evolution-judgment-lear
 - This step is idempotent: existing directory and existing `.gitignore` are
   left alone.
 
-4x.5. Generate .codex/agents/ files (Create-only mirror + skills-disable enumeration):
-- Mirrors 4c.6, but Codex agents are TOML files at `.codex/agents/*.toml`, and the
-  l1-gate-eval agent additionally requires a bootstrap-filled skills-disable
-  enumeration (Codex has no global skills-off switch).
+4x.5. Generate .codex/agents/ files (sentinel-owned region mirror + skills-disable enumeration):
+- Mirrors 4c.6 — same ownership boundary, same carrier criterion, same three-branch
+  region judgment — but Codex agents are TOML files at `.codex/agents/*.toml`, the
+  sentinel is written in TOML comment syntax (`# --- Li+ BEGIN (<tag>) ---` /
+  `# --- Li+ END ---`) rather than as an HTML comment, and the l1-gate-eval agent
+  additionally requires a bootstrap-filled skills-disable enumeration (Codex has no
+  global skills-off switch). On this surface the region covers the
+  `developer_instructions` assignment; the instance fields (`name` / `description` /
+  `model_reasoning_effort` / `sandbox_mode`) stay outside it, matching the Claude
+  port's frontmatter placement.
 - If LI_PLUS_REPO/adapter/codex/agents/ does not exist: skip this sub-phase entirely.
 - If {workspace_root}/.codex/agents/ does not exist: create directory.
 - For each `*.toml` directly under LI_PLUS_REPO/adapter/codex/agents/ (FLAT):
   - Target = `{workspace_root}/.codex/agents/<filename>.toml`.
-  - Replace {LI_PLUS_TAG} in the `# Source: ... ({LI_PLUS_TAG})` comment with the
-    resolved target tag.
+  - Replace {LI_PLUS_TAG} in the rendered source with the resolved target tag. In a
+    source that carries a region, the sentinel is the file's only tag carrier; a
+    source without a region keeps its tag in the `# Source: ... ({LI_PLUS_TAG})`
+    header comment. A region-carrying file must not hold a second tag outside the
+    region: only the region is rewritten on a tag bump, so the outside copy would
+    freeze at the install tag and report a version the file no longer runs.
   - Skills-disable enumeration (l1-gate-eval.toml ONLY): this agent must run with
     ZERO skills (brake-2 root-criteria-only requirement). Codex disables skills
     per SKILL.md path, not globally. After the `# --- Skills disable enumeration
@@ -450,15 +474,31 @@ is expressed via the skill-name prefix convention (e.g. `evolution-judgment-lear
       can be replaced by it (see the placeholder comment in the source file).
     - Other agents (e.g. dialogue-evaluator.toml) get no skills-disable
       enumeration; copy them with {LI_PLUS_TAG} substituted only.
-  - If Target does not exist: write the rendered source.
-  - If Target exists: skip (Create-only; user customizations preserved). The
-    skills-disable enumeration is therefore (re)generated only on first install.
-    If the installed skill set later changes, the user must delete the local
-    l1-gate-eval.toml and re-bootstrap to regenerate the enumeration (same
-    Create-only caveat as 4c.6). Surface this in the completion report when the
-    skill set changed but a local l1-gate-eval.toml already exists.
-- No tag-based overwrite. No stale removal (a user may keep custom agents not in
-  the adapter source).
+    - The enumeration sits OUTSIDE the sentinel region, at the bottom of the file.
+      It is a workspace-specific value the bootstrap fills, not Li+ source content,
+      so a region replacement must leave it untouched.
+  - Source WITHOUT a "Li+ BEGIN" sentinel (Create-only): if Target does not exist,
+    write the rendered source; if Target exists, skip (user customizations
+    preserved).
+  - Source WITH a "Li+ BEGIN" sentinel — region judgment:
+    a. If Target does not exist: write the rendered source (including the freshly
+       generated enumeration for l1-gate-eval.toml).
+    b. If Target exists and contains "Li+ BEGIN": extract the sentinel tag; if it
+       matches the current target tag, skip; if it differs or is absent, replace the
+       section between "Li+ BEGIN" and "Li+ END" (inclusive) with the rendered
+       source's section, preserving everything outside it verbatim — the header
+       comment and instance fields above, and the skills-disable enumeration below.
+    c. If Target exists but does not contain "Li+ BEGIN": ask user -- regenerate
+       this file from the current source, or skip? Every install predating the
+       region enters here; the ask and its consequences are as in 4c.6, and a
+       regenerate of l1-gate-eval.toml also regenerates its skills-disable
+       enumeration from the 4x.2 set.
+- The enumeration is generated on branch (a) and on a branch (c) regenerate only. A
+  tag bump refreshes the region alone, so if the installed skill set later changes,
+  the user must delete the local l1-gate-eval.toml and re-bootstrap to regenerate the
+  enumeration. Surface this in the completion report when the skill set changed but a
+  local l1-gate-eval.toml already exists.
+- No stale removal (a user may keep custom agents not in the adapter source).
 
 Note: bootstrap takes effect from the NEXT session, AND is gated on the one-time
 Codex GUI hook trust (4x intro). Current session continues with Li+config.md
@@ -492,5 +532,6 @@ Dependencies: all prior phases.
 - If this bootstrap regenerated any hook body (tag bump), note that trust must be
   re-granted (trust is per content hash).
 - If the installed skill set changed but a local `.codex/agents/l1-gate-eval.toml`
-  already exists (Create-only, not regenerated — see 4x.5), note that the user
-  must delete that file and re-bootstrap to refresh the skills-disable enumeration.
+  already exists (the enumeration sits outside the sentinel region, so a tag bump
+  does not regenerate it — see 4x.5), note that the user must delete that file and
+  re-bootstrap to refresh the skills-disable enumeration.

@@ -203,16 +203,26 @@ host OS は adapter 種別（runtime=claude / runtime=codex）から推測しな
 
 `on-session-start.sh` の matcher 別挙動（startup の diff-only、resume/clear/compact/fork の rule anchor 再出力、fail-safe full emit）の詳細は [6. Adapter — on-session-start.sh](6.-Adapter#on-session-startsh) を参照する。
 
-**4c.6. `.claude/agents/` ファイル生成（Create-only ミラー）**
+**4c.6. `.claude/agents/` ファイル生成（sentinel 区画ミラー）**
 
 - `LI_PLUS_REPO/adapter/claude/agents/` が存在しない場合は本サブフェーズ全体をスキップ（adapter に subagent 定義がない／codex 等の非 claude adapter は影響を受けない）
 - `{workspace_root}/.claude/agents/` が存在しなければ作成する
+- 生成内容中の `{LI_PLUS_TAG}` は Phase 3 で解決したターゲットタグへ置換する
+- **所有の境界:** agent ファイルは 2 種類の内容を同時に運ぶ。Li+ が判定基準として所有する本文（brake 2 の root criteria と評価者の任務の射程）と、その周囲にあるユーザーのランタイムインスタンス（frontmatter の `name` / `description` / `tools` / `model`、およびユーザーが足した記述）である。ファイル単位の所有はどちらか一方しか選べず、どちらを選んでも他方を取り違える — Create-only はマージ済みの基準変更を既存ワークスペースから締め出し、ファイル全体の上書きはインスタンスを破壊する。`Li+ BEGIN` / `Li+ END` 区画は境界をファイルの内側へ移し、両方を成立させる。区画が覆うのは prompt 本文のみで、frontmatter は区画外に置く（frontmatter はワークスペースごとのランタイムカスタマイズが載る面であり、加えて Markdown の frontmatter ブロックの前に sentinel 行を置けないため）。**Claude 側で受容した代償:** frontmatter 以降がそのまま subagent の system prompt になり、Markdown には host が除去するコメント形式が無いため、sentinel 2 行は prompt の内側に入る。Codex 側にこの代償は無い（sentinel は `developer_instructions` 文字列の外の TOML コメントであり、パーサが落とす）。prompt に入る inert な 2 行は Markdown 側で伝播を得るための対価であり、これを避ける唯一の代替は当該ポートに区画を持たないことである
+- **どのソースが区画を持つかは列挙ではなく基準で決める。** 順に 2 つ問う:
+  1. **そのファイルは、ユーザーの instance ではなく Li+ の判定基準として所有する本文を運んでいるか。** No → Create-only。基準がこの問いのどちら側にも置けないファイルも Create-only を既定とする
+  2. **その本文を、ユーザー所有の内容を巻き込まずに 1 つの連続区画で覆えるか。** Yes → 区画を持つ。No（2 種類が交互に並ぶ）→ Create-only とし、そのファイルの伝播欠落は開いたまま残す。交互配置をまたぐ幅の区画はユーザーの内容を飲み込み、それは区画が防ぐために存在する失敗そのものである。問い 1 だけでは混在ファイルは決まらず、決まると読むと逆の答えが出る
+- `adapter/*/agents/dialogue-evaluator.*` は現時点の問い 2 の事例であり、列挙の 1 項ではなくその分岐の実例として名指ししている。Li+ 所有の判定基準（5 軸、採点思想、middle-read 要求）を確かに運んでおり、かつその途中に Character_Instance literal を持つため、1 つの区画では両者を分離できない。よって Create-only のまま。**解決ではなく明示する帰結:** その軸への改訂は既存ワークスペースへ届かない。これは「伝播すべきものが無いと判定されたファイル」ではなく、「本基準では閉じられないファイルに同じ伝播欠落が残っている」状態である
+- 1 つのソースが持つ区画は最大 1 つで、sentinel 文字列はそのファイルの他の場所（コメントを含む）に現れてはならない。区画は最初の出現位置で特定するため、2 つ目の言及が境界として読まれる
 - `LI_PLUS_REPO/adapter/claude/agents/` 直下の `*.md` 各ファイルについて（FLAT、サブディレクトリなし）：
   - target = `{workspace_root}/.claude/agents/<filename>.md`
-  - target が存在しなければソースをそのままコピー
-  - target が存在すればスキップ（Create-only、ユーザーカスタマイズを保持）
-- タグベースの上書きなし。stale 削除もしない（ユーザーが adapter ソースに無い custom subagent を保持している可能性があり、stale 扱いすると user work を破壊する）
-- Create-only パターンは 4c.2 の `character_Instance.md` と同型。subagent ファイルはユーザーカスタマイズ可能なランタイムインスタンスであり、Li+ タグ追跡対象のソースではない。上流 adapter ソース更新は既存ユーザーファイルへ伝播しない；最新版を取り込みたいユーザーはローカルコピーを削除して再 bootstrap する必要がある
+  - **sentinel を持たないソース（Create-only）:** target が存在しなければソースをそのままコピー、存在すればスキップ（ユーザーカスタマイズを保持）
+  - **sentinel を持つソース — 区画判定（4c.1 と同型、本ファイルへスコープ）:**
+    - a. target が存在しない → 解決済みソースの内容で生成する
+    - b. target が存在し `Li+ BEGIN` を含む → sentinel からタグを抽出。現ターゲットタグと一致すればスキップ。異なる／欠落していれば `Li+ BEGIN`〜`Li+ END`（両端含む）の区画をソース側の区画で置換し、区画外（上の frontmatter とユーザーが下に足した記述）はそのまま保持する。4c.1 の legacy webhook trailer migration は本分岐では**適用しない**（あの migration は CLAUDE.md 面の byte-frozen な `## Optional Webhook Notification Flow` ブロック専用であり、agent ファイルに該当する pre-migration trailer は存在せず、ここで走らせるとユーザー記述を削除する）
+    - c. target が存在するが `Li+ BEGIN` を含まない → ユーザーへ確認：現ソースからこのファイルを再生成するか、スキップするか。区画導入以前のインストールはすべてこの状態から入る。sentinel の無いファイルのどのバイトがユーザー由来かを Li+ は判別できないため、再生成はファイル全体を置き換える（当該ファイルへのローカル編集は失われる — 事前にコピーを取るよう案内する）。スキップは Li+ 所有の基準をインストール時点のまま据え置く。無音の上書きは 4c.1 と同じ理由で禁止（ユーザー記述を同意なく破壊するため）
+      - **再確認の周期と、それが何に寄生しているか:** ユーザーの回答を記録する state は無く、branch (c) は本サブフェーズが走るたびに target ファイルのバイトから判定し直す。したがってスキップしたファイルは次に bootstrap が走ったとき再び確認される。bootstrap が走るのはセッション開始時の marker が `needed` を返すときであり、そのタグ軸が読むのは `.claude/CLAUDE.md` の sentinel であって agent ファイルではない（agent ファイルの sentinel 状態を読む面は存在しない）。4c.1 はここへ到達するのと同じ walkthrough 内でその sentinel を更新するため、次の再確認は次のタグ更新＝次のリリースで届く。リリースとリリースの間、スキップを選んだワークスペースは追加のプロンプトなしにインストール時点の基準のまま座る。これは branch (c) が隠す欠陥ではなく残余である — 区画導入前の挙動にはプロンプト自体が一度も無かった
+- stale 削除はしない（ユーザーが adapter ソースに無い custom subagent を保持している可能性があり、stale 扱いすると user work を破壊する）
 
 注意: bootstrap は次回セッションから有効。現セッションは Li+config.md の実行で継続する。
 
@@ -275,14 +285,14 @@ Codex ホストでは Phase 4 claude branch と同型に adapter / skills / hook
 
 - このステップは冪等
 
-**4x.5. `.codex/agents/` ファイル生成（Create-only ミラー + skills-disable enumeration）**
+**4x.5. `.codex/agents/` ファイル生成（sentinel 区画ミラー + skills-disable enumeration）**
 
-- 4c.6 と同型だが、Codex agents は `.codex/agents/*.toml`（TOML）であり、`l1-gate-eval` は bootstrap が埋める skills-disable enumeration を追加で必要とする（Codex に global な skills-off スイッチが無いため）
+- 4c.6 と同型（所有の境界、区画を持つかの基準、3 分岐の区画判定はすべて同じ）だが、Codex agents は `.codex/agents/*.toml`（TOML）であり、sentinel は HTML コメントではなく TOML コメント記法（`# --- Li+ BEGIN (<tag>) ---` / `# --- Li+ END ---`）で書き、`l1-gate-eval` は bootstrap が埋める skills-disable enumeration を追加で必要とする（Codex に global な skills-off スイッチが無いため）。本面では区画が覆うのは `developer_instructions` の代入であり、インスタンス側フィールド（`name` / `description` / `model_reasoning_effort` / `sandbox_mode`）は Claude 側の frontmatter と同じく区画外に置く
 - `LI_PLUS_REPO/adapter/codex/agents/` が存在しなければ本サブフェーズ全体をスキップ
 - `{workspace_root}/.codex/agents/` が存在しなければ作成
 - `LI_PLUS_REPO/adapter/codex/agents/` 直下の `*.toml` 各ファイルについて（FLAT）:
   - target = `{workspace_root}/.codex/agents/<filename>.toml`
-  - `# Source: ... ({LI_PLUS_TAG})` 行の `{LI_PLUS_TAG}` を解決済みターゲットタグへ置換
+  - 生成内容中の `{LI_PLUS_TAG}` を解決済みターゲットタグへ置換する。区画を持つソースでは sentinel がそのファイル唯一のタグ担持者であり、区画を持たないソースは `# Source: ... ({LI_PLUS_TAG})` 行にタグを持つ。区画を持つファイルが区画外にもう 1 つタグを持ってはならない — タグ更新で書き換わるのは区画だけであり、区画外のタグはインストール時点で凍結して実体と食い違うバージョンを表示する
   - **skills-disable enumeration（l1-gate-eval.toml のみ）:** この agent は ZERO skill で動かす必要がある（brake-2 の root-criteria-only 要件）。Codex は skill を SKILL.md パス単位で無効化する（global 不可）。ファイル末尾の `# --- Skills disable enumeration (filled by bootstrap) ---` マーカー以降に、4x.2 でインストールした skill ごとに以下の TOML ブロックを 1 つずつ追記する：
 
     ```toml
@@ -294,9 +304,14 @@ Codex ホストでは Phase 4 claude branch と同型に adapter / skills / hook
     - `{WORKSPACE_ROOT}` を絶対 workspace パスへ置換（hook と同じく Codex は絶対パスが必要）
     - 4x.2 でインストールした `<name>/SKILL.md` の集合と同じ数だけブロックを emit。将来の Codex build が global skills toggle を追加したら、この enumeration をそれで置き換え可（ソースファイルの placeholder コメント参照）
     - 他の agent（dialogue-evaluator.toml など）には skills-disable enumeration を付けない。`{LI_PLUS_TAG}` 置換のみでコピー
-  - target が存在しない → 生成内容を書く
-  - target が存在する → スキップ（Create-only、ユーザーカスタマイズを保持）。skills-disable enumeration は初回 install 時にのみ生成される。後でインストール skill 集合が変わった場合、ユーザーはローカルの l1-gate-eval.toml を削除して再 bootstrap し enumeration を再生成する必要がある（4c.6 と同じ Create-only caveat）。skill 集合が変わったがローカル l1-gate-eval.toml が既存の場合は完了報告で surface する
-- タグベースの上書きなし。stale 削除もしない（adapter ソースに無い custom agent をユーザーが保持している可能性）
+    - enumeration は sentinel 区画の**外側**（ファイル末尾）に置く。bootstrap がワークスペース固有値で埋める領域であり Li+ ソースの内容ではないため、区画の置換はここに触れてはならない
+  - **sentinel を持たないソース（Create-only）:** target が存在しなければ生成内容を書き、存在すればスキップ（ユーザーカスタマイズを保持）
+  - **sentinel を持つソース — 区画判定:**
+    - a. target が存在しない → 生成内容を書く（l1-gate-eval.toml はここで enumeration も新規生成される）
+    - b. target が存在し `Li+ BEGIN` を含む → sentinel のタグを抽出。現ターゲットタグと一致すればスキップ、異なる／欠落していれば `Li+ BEGIN`〜`Li+ END`（両端含む）をソース側の区画で置換し、区画外（上のヘッダコメントとインスタンス側フィールド、下の skills-disable enumeration）はそのまま保持する
+    - c. target が存在するが `Li+ BEGIN` を含まない → ユーザーへ確認：再生成かスキップか。区画導入以前のインストールはすべてこの状態から入る。確認の内容と帰結は 4c.6 と同じで、l1-gate-eval.toml の再生成は 4x.2 の集合から skills-disable enumeration も作り直す
+- enumeration が生成されるのは分岐 a と分岐 c の再生成のときだけ。タグ更新で書き換わるのは区画のみのため、後でインストール skill 集合が変わった場合、ユーザーはローカルの l1-gate-eval.toml を削除して再 bootstrap し enumeration を再生成する必要がある。skill 集合が変わったがローカル l1-gate-eval.toml が既存の場合は完了報告で surface する
+- stale 削除はしない（adapter ソースに無い custom agent をユーザーが保持している可能性）
 
 注意: bootstrap は次回セッションから有効、かつ一度きりの Codex GUI hook trust が前提（4x 冒頭）。現セッションは Li+config.md の実行で継続。trust 付与までは rules 注入と毎ターンの gate は走らない
 
@@ -328,7 +343,7 @@ URL から owner / repository name は parse して抽出する（gh CLI integra
 
 - Codex App を開き hook を trust するよう案内する（設定 → フック → 当該プロジェクト → 信頼する）。trust 付与までは SessionStart の rules 注入と毎ターンの Trigger Check Gate 再注入が走らない（Phase 4 codex 冒頭、step-by-step は [D. Installation](D.-Installation)）。
 - 本 bootstrap が hook 本体を再生成した場合（tag bump）、trust の再付与が必要なことを伝える（trust は内容ハッシュ単位）。
-- インストール済み skill 集合が変わったがローカルの `.codex/agents/l1-gate-eval.toml` が既存（Create-only、未再生成 — 4x.5 参照）の場合、skills-disable enumeration を更新するにはそのファイルを削除して再 bootstrap する必要があることを伝える。
+- インストール済み skill 集合が変わったがローカルの `.codex/agents/l1-gate-eval.toml` が既存（enumeration は sentinel 区画の外側にあり、タグ更新では再生成されない — 4x.5 参照）の場合、skills-disable enumeration を更新するにはそのファイルを削除して再 bootstrap する必要があることを伝える。
 
 ---
 

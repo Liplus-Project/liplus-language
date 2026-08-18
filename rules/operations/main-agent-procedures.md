@@ -27,6 +27,13 @@ Load timing = always-on (the main agent is barred from the skill surface, so res
 
 The pair, stated once: **the bar holds only while every procedure whose actor can be the main agent has its canonical text on a surface the main agent may read.** Main-readable = every Li+ surface except `skills/operations-*/SKILL.md`. The subagent reads all of them, so a main-readable surface is also the surface both actors reach, and a canonical placed there needs no second copy for the other actor.
 
+What establishes that an actor can be the main agent is one of two things, and neither is "the main agent could choose to do it". Implementation and operations are delegated by default (`skills/task-subagent-delegation/SKILL.md` Rules), so the main agent's freedom to execute something itself is not an actor axis — reading it as one fires every `operations-*` skill at once and leaves the maintenance rule below with no procedure that legitimately stays in a skill. The two that do establish it:
+
+- the procedure is on `Parent retains` (`skills/task-subagent-delegation/SKILL.md` Rules). Read that list at its own granularity: `issue management` there is scoped by its parenthetical to non-state lifecycle labels, type, maturity, marker and close, so a requirement about issues that is none of those is not reached by it.
+- the procedure needs a surface no subagent has — an utterance to the human, a human-facing report, or the user-turn boundary. Escalating a stop to the human is not that surface on its own: a subagent escalates by reporting to the parent, which is why `skills/operations-on-ci/SKILL.md` does not fire on its own escalate-to-human line. What fires is a prescribed human-facing utterance the agent must author, or a go-sign the agent must receive and act on where no already-resident gate carries it.
+
+Both are read per requirement, not per file: one skill can hold a firing clause and a non-firing one, and the granularity that matters is the clause.
+
 Maintenance rule, applied when an `operations-*` skill gains a requirement whose actor can be the main agent: move the canonical to a main-readable surface and leave a pointer in the skill. Two wrong repairs:
 
 - copy the text to a main-readable surface and keep it in the skill as well — the second copy is what drifts.
@@ -120,7 +127,7 @@ Memo maturity is a valid resting state, not "incomplete and embarrassing". The c
 ## Sub-issue rules
 
 Canonical. `skills/operations-on-sub-issue/SKILL.md` keeps the draft-PR CI visibility surface and points here.
-Actor = the parent on every judgment below. Creating and classifying a sub-issue is `issue creation` on `Parent retains` (`skills/task-subagent-delegation/SKILL.md` Rules); proposing a parallel structure and firing the scope-exceed confirm both speak to the human, and a subagent has no dialogue surface; re-opening an issue during recovery is `issue management` on the same list. The subagent reaches this text too — it is the actor that detects a scope exceed mid-implementation, and `rules/**` loads for it without invocation — so nothing it needs at that moment is lost.
+Actor = the parent on every judgment below. Creating and classifying a sub-issue is `issue creation` on `Parent retains` (`skills/task-subagent-delegation/SKILL.md` Rules); proposing a parallel structure and firing the scope-exceed confirm both speak to the human, and a subagent has no dialogue surface; re-opening an issue during recovery is the inverse of `close`, which that list's `issue management` parenthetical names. The subagent reaches this text too — it is the actor that detects a scope exceed mid-implementation, and `rules/**` loads for it without invocation — so nothing it needs at that moment is lost.
 
 Sub-issue = AI-trackable work unit.
 Split by responsibility, not granularity.
@@ -509,7 +516,7 @@ scope = notifications (classic PAT)
 ## Handoff continuity
 
 Canonical. `skills/operations-handoff-continuity/SKILL.md` holds the pointer.
-Actor = both, which is what puts the canonical here rather than there. The subagent holds the commits to push; the main agent holds state of its own across a boundary — the issue body (`Parent retains`), the aggregated findings comment, and the resume target for an implementation subagent, which lives in the spawning session's context alone. `chat memory` below is the main agent's and no one else's.
+Actor = both, which is what puts the canonical here rather than there. The subagent holds the commits to push; the main agent holds state of its own across a boundary — the aggregated findings comment, and the resume target for an implementation subagent, which lives in the spawning session's context alone. `chat memory` below is the main agent's and no one else's. The issue body is not the load-bearing half of that list here: the subagent may update it mid-implementation (`skills/task-subagent-delegation/SKILL.md` Responsibilities), which is why it reaches both actors rather than fixing one.
 
 If token/session/model boundary may interrupt work = push useful intermediate state to the linked personal branch.
 Handoff source of truth = issue body + linked branch + commits/PR.
@@ -534,7 +541,7 @@ Use chunking when needed.
 ## Discussions intake
 
 Canonical, and held on the resident surface rather than in an `operations-*` skill.
-Actor = the main agent. What this constrains is how an externally-originated issue is read, and `skills/task-subagent-delegation/SKILL.md` Rules puts `issue management` on `Parent retains` with no mode branch. The subagent implements from an issue whose origin does not reach its work, so no reader is left behind on the skill surface.
+Actor = the main agent, and not by `Parent retains` — this is context for triaging an externally-originated issue, which is none of the five items that list's `issue management` is scoped to. What places it here is the other half of the maintenance rule: the skill's `description` named a moment the main agent stands in, and no reader remained on that surface once it did. The subagent implements from an issue whose origin does not reach its work, so nothing was left behind.
 
 Discussions = external user entry point.
 A bot is stationed in Discussions.

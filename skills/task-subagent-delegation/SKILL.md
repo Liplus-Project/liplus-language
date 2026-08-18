@@ -74,7 +74,7 @@ Subagent may update issue body when premise or constraints change during impleme
 Failure reporting:
 On failure, subagent writes failure report as issue comment. Format is not specified.
 
-Branch linking: see skills/operations-on-branch/SKILL.md.
+Branch linking: see `rules/operations/main-agent-procedures.md` Branch and label flow.
 
 </responsibilities>
 

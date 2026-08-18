@@ -31,7 +31,7 @@ Reads through:
 ### Event-Driven Operations
 
   [TRIGGER_INDEX]
-  act_now      -> Branch And Label Flow
+  act_now      -> Branch and label flow (`rules/operations/main-agent-procedures.md`)
   on_issue_create -> Issue format (`rules/operations/main-agent-procedures.md`)
   on_issue_edit   -> Issue format (`rules/operations/main-agent-procedures.md`)
   on_issue_view   -> Issue maturity (`rules/operations/main-agent-procedures.md`)

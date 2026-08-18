@@ -115,6 +115,69 @@ Memo maturity is a valid resting state, not "incomplete and embarrassing". The c
 
 </issue-maturity>
 
+<branch-and-label-flow>
+
+## Branch and label flow
+
+Canonical. `skills/operations-on-branch/SKILL.md` keeps the repo-first execution surface and points here.
+Actor = the main agent on every half of this flow. The trigger is human intent read from dialogue, which no subagent has. `backlog` and `deferred` are non-state lifecycle labels, which `skills/task-subagent-delegation/SKILL.md` Rules puts on `Parent retains`. Branch creation is the detection sign's own shape: the main agent creates the branch under the worktree lifecycle (`adapter/claude/CLAUDE.md` / `adapter/codex/AGENTS.md` Responsibilities), and the delegated subagent creates it when the delegation uses no worktree. The subagent reaches this text too, on that second path; one canonical on a main-readable surface covers both.
+
+Trigger = human intent to act now detected via dialogue.
+Judgment = read atmosphere, not checklist.
+If unclear = ask with feeling, not mechanically.
+
+Timing tiers:
+NOW     -> label=in-progress + branch create
+SOON    -> label=backlog     + no branch
+SOMEDAY -> label=deferred    + no branch
+
+The tiers table decides which tier applies, not what the `in-progress` transition consists of.
+That transition is the label alone, specified in
+`skills/task-subagent-state-labels/SKILL.md` Work start. Do not restate its steps here.
+
+Axis separation:
+Lifecycle labels = when to act.
+Maturity labels  = how converged the issue body is.
+Do not use lifecycle labels as substitute for memo/forming/ready.
+
+Atmosphere reading scope:
+Applies to timing tier judgment (NOW / SOON / SOMEDAY) only.
+Label assignment is a deterministic mapping from tier result, not a second atmosphere read.
+Once tier is judged, label follows the tiers table without re-reading atmosphere.
+
+Branch existence check (before creation):
+local:  git branch --list {branch-name}
+remote: gh api repos/{owner}/{repo}/branches/{branch-name} (404=not_exists)
+If remote exists = existing GitHub branch cannot be retroactively linked.
+If local only   = gh issue develop still allowed (local will be overwritten).
+If not exists   = proceed normally.
+
+Branch creation:
+command = gh issue develop {issue_number} -R {owner}/{repo} --name {session-branch} --base main
+Branch creation carries no assignee step. The actor axis fires at the parent's delegation
+moment, upstream of branch creation and of the `in-progress` transition alike
+(`skills/task-subagent-delegation/SKILL.md` Rules; reading rules for the field at
+`skills/task-subagent-state-labels/SKILL.md` Actor axis).
+
+Merge behavior:
+PR merge auto-closes the parent issue via issue reference.
+Parent branch is linked to parent issue via gh issue develop, so any PR from that branch
+auto-closes the parent on merge. This is safe under the single parent PR flow (see Sub-issue Rules):
+the single merge happens only after all sub-issues are done, so parent auto-close lands correctly.
+Per-sub-issue PR on the parent branch is prohibited precisely because it triggers parent auto-close
+before the remaining sub-issues complete.
+If a unit needs an independent branch and PR = it is a sibling issue, not a sub-issue.
+Create it as an independent issue with its own parent branch.
+
+On local error:
+gh issue develop may fail locally but succeed on GitHub side.
+Check linked branches before retrying:
+  gh api graphql -f query='{ repository(owner:"{owner}",name:"{repo}") { issue(number:{number}) { linkedBranches { nodes { ref { name } } } } } }'
+If linked = use existing linked branch, do not create new branch.
+If not linked = retry or escalate.
+
+</branch-and-label-flow>
+
 <self-review-formal-record>
 
 ## Self-review formal record

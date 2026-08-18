@@ -81,9 +81,39 @@ Discriminator: "Is this issue creation itself the main task, or is it interrupti
 - Interrupting → rapid path.
 - Main task → full forming/ready intake.
 
-Treating "黙って" as "still do full intake but skip discussing it" defeats the interrupt-cost reduction the human asked for. Memo maturity is a valid resting state, not "incomplete and embarrassing"; promotion to forming/ready happens later when the issue itself is the focus (`skills/operations-on-issue-maturity/SKILL.md`).
+Treating "黙って" as "still do full intake but skip discussing it" defeats the interrupt-cost reduction the human asked for. Memo maturity is a valid resting state, not "incomplete and embarrassing"; promotion to forming/ready happens later when the issue itself is the focus (Issue maturity below).
 
 </issue-format>
+
+<issue-maturity>
+
+## Issue maturity
+
+Canonical. `skills/operations-on-issue-maturity/SKILL.md` is deleted; nothing points at it any more.
+Actor = the parent, unconditionally: `skills/task-subagent-delegation/SKILL.md` Rules puts `issue management (non-state lifecycle labels / type / maturity / marker / close)` on `Parent retains`, naming `maturity` with no mode branch, and the parent close condition below is `close` on that same list. The subagent is delegated an issue that has already converged and never judges the transition, so no reader is left behind on the skill surface.
+
+memo/forming is not implementation-ready.
+
+Parent issue may also start from memo.
+Converged parent issue contents: purpose, premise, constraints.
+Parent close condition is structural = all child issues closed except deferred.
+
+Proactive premise verification (forming → ready):
+When spec body reaches forming with unverified technical assumptions in premise section
+(external API specs, runtime constraints, library behavior, platform limits, etc.),
+AI proactively starts verification research before human asks.
+Do not wait for human to point out unverified premises.
+forming → ready transition requires all technical premises in premise section to be verified.
+
+Verification completion criterion:
+Applies to external fact cross-check results only.
+Subjective confidence is outside this criterion.
+A premise is verified only when external evidence (docs, spec, source, runtime probe, existing issue/PR record) is cited.
+"feels correct" is not verification.
+
+Memo maturity is a valid resting state, not "incomplete and embarrassing". The creation-time rapid path that produces a memo-maturity issue lives at Issue format above, which fires at issue creation; promotion to forming/ready is judged here, later, when the issue itself is the focus.
+
+</issue-maturity>
 
 <self-review-formal-record>
 

@@ -34,7 +34,7 @@ Reads through:
   act_now      -> Branch And Label Flow
   on_issue_create -> Issue format (`rules/operations/main-agent-procedures.md`)
   on_issue_edit   -> Issue format (`rules/operations/main-agent-procedures.md`)
-  on_issue_view   -> Issue Maturity
+  on_issue_view   -> Issue maturity (`rules/operations/main-agent-procedures.md`)
   on_issue_sub    -> Sub-issue Rules
   on_commit    -> Commit And Push
   on_pr        -> PR Creation

@@ -233,4 +233,60 @@ own-operation arrival confirmation:
 
 </foreground-webhook-notification-intake>
 
+<notifications-api>
+
+## Notifications API
+
+Canonical. `skills/operations-notifications-api/SKILL.md` is deleted; nothing points at it any more.
+Actor = the main agent. The direct-call moment is the foreground intake path above, which only the main agent stands in. The subagent's contact with webhook material is the CI loop, and that reads the MCP surface (`skills/operations-on-ci/SKILL.md`), never these endpoints, so no reader is left behind on the skill surface.
+
+PATCH  /notifications/threads/{id}   -> 205  read (stays in Inbox)
+PUT    /notifications {"read":true}  -> 205  mark all read
+DELETE /notifications/threads/{id}  -> 204  done (removed from Inbox)
+GET    /notifications?all=false      -> 200  check inbox
+scope = notifications (classic PAT)
+
+</notifications-api>
+
+<handoff-continuity>
+
+## Handoff continuity
+
+Canonical. `skills/operations-handoff-continuity/SKILL.md` holds the pointer.
+Actor = both, which is what puts the canonical here rather than there. The subagent holds the commits to push; the main agent holds state of its own across a boundary — the issue body (`Parent retains`), the aggregated findings comment, and the resume target for an implementation subagent, which lives in the spawning session's context alone. `chat memory` below is the main agent's and no one else's.
+
+If token/session/model boundary may interrupt work = push useful intermediate state to the linked personal branch.
+Handoff source of truth = issue body + linked branch + commits/PR.
+Do not leave meaningful progress only in local workspace or chat memory.
+
+</handoff-continuity>
+
+<chat-output-limit>
+
+## Chat output limit
+
+Canonical. `skills/operations-chat-output-limit/SKILL.md` is deleted; nothing points at it any more.
+Actor = the main agent. Chunking is a multi-message act, and the only surface carrying more than one message is the human-facing chat, which the main agent alone holds — a subagent emits one report and has nothing to chunk it across. No reader is left behind on the skill surface.
+
+Long output may stop = physical limit, not corruption.
+Use chunking when needed.
+
+</chat-output-limit>
+
+<discussions-intake>
+
+## Discussions intake
+
+Canonical. `skills/operations-discussions/SKILL.md` is deleted; nothing points at it any more.
+Actor = the main agent. What this constrains is how an externally-originated issue is read, and `skills/task-subagent-delegation/SKILL.md` Rules puts `issue management` on `Parent retains` with no mode branch. The subagent implements from an issue whose origin does not reach its work, so no reader is left behind on the skill surface.
+
+Discussions = external user entry point.
+A bot is stationed in Discussions.
+Bot capabilities: issue creation, issue reading.
+Bot does not commit or modify code.
+
+External users interact via Discussions -> bot creates issue -> AI implements from issue.
+
+</discussions-intake>
+
 </main-agent-procedures>

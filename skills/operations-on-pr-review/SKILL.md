@@ -1,28 +1,12 @@
 ---
 name: operations-on-pr-review
-description: Invoke when CI has passed and the PR has reached its review surface / a delegated subagent has reached its stop condition and needs that mode literal. Makes AI self-review mandatory in every mode, holds the canonical delegated-subagent stop condition split by mode, and carries the follow-through on deferred items, which lands after merge in the same session.
+description: Invoke when a delegated subagent has reached its stop condition and needs that mode literal / a delegated subagent is about to report to the parent and must confirm where its session ends / subagent capability is unavailable and the parent is executing operations directly. Holds the canonical delegated-subagent stop condition split by mode; the surrounding PR review flow lives in `rules/operations/main-agent-procedures.md`.
 layer: L4-operations
 ---
 
 <pr-review>
 
 # PR Review
-
-AI self-review is mandatory in every mode (trigger / semi_auto / auto).
-Skipping self-review before merge is a spec violation. Self-review runs first; external human check (if any) is layered on top, not in place of it.
-
-Review basis:
-  repository-state-first:
-    review basis = issue body + linked branch + PR diff + CI result + when the brakes ran, the parent's aggregated findings comment on the PR and the commit bodies carrying the author's adjudication of it
-    local-only success does not close review
-
-Self-review procedure (all modes):
-  Actor = parent in `auto` / `semi_auto`, subagent in `trigger` (`skills/task-subagent-delegation/SKILL.md` Rules).
-  In the first two it is the agent that merges; in `trigger` no agent merges, and the actor is the subagent
-  because its self-review lands before its own stop point (Delegated-subagent stop condition below).
-  That agent reviews the PR diff against issue requirements (see `skills/task-pr-review-judgment/SKILL.md`).
-  self-review pass -> post formal review record (`rules/operations/main-agent-procedures.md` Self-review formal record) -> proceed to mode-specific human gate.
-  self-review fail -> fix and recommit (restart [CI Loop]).
 
 Delegated-subagent stop condition (canonical, split by mode):
   if execution_mode == auto or execution_mode == semi_auto:
@@ -48,50 +32,12 @@ Delegated-subagent stop condition (canonical, split by mode):
     ends before that.
   Other surfaces point here. Do not restate the condition; the second copy is what drifts.
 
-Self-review formal record (all modes, mandatory):
-  Canonical = `rules/operations/main-agent-procedures.md` Self-review formal record. The requirement, the
-  `gh pr review --comment` command, and the required body items live there, not here: the actor is the parent in
-  `auto` / `semi_auto`, and the parent does not read this file (that file's The bar and its pair). Do not restate
-  them here; the second copy is what drifts.
-
-Mode-specific human gate after self-review:
-
-if execution_mode == auto:
-  No human gate. Self-review pass -> proceed to [Merge Execution].
-
-if execution_mode == semi_auto:
-  Type-gated human check.
-  patch -> no human gate. Self-review pass -> proceed to [Merge Execution].
-  minor / major -> human check required after self-review pass (procedure = `rules/operations/main-agent-procedures.md` Review approval check).
-  Version type is the same judgment axis used at release (see `rules/operations/release-version-rule.md`). AI proposes type at PR creation time; on unclear, default to the safer side (minor) and ask human.
-
-  Per-PR exception (content-based axis) and the L1 brake 2 override that supersedes it live in
-  `rules/operations/execution-mode.md` `semi_auto mode:`. Read them there before waiving the human
-  check. The exception was restated here once and the override, added to the canonical file later,
-  never reached the copy — a PR touching L1 Model Layer source then read as patch-waived at this
-  surface, which is the merge gate's own. Do not restate either; the second copy is what drifts.
-
-if execution_mode == trigger:
-  Human check required on every PR after self-review pass.
-  Procedure = `rules/operations/main-agent-procedures.md` Review approval check. The wait itself, the
-  webhook-preferred detection, the `gh pr view --json reviewDecision` fallback, and what the decision
-  releases all live there, not here: the actor at this wait is the parent in every mode that raises the
-  gate — in this mode the approval arrives after the delegated subagent's session has ended (Delegated-subagent
-  stop condition above) — and the parent does not read this file (`rules/operations/main-agent-procedures.md`
-  The bar and its pair). Do not restate them here; the second copy is what drifts.
-
-<follow-through-on-deferred-items>
-
-## Follow-through on deferred items
-
-Self-review records may legitimately defer items as "out of PR scope" (e.g. workspace memory cleanup, follow-up issue filing, doc-only follow-up). Deferred ≠ ignored:
-
-- Workspace-side deferrals (memory edits, local config) execute in the SAME session immediately after merge. Do not push them to the next session.
-- Repo-side deferrals (follow-up issues, separate PR for unrelated cleanup) are filed BEFORE merge so they are not lost.
-- Human APPROVED comments that contain "〜したんだよね？" / "did you also do X?" / similar embedded confirmations are part of the approval condition, not optional small talk. Treat the embedded confirmation as an additional gate and respond to it in the same session.
-
-Merge is not the closing bracket; the deferred-item handoff is.
-
-</follow-through-on-deferred-items>
+Why this condition alone is held here, while the flow around it is not: the literal's actor is the subagent,
+and the parent is only its carrier at the delegation moment (`skills/task-subagent-prompt/SKILL.md` Resume-phase
+authority boundary), which is the shape `rules/operations/main-agent-procedures.md` The bar and its pair resolves
+by leaving the canonical in the skill. The surrounding flow resolves the other way — its actor is the parent in
+`auto` / `semi_auto` — so the self-review mandate, the review basis, the self-review procedure, the mode-specific
+human gate, and the follow-through on deferred items all live at `rules/operations/main-agent-procedures.md`
+PR review. Do not restate them here; the second copy is what drifts.
 
 </pr-review>

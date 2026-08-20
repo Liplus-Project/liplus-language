@@ -77,6 +77,8 @@ Li+リポジトリからLi+ファイルを取得する方法を指定します�
 
 リリースはどのモードでも人間の確認が必要です。
 
+### 言語設定の適用範囲
+
 `LI_PLUS_BASE_LANGUAGE` と `LI_PLUS_PROJECT_LANGUAGE` は、いずれも配布先workspace専用です。対話言語・成果物言語のどちらについても、liplus-language リポジトリ内部の運用ルールは変更しません。
 
 ### LI_PLUS_BASE_LANGUAGE

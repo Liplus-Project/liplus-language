@@ -90,7 +90,7 @@ Three primary edges; declare the applicable ones on a state-form entry.
 
 - **Delete only under the conditions in `docs/Decision-Structure.md`** (premise invalidated, target feature removed, consolidated into a requirements spec). Deleting because the entry looks stale is the preserve-or-destroy reflex, not a judgment.
 - **Verify the specification literally before writing**, per `rules/evolution/autonomy-block-shape.md` Literal verification. An impression-based entry becomes fuel for a later impression-critique loop.
-- **Entry language = `LI_PLUS_PROJECT_LANGUAGE`** (resolved from the workspace's Li+config.md). Mixing languages within an entry is not allowed.
+- **Entry language = `LI_PLUS_PROJECT_LANGUAGE`** (resolved from the workspace's Li+config.md). Mixing languages within an entry is not allowed. That value resolves against the host workspace, and the carve-out fixing where its reach stops is the same one the body lines carry: when the wiki being written is that of the repository at `LI_PLUS_REPO` itself, `LI_PLUS_PROJECT_LANGUAGE` does not reach the entry language, and what does is fixed by that repository's own governance. Canonical is `rules/operations/operations.md` Operations Rules; read it there, it is not restated here.
 - **A rename or deletion may break cross-references; do not close that by attention.** The Cross-reference integrity assertion in `skills/operations-on-wiki-sync/SKILL.md` detects it at the next wiki sync. Closure is structural.
 
 </maintenance-refactor-framing>

@@ -74,7 +74,7 @@ Answers go where the author's adjudication goes (Report shape, Author's adjudica
 
 The ratio of evaluators reporting a finding (3/3, 2/3, 1/3) is a cheap prior on where to spend verification effort first. It is not a judgment input. The verdict on a finding comes from checking its literal against the source: a 1/3 finding that holds up is adopted, and a 3/3 finding that does not is dropped. The ratio is kept rather than discarded because verifying every finding at equal cost is not practical and the parent's own literal check is not infallible either. The parent states it on each finding when it consolidates them at Procedure step 4, and it stays a statement there — consolidation is not the place a finding is weighed. The field the ratio occupies in the self-review is fixed at Procedure step 9; the shape of the reports it is counted from is fixed at Report shape.
 
-The one place this skill fixes a count as a threshold is the fixed axis (`skills/evolution-impression-literal-detection/SKILL.md` Aggregation), whose numbers come from the asymmetry of that judgment - over-trimming load-bearing spec phrasing is the costly error - not from counting votes. The per-judgment aggregation rule above is likewise selected from asymmetry; majority is not among its options.
+The one place this skill fixes a count as a threshold is the fixed axis (`skills/evolution-impression-literal-detection/SKILL.md` Aggregation), whose numbers come from the asymmetry of that judgment - over-trimming load-bearing spec phrasing is the costly error - not from counting votes. The per-judgment aggregation rule above is likewise selected from asymmetry; majority is not among its options. Both halves — the triage signal and this carve-out — reach the author as one held literal (Report shape, Parent's aggregated comment); the parent copies it rather than restating this section in its own words at the head of that comment.
 
 </design-dimensions>
 
@@ -95,7 +95,7 @@ The one place this skill fixes a count as a threshold is the fixed axis (`skills
 
    On the brake 1 path the material named in the prompt is the PR URL, the pushed commit SHA, and the green CI run URL — never a path inside the parent's clone, which would put every evaluator on a baseline any one of them can move. The reason that set is fixed is canonical in `rules/evolution/initiator-autonomy.md` Two-stage brake. The rule governs what the prompt *names*, so step 2's operational copy is unaffected: it reaches the evaluator as auto-injected context, not as a named path.
 
-   Each per-draft axis goes into the prompt in the form fixed at Axis statement form; the fixed axis is outside that form's scope. Five more things go in alongside the axes and the material:
+   Each per-draft axis goes into the prompt in the form fixed at Axis statement form; the fixed axis is outside that form's scope and enters as the held literal at `skills/evolution-impression-literal-detection/SKILL.md` Prompt literal, copied verbatim with nothing added to it. Five more things go in alongside the axes and the material:
    - the no-write literal verbatim (see Constraint: Evaluator does not modify the evaluation target)
    - the retrieval commands, so the evaluator does not assume a clone is needed: `gh pr diff <n> --repo <owner>/<repo>` returns the diff and `gh api repos/<owner>/<repo>/contents/<path>?ref=<SHA>` returns any file body at that SHA
    - the allowance that an axis needing a repository-wide sweep clones into the evaluator's own working directory, which is off the shared surface. GitHub code search is unreliable on this repository (total hits 0), so the sweep has nowhere else to go
@@ -118,7 +118,7 @@ The one place this skill fixes a count as a threshold is the fixed axis (`skills
 
 ## Axis statement form
 
-Fixes the form each per-draft axis is written in — the set Trigger, Axis selection names with `Additional axes are selected per draft nature`, which the parent composes at spawn time. It applies at Procedure step 3, where those axes enter the prompt. The fixed axis is outside it: that axis's wording is not composed per run but held at `skills/evolution-impression-literal-detection/SKILL.md`, so the per-run authoring this section addresses does not reach it, and it enters the prompt as its own spec words it.
+Fixes the form each per-draft axis is written in — the set Trigger, Axis selection names with `Additional axes are selected per draft nature`, which the parent composes at spawn time. It applies at Procedure step 3, where those axes enter the prompt. The fixed axis is outside it: that axis's wording is not composed per run but held as a copy-verbatim literal at `skills/evolution-impression-literal-detection/SKILL.md` Prompt literal, so the per-run authoring this section addresses does not reach it. The exclusion rests on the literal being held there. Held, the axis carries no blank for one of the parts below to be filled in on it; stated in prose alone, the exclusion leaves the field open on an axis the parent is writing the rest of the prompt around.
 
 The gap it closes: the parent authors the instrument in the same moment it is reading the instrument's target literally, and the literal check that reaches the target does not reach the instrument. The recurring form is one axis name carrying more than one question — joined visibly, or compressed into a single predicate that reads as one.
 
@@ -152,6 +152,11 @@ Scope = the brake 1 path. brake 2 is out: its evaluator has its own prompt file 
 
 ### Parent's aggregated comment
 
+- **Preamble**: the comment opens with one held literal, copied rather than composed:
+
+  > The 3/3, 2/3 and 1/3 counts below are a triage signal on where to check first, not a judgment input. Adjudicate each finding by checking its literal against the source at the named SHA, and adopt or drop it on that. One axis stands outside this line: the fixed impression-literal axis carries absolute thresholds in its own spec (`skills/evolution-impression-literal-detection/SKILL.md` Aggregation), and its counts are applied there as written.
+
+  Both clauses are payload. The first without the second is false where the fixed axis lands; the second without the first leaves the per-draft axes' counts reading as votes (Design Dimensions, Ratio is a triage signal). The parent restating this in its own words is what generalizes the first over the carve-out the second names, which is why the wording is held here. Where the workspace resolves to a language other than English the preamble is rendered in it like the rest of the parent's prose (Language below), and rendering carries both clauses.
 - **A finding** keeps the full form it arrived in: the verbatim quote, its `path:line`, and why it is a defect. Compressing it here would push the re-fetch onto the author, which is the cost the full-length rule above exists to remove; consolidation earns its place by removing duplication across evaluators, not by shortening a finding. Duplicates collapse into one entry stating how many of the N raised it.
 - **Clean axes** carry their one line through as well. The author aggregates cross-axis at Procedure step 6, and a comment listing only findings leaves it aggregating over a denominator it cannot see.
 - **Prohibited**: an accept, a reject, a ranking, or a recommendation. Those are the author's at Procedure step 7, and prose that leans on a finding here arrives ahead of the actor entitled to weigh it.

@@ -1,6 +1,6 @@
 ---
 name: evolution-impression-literal-detection
-description: Invoke when an evaluator is answering the fixed impression-literal axis on a Li+ source draft / a phrase in a rules or skills or adapter draft needs testing for whether it load-bears on behavior semantic / brake 1 findings on rhetorical drift are being adjudicated before merge / a Li+ source sentence is about to be kept or removed on a judgment that rests on impression rather than behavior. Provides the removal test and the refine thresholds.
+description: Invoke when an evaluator is answering the fixed impression-literal axis on a Li+ source draft / a brake 1 evaluator prompt is being composed and the fixed axis has to enter it / a phrase in a rules or skills or adapter draft needs testing for whether it load-bears on behavior semantic / brake 1 findings on rhetorical drift are being adjudicated before merge / a Li+ source sentence is about to be kept or removed on a judgment that rests on impression rather than behavior. Provides the prompt literal that axis is copied from, the removal test, and the refine thresholds.
 layer: L2-evolution
 ---
 
@@ -38,6 +38,18 @@ A split on this axis (1-of-3, or 2-of-3) is a divergence, so it also runs the sa
 False-negative backstop: all-3-miss cases route to post-merge observation per `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format (2-week cycle). Post-merge drift surfacing is on a separate axis from this pre-merge detection.
 
 Rationale: behavior-vs-impression boundary is context-dependent, so N=1 flag carries false-positive risk. The threshold prevents over-trimming load-bearing L1 spec phrasing.
+
+<prompt-literal>
+
+## Prompt literal
+
+The form this axis enters an evaluator prompt in — on the brake 1 path and on the other Trigger entries alike (`skills/evolution-parallel-agent-eval/SKILL.md` Trigger). Copy it verbatim; do not re-compose it per spawn, and add nothing to it. That file's Axis statement form excludes this axis from the five parts it fixes for the axes selected per draft, and holding the wording here is what lets the exclusion hold: there is no blank for one of those parts to be filled in on this axis. The material the prompt names alongside it stays the parent's, fixed at that file's Procedure step 3 on the brake 1 path and at its step 2 for a draft that is not on one. The literal resolves against whichever of the two the prompt named, so it is copied unchanged on either.
+
+> **Fixed axis — impression-literal detection.** Take each phrase the draft under evaluation adds or modifies in Li+ source (`rules/*`, `skills/*`, `adapter/*`) and remove it: does the rule's behavior semantic change? Unchanged means the phrase is impression literal, and that is a finding on this axis; changed means it load-bears and is clean. Judge the added and modified lines, not the surrounding unchanged text. The Positive and Negative lists bounding this axis, including the categories that are protected and must not be flagged, are at `skills/evolution-impression-literal-detection/SKILL.md`; retrieve that file at the revision this prompt names and apply it as written. Report each flagged phrase as a verbatim quote with its `path:line`. With nothing flagged, what the verdict rests on is the set you read rather than any one line: report the axis clean in one line naming the draft you swept and how many added and modified Li+ source lines it carried. Do not aggregate and do not apply a threshold: this axis's thresholds are absolute and are applied to the N reports after yours arrives.
+
+The literal names the file instead of carrying the Positive and Negative lists inside itself: a second copy of them one section below the first is the copy that drifts, and the evaluator already holds a retrieval command that resolves a repository path at whichever revision the paragraph above resolved to.
+
+</prompt-literal>
 
 <detection-signs>
 

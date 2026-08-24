@@ -138,7 +138,7 @@ Target: `{workspace_root}/.claude/settings.json`
 Real files, copied verbatim into `{workspace_root}/.claude/hooks/` on bootstrap
 (with `{LI_PLUS_TAG}` placeholder replaced by the resolved target tag):
 
-- `adapter/claude/hooks/on-user-prompt.sh` — per-turn Trigger Check Gate re-arm + webhook check (Character_Instance is loaded via output-styles, not per-turn re-notify)
+- `adapter/claude/hooks/on-user-prompt.sh` — per-turn Trigger Check Gate re-arm + webhook re-arm (the call half is `poll`-only; the handling half is emitted in every delivery mode — see the mcp_tool entry behavior section below). Character_Instance is loaded via output-styles, not per-turn re-notify
 - `adapter/claude/hooks/on-session-start.sh` — Cold-start Synthesis material emitter (matcher-aware: `startup` runs diff-only against `{workspace_root}/.claude/state/last-cold-start-emit.json`; `resume` / `clear` / `compact` / `fork` re-anchor only the cold-start rule anchor — see `rules/evolution/cold-start-synthesis.md` for the emission-state table)
 
   All five documented SessionStart matchers are registered. An unregistered
@@ -174,10 +174,21 @@ Preconditions for the entry to actually deliver webhook context to the AI:
    side, so the wrapped output reaches the AI prompt context.
 
 `Li+config.md`'s `LI_PLUS_WEBHOOK_DELIVERY` setting controls the *bash hook's*
-reminder text behavior (poll / channel / mcp_hook) independently. The
-`mcp_tool` entry itself fires unconditionally; setting
-`LI_PLUS_WEBHOOK_DELIVERY=mcp_hook` suppresses the bash hook's reminder text so
-the wrap delivery is the single source of webhook context.
+call half (poll / channel / mcp_hook) independently. The `mcp_tool` entry itself
+fires unconditionally; setting `LI_PLUS_WEBHOOK_DELIVERY=mcp_hook` suppresses the
+bash hook's "call the tool yourself" line, so the wrap delivery is the single
+source of webhook context.
+
+It does not suppress the handling half. The webhook block carries two separable
+things — who calls the tool, and what to do with what arrives — and the delivery
+mode selects only the first. `channel` and `mcp_hook` both replace the call and
+neither replaces the handling, so the report filter and the `mark_processed`
+re-arm are emitted in every mode. They have to be emitted by the hook rather than
+left to the always-on canonical
+(`rules/operations/main-agent-procedures.md` Foreground webhook notification
+intake): its firing moment is `each user turn start`, and residency is a load
+guarantee, not a firing one. Dropping both halves together is #1798 — events were
+delivered into context and no surface said what to do with them.
 
 If `github-webhook-mcp` is **not connected**: Claude Code's mcp_tool resolver
 returns a `not connected` error per turn. The error is surfaced as plain text

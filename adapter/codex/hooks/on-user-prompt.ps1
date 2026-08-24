@@ -14,7 +14,8 @@
 #
 # Webhook delivery: the Claude version emits a reminder so the AI calls the
 # github-webhook-mcp tool. The poll/channel/mcp_hook switch is read from
-# Li+config.md LI_PLUS_WEBHOOK_DELIVERY (default = poll = emit reminder).
+# Li+config.md LI_PLUS_WEBHOOK_DELIVERY (default = poll) and gates the call half
+# of the webhook block only; the handling half is emitted in every mode.
 $ErrorActionPreference = 'SilentlyContinue'
 
 # Read stdin payload (Codex passes JSON: session_id, cwd, hook_event_name, ...).
@@ -38,13 +39,17 @@ if (Test-Path -LiteralPath $configFile) {
 
 $sb = [System.Text.StringBuilder]::new()
 
+# The call half is poll-only; the handling half is unconditional. Rationale
+# and the #1798 failure it repairs are in the claude port this one mirrors.
+[void]$sb.AppendLine('')
+[void]$sb.AppendLine('━━━ Webhook: check pending notifications ━━━')
 if ($webhookDelivery -ne 'channel' -and $webhookDelivery -ne 'mcp_hook') {
-  [void]$sb.AppendLine('')
-  [void]$sb.AppendLine('━━━ Webhook: check pending notifications ━━━')
   [void]$sb.AppendLine('Run mcp__github-webhook-mcp__get_pending_status silently.')
-  [void]$sb.AppendLine('Report only foreground-relevant or notable items.')
-  [void]$sb.AppendLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 }
+[void]$sb.AppendLine('Report only foreground-relevant or notable items.')
+[void]$sb.AppendLine('mark_processed every consumed event; own-operation arrivals promptly.')
+[void]$sb.AppendLine('Intake detail: rules/operations/main-agent-procedures.md Foreground webhook notification intake; mark_processed mandate: rules/operations/operations.md Operations Rules (both always-on).')
+[void]$sb.AppendLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 
 # --- Trigger Check Gate re-arm (every turn) ---
 [void]$sb.AppendLine('')

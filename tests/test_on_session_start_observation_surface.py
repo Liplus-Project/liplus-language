@@ -96,6 +96,15 @@ def posix_path(path: Path) -> str:
     return text
 
 
+def project_slug(path: Path) -> str:
+    """The `~/.claude/projects/<slug>` name Claude Code derives from a path.
+
+    Same derivation the claude hook applies to `CLAUDE_PROJECT_DIR`: the POSIX
+    form of the path with `:`, `/` and the backslash all replaced by `-`.
+    """
+    return re.sub(r"[:/\\]", "-", posix_path(path))
+
+
 def slash_path(path: Path) -> str:
     """Native path with forward slashes; accepted by PowerShell on every host."""
     return str(path).replace("\\", "/")
@@ -166,6 +175,19 @@ def no_new_material_marker(hook_output: str) -> str | None:
         lines = [line for line in body.split("\n") if line.strip()]
         if len(lines) == 1 and NO_NEW_MATERIAL in lines[0]:
             return lines[0]
+    return None
+
+
+def self_eval_section(hook_output: str) -> str | None:
+    """Body of the self-evaluation head section, or None when it was empty.
+
+    Located by topic for the same reason `observation_section` is. An empty body
+    is never emitted at all, so None is also how "no self-eval log resolved"
+    reads.
+    """
+    for banner, body in emitted_sections(hook_output):
+        if "self-evaluation" in banner.lower():
+            return body
     return None
 
 
@@ -356,10 +378,9 @@ class Workspace:
         self.stub_bin.mkdir(parents=True)
         self._write_gh_stub()
 
-        slug = re.sub(r"[:/\\]", "-", posix_path(self.workspace))
         # Memory directory candidates, in each adapter's own precedence order.
         self.claude_projects = self.home / ".claude" / "projects"
-        self.claude_primary = self.claude_projects / slug / "memory"
+        self.claude_primary = self.slug_memory(self.workspace)
         self.shared_memory = self.workspace / "memory"
         self.codex_secondary = self.liplus / "memory"
 
@@ -406,6 +427,16 @@ class Workspace:
             "---\nalwaysApply: true\n---\n\n# Cold-start Synthesis\n\n"
             f"{token} anchor body.\n{h2}",
         )
+
+    def slug_memory(self, path: Path) -> Path:
+        """`~/.claude/projects/<slug>/memory` for an arbitrary directory.
+
+        The slug derivation is the hook's own, applied here to paths other than
+        the workspace so a test can plant a memory directory under a slug that
+        encloses this session's project directory, or under one that belongs to
+        a different workspace entirely.
+        """
+        return self.claude_projects / project_slug(path) / "memory"
 
     def memory_candidates(self, adapter: str) -> tuple[Path, Path]:
         """(higher precedence, lower precedence) memory directory for an adapter."""
@@ -780,11 +811,11 @@ class MemoryDirResolutionTest(ObservationSurfaceTestCase):
         super().setUp()
         self.observation_descriptors = ("reachable",)
 
-    def due_entry(self) -> str:
+    def due_entry(self, descriptor: str = "reachable", pr: str = "2000") -> str:
         return "\n".join(
             [
-                "## observation: reachable",
-                "pr: 2000",
+                f"## observation: {descriptor}",
+                f"pr: {pr}",
                 f"expires: {iso(7)}",
                 f"next_check: {iso(-1)}",
                 "verdict_state: pending",
@@ -832,10 +863,15 @@ class MemoryDirResolutionTest(ObservationSurfaceTestCase):
         `~/.claude/projects/*/memory` newest-first. The populated-not-merely-
         existing rule applies there too, which the two named-candidate cases
         above cannot reach. Claude-only: the codex hooks have no glob stage.
+
+        Both slugs here enclose the project directory, so the scope guard (#1796)
+        admits both and the populated condition is what decides between them.
+        That separation is the point: this case measures the populated condition
+        alone, and the two cases below measure the scope guard alone.
         """
         workspace = self.new_workspace()
-        populated = workspace.claude_projects / "other-project" / "memory"
-        empty = workspace.claude_projects / "empty-project" / "memory"
+        populated = workspace.slug_memory(workspace.workspace.parent)
+        empty = workspace.slug_memory(workspace.workspace.parent.parent)
         workspace.write(populated, "self-evolution-observation.md", self.due_entry())
         empty.mkdir(parents=True, exist_ok=True)
         # `ls -1td` orders by mtime, so make the empty slug strictly newer: it is
@@ -846,6 +882,79 @@ class MemoryDirResolutionTest(ObservationSurfaceTestCase):
 
         section = self.require_section(self.run_hook("claude_sh", workspace))
         self.assertEqual(self.surfaced(section), self.expected())
+
+    def test_claude_glob_fallback_prefers_an_enclosing_slug_over_a_newer_outsider(
+        self,
+    ) -> None:
+        """Both edges of the #1796 scope, measured by one selection.
+
+        Two populated memory directories, neither of them a named candidate: one
+        under the slug of a directory containing this session's project
+        directory, one under a sibling workspace's slug made strictly newer so
+        that mtime order alone would take it. The guard has to reject the
+        outsider *and* still admit the enclosing slug, and only one of the two
+        can be selected, so a single assertion catches a guard that is missing
+        and a guard narrowed to an exact slug match alike.
+
+        Asserting only that the enclosing slug is reachable would not do that:
+        pre-#1796 the fallback admitted every populated slug, so a fixture whose
+        only populated directory is the enclosing one is satisfied before the
+        change as well and measures nothing. The outsider is what supplies the
+        discrimination — it gives the wrong implementations something to pick.
+        """
+        workspace = self.new_workspace()
+        self.observation_descriptors = ("reachable", "outsider")
+        enclosing = workspace.slug_memory(workspace.workspace.parent)
+        outsider = workspace.slug_memory(workspace.workspace.parent / "elsewhere")
+        workspace.write(enclosing, "self-evolution-observation.md", self.due_entry())
+        workspace.write(enclosing, "self-evaluation_log.md", "# enclosing log\n")
+        workspace.write(
+            outsider,
+            "self-evolution-observation.md",
+            self.due_entry("outsider", "2001"),
+        )
+        workspace.write(outsider, "self-evaluation_log.md", "# outsider log\n")
+        now = time.time()
+        os.utime(outsider, (now, now))
+        os.utime(enclosing, (now - 600, now - 600))
+
+        output = self.run_hook("claude_sh", workspace)
+        self.assertEqual(self.surfaced(self.require_section(output)), self.expected())
+        self.assertIn("enclosing log", self_eval_section(output) or "")
+        self.assertNotIn("outsider log", self_eval_section(output) or "")
+
+    def test_claude_glob_fallback_does_not_cross_into_another_workspace(self) -> None:
+        """#1796: the glob fallback stops at the project directory's own scope.
+
+        The measured defect: this session's own memory directories exist but are
+        empty, `memory_dir_populated` steps over both, and the glob then claims
+        a sibling workspace's memory as this session's observe-stage input —
+        promotion candidates and a self-eval head that were never observations
+        of this workspace. An empty memory directory must read as "no material",
+        which is a silent skip, not a search next door.
+
+        The sibling is made strictly newest so mtime order alone would pick it,
+        and it is populated so the populated condition alone would admit it: the
+        scope guard is the only thing that can refuse it.
+        """
+        workspace = self.new_workspace()
+        outsider = workspace.slug_memory(workspace.workspace.parent / "elsewhere")
+        workspace.write(outsider, "self-evolution-observation.md", self.due_entry())
+        workspace.write(outsider, "self-evaluation_log.md", "# outsider log\n")
+        # This session's own candidates: present, empty, and older.
+        workspace.claude_primary.mkdir(parents=True, exist_ok=True)
+        workspace.shared_memory.mkdir(parents=True, exist_ok=True)
+        now = time.time()
+        os.utime(outsider, (now, now))
+        for own in (workspace.claude_primary, workspace.shared_memory):
+            os.utime(own, (now - 600, now - 600))
+
+        output = self.run_hook("claude_sh", workspace)
+        self.assertIsNone(
+            observation_section(output),
+            "another workspace's observation entry surfaced as this session's",
+        )
+        self.assertNotIn("outsider log", self_eval_section(output) or "")
 
 
 class NoNewMaterialMarkerTest(ObservationSurfaceTestCase):

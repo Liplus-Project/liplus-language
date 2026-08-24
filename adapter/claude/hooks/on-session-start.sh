@@ -418,6 +418,44 @@ register_section "open_in_progress_issues" "Open in-progress issues (max 5)" "$O
 # Best-effort read only: silent skip when the file is absent.
 CPD="${CLAUDE_PROJECT_DIR:-$PROJECT_ROOT}"
 CCD_SLUG=$(printf '%s' "$CPD" | sed 's|[:/\\]|-|g')
+# Scope guard for the two glob fallbacks below (#1796).
+#
+# The two named candidates can both miss while a populated memory directory sits
+# under a slug the derivation above did not produce. Rescuing that mismatch is
+# what the glob fallbacks are for and it stays. What they must not do is reach a
+# *different workspace*: the self-eval head, the promotion candidates and the
+# observation surface are this session's observe-stage input, and another
+# workspace's memory is not an observation of this one. The populated condition
+# below is right inside a slug and does not select between slugs; an empty memory
+# directory must read as "no material" and skip silently rather than send the
+# search next door.
+#
+# Accepted = a slug denoting CLAUDE_PROJECT_DIR itself or a directory enclosing
+# it, i.e. the candidate slug is CCD_SLUG or a `-`-boundary prefix of it. That
+# keeps the rescue whose answer is still this workspace (a session opened below
+# the workspace root - a worktree, say - whose material lives at the root) and
+# drops every reach sideways. The other direction is not added: no observation
+# has needed it, and `rules/model/subtractive-structural-beauty.md` (B) leaves
+# an unrequested reach out.
+#
+# The comparison is on the encoded form because the encoding is lossy and no
+# decode exists - a sibling directory whose name is our own with a path-looking
+# suffix appended reads as enclosing us. That residual is bounded to siblings
+# under our own parent; the boundary the defect crossed is the one this holds.
+memory_slug_encloses_project() {
+  local parent="${1%/memory}"
+  local slug="${parent##*/}"
+  # Either side empty would turn the boundary-prefix test into "accept every
+  # slug", which is the defect itself. Refuse instead. Not hypothetical on the
+  # CCD_SLUG side: PROJECT_ROOT falls back to "." when CLAUDE_PROJECT_DIR is
+  # unset, and a slug that names no workspace must select no workspace.
+  [ -n "$CCD_SLUG" ] && [ -n "$slug" ] || return 1
+  case "$CCD_SLUG" in
+    "$slug"|"$slug"-*) return 0 ;;
+  esac
+  return 1
+}
+
 SELFEVAL_FOUND=""
 for candidate in \
   "$HOME/.claude/projects/$CCD_SLUG/memory/self-evaluation_log.md" \
@@ -427,9 +465,16 @@ for candidate in \
     break
   fi
 done
-# Glob fallback: pick the most recently modified self-eval log under any project slug.
+# Glob fallback: most recently modified self-eval log under a project slug that
+# is in scope for this session (memory_slug_encloses_project above, #1796).
 if [ -z "$SELFEVAL_FOUND" ]; then
-  SELFEVAL_FOUND=$(ls -1t "$HOME"/.claude/projects/*/memory/self-evaluation_log.md 2>/dev/null | head -n 1)
+  while IFS= read -r selfevalcandidate; do
+    [ -n "$selfevalcandidate" ] || continue
+    if memory_slug_encloses_project "${selfevalcandidate%/*}"; then
+      SELFEVAL_FOUND="$selfevalcandidate"
+      break
+    fi
+  done < <(ls -1t "$HOME"/.claude/projects/*/memory/self-evaluation_log.md 2>/dev/null)
 fi
 SELFEVAL_HEAD=""
 if [ -n "$SELFEVAL_FOUND" ] && [ -f "$SELFEVAL_FOUND" ]; then
@@ -540,10 +585,14 @@ else
     fi
   done
   # Glob fallback mirrors the self-eval log fallback: most recently modified
-  # memory dir under any project slug, populated ones only.
+  # memory dir under a project slug in scope for this session, populated ones
+  # only. The scope guard is what keeps the populated condition from reaching
+  # across a workspace boundary (memory_slug_encloses_project, #1796); the two
+  # conditions are separate and both must hold.
   if [ -z "$MEMORY_DIR" ]; then
     while IFS= read -r memcandidate; do
       [ -n "$memcandidate" ] || continue
+      memory_slug_encloses_project "$memcandidate" || continue
       if memory_dir_populated "$memcandidate"; then
         MEMORY_DIR="$memcandidate"
         break

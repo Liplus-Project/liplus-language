@@ -28,6 +28,10 @@ Operations Rules states as a mandatory word, and by the foreground filter's
 subject. The banner text, the phrasing of each line and their order are adapter
 presentation and are deliberately not matched.
 
+The pointer is held to resolving both obligations, not merely to being present.
+A re-arm that points instead of copying is only as good as what the pointer
+reaches, and the two obligations it asserts have two homes — see CANONICAL_TOKENS.
+
 The other failure direction is pinned too, and it is not symmetric noise: the
 call half reaching a `channel` / `mcp_hook` workspace is the double delivery
 that `LI_PLUS_WEBHOOK_DELIVERY` exists to prevent (#1632 F7), so a repair that
@@ -86,9 +90,19 @@ CALL_TOKEN = "get_pending_status"
 CONSUME_TOKEN = "mark_processed"
 FILTER_TOKEN = "foreground"
 
-# Where the canonical lives. The re-arm points at it instead of copying it, the
-# shape the Trigger Check Gate re-arm in the same file already uses.
-CANONICAL_TOKEN = "rules/operations/main-agent-procedures.md"
+# Where each asserted obligation resolves. The re-arm points instead of copying,
+# the shape the Trigger Check Gate re-arm in the same file already uses — and a
+# pointer earns that shape only by reaching what the re-arm claims. The two
+# claims have two homes: the intake procedure and the report filter are in
+# `main-agent-procedures.md` Foreground webhook notification intake, whose only
+# `mark_processed` is scoped to own-operation events (`:493`), while the general
+# "every consumed event" mandate is stated in `operations.md` Operations Rules
+# (`:91`). Naming the first alone left the general half unreachable by a reader
+# who followed the pointer — brake 1 finding 1 on PR #1802, 3/3.
+CANONICAL_TOKENS = (
+    "rules/operations/main-agent-procedures.md",
+    "rules/operations/operations.md",
+)
 
 # A terse re-arm, not a transplanted procedure. The budget is deliberately loose
 # — it catches the canonical being copied into the hook, not a line added.
@@ -247,12 +261,14 @@ class HandlingHalfTest(WebhookRearmTestCase):
             for state in CALLING_STATES + REPLACING_MODES:
                 with self.subTest(adapter=adapter, delivery=state_name(state)):
                     section = self.section_for(adapter, state)
-                    self.assertIn(
-                        CANONICAL_TOKEN,
-                        section,
-                        f"{adapter} carries no pointer to the intake canonical "
-                        f"under {state_name(state)}",
-                    )
+                    for token in CANONICAL_TOKENS:
+                        self.assertIn(
+                            token,
+                            section,
+                            f"{adapter} carries no pointer to {token} under "
+                            f"{state_name(state)}; the re-arm asserts an "
+                            "obligation whose literal lives there",
+                        )
                     lines = [line for line in section.split("\n") if line.strip()]
                     self.assertLessEqual(
                         len(lines),

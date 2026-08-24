@@ -45,7 +45,7 @@ if [ "$WEBHOOK_DELIVERY" != "channel" ] && [ "$WEBHOOK_DELIVERY" != "mcp_hook" ]
 fi
 append "Report only foreground-relevant or notable items."
 append "mark_processed every consumed event; own-operation arrivals promptly."
-append "Intake detail: rules/operations/main-agent-procedures.md Foreground webhook notification intake (always-on)."
+append "Intake detail: rules/operations/main-agent-procedures.md Foreground webhook notification intake; mark_processed mandate: rules/operations/operations.md Operations Rules (both always-on)."
 append "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # --- Trigger Check Gate re-arm (every turn) ---

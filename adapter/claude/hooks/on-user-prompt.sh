@@ -10,12 +10,24 @@
 export PATH="$HOME/.local/bin:$PATH"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 
-# --- Webhook notification reminder ---
-# Read LI_PLUS_WEBHOOK_DELIVERY from Li+config.md
-#   poll (default / unset) = emit reminder text so Claude calls the MCP tool
-#   channel                = MCP channel delivers events directly; skip reminder
-#   mcp_hook               = a sibling type=mcp_tool hook entry invokes the MCP
-#                            tool directly without going through Claude; skip reminder
+# --- Webhook notification re-arm ---
+# The block carries two separable halves, and LI_PLUS_WEBHOOK_DELIVERY selects
+# only the first: who calls the tool, never who handles what arrives.
+#   call half     = "Run ... get_pending_status silently", emitted under poll
+#                   (default / unset) alone. channel delivers events over the MCP
+#                   channel and mcp_hook has a sibling type=mcp_tool entry invoke
+#                   the tool directly, so both already replace this half; emitting
+#                   it there is the double delivery described below.
+#   handling half = the report filter and mark_processed. Nothing replaces it in
+#                   any mode. Its firing moment is `each user turn start`
+#                   (rules/operations/main-agent-procedures.md Foreground webhook
+#                   notification intake), and a per-turn hook is the only surface
+#                   that can fire a turn boundary - always-on residency is a load
+#                   guarantee, not a firing one. Suppressing it alongside the call
+#                   half is #1798: events arrived and no surface said what to do
+#                   with them.
+# The re-arm stays terse and points at the canonical instead of copying it, the
+# same shape the Trigger Check Gate re-arm below uses.
 #
 # `tr -d '\r'` normalises a CRLF-saved Li+config.md, matching both codex ports
 # (.sh does the same, .ps1 uses .Trim()). Without it the extracted value is
@@ -25,13 +37,15 @@ PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 # Latent rather than live: on a Windows/Git-Bash host both gawk and MSYS command
 # substitution drop the CR on their own, so the miss needs a POSIX host.
 WEBHOOK_DELIVERY=$(awk -F= '/^LI_PLUS_WEBHOOK_DELIVERY=/{print $2}' "$PROJECT_ROOT/Li+config.md" 2>/dev/null | tr -d '\r')
+echo ""
+echo "━━━ Webhook: check pending notifications ━━━"
 if [ "$WEBHOOK_DELIVERY" != "channel" ] && [ "$WEBHOOK_DELIVERY" != "mcp_hook" ]; then
-  echo ""
-  echo "━━━ Webhook: check pending notifications ━━━"
   echo "Run mcp__github-webhook-mcp__get_pending_status silently."
-  echo "Report only foreground-relevant or notable items."
-  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 fi
+echo "Report only foreground-relevant or notable items."
+echo "mark_processed every consumed event; own-operation arrivals promptly."
+echo "Intake detail: rules/operations/main-agent-procedures.md Foreground webhook notification intake (always-on)."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # --- Trigger Check Gate re-arm (every turn) ---
 echo ""

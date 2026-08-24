@@ -207,8 +207,9 @@ is `.ps1` (Windows native, primary on the verified Codex Windows env) + `.sh`
   On `resume` / `clear` / `compact`: rules re-injection + language contract marker
   + cold-start anchor only.
 - `adapter/codex/hooks/on-user-prompt.{ps1,sh}` — per-turn Trigger Check Gate
-  re-arm + webhook reminder (Character_Instance lives in AGENTS.md, not re-notified
-  per turn).
+  re-arm + webhook re-arm, whose call half is `poll`-only and whose handling half
+  is emitted in every delivery mode (Character_Instance lives in AGENTS.md, not
+  re-notified per turn).
 - `adapter/codex/hooks/post-tool-use.{ps1,sh}` — sub-issue refs auto-append on
   `gh pr create`.
 
@@ -237,7 +238,10 @@ tag-tracking anchor. Bootstrap's tag-mismatch check reads this line.
 The Claude template adds a sibling `type: "mcp_tool"` UserPromptSubmit entry that
 calls `get_pending_status` on `github-webhook-mcp`. The Codex hooks schema documents
 only `type: "command"` handlers. Therefore the Codex webhook intake stays on the
-**poll** path: the `on-user-prompt` hook emits the reminder text and the AI calls
-the MCP tool itself. `LI_PLUS_WEBHOOK_DELIVERY=channel` / `mcp_hook` suppress the
-reminder, but a Codex host without an mcp_tool hook substrate falls back to `poll`
+**poll** path: the `on-user-prompt` hook emits the call line and the AI calls the
+MCP tool itself. `LI_PLUS_WEBHOOK_DELIVERY=channel` / `mcp_hook` suppress that call
+half only — the handling half (report filter + `mark_processed`) is emitted in every
+mode, because nothing in either mode replaces it and its firing moment is `each user
+turn start`, which only a per-turn hook can fire (#1798). A Codex host without an
+mcp_tool hook substrate falls back to `poll`
 (see `adapter/codex/AGENTS.md` Optional Webhook Notification Flow).

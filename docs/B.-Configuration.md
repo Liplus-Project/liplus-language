@@ -114,13 +114,14 @@ webhook 通知がセッションへ届く方法を指定します。`mcp__github
 
 | 値 | 動作 |
 |----|------|
-| 未設定 / `poll` | 毎ターン開始時に on-user-prompt hook がポーリングリマインダーを出力する（既定、後方互換） |
-| `channel` | MCP channel がリアルタイムにイベントを配信するため、hook のポーリングリマインダーをスキップする |
-| `mcp_hook` | UserPromptSubmit の `type: "mcp_tool"` hook が `mcp__github-webhook-mcp__get_pending_status` を直接呼び出し、結果を prompt context に注入する。bash hook のポーリングリマインダーはスキップされる（`github-webhook-mcp >= v0.11.3` が前提） |
+| 未設定 / `poll` | 毎ターン開始時に on-user-prompt hook が呼び出し指示を出力し、AI 自身に MCP ツールを呼ばせる（既定、後方互換） |
+| `channel` | MCP channel がリアルタイムにイベントを配信するため、hook の呼び出し指示をスキップする |
+| `mcp_hook` | UserPromptSubmit の `type: "mcp_tool"` hook が `mcp__github-webhook-mcp__get_pending_status` を直接呼び出し、結果を prompt context に注入する。hook の呼び出し指示はスキップされる（`github-webhook-mcp >= v0.11.3` が前提） |
 
 注意:
 
 - 値を切り替えても webhook 通知の前景判定ルールは変わりません。transport（呼び出し主体）が変わるだけです
+- したがってスキップされるのは**呼び出し指示だけ**です。取り扱い指示（前景報告フィルタと `mark_processed` の re-arm）は全モードで毎ターン出力されます。これを代替するものはどのモードにも無く、発火時刻がターン境界である以上、hook 以外に担える面が無いためです（#1798）
 - この設定は on-user-prompt hook が実行時に Li+config.md から読み取ります。bootstrap での追加アクションは不要です
 - `mcp_tool` の hook entry は `adapter/claude/hooks-settings.md` の default テンプレートに含まれており、bootstrap によって `.claude/settings.json` に自動配置されます。**手動追加は不要**になりました（旧仕様では opt-in に手動編集が必要でした）
 - 配信が実際に AI 文脈へ届く前提条件:

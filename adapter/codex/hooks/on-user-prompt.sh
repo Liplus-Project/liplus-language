@@ -36,13 +36,17 @@ CONTEXT=""
 append() { CONTEXT="${CONTEXT}$1
 "; }
 
+# The call half is poll-only; the handling half is unconditional. Rationale
+# and the #1798 failure it repairs are in the claude port this one mirrors.
+append ""
+append "━━━ Webhook: check pending notifications ━━━"
 if [ "$WEBHOOK_DELIVERY" != "channel" ] && [ "$WEBHOOK_DELIVERY" != "mcp_hook" ]; then
-  append ""
-  append "━━━ Webhook: check pending notifications ━━━"
   append "Run mcp__github-webhook-mcp__get_pending_status silently."
-  append "Report only foreground-relevant or notable items."
-  append "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 fi
+append "Report only foreground-relevant or notable items."
+append "mark_processed every consumed event; own-operation arrivals promptly."
+append "Intake detail: rules/operations/main-agent-procedures.md Foreground webhook notification intake (always-on)."
+append "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # --- Trigger Check Gate re-arm (every turn) ---
 append ""

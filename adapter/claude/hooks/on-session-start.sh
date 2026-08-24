@@ -425,13 +425,10 @@ CCD_SLUG=$(printf '%s' "$CPD" | sed 's|[:/\\]|-|g')
 # what the glob fallbacks are for and it stays. What they must not do is reach a
 # *different workspace*: the self-eval head, the promotion candidates and the
 # observation surface are this session's observe-stage input, and another
-# workspace's memory is not an observation of this one. #1796 measured the
-# crossing from two workspaces at once - each had its own memory directory
-# present but empty, `memory_dir_populated` stepped over it as unpopulated, and
-# the glob then claimed a third workspace's entries as promotion candidates. The
-# populated condition is right inside a slug and was never meant to select
-# between slugs; an empty memory directory must read as "no material" and skip
-# silently rather than send the search next door.
+# workspace's memory is not an observation of this one. The populated condition
+# below is right inside a slug and does not select between slugs; an empty memory
+# directory must read as "no material" and skip silently rather than send the
+# search next door.
 #
 # Accepted = a slug denoting CLAUDE_PROJECT_DIR itself or a directory enclosing
 # it, i.e. the candidate slug is CCD_SLUG or a `-`-boundary prefix of it. That

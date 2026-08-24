@@ -811,11 +811,11 @@ class MemoryDirResolutionTest(ObservationSurfaceTestCase):
         super().setUp()
         self.observation_descriptors = ("reachable",)
 
-    def due_entry(self) -> str:
+    def due_entry(self, descriptor: str = "reachable", pr: str = "2000") -> str:
         return "\n".join(
             [
-                "## observation: reachable",
-                "pr: 2000",
+                f"## observation: {descriptor}",
+                f"pr: {pr}",
                 f"expires: {iso(7)}",
                 f"next_check: {iso(-1)}",
                 "verdict_state: pending",
@@ -883,23 +883,45 @@ class MemoryDirResolutionTest(ObservationSurfaceTestCase):
         section = self.require_section(self.run_hook("claude_sh", workspace))
         self.assertEqual(self.surfaced(section), self.expected())
 
-    def test_claude_glob_fallback_reaches_an_enclosing_project_slug(self) -> None:
-        """The rescue the glob fallback keeps after #1796.
+    def test_claude_glob_fallback_prefers_an_enclosing_slug_over_a_newer_outsider(
+        self,
+    ) -> None:
+        """Both edges of the #1796 scope, measured by one selection.
 
-        Neither named candidate resolves and the only populated memory directory
-        sits under the slug of a directory that contains this session's project
-        directory. That is a slug the derivation did not produce but whose
-        material is still this workspace's, so it is admitted. Paired with the
-        case below, which is the same fixture with the slug moved sideways.
+        Two populated memory directories, neither of them a named candidate: one
+        under the slug of a directory containing this session's project
+        directory, one under a sibling workspace's slug made strictly newer so
+        that mtime order alone would take it. The guard has to reject the
+        outsider *and* still admit the enclosing slug, and only one of the two
+        can be selected, so a single assertion catches a guard that is missing
+        and a guard narrowed to an exact slug match alike.
+
+        Asserting only that the enclosing slug is reachable would not do that:
+        pre-#1796 the fallback admitted every populated slug, so a fixture whose
+        only populated directory is the enclosing one is satisfied before the
+        change as well and measures nothing. The outsider is what supplies the
+        discrimination — it gives the wrong implementations something to pick.
         """
         workspace = self.new_workspace()
+        self.observation_descriptors = ("reachable", "outsider")
         enclosing = workspace.slug_memory(workspace.workspace.parent)
+        outsider = workspace.slug_memory(workspace.workspace.parent / "elsewhere")
         workspace.write(enclosing, "self-evolution-observation.md", self.due_entry())
         workspace.write(enclosing, "self-evaluation_log.md", "# enclosing log\n")
+        workspace.write(
+            outsider,
+            "self-evolution-observation.md",
+            self.due_entry("outsider", "2001"),
+        )
+        workspace.write(outsider, "self-evaluation_log.md", "# outsider log\n")
+        now = time.time()
+        os.utime(outsider, (now, now))
+        os.utime(enclosing, (now - 600, now - 600))
 
         output = self.run_hook("claude_sh", workspace)
         self.assertEqual(self.surfaced(self.require_section(output)), self.expected())
         self.assertIn("enclosing log", self_eval_section(output) or "")
+        self.assertNotIn("outsider log", self_eval_section(output) or "")
 
     def test_claude_glob_fallback_does_not_cross_into_another_workspace(self) -> None:
         """#1796: the glob fallback stops at the project directory's own scope.

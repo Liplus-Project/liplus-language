@@ -22,7 +22,7 @@ The assignee is set at the delegation moment, by the parent, in the same act as 
 if execution_mode == auto or execution_mode == semi_auto:
   Subagent executes, in two phases against one delegation:
     phase 1 - branch, implementation, commit, push, PR, CI loop.
-    phase 2 (resumed by the parent after the brakes report) - read the parent's
+    phase 2 (resumed by the parent after the brake reports) - read the parent's
       aggregated findings comment, adjudicate each finding, record the accept or
       reject and its reason in the commit body, apply what was accepted, commit,
       push, CI loop. A resume carrying a parent correction on that adjudication

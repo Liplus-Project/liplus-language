@@ -261,7 +261,7 @@ Skipping self-review before merge is a spec violation. Self-review runs first; e
 
 Review basis:
   repository-state-first:
-    review basis = issue body + linked branch + PR diff + CI result + when the brakes ran, the parent's aggregated findings comment on the PR and the commit bodies carrying the author's adjudication of it
+    review basis = issue body + linked branch + PR diff + CI result + when the brake ran, the parent's aggregated findings comment on the PR and the commit bodies carrying the author's adjudication of it
     local-only success does not close review
 
 Self-review procedure (all modes):

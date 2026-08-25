@@ -4,6 +4,12 @@ Scope = the source files under `adapter/*/agents/` and the literal of
 `Li+update.md`. These assert the region's structural invariants and the
 presence of the clauses 4c.6 / 4x.5 promise.
 
+Which sources carry a region is decided by the criterion in 4c.6, so the
+carrier set is whatever that criterion currently admits — possibly empty. The
+per-source shape assertions are conditional on it and go vacuous when it is;
+branch (b)'s replacement semantic does not, because it runs against the
+synthetic carriers below rather than against the live set.
+
 Not covered, and not statically coverable: the bootstrap's runtime behavior.
 `Li+update.md` is prose an AI executes, so branch (a) creation, the branch (c)
 ask and its two outcomes, "no stale removal", and the directory create / skip
@@ -27,15 +33,6 @@ BEGIN_LITERAL = "Li+ BEGIN"
 END_LITERAL = "Li+ END"
 BEGIN_TAG_RE = re.compile(r"Li\+ BEGIN \(([^)]*)\)")
 
-# The two ports of the brake-2 evaluator. Its criteria body is what the
-# Create-only mirror froze out of installed workspaces (#1740), so both ports
-# must carry the owned region. Which OTHER sources carry one is decided by the
-# criterion in Li+update.md 4c.6, not by a list here.
-REQUIRED_CARRIERS = (
-    "adapter/claude/agents/l1-gate-eval.md",
-    "adapter/codex/agents/l1-gate-eval.toml",
-)
-
 # Li+update.md 4c.6 names these as the worked example of the question-2 branch
 # (Li+-owned criteria interleaved with a Character_Instance literal, so no one
 # contiguous region separates them). Pinning them here tests a claim the spec
@@ -48,7 +45,40 @@ NAMED_NON_CARRIERS = (
 # Instance-surface keys the Codex region must leave outside itself.
 CODEX_INSTANCE_KEYS = ("name = ", "description = ", "model_reasoning_effort = ", "sandbox_mode = ")
 
-SKILLS_DISABLE_MARKER = "# --- Skills disable enumeration (filled by bootstrap) ---"
+
+# One synthetic carrier per port, shaped as 4c.6 / 4x.5 require. These exist so
+# the branch (b) replacement semantic is exercised whether or not the live
+# carrier set is empty; they are not a claim about which real source carries a
+# region, which only the 4c.6 criterion decides.
+SYNTHETIC_CARRIERS = {
+    "synthetic.md": (
+        "---\n"
+        "name: synthetic\n"
+        "description: synthetic carrier fixture\n"
+        "tools: Read\n"
+        "---\n"
+        "\n"
+        "<!-- --- Li+ BEGIN ({LI_PLUS_TAG}) --- -->\n"
+        "\n"
+        "Owned criteria body.\n"
+        "\n"
+        "<!-- --- Li+ END --- -->\n"
+    ),
+    "synthetic.toml": (
+        "# Source: adapter/codex/agents/synthetic.toml\n"
+        "\n"
+        'name = "synthetic"\n'
+        'description = "synthetic carrier fixture"\n'
+        'model_reasoning_effort = "high"\n'
+        'sandbox_mode = "read-only"\n'
+        "\n"
+        "# --- Li+ BEGIN ({LI_PLUS_TAG}) ---\n"
+        'developer_instructions = """\n'
+        "Owned criteria body.\n"
+        '"""\n'
+        "# --- Li+ END ---\n"
+    ),
+}
 
 
 def agent_sources() -> list[Path]:
@@ -97,14 +127,16 @@ class AgentSentinelContractTest(unittest.TestCase):
     def carriers(self) -> dict[str, str]:
         return {name: text for name, text in self.sources.items() if BEGIN_LITERAL in text}
 
-    def test_the_brake_2_evaluator_carries_the_owned_region_on_both_ports(self) -> None:
-        for name in REQUIRED_CARRIERS:
+    def test_every_agent_source_is_a_carrier_or_a_create_only_file(self) -> None:
+        # No third state: a file either holds one well-formed owned region or
+        # holds neither sentinel. A half-written region would be copied whole
+        # by the Create-only branch and never refreshed by a tag bump.
+        for name, text in self.sources.items():
             with self.subTest(source=name):
-                self.assertIn(name, self.sources)
-                text = self.sources[name]
-                _, section, _ = split_region(text)
-                self.assertIn("Li+ root criteria:", section)
-                self.assertIn("verdict = PASS or DEVIATION", section)
+                if BEGIN_LITERAL in text:
+                    self.assertIn(END_LITERAL, text)
+                else:
+                    self.assertNotIn(END_LITERAL, text)
 
     def test_named_non_carriers_carry_no_region(self) -> None:
         for name in NAMED_NON_CARRIERS:
@@ -166,13 +198,8 @@ class AgentSentinelContractTest(unittest.TestCase):
                 frontmatter_close = text.index("\n---\n", 3) + len("\n---\n")
                 self.assertLess(frontmatter_close, text.index(BEGIN_LITERAL))
 
-    def test_codex_skills_disable_enumeration_stays_outside_the_region(self) -> None:
-        text = self.sources["adapter/codex/agents/l1-gate-eval.toml"]
-        self.assertIn(SKILLS_DISABLE_MARKER, text)
-        self.assertGreater(text.index(SKILLS_DISABLE_MARKER), text.index(END_LITERAL))
-
     def test_tag_bump_replaces_the_region_and_preserves_everything_outside(self) -> None:
-        for name, source in self.carriers().items():
+        for name, source in {**SYNTHETIC_CARRIERS, **self.carriers()}.items():
             with self.subTest(source=name):
                 before, old_section, after = split_region(render(source, "build-old"))
                 installed = (
@@ -206,8 +233,7 @@ class AgentSentinelContractTest(unittest.TestCase):
             ),
             "4x.5": update_section(
                 update,
-                "4x.5. Generate .codex/agents/ files "
-                "(sentinel-owned region mirror + skills-disable enumeration):",
+                "4x.5. Generate .codex/agents/ files (sentinel-owned region mirror):",
                 "## Phase 5",
             ),
         }

@@ -65,17 +65,12 @@ Per-PR exception (content-based axis):
   for human observability (e.g. "no user/system observable impact, internal
   literal only, exception applied as patch-equivalent").
   If uncertain, default to the parent's release type axis (safer-side fallback).
-
-L1 brake 2 override (orthogonal axis, supersedes per-PR exception):
-  When the PR touches L1 Model Layer source, `Evolution_Initiator_Autonomy`
-  brake 2 applies and overrides the per-PR exception above: an L1 change that
-  qualifies as patch (typo / docs alignment in `rules/model/`) still requires
-  the brake 2 evaluator to return PASS before merge. semi_auto patch
-  auto-merge does not bypass it.
-  Which files count as L1 is specified in `rules/evolution/initiator-autonomy.md`
-  Scope. What counts as touching one, mixed-PR handling, the evaluator's
-  identity, and the PASS-substitutes-human-approval semantic are in that file's
-  Two-stage brake. Do not restate them here; the second copy is what drifts.
+  L1 Model Layer source carries no override of this exception: an L1 change that
+  qualifies as patch is waived like any other. What an L1 change does carry sits
+  on axes this matrix does not hold — the observation threshold at issue formation
+  (`skills/evolution-l1-update-gating/SKILL.md`) and the post-merge runtime
+  observation (`rules/operations/operations.md` Post-L1-Merge Runtime Observation).
+  Neither is a merge gate, and neither is restated here.
 
 auto mode:
 Execution timing = AI decides.

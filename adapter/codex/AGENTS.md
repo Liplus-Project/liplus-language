@@ -134,7 +134,7 @@ Subagent_Delegation:
   Codex context inheritance (per-call):
   - Every subagent spawn must set `fork_turns` explicitly. Omitting it is prohibited.
   - Normal non-brake spawn: omit `model` so the parent model is inherited, and set `fork_turns="none"`.
-  - Brake 1 / brake 2 evaluator spawn: set `model` explicitly under the existing evaluator policy, set
+  - Brake evaluator spawn: set `model` explicitly under the existing evaluator policy, set
     `fork_turns="none"`, and pass all evaluation material in a self-contained prompt.
   - The only positive form allowed is a decimal string such as `fork_turns="3"`, and only when the
     bounded dialogue segment itself is required as evaluation material.
@@ -155,7 +155,7 @@ Subagent_Delegation:
     and form are canonical there; this block names only that the Codex side produces both forms of it.
   - What goes into the resume message = `skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary.
   - Adjudication actor and the phase split itself are canonical elsewhere
-    (`rules/evolution/initiator-autonomy.md` Two-stage brake / `skills/task-subagent-delegation/SKILL.md` Rules).
+    (`rules/evolution/initiator-autonomy.md` Merge brake / `skills/task-subagent-delegation/SKILL.md` Rules).
     This block carries the Codex-side wiring only.
 
   Serial delegation does not require worktrees.
@@ -217,10 +217,9 @@ Evolution_Initiator_Autonomy:
   self-eval reflection cycle, and L2-L6 improvement issues in general.
   No human go-sign is required to start the loop.
 
-  Two-stage brake (always-on / L1-only):
-  - brake 1 = `skills/evolution-parallel-agent-eval` mandatory for every self-evolution PR.
-  - brake 2 = L1 root-criteria evaluator (dedicated-prompt Codex agent, source: `adapter/codex/agents/l1-gate-eval.toml`; skills disabled, read-only sandbox, L1 diff + stated reason passed inline) required on top of brake 1 when the PR touches L1 Model Layer source.
-  This block carries the Codex-side wiring only (the evaluator agent source above). Firing position, PASS / DEVIATION merge semantics, and the human = final judge axis are canonical in `rules/evolution/initiator-autonomy.md` Two-stage brake; the maintenance axes that keep applying alongside the brakes (`skills/evolution-l1-update-gating` observation threshold, execution-mode matrix, noise-floor gate) are in the same file's Existing maintenance rules still apply. Do not restate either section here.
+  Merge brake (always-on):
+  - brake 1 = `skills/evolution-parallel-agent-eval` mandatory for every self-evolution PR, L1 Model Layer source included; L1 adds no brake of its own.
+  Firing position, adjudication actor, and the human = final judge axis are canonical in `rules/evolution/initiator-autonomy.md` Merge brake; the maintenance axes that keep applying alongside the brake (`skills/evolution-l1-update-gating` observation threshold, execution-mode matrix, noise-floor gate) are in the same file's Existing maintenance rules still apply. Do not restate either section here.
 
   Human gate retained for:
   - release create / Latest flip / force push / merged-PR delete / tag delete (existing release-axis gates)

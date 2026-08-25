@@ -23,7 +23,7 @@ Artifact body language is not on this list, and its absence is not a `trigger`-m
 
 # Resume-phase authority boundary
 
-In `auto` / `semi_auto`, the parent resumes the implementation subagent after the brakes report so the author adjudicates the findings (`rules/evolution/initiator-autonomy.md` Two-stage brake, Adjudication actor). The resume message is a prompt like any other, and the same injection reasoning as `mode-specific-delegation-injection` applies to it: the authority boundary at the resume point is a gate-state decision, not procedure, so conveying it does not collide with "do not convey step-by-step procedure".
+In `auto` / `semi_auto`, the parent resumes the implementation subagent after the brake reports so the author adjudicates the findings (`rules/evolution/initiator-autonomy.md` Merge brake, Adjudication actor). The resume message is a prompt like any other, and the same injection reasoning as `mode-specific-delegation-injection` applies to it: the authority boundary at the resume point is a gate-state decision, not procedure, so conveying it does not collide with "do not convey step-by-step procedure".
 
 It has to be injected rather than left to the auto-loaded rules. The subagent resumes holding a session in which it has already run the whole implementation and is one CI-green away from a mergeable PR; the pull toward "finish it" is strongest exactly there. The overrun this guards against is a delegated subagent in `semi_auto` executing both the self-review post and the merge.
 
@@ -34,7 +34,7 @@ Inject into the resume prompt:
 
   > Do not run or post the self-review, and do not merge. The self-review actor is the agent holding the merge decision, which is the parent in this mode. Report at your stop condition and exit.
 
-- (c) where the findings are: the PR URL, and that the parent's one aggregated comment on it carries them (`skills/evolution-parallel-agent-eval/SKILL.md` Constraint: Findings route through the parent as one aggregated comment). The parent holds the findings under that routing and still does not paste them into the resume message: the comment is the durable copy, and a message that survives nowhere is the wrong place for the second one. At brake 2 the same surface is reached by a different route — that evaluator has no PR surface of its own, so the parent posts the named deviation to the PR itself. Carrying it only inside the resume message would leave the one finding class that blocks merge with no durable record.
+- (c) where the findings are: the PR URL, and that the parent's one aggregated comment on it carries them (`skills/evolution-parallel-agent-eval/SKILL.md` Constraint: Findings route through the parent as one aggregated comment). The parent holds the findings under that routing and still does not paste them into the resume message: the comment is the durable copy, and a message that survives nowhere is the wrong place for the second one.
 
 A re-resume that carries a parent correction (`skills/evolution-parallel-agent-eval/SKILL.md` Procedure, Inspect the adjudication) takes these three unchanged. The correction itself is that message's subject, not a fourth injection item, and the list below stays closed.
 
@@ -46,7 +46,7 @@ Reconstruction fallback. A resume needs a target the parent can address, and the
 
 The fallback: the parent spawns a fresh subagent into the author role, and it reconstructs from the issue body, the PR diff, the PR comments, and the commit bodies on the branch, which carry any adjudication already made. The role is unchanged, so the three items above are injected unchanged. Exactly one item is added, and only because a cold session cannot supply it — the spawn enters at phase 2: the change is already implemented and the PR is open, and its work is adjudication, not implementation (`skills/task-subagent-delegation/SKILL.md` Rules, the two phases). A true resume states nothing here because its own session is the statement. Nothing else differs: same stop condition, same two negatives, same findings location, and the parent still does not paste the findings into the message.
 
-This is not the substrate-absence fallback of `skills/task-subagent-delegation/SKILL.md` Autonomy. That one fires on missing subagent capability and puts the work on the parent; here the capability is present and only the resume target is gone, so the work stays on a subagent. Routing a lost id to the parent would move adjudication off the author and break `rules/evolution/initiator-autonomy.md` Two-stage brake, Adjudication actor.
+This is not the substrate-absence fallback of `skills/task-subagent-delegation/SKILL.md` Autonomy. That one fires on missing subagent capability and puts the work on the parent; here the capability is present and only the resume target is gone, so the work stays on a subagent. Routing a lost id to the parent would move adjudication off the author and break `rules/evolution/initiator-autonomy.md` Merge brake, Adjudication actor.
 
 </resume-phase-authority-boundary>
 

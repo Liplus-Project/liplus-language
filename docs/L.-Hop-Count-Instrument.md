@@ -89,6 +89,7 @@ S2 のみ #1564 実測2 の記録（ツール2 / 文脈内2）と一致しない
 
 **S5** — anchor: `brake 2 (L1 only)`
 - → `adapter/claude/agents/l1-gate-eval.md` `[tool]`
+- 追記（#1808）—— baseline 以降、brake 2 は廃止され、アンカーも到達先も存在しない。上の跳躍数は baseline タグ時点の実測なので書き換えない。同時に `rules/evolution/initiator-autonomy.md` の節名が `Two-stage brake` から `Merge brake` へ変わっており、S2 非計数1 が名指す節名も baseline 時点の literal である。
 
 **S6** — anchor: `Application-moment trigger:`
 - 判定基準は同一ファイル内に完結。跳躍ゼロ。

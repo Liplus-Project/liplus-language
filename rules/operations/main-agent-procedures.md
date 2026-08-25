@@ -280,11 +280,10 @@ if execution_mode == semi_auto:
   minor / major -> human check required after self-review pass (procedure = Review approval check below).
   Version type is the same judgment axis used at release (see `rules/operations/release-version-rule.md`). AI proposes type at PR creation time; on unclear, default to the safer side (minor) and ask human.
 
-  Per-PR exception (content-based axis) and the L1 brake 2 override that supersedes it live in
-  `rules/operations/execution-mode.md` `semi_auto mode:`. Read them there before waiving the human
-  check. The exception was restated on the skill surface once and the override, added to the canonical
-  file later, never reached the copy — a PR touching L1 Model Layer source then read as patch-waived at
-  the merge gate's own surface. Do not restate either; the second copy is what drifts.
+  Per-PR exception (content-based axis) lives in `rules/operations/execution-mode.md` `semi_auto mode:`.
+  Read it there before waiving the human check. It was restated on the skill surface once, and a later
+  amendment to the canonical file never reached the copy — the waiver then read wider at the merge gate's
+  own surface than the canonical allowed. Do not restate it; the second copy is what drifts.
 
 if execution_mode == trigger:
   Human check required on every PR after self-review pass.

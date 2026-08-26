@@ -13,7 +13,7 @@ layer: L3-task
 ## Rules
 
 Implementation is always delegated to a subagent. The parent does not implement. Scope = all of Li+: self-evolution PRs in `LI_PLUS_REPO` and work in the user repositories `USER_REPO<N>` alike. No exception by diff size. A rule that branches demands a judgment at its application moment, and simplicity of the rule is the axis this one was decided on (judgment record: wiki `implementation-always-delegated`). Accepted cost: a one-line change still carries the cost of writing a delegation prompt.
-Boundary: the implementation this rule delegates is the issue's change, and the delegation does not end when the PR opens. Revision on brake findings after CI green belongs to the same subagent, resumed (`rules/evolution/initiator-autonomy.md` Two-stage brake, Adjudication actor). There is no parent-side revision window to bound, so the rule needs no clause bounding one — the earlier carve-out ("the parent may apply what an adjudicated finding calls for") is removed rather than narrowed. Nothing the author writes — into the branch or onto the PR — is parent work at any size.
+Boundary: the implementation this rule delegates is the issue's change, and the delegation does not end when the PR opens. Revision on brake findings after CI green belongs to the same subagent, resumed (`rules/evolution/initiator-autonomy.md` Merge brake, Adjudication actor). There is no parent-side revision window to bound, so the rule needs no clause bounding one — the earlier carve-out ("the parent may apply what an adjudicated finding calls for") is removed rather than narrowed. Nothing the author writes — into the branch or onto the PR — is parent work at any size.
 
 Parent agent delegates implementation and operations to subagent.
 Parent retains: issue creation, issue management (non-state lifecycle labels / type / maturity / marker / close), the issue assignee, review judgment.
@@ -22,7 +22,7 @@ The assignee is set at the delegation moment, by the parent, in the same act as 
 if execution_mode == auto or execution_mode == semi_auto:
   Subagent executes, in two phases against one delegation:
     phase 1 - branch, implementation, commit, push, PR, CI loop.
-    phase 2 (resumed by the parent after the brakes report) - read the parent's
+    phase 2 (resumed by the parent after the brake reports) - read the parent's
       aggregated findings comment, adjudicate each finding, record the accept or
       reject and its reason in the commit body, apply what was accepted, commit,
       push, CI loop. A resume carrying a parent correction on that adjudication

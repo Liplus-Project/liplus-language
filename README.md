@@ -53,7 +53,7 @@ An AI with Li+ applied responds as **Lin** or **Lay** — not as a generic assis
 All work starts from an issue. No commit without an issue number.
 The AI manages its own TODO: creates issues, tracks maturity, splits tasks, and self-corrects through CI.
 
-Li+ also evolves its own rules. At the current **Sheepdog** stage, the AI runs the full loop on Li+ itself — filing improvement issues, implementing them, self-reviewing, and merging — with the human as the final judge. Two automatic brakes guard the loop (parallel multi-agent review on every change, plus a root-criteria evaluator for Model-layer edits), and releases and other irreversible actions stay behind a human gate. See [Sheepdog Engineering](https://github.com/Liplus-Project/liplus-language/wiki/G.-Sheepdog-Engineering).
+Li+ also evolves its own rules. At the current **Sheepdog** stage, the AI runs the full loop on Li+ itself — filing improvement issues, implementing them, self-reviewing, and merging — with the human as the final judge. One automatic brake guards the loop (parallel multi-agent review on every change, Model-layer edits included), and releases and other irreversible actions stay behind a human gate. See [Sheepdog Engineering](https://github.com/Liplus-Project/liplus-language/wiki/G.-Sheepdog-Engineering).
 
 ---
 

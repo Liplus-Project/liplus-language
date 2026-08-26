@@ -230,20 +230,20 @@ Li+ が守るのは **「装着された role の internal stability」**、「�
 
 - **装具の位置**: AI の context に統合済み (`.claude/` 配下、毎 turn 読み込み)。ハーネス段階は通過した。
 - **装具の修正者**: AI 側に渡っている。Li+ source の編集は AI が起票・実装・self-review・merge までを担い、人間は方針提示と go-sign を出す側に回っている。
-- **ループ起動者**: AI 側に渡った (#1344 で起動者軸完成)。自己進化 issue の起票・実装・merge は AI 単独自走、`Evolution_Initiator_Autonomy` (`adapter/claude/CLAUDE.md`) として宣言されている。二段 brake (brake 1 = `skills/evolution-parallel-agent-eval` 必須 / brake 2 = L1 触る PR で根本基準評価者必須) で安全側を維持する。brake 2 の座は #1477 で Master 人間レビューから、Li+ 根本評価基準を専用プロンプトとして持つ subagent 評価者 (`adapter/claude/agents/l1-gate-eval.md`) へ移行した — PASS = Master 承認の代替 / DEVIATION = merge 不可。Human = final judge の地位 (`rules/model/role-separation.md`) と release / 不可逆外部作用の human gate は別軸で不変。
+- **ループ起動者**: AI 側に渡った (#1344 で起動者軸完成)。自己進化 issue の起票・実装・merge は AI 単独自走、`Evolution_Initiator_Autonomy` (`adapter/claude/CLAUDE.md`) として宣言されている。マージゲートの brake (brake 1 = `skills/evolution-parallel-agent-eval` 必須。L1 に触れる PR も同じ 1 本であり、L1 専用の brake は持たない) で安全側を維持する。L1 変更が担うものはマージゲートではなく別軸にあり、issue 形成時の観測閾値 (`skills/evolution-l1-update-gating/SKILL.md`)、execution-mode の minor / major 人間ゲート、merge 後のランタイム観測がそれである。Human = final judge の地位 (`rules/model/role-separation.md`) と release / 不可逆外部作用の human gate は別軸で不変。
 
 Li+ はアジリティとシープドッグの**半身段階** ── 修正者軸が AI、起動者軸が人間 ── を通過し、起動者軸も AI 側へ渡った。半身段階の履歴は、シープドッグ段階完成への過渡形態として記録される (本節旧版および parent issue #1344 に literal が残る)。
 
 ### 自己進化ループの全体像
 
-起動者軸が AI に渡った結果、観測から再観測までのループは AI 単独で回る。中心にあるのは transient な **memory** ── 観測が昇格判定の材料 (tally) を積み、評価がその閾値を読み、再観測が merge 後の観察を書き戻す。ループが閉じるのは、cold-start が memory を surface して次の周回の観測に入る瞬間である。緑のループは AI 自走、黄の 2 段 brake は自動ゲート、赤の人間ゲートはリリース・不可逆操作のみに残る。
+起動者軸が AI に渡った結果、観測から再観測までのループは AI 単独で回る。中心にあるのは transient な **memory** ── 観測が昇格判定の材料 (tally) を積み、評価がその閾値を読み、再観測が merge 後の観察を書き戻す。ループが閉じるのは、cold-start が memory を surface して次の周回の観測に入る瞬間である。緑のループは AI 自走、黄の brake は自動ゲート、赤の人間ゲートはリリース・不可逆操作のみに残る。
 
 ```mermaid
 flowchart TD
     O["観測<br/>対話・タスク中のドリフト観測"]
     E["評価<br/>昇格判定（3日窓・同種3回）"]
     D["蒸留<br/>AI が自分で issue を起票"]
-    R["内省・レビュー<br/>実装 → 2段ブレーキを通過"]
+    R["内省・レビュー<br/>実装 → ブレーキを通過"]
     IM["改善<br/>merge → リリース実行"]
     RO["再観測<br/>merge 後の観察（5分／2週間）"]
     MEM["memory（transient）<br/>観測 tally / 自己評価 log / merge 後観察<br/>永続情報は保持せず docs・wiki・rules へ昇格"]
@@ -254,9 +254,8 @@ flowchart TD
     RO -. "観察 書込" .-> MEM
     MEM == "cold-start で次の周回" ==> O
 
-    subgraph BR["2段ブレーキ（merge 前）"]
-        B1["ブレーキ1：並列評価 N≥3<br/>全 PR で必須"]
-        B2["ブレーキ2：L1 根本評価者<br/>L1 変更時のみ"]
+    subgraph BR["ブレーキ（merge 前）"]
+        B1["ブレーキ1：並列評価 N≥3<br/>全 PR で必須（L1 も同じ 1 本）"]
     end
     R --> BR
 
@@ -269,11 +268,11 @@ flowchart TD
     classDef human fill:#FAECE7,stroke:#993C1D,color:#4A1B0C;
     class O,E,D,R,IM,RO loop;
     class MEM mem;
-    class B1,B2 brake;
+    class B1 brake;
     class H human;
 ```
 
-memory は transient 専用であり、床 (noise floor) を越えた観測だけが蒸留→改善を経て docs / wiki / rules へ昇格する (`rules/evolution/promotion-judgment.md` / `rules/evolution/memory-entry-format.md`)。図の 2 段 brake と人間ゲートの literal は同節「ループ起動者」項および `rules/evolution/initiator-autonomy.md` を正本とする。
+memory は transient 専用であり、床 (noise floor) を越えた観測だけが蒸留→改善を経て docs / wiki / rules へ昇格する (`rules/evolution/promotion-judgment.md` / `rules/evolution/memory-entry-format.md`)。図の brake と人間ゲートの literal は同節「ループ起動者」項および `rules/evolution/initiator-autonomy.md` を正本とする。
 
 ### substrate 層は保留
 

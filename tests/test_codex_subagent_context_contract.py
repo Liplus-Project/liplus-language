@@ -18,7 +18,7 @@ CONTRACT_PATTERNS = {
             r'and set `fork_turns="none"`\.'
         ),
         "brake_model_context_and_prompt": (
-            r"Brake 1 / brake 2 evaluator spawn: set `model` explicitly under the existing "
+            r"Brake evaluator spawn: set `model` explicitly under the existing "
             r'evaluator policy, set\s+`fork_turns="none"`, and pass all evaluation material '
             r"in a self-contained prompt\."
         ),
@@ -50,7 +50,7 @@ CONTRACT_PATTERNS = {
             r'`fork_turns="none"` を指定する。'
         ),
         "brake_model_context_and_prompt": (
-            r"brake 1 / brake 2 evaluator spawn は既存 evaluator policy に従って "
+            r"brake evaluator spawn は既存 evaluator policy に従って "
             r'`model` を明示し、`fork_turns="none"` を指定する。'
             r"評価材料は self-contained prompt で渡す。"
         ),

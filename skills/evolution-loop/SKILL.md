@@ -18,7 +18,7 @@ Loop stages:
 
 Execution mode:
   current    = partial automation; some stages still handed to human.
-  target     = AI-sole execution of the full loop, with human as approver for release only. L1 gate = root-criteria evaluator (`adapter/claude/agents/l1-gate-eval.md`) PASS.
+  target     = AI-sole execution of the full loop, with human as approver for release only. L1 gate = the observation threshold at issue formation (`skills/evolution-l1-update-gating/SKILL.md`); at the merge gate L1 runs brake 1 like any other self-evolution PR.
 
 Stage responsibility:
   observe/evaluate = AI autonomous. No human prompt needed.

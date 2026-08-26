@@ -76,6 +76,7 @@ S2 のみ #1564 実測2 の記録（ツール2 / 文脈内2）と一致しない
 - → `skills/task-subagent-delegation/SKILL.md`（CHANGES_REQUESTED の再委譲。同一ファイル内 `adapter/claude/CLAUDE.md:126` の明示ポインタ経由であり、節移動は跳躍に数えない）`[tool]`
 - 非計数1 — 自己レビュー〜merge へ続く鎖（`rules/evolution/initiator-autonomy.md` Two-stage brake → `skills/evolution-parallel-agent-eval/SKILL.md`）: S1 が計測するため二重計上を避ける。加えてアンカー行（`:75-78`）にこの鎖を名指す明示ポインタがない — `initiator-autonomy.md` への参照は `adapter/claude/CLAUDE.md:190` / `:194` / `:196`、すなわち `Evolution_Initiator_Autonomy` ブロック内にのみ存在する。境界規則と計数規則（:14）の双方から除外。
 - 非計数2 — `rules/operations/release-version-rule.md`（release の version type 確認）: `grep -c release-version-rule adapter/claude/CLAUDE.md` = 0。アンカーからの明示ポインタが存在しない連想的参照であり、計数規則（:14）により除外。
+- 追記（#1808）—— baseline 以降、非計数1 が名指す節 `Two-stage brake` は `Merge brake` へ改名された。上の節名は baseline タグ時点の literal なので書き換えない。
 
 **S3** — anchor: `Webhook intake policy and procedures:`
 - → `skills/operations-foreground-webhook-intake/SKILL.md` `[tool]`
@@ -89,6 +90,7 @@ S2 のみ #1564 実測2 の記録（ツール2 / 文脈内2）と一致しない
 
 **S5** — anchor: `brake 2 (L1 only)`
 - → `adapter/claude/agents/l1-gate-eval.md` `[tool]`
+- 追記（#1808）—— baseline 以降、brake 2 は廃止され、アンカーも到達先も存在しない。上の跳躍数は baseline タグ時点の実測なので書き換えない。
 
 **S6** — anchor: `Application-moment trigger:`
 - 判定基準は同一ファイル内に完結。跳躍ゼロ。

@@ -186,7 +186,7 @@ CODEX ホストでは bootstrap が以下を生成します（Claude の `.claud
 | `.agents/skills/<name>/SKILL.md` | skill 本体。**trust 不要**で `description` マッチにより自動発火（実機検証済み #1502） |
 | `.codex/hooks/*.ps1`・`*.sh` | hook 本体。`.ps1` が Windows ネイティブの主経路、`.sh` が POSIX フォールバック |
 | `.codex/hooks.json` | hook 登録ファイル。絶対パスで `.codex/hooks/*` を指す（Codex には `$CLAUDE_PROJECT_DIR` 相当が無いため） |
-| `.codex/agents/*.toml` | subagent（Codex "agents"）定義。Li+ が判定基準として所有する本文は `# --- Li+ BEGIN (<tag>) ---` / `# --- Li+ END ---` の区画に入っており、build 更新のたびにこの区画だけが差し替わります（区画外のあなたの記述は保持されます）。brake-2 の `l1-gate-eval` は全 skill を無効化する enumeration を bootstrap が区画の外側に埋めます |
+| `.codex/agents/*.toml` | subagent（Codex "agents"）定義。Li+ が判定基準として所有する本文は `# --- Li+ BEGIN (<tag>) ---` / `# --- Li+ END ---` の区画に入っており、build 更新のたびにこの区画だけが差し替わります（区画外のあなたの記述は保持されます） |
 | `.codex/state/` | cold-start diff-only 出力の state。gitignore 同梱 |
 
 ### hook の一度きり GUI trust（Codex 固有の摩擦）

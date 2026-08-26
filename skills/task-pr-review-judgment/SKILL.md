@@ -13,7 +13,7 @@ layer: L3-task
 ## Responsibilities
 
 Main agent judges PR review without reading operations skills (`skills/operations-on-pr-review/SKILL.md` etc.) directly.
-Judgment basis = issue body + PR diff + CI result + when the brakes ran, the parent's aggregated findings comment on the PR and the commit bodies carrying the author's adjudication of it.
+Judgment basis = issue body + PR diff + CI result + when the brake ran, the parent's aggregated findings comment on the PR and the commit bodies carrying the author's adjudication of it.
 
 What the main agent has to execute around that judgment — the self-review formal record, the review approval
 check, and the merge procedure — is not on this surface and not on the barred one either: all three are canonical
@@ -34,8 +34,8 @@ if execution_mode == auto:
 if execution_mode == semi_auto:
   Self-review: same as auto. The main agent performs it; the subagent does not.
   The formal record is posted on pass, as in auto. A type-gated human check is then layered on top before merge.
-  Gate detail (patch direct-merge / minor / major human check / per-PR exception /
-  L1 brake 2 override) lives in `rules/operations/execution-mode.md`. Read it there.
+  Gate detail (patch direct-merge / minor / major human check / per-PR exception)
+  lives in `rules/operations/execution-mode.md`. Read it there.
 
 if execution_mode == trigger:
   External review judgment:

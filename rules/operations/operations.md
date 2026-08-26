@@ -97,7 +97,9 @@ A procedure whose actor can be the main agent is held canonically in `rules/oper
 
 ## Autonomous Run Stop Condition
 
-When AI runs without human at the wheel (overnight, semi_auto/auto execution mode reaching deploy), "deploy succeeded" is not the stop condition. Static checks (TS check, unit tests, CI) cannot guarantee runtime correctness — subrequest limits, IPC, rate limits, schema migration side effects, and similar runtime paths sit on a different axis from static verification.
+Static checks (TS check, unit tests, CI) cannot establish runtime correctness. Subrequest limits, IPC, rate limits, schema migration side effects, and similar runtime paths sit on a different axis from static verification, so a green check reports that the static axis passed and reports nothing about the runtime one. This holds wherever that pair exists — independent of who is at the wheel, of execution mode, and of whether the run reaches production. Only observation of the running system closes the runtime axis.
+
+The stop condition this section is named for is one application of that claim, not its scope. When AI runs without human at the wheel (overnight, semi_auto/auto execution mode reaching deploy), "deploy succeeded" is not the stop condition.
 
 Required final step in any autonomous run that reaches production:
 - Observe production logs for at least ~5 minutes after deploy completes.

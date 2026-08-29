@@ -176,7 +176,9 @@ Firing condition (whichever is earlier):
 - 5 or more new additions since the last consolidate
 - 2 weeks since the last consolidate
 
-After running the skill, update the `**Last consolidate run:**` line in each memory file.
+After running the skill, record the run as a single `**Last consolidate run:** <YYYY-MM-DD>` line at the head of the index `MEMORY.md`. The write is the caller's own step, performed after the skill's pass returns — not something the skill is relied on to do. One place, not one per file: the run is one fact about the memory set, and a timestamp copied into every memory file is the second copy that drifts (`rules/model/subtractive-structural-beauty.md` Core principle (A)).
+
+The line supplies the elapsed arm and only that one. The additions arm counts new additions since the last consolidate — gross — and no snapshot of the memory set's size returns a gross count: the deletions the Entry Format maintenance discipline above calls for destroy the difference between what was added and what remains, and an addition to an operational file already indexed moves no size at all. Recording a size here and subtracting it would answer a net question the arm is not asking. That arm's measure is left open. No line = never consolidated, and the trigger fires.
 
 </consolidate-trigger>
 

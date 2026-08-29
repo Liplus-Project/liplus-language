@@ -176,7 +176,9 @@ Firing condition (whichever is earlier):
 - 5 or more new additions since the last consolidate
 - 2 weeks since the last consolidate
 
-After running the skill, update the `**Last consolidate run:**` line in each memory file.
+After running the skill, record the run as a single `**Last consolidate run:** <YYYY-MM-DD> (<N> entries indexed)` line at the head of the index `MEMORY.md`, where `<N>` is the number of index rows at that moment. One place, not one per file: the run is one fact about the memory set, and a timestamp copied into every memory file is the second copy that drifts (`rules/model/subtractive-structural-beauty.md` Core principle (A)).
+
+Both arms of the firing condition read off that line — elapsed time from the date, additions from the current index row count minus `<N>`. No line = never consolidated, and the trigger fires.
 
 </consolidate-trigger>
 

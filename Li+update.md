@@ -120,6 +120,8 @@ clone mode:
    - not exists -> clone target tag directly to workspace. Proceed to step 3.
    - exists -> fetch --tags, then:
      a. Resolve and report both values: current checked-out tag and target tag from LI_PLUS_CHANNEL.
+        Name which of the two is newer: the target is not necessarily the newer one, since a channel
+        can resolve to a tag behind the current one.
      b. If same -> continue.
      c. If different -> ask the user how to proceed before continuing to Phase 4.
         Do not report bootstrap completion before this choice is resolved.

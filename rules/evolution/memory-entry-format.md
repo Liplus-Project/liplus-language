@@ -172,13 +172,13 @@ Cold-start surfacing of due / overdue entries follows `rules/evolution/cold-star
 
 Periodic cleanup via the `anthropic-skills:consolidate-memory` skill.
 
-Firing condition (whichever is earlier):
-- 5 or more new additions since the last consolidate
-- 2 weeks since the last consolidate
+Firing condition: 2 weeks since the last consolidate.
 
-After running the skill, record the run as a single `**Last consolidate run:** <YYYY-MM-DD>` line at the head of the index `MEMORY.md`. The write is the caller's own step, performed after the skill's pass returns — not something the skill is relied on to do. One place, not one per file: the run is one fact about the memory set, and a timestamp copied into every memory file is the second copy that drifts (`rules/model/subtractive-structural-beauty.md` Core principle (A)).
+After running the skill, record the run as a single `**Last consolidate run:** <YYYY-MM-DD>` line at the head of the index `MEMORY.md`. The write is the caller's own step, performed after the skill's pass returns — not something the skill is relied on to do. One place, not one per file: the run is one fact about the memory set, and a timestamp copied into every memory file is the second copy that drifts (`rules/model/subtractive-structural-beauty.md` Core principle (A)). No line = never consolidated, and the trigger fires.
 
-The line supplies the elapsed arm and only that one. The additions arm counts new additions since the last consolidate — gross — and no snapshot of the memory set's size returns a gross count: the deletions the Entry Format maintenance discipline above calls for destroy the difference between what was added and what remains, and an addition to an operational file already indexed moves no size at all. Recording a size here and subtracting it would answer a net question the arm is not asking. That arm's measure is left open. No line = never consolidated, and the trigger fires.
+One arm, because the second one could not be measured. It read `5 or more new additions since the last consolidate` and asked a gross question, and no snapshot of the memory set's size returns a gross count: the deletions the Entry Format maintenance discipline above calls for destroy the difference between what was added and what remains, and an addition to an operational file already indexed moves no size at all. Recording a size here and subtracting it answers a net question that arm was not asking. Narrowing what it counts does not restore it either — the narrowed set is still counted gross, and is still subject to the same deletion. A monotonic counter splits, and neither half holds: the half a structure can guarantee, a hook over writes to the memory directory, counts write operations, and a write operation is not an addition — one edit can carry several entries, and several edits can carry one; the half that counts additions needs the writer to increment, since the writer alone knows how many entries its edit carried, and that is the unguaranteed procedure `rules/model/subtractive-structural-beauty.md` sends back to be replaced by a structure.
+
+What the dropped arm supplied was volume-proportional firing — a sweep answering to how much was written rather than to how long has passed. It supplied that in wording only: having no measure, it never fired, so every consolidate that has run, ran on the elapsed arm. Volume is held elsewhere, and stays held: duplicates are resolved at write time by update (Entry Format above), and each operational file is bounded by its own spec (Scope above). A burst that outruns those is a defect in them and is repaired there, not by re-arming this trigger.
 
 </consolidate-trigger>
 

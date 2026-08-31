@@ -8,7 +8,7 @@ layer: L2-evolution
 
 # Fixed axis: impression-literal detection
 
-For Li+ source drafts, impression-literal detection is a fixed axis included alongside the spec-nature axes selected per draft (`skills/evolution-parallel-agent-eval/SKILL.md` Trigger, Axis selection). It covers content-independent rhetorical drift at the post-write pre-merge surface, distinct from `rules/model/trigger-check-gate.md` Frame check (pre-judgment surface protecting dialogue).
+For Li+ source drafts, impression-literal detection is a fixed axis included alongside the two held per-draft axes (`skills/evolution-parallel-agent-eval/SKILL.md` Trigger, Axis selection). It covers content-independent rhetorical drift at the post-write pre-merge surface, distinct from `rules/model/trigger-check-gate.md` Frame check (pre-judgment surface protecting dialogue).
 
 Scope — what counts as a Li+ source draft for this axis: prose the agent loads and runs as its own instruction. The criterion is derived from the removal test below, which can only run where the text is itself the behavior being regulated. Surfaces it currently resolves to: `rules/**/*.md`, `skills/**/SKILL.md`, `adapter/**/*`, `Li+update.md`.
 
@@ -31,7 +31,7 @@ Negative (protected, NOT detection target):
 
 Test: can this sentence be removed without changing the rule's behavior semantic? Yes → impression literal.
 
-Aggregation — this axis is fixed, so it does not take the per-judgment aggregation rule brake 1 selects for the axes chosen per draft; it overrides through the fixed-axis route at `skills/evolution-parallel-agent-eval/SKILL.md` Procedure step 6, at these absolute thresholds:
+Aggregation — this axis is fixed, so it does not take the per-judgment aggregation rule brake 1 selects for its two per-draft axes; it overrides through the fixed-axis route at `skills/evolution-parallel-agent-eval/SKILL.md` Procedure step 6, at these absolute thresholds:
 - 2 or more of N=3 flag the same literal → refine immediately.
 - 1 of N=3 flags → do not auto-refine; record the flagged literal in the commit body as the adjudication of that finding, naming the below-threshold count as the reason it was not refined. That is the surface the parent inspects at `skills/evolution-parallel-agent-eval/SKILL.md` Procedure step 8, which is how it reaches the self-review.
 
@@ -47,7 +47,7 @@ Rationale: behavior-vs-impression boundary is context-dependent, so N=1 flag car
 
 ## Prompt literal
 
-The form this axis enters an evaluator prompt in — on the brake 1 path and on the other Trigger entries alike (`skills/evolution-parallel-agent-eval/SKILL.md` Trigger). Copy it verbatim; do not re-compose it per spawn, and add nothing to it. That file's Axis statement form excludes this axis from the five parts it fixes for the axes selected per draft, and holding the wording here is what lets the exclusion hold: there is no blank for one of those parts to be filled in on this axis. The material the prompt names alongside it stays the parent's, fixed at that file's Procedure step 3 on the brake 1 path and at its step 2 for a draft that is not on one. The literal resolves against whichever of the two the prompt named, so it is copied unchanged on either.
+The form this axis enters an evaluator prompt in — on the brake 1 path and on the other Trigger entries alike (`skills/evolution-parallel-agent-eval/SKILL.md` Trigger). Copy it verbatim; do not re-compose it per spawn, and add nothing to it. That file's Axis statement form excludes this axis from the five parts it fixes for the two per-draft axes, and holding the wording here is what lets the exclusion hold: this axis carries no blank at all, where those two are held with `Unit` and `Scope` left open for the parent to fill per run. The material the prompt names alongside it stays the parent's, fixed at that file's Procedure step 3 on the brake 1 path and at its step 2 for a draft that is not on one. The literal resolves against whichever of the two the prompt named, so it is copied unchanged on either.
 
 > **Fixed axis — impression-literal detection.** Take each phrase the draft under evaluation adds or modifies in Li+ source — the prose the agent loads and runs as its own instruction — and remove it: does the rule's behavior semantic change? Unchanged means the phrase is impression literal, and that is a finding on this axis; changed means it load-bears and is clean. Judge the added and modified lines, not the surrounding unchanged text. The surfaces that criterion resolves to, and the Positive and Negative lists bounding this axis, including the categories that are protected and must not be flagged, are at `skills/evolution-impression-literal-detection/SKILL.md`; retrieve that file at the revision this prompt names and apply it as written. Report each flagged phrase as a verbatim quote with its `path:line`. With nothing flagged, what the verdict rests on is the set you read rather than any one line: report the axis clean in one line naming the draft you swept and how many added and modified Li+ source lines it carried. Do not aggregate and do not apply a threshold: this axis's thresholds are absolute and are applied to the N reports after yours arrives.
 

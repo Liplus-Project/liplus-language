@@ -34,9 +34,9 @@ Discrimination line:
 >
 > Test: does the conduct of whoever reads the sentence change? Changes (what to do, or when, is fixed by it) -> behavior, keep it in the body. What changes is only whether the reader is convinced -> reasoning, relocate it.
 
-Destination: relocate, do not delete. This test shares its skeleton with the removal test at `skills/evolution-impression-literal-detection/SKILL.md`, whose destination is deletion. Take the destination from this section when the phrase is reasoning, and from that skill when the phrase is impression literal.
+Destination: relocate, do not delete. Take the destination from this section when the phrase is reasoning, and from `skills/evolution-impression-literal-detection/SKILL.md` when the phrase is impression literal. Judgment record: `source-body-behavior-only-reasoning-relocates`.
 
-Pointer is required. At the place reasoning is taken out of, leave `Judgment record: <slug>` naming the wiki entry that holds it. Taking reasoning out with no pointer left behind is prohibited — the pointer is what carries the revision stability that skill's Negative list protects.
+Pointer is required. At the place reasoning is taken out of, leave `Judgment record: <slug>` naming the wiki entry that holds it. Taking reasoning out with no pointer left behind is prohibited. Judgment record: `source-body-behavior-only-reasoning-relocates`.
 
 Order: strip first, write the record after, from the strip's own diff. An absent judgment record does not bar the strip. Writing it is required of the work unit that strips.
 

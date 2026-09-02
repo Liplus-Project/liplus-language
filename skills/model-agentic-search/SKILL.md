@@ -110,7 +110,7 @@ Classify before the first query. Not exclusive; multi-type questions decompose i
 
 </block-1-question-type>
 
-<block-2-tiers>
+<block-2-tier-1-preview-tier-2-deep-dive>
 
 ## Block 2 — Tier 1 preview, Tier 2 deep-dive
 
@@ -127,9 +127,9 @@ Classify before the first query. Not exclusive; multi-type questions decompose i
 
 Tier = depth within one surface. Stage (Block 4) = when to switch source families.
 
-</block-2-tiers>
+</block-2-tier-1-preview-tier-2-deep-dive>
 
-<block-3-cross-check>
+<block-3-cross-check-three-states>
 
 ## Block 3 — Cross-check, three states
 
@@ -150,9 +150,9 @@ Suspicion signals:
 
 Carry a confidence signal with the state: `agree-with-internal` / `disagree-with-internal` (fires State C) / `no-internal-opinion`. Propagate it to the answer surface so downstream consumers read the confidence dimension without re-running the cross-check.
 
-</block-3-cross-check>
+</block-3-cross-check-three-states>
 
-<block-4-escalation>
+<block-4-composite-escalation>
 
 ## Block 4 — Composite escalation
 
@@ -164,9 +164,9 @@ Carry a confidence signal with the state: `agree-with-internal` / `disagree-with
 
 Stage 1 = same-family re-query (State B). Stage 2 = orthogonal source families (State C). Hard stop after one full Stage 2 round if State C remains; surface to human.
 
-</block-4-escalation>
+</block-4-composite-escalation>
 
-<block-5-stop>
+<block-5-stop-condition>
 
 ## Block 5 — Stop condition
 
@@ -178,9 +178,9 @@ Stop on any of:
 
 Do not loop. `skills/model-loop-safety/SKILL.md` applies: same approach twice in dialogue, three times in task = stop and switch.
 
-</block-5-stop>
+</block-5-stop-condition>
 
-<web-consumption>
+<web-consumption-discipline>
 
 ## Web consumption discipline
 
@@ -190,7 +190,7 @@ On top of Block 3, when the surface is Web:
 - disagreement between Web sources fires State C
 - agreement with internal knowledge is a cross-check signal, not grounds to skip citation
 
-</web-consumption>
+</web-consumption-discipline>
 
 <parent-ai-discipline>
 
@@ -215,6 +215,9 @@ Log to `memory/feedback_<topic>.md` or the self-evaluation log when notable:
 - mode misclassification, with direction (question read as work = under-invoke; work read as question = cost only)
 - domain tag misfires, especially an informative claim wrongly skipped
 - escape fire frequency (near-zero with frequent damping = damping too aggressive; frequent = the work-mode bias is cosmetic)
+
+Side-by-side compare with naive single-shot consumption when retrospectively visible.
+Feed observations into the evolution loop observe stage (`skills/evolution-loop/SKILL.md`).
 
 Promotion of recurring patterns follows `rules/evolution/promotion-judgment.md`.
 

@@ -25,7 +25,7 @@ Bug-fix PRs on user repos and PRs filed by human at the issue stage are outside 
 
 ### Governed surface (condition 2)
 
-brake 1's detector is a reader — N>=3 agents reading the diff. Condition 2 therefore holds for a changed file when both are true of it: it constrains how the system behaves, and reading is the only thing that would catch it being wrong. What closes condition 2 is that criterion, not the entries below; the entries are the cases that have come up.
+brake 1's detector is a reader — an agent reading the diff. Condition 2 therefore holds for a changed file when both are true of it: it constrains how the system behaves, and reading is the only thing that would catch it being wrong. What closes condition 2 is that criterion, not the entries below; the entries are the cases that have come up.
 
 - `rules/**/*.md`, `skills/**/SKILL.md`, `adapter/**/*`, `Li+update.md` — prose the agent loads and runs as its own instruction. Nothing executes it, so a drifted line raises no failure and the reader is the only detector.
 - `tests/**` and `.github/workflows/**` — the enforcement backstop: the contract tests, and the workflow that runs them and produces the check. `rules/model/subtractive-structural-beauty.md` requires a structure wherever a procedure's execution is not guaranteed, and this is that structure. It is executed code, but it is the code no check stands behind, so its failures are silent in a way the exclusion below is not: a test that has stopped checking what it claims still reports green, and a workflow whose trigger no longer matches or whose gating step was dropped produces no run and therefore no red check at all. Nothing fails, and reading is again the only detector.

@@ -143,6 +143,6 @@ grep -nE "self-eval|self-evaluation" rules/evolution/promotion-judgment.md
 
 ## 適用範囲外
 
-- 「劣化がないこと」の証明はしない。本 instrument が測るのは跳躍数のみ。品質面の検証はブレーキ1（`skills/evolution-parallel-agent-eval`、N>=3）が各 PR に対して別軸で掛かる。
+- 「劣化がないこと」の証明はしない。本 instrument が測るのは跳躍数のみ。品質面の検証はブレーキ1（`skills/evolution-parallel-agent-eval`）が各 PR に対して別軸で掛かる。
 - バイト削減量は測らない。#1564 実測1 のとおり削り代は約 32 KB であり、バイトは主軸ではない。
 - 実行時のトークン消費・レイテンシは測らない。静的到達性のみ。

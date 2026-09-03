@@ -90,7 +90,7 @@ A subagent with Agent tool access (`Tools: *`, typically `general-purpose`) defa
 How to apply:
 - When delegating a bounded read-only investigation (audit / consistency check / grep-and-report) to a subagent, explicitly state in the prompt: "Do this yourself directly using Read/Grep/Bash — do not spawn further subagents via the Agent tool for this task."
 - If a subagent's task has 2-3 independent sub-checks that seem parallelizable, prefer sequencing them directly inside one subagent's own tool calls over letting it decide to spawn children.
-- Reserve subagent-of-subagent delegation for genuinely large-scale parallel work where the fan-out is deliberate and bounded (e.g. `skills/evolution-parallel-agent-eval` N=3 evaluator pattern — a controlled, known-width fan-out is exempt from this prohibition).
+- Reserve subagent-of-subagent delegation for genuinely large-scale parallel work where the fan-out is deliberate and bounded (e.g. `skills/evolution-parallel-agent-eval` evaluator pattern — a controlled, known-width fan-out is exempt from this prohibition).
 
 This is a tool-authority bound (which tools the subagent may use), not a conveyed step-by-step procedure — it does not conflict with `skills/task-subagent-delegation/SKILL.md` Rules' "do not convey: step-by-step procedure" constraint, same reconciliation as `mode-specific-delegation-injection` above.
 

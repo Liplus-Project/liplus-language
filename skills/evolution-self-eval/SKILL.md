@@ -40,7 +40,7 @@ Root cause categories: spec-gap, reading-drift, judgment-bias, success.
 
 When a root cause pattern repeats: record the occurrence in the promotion-judgment tally. `rules/evolution/promotion-judgment.md` owns the noise-floor threshold and decides when the issue is filed; do not restate its numbers here. Repeat detection at this surface is an observation, not a filing trigger — below the threshold, no issue is filed. Self-eval-origin observations carry no exemption from the gate; the same tally applies.
 Once the gate authorizes filing, the spec improvement is filed under the `Evolution_Initiator_Autonomy` initiator path.
-The self-evolution PR runs AI-led with brake 1 (`skills/evolution-parallel-agent-eval`, N>=3), L1 Model Layer changes included — L1 adds no brake of its own. No per-change human go-sign (the brake substitutes); human gates remain on the release / irreversible axis (`rules/evolution/initiator-autonomy.md` Recovery axis) and the execution-mode minor/major PR review (`rules/operations/execution-mode.md`).
+The self-evolution PR runs AI-led with brake 1 (`skills/evolution-parallel-agent-eval`), L1 Model Layer changes included — L1 adds no brake of its own. No per-change human go-sign (the brake substitutes); human gates remain on the release / irreversible axis (`rules/evolution/initiator-autonomy.md` Recovery axis) and the execution-mode minor/major PR review (`rules/operations/execution-mode.md`).
 
 </self-evaluation>
 

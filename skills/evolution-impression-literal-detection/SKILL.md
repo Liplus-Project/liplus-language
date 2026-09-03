@@ -31,13 +31,13 @@ Negative (protected, NOT detection target):
 
 Test: can this sentence be removed without changing the rule's behavior semantic? Yes → impression literal.
 
-Aggregation — this axis fixes no threshold and takes no count. Every flagged literal is a finding, and it is adjudicated like any other, by the author at `skills/evolution-parallel-agent-eval/SKILL.md` Procedure step 7: run the removal test above on the flagged phrase against the source, and adopt or drop the finding on what the test returns. Record each accept and each reject in the commit body as that file's Report shape requires; a reject's reason is the test's result on that phrase, never a count. Judgment record: `brake1-evaluator-floor-lowered-to-one`.
+Aggregation — this axis fixes no threshold and takes no count. Every flagged literal is a finding, and it is adjudicated like any other, by the author at `skills/evolution-parallel-agent-eval/SKILL.md` Procedure step 7: run the removal test above on the flagged phrase against the source, and adopt or drop the finding on what the test returns. Record each accept and each reject in the commit body as that file's Report shape requires; a reject's reason is the test's result on that phrase, never a count.
 
 Where the adjudication finds the flagged phrase sitting on the line between the Positive and Negative lists above rather than on one side of it, that is a finding about those lists: record it and route it as a spec-gap observation (`rules/evolution/promotion-judgment.md`). It does not change the adjudication of the phrase, which the removal test settles.
 
 False-negative backstop: a literal this axis did not flag routes to post-merge observation per `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format (2-week cycle). Post-merge drift surfacing is on a separate axis from this pre-merge detection.
 
-Rationale: the behavior-vs-impression boundary is context-dependent, so a flag does not carry its own verdict — what settles it is the removal test run against the source, which is why the finding goes to the author's adjudication rather than to an automatic refine. That is what keeps load-bearing L1 spec phrasing from being over-trimmed. Judgment record: `brake1-evaluator-floor-lowered-to-one`.
+Rationale: the behavior-vs-impression boundary is context-dependent, so a flag does not carry its own verdict — what settles it is the removal test run against the source, which is why the finding goes to the author's adjudication rather than to an automatic refine. That is what keeps load-bearing L1 spec phrasing from being over-trimmed.
 
 <prompt-literal>
 

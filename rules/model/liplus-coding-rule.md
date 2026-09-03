@@ -25,7 +25,7 @@ What Li+ must do to carry it is stated in `rules/model/absolute.md`, not in this
 
 ## Body States Behavior
 
-Li+ source body (`rules/` / `skills/` / `adapter/`) states behavior. Reasoning is held by the judgment record; the body names it.
+Li+ source body (`rules/` / `skills/` / `adapter/`) states behavior. Reasoning is held by the judgment record.
 
 Discrimination line:
 
@@ -34,9 +34,7 @@ Discrimination line:
 >
 > Test: does the conduct of whoever reads the sentence change? Changes (what to do, or when, is fixed by it) -> behavior, keep it in the body. What changes is only whether the reader is convinced -> reasoning, relocate it.
 
-Destination: relocate, do not delete. Take the destination from this section when the phrase is reasoning, and from `skills/evolution-impression-literal-detection/SKILL.md` when the phrase is impression literal. Judgment record: `source-body-behavior-only-reasoning-relocates`.
-
-Pointer is required. At the place reasoning is taken out of, leave `Judgment record: <slug>` naming the wiki entry that holds it. Taking reasoning out with no pointer left behind is prohibited. Judgment record: `source-body-behavior-only-reasoning-relocates`.
+Destination: relocate, do not delete. Take the destination from this section when the phrase is reasoning, and from `skills/evolution-impression-literal-detection/SKILL.md` when the phrase is impression literal.
 
 Order: strip first, write the record after, from the strip's own diff. An absent judgment record does not bar the strip. Writing it is required of the work unit that strips.
 

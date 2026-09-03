@@ -14,13 +14,13 @@ Delegated-subagent stop condition (canonical, split by mode):
     This point is reached twice, and the literal above is the whole condition at both:
       first pass  - the issue's change is implemented. The parent then runs brake 1 at the position fixed by
                     `rules/evolution/initiator-autonomy.md` Merge brake.
-      second pass - the parent has resumed this subagent with its aggregated findings comment on the PR; it has
-                    adjudicated them, recorded each accept or reject and its reason in the commit body, and
-                    pushed what it accepted. Reaching CI green again ends this pass. If nothing was accepted,
-                    the same point is reached with no new commit, and the adjudication travels in the report.
-                    The parent then inspects that adjudication and may resume this subagent again with a
-                    correction named; each such round ends at this same point, and the count is uncapped
-                    (`skills/evolution-parallel-agent-eval/SKILL.md` Procedure, Inspect the adjudication).
+      second pass - the parent has resumed this subagent onto a brake round's evaluator findings on the PR;
+                    it has adjudicated them, posted each accept or reject and its reason as a comment on that
+                    thread, and pushed what it accepted. Reaching CI green again ends this pass. If nothing was
+                    accepted, the same point is reached with no new commit, the adjudication comment posted all
+                    the same. The parent may then open a further round, which ends at this same point; the
+                    number of them is capped
+                    (`skills/evolution-parallel-agent-eval/SKILL.md` Procedure, Round trips).
     Adjudication belongs to the resumed subagent, not to the parent
     (`rules/evolution/initiator-autonomy.md` Merge brake, Adjudication actor). The parent self-reviews and
     merges after the last pass.

@@ -261,7 +261,7 @@ Skipping self-review before merge is a spec violation. Self-review runs first; e
 
 Review basis:
   repository-state-first:
-    review basis = issue body + linked branch + PR diff + CI result + when the brake ran, the parent's aggregated findings comment on the PR and the commit bodies carrying the author's adjudication of it
+    review basis = issue body + linked branch + PR diff + CI result + when the brake ran, the PR comment thread carrying each round's evaluator findings and the author's adjudication of them
     local-only success does not close review
 
 Self-review procedure (all modes):
@@ -515,7 +515,7 @@ scope = notifications (classic PAT)
 ## Handoff continuity
 
 Canonical. `skills/operations-handoff-continuity/SKILL.md` holds the pointer.
-Actor = both, which is what puts the canonical here rather than there. The subagent holds the commits to push; the main agent holds state of its own across a boundary — the aggregated findings comment, and the resume target for an implementation subagent, which lives in the spawning session's context alone. `chat memory` below is the main agent's and no one else's. The issue body is not the load-bearing half of that list here: the subagent may update it mid-implementation (`skills/task-subagent-delegation/SKILL.md` Responsibilities), which is why it reaches both actors rather than fixing one.
+Actor = both, which is what puts the canonical here rather than there. The subagent holds the commits to push; the main agent holds state of its own across a boundary — the resume target for an implementation subagent, which lives in the spawning session's context alone. `chat memory` below is the main agent's and no one else's. The issue body is not the load-bearing half of that list here: the subagent may update it mid-implementation (`skills/task-subagent-delegation/SKILL.md` Responsibilities), which is why it reaches both actors rather than fixing one.
 
 If token/session/model boundary may interrupt work = push useful intermediate state to the linked personal branch.
 Handoff source of truth = issue body + linked branch + commits/PR.

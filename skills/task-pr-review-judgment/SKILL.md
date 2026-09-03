@@ -13,7 +13,7 @@ layer: L3-task
 ## Responsibilities
 
 Main agent judges PR review without reading operations skills (`skills/operations-on-pr-review/SKILL.md` etc.) directly.
-Judgment basis = issue body + PR diff + CI result + when the brake ran, the parent's aggregated findings comment on the PR and the commit bodies carrying the author's adjudication of it.
+Judgment basis = issue body + PR diff + CI result + when the brake ran, the PR comment thread carrying each round's evaluator findings and the author's adjudication of them.
 
 What the main agent has to execute around that judgment — the self-review formal record, the review approval
 check, and the merge procedure — is not on this surface and not on the barred one either: all three are canonical

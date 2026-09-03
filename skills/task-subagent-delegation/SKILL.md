@@ -22,26 +22,28 @@ The assignee is set at the delegation moment, by the parent, in the same act as 
 if execution_mode == auto or execution_mode == semi_auto:
   Subagent executes, in two phases against one delegation:
     phase 1 - branch, implementation, commit, push, PR, CI loop.
-    phase 2 (resumed by the parent after the brake reports) - read the parent's
-      aggregated findings comment, adjudicate each finding, record the accept or
-      reject and its reason in the commit body, apply what was accepted, commit,
-      push, CI loop. A resume carrying a parent correction on that adjudication
-      re-enters this same phase; the parent opens as many as convergence needs
-      (`skills/evolution-parallel-agent-eval/SKILL.md` Procedure, Inspect the adjudication).
+    phase 2 (resumed by the parent when a brake round posts its findings) - read that
+      round's evaluator comments on the PR, adjudicate each finding, post the accept or
+      reject and its reason as a comment on the same thread, apply what was accepted,
+      commit, push, CI loop. A resume opening a later round re-enters this same phase;
+      the cap on how many is `skills/evolution-parallel-agent-eval/SKILL.md`
+      Procedure, Round trips.
   Stop condition = `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition.
-    It is reached at the end of each phase, and again at the end of each correction
-    round; the literal is the same at all of them.
-  Parent retains: spawning the brake evaluators, consolidating their findings into the
-  one PR comment, resuming the subagent between the phases, inspecting the adjudication,
-  self-review, merge decision. Adjudication is not parent-side.
+    It is reached at the end of each phase, and again at the end of each brake round;
+    the literal is the same at all of them.
+  Parent retains: spawning the brake evaluators, resuming the subagent between the phases
+  and between rounds, self-review, merge decision. Adjudication is not parent-side, and
+  neither is the exchange it runs in: the parent does not consolidate the findings, does
+  not read them while relaying, and does not judge the adjudication
+  (`rules/evolution/initiator-autonomy.md` Merge brake, Channel).
   The two modes share one subagent boundary: what differs is the human PR check
   (`semi_auto` adds one for minor / major per `rules/operations/execution-mode.md`),
   and that is a parent-side gate, not a subagent execution step.
-  Subagent does not post the self-review record, in either phase: it is a PR comment,
-  and the actor is fixed by `rules/operations/main-agent-procedures.md` PR review,
-  Self-review procedure. In phase 2 the subagent posts no PR comment at all — its adjudication
-  goes in the commit body — so nothing it writes there is available to be mistaken
-  for the self-review record.
+  Subagent does not post the self-review record, in either phase: the actor is fixed by
+  `rules/operations/main-agent-procedures.md` PR review, Self-review procedure. In phase 2
+  the subagent does write to the PR — its adjudication is a comment there — so the
+  separation rests on what it posts, not on whether it posts: adjudication of the round's
+  findings, and nothing carrying a verdict on the PR as a whole.
 if execution_mode == trigger:
   Subagent executes: branch, implementation, commit, push, PR, CI loop, self-review.
   `merge` is not on that list. What the mode matrix's `AI` merge executor names here is

@@ -1,6 +1,6 @@
 ---
 name: evolution-rule-effect-measurement
-description: Invoke when a line or section is about to be added to Li+ source and whether it changes anything on top of the body already there has to be settled by measurement rather than by argument / a stage 1 injection arm prompt is being composed and its source-of-information constraint has to be written / a stage 2 run is being set up with `scripts/measure_rule_effect.py` / a probe is being written for a candidate line / a stage 1 zero-difference result is about to be read as grounds for dropping a line / two arms have returned and the verdict is being formed. Provides the two-stage design, the probe specification, the per-stage contamination constraints, and the judge separation.
+description: Invoke when a line or section is about to be added to Li+ source and whether it changes anything on top of the body already there has to be settled by measurement rather than by argument / a stage 1 injection arm prompt is being composed and its source-of-information constraint has to be written / a stage 2 run is being set up with `scripts/measure_rule_effect.py` / a probe is being written for a candidate line / a stage 1 zero-difference result is about to be read as grounds for dropping a line / two arms have returned and the verdict is being formed / a self-evolution PR has reached CI green and whether a measurement is raised before brake 1 has to be settled / a measurement that could not be run is about to be recorded on such a PR. Provides the two-stage design, its position on the self-evolution PR pipeline, the probe specification, the per-stage contamination constraints, and the judge separation.
 layer: L2-evolution
 ---
 
@@ -25,6 +25,16 @@ The gate stands at the entrance for new material, not over a sweep of the existi
 The comparison target is the tree carrying everything already there, never an empty one. A line is asked for its marginal effect on top of the current body, which makes this a duplicate detector. A one-line-at-a-time entrance exam against nothing passes almost everything: few lines are meaningless alone, and what produces the bloat is duplication.
 
 Sweeping existing sections is spare-capacity follow-up, not the primary path.
+
+### Position on the self-evolution PR pipeline
+
+Canonical for where this gate fires on that pipeline. The order is implementation -> CI -> measurement -> brake 1: the run is raised after the CI run goes green and before the brake 1 evaluators are spawned, against the same baseline they are given (`rules/evolution/initiator-autonomy.md` Merge brake fixes that baseline). A run raised before CI measures a body other than the one the evaluators read.
+
+Actor = the parent. At this position it is already holding that material and scheduling the evaluator spawn, so no other actor rebuilds the same material. The arms are separate `claude -p` processes (Running stage 2), and putting a subagent between the parent and an arm changes nothing about how the arm is raised. Judge separation below is untouched by this: what the parent raises is the run, not the verdict.
+
+Firing condition = a PR whose diff over the governed body (`rules/**` / `skills/**` / `adapter/**`) deletes more lines than it adds. A PR that adds lines is not measured here: the result would be that the added lines are working, which is not the claim in dispute. Self-report is not accepted in place of the diff, and no threshold is set on the margin.
+
+The run is not mandatory. Measurement consumes external budget (Running stage 2), so a run that cannot be taken does not hold the merge gate — proceed to brake 1 without it. What holds instead is the record: write `unmeasured` with its reason — spend limit, outside the firing condition, or nothing in the diff to raise a probe over — into the parent's self-review record (`rules/operations/main-agent-procedures.md` Self-review formal record). Never leave it blank and never record it as a negative result. A blank is read as no problem, which makes the absence of a verdict work as a verdict. That record is written after brake 1 has exited, so nothing in it reaches an evaluator.
 
 </application-point>
 
@@ -164,7 +174,7 @@ What the harness enforces structurally, so it is not left to care at run time:
 
 Cost floor: one minimal arm charged 95,069 cache-creation input tokens, which is the always-loaded surface being read and is near-independent of probe length. One round of 5 probes x 3 repetitions x 2 arms is 30 launches. Measurement consumes external budget, so it is not made mandatory.
 
-Placing this in the pipeline is a separate axis and is not settled here.
+Where the run sits on the self-evolution PR pipeline is Application point, Position on the self-evolution PR pipeline; the budget is why the run there is not mandatory.
 
 </running-stage-2>
 

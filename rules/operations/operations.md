@@ -124,14 +124,14 @@ For L1 substrate changes (any file with `layer: L1-model` frontmatter, typically
 
 Invocation anchor: this procedure is named at the merge moment by `rules/operations/main-agent-procedures.md` Merge Execution, which the merging agent holds in either role. An `operations-*` skill cannot carry this anchor: it does not fire for the main agent, this procedure's actor in `auto` / `semi_auto`, so an anchor placed there points past its own reader. The procedure body within the 5-min window remains recall-dependent, which `rules/model/subtractive-structural-beauty.md` procedure-vs-structure binary puts on the replace side; a hook-based replacement is the open form of that repair.
 
-Start point = the first session that carries the changed rule in runtime context, and the ~5 min budget is spent inside that session. Where the merging session carries it — a workspace running Li+ source at `main` — run the set below at merge. Where it does not — a workspace synced to a tag, which the merged rule reaches only at a later tag — the merging session defers instead: record the deferral in that PR's `memory/self-evolution-observation.md` entry, in its `notes` (`rules/evolution/memory-entry-format.md` Self-Evolution Observation Format), and take the observation in the first session that carries the rule, appending the result to the same `notes`.
+Start point = the first session that carries the changed rule in runtime context, and the ~5 min budget is spent inside that session. Where the merging session carries it — a workspace running Li+ source at `main` — run the set below at merge. Where it does not — a workspace synced to a tag — the merging session defers instead: record the deferral in that PR's `memory/self-evolution-observation.md` entry, in its `notes` (`rules/evolution/memory-entry-format.md` Self-Evolution Observation Format), and take the observation in the first session that carries the rule, appending the result to the same `notes`.
 
 Required observation set, within ~5 min inside that session:
 
 1. **Trigger sample**: read the changed rule, then feed one representative prompt that should fire it at its application moment. Verify the rule fires. A rule not carried in runtime context stops here — defer per Start point above.
 2. **Self-eval entry**: write a 3-5 line verdict (fire / partial / miss) to `memory/self-evaluation_log.md`. Miss verdict escalates immediately to the 2-week post-merge cycle of `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format.
 
-A deferring session writes no verdict. The three values above are taken only in the session that carries the rule.
+A deferring session writes no verdict.
 
 Optional (best-effort):
 

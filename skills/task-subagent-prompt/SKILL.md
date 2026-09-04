@@ -111,9 +111,7 @@ Detection signs:
 
 Inject the shelving form below into every delegation prompt, worktree mode or not. It replaces `git stash push` / `git stash pop`, which are not to be used in delegated work.
 
-Injection is the structure here, not a convenience. The moment the subagent needs to shelve — "does the new test fail before the fix?" — arrives mid-implementation and announces itself to nothing: no skill description fires on it, and a skill body is lazy-loaded at invoke, so the prompt is the only surface guaranteed to be in context when the reach for `git stash` happens. Injecting unconditionally is also what removes the judgment the actor cannot make: whether another working tree is live on the same `.git` is invisible from inside a worktree, so the subagent cannot decide when the safe form is needed.
-
-`refs/stash` is a single ref in the shared `.git`. A worktree separates the working tree and the index; it does not separate the stash stack. Two worktrees pushing to it share one stack, and either `pop` takes the top entry regardless of which worktree pushed it — succeeding with no error and no warning, which is why the failure is silent rather than reported.
+`refs/stash` is a single ref in the shared `.git`. A worktree separates the working tree and the index; it does not separate the stash stack. Two worktrees pushing to it share one stack, and either `pop` takes the top entry regardless of which worktree pushed it — succeeding with no error and no warning.
 
 Injected literal:
 
@@ -128,7 +126,7 @@ git stash apply refs/worktree/wipstash
 git update-ref -d refs/worktree/wipstash
 ```
 
-`refs/worktree/*` is git's worktree-local ref namespace: the same ref name resolves to a different object in each worktree, and `git stash create` never touches `refs/stash`. Do not qualify the name with an issue number — the namespace already separates it, and a per-issue name is a degree of freedom that buys nothing.
+`refs/worktree/*` is git's worktree-local ref namespace: the same ref name resolves to a different object in each worktree, and `git stash create` never touches `refs/stash`. Do not qualify the name with an issue number — the namespace already separates it.
 
 Three properties the caller holds that `git stash push` did not require:
 

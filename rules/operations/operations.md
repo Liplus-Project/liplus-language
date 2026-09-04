@@ -120,14 +120,18 @@ Detection signs that the stop condition is being misapplied:
 
 ## Post-L1-Merge Runtime Observation
 
-For L1 substrate changes (any file with `layer: L1-model` frontmatter, typically `rules/model/*`), apply a short-window observation after merge, paired with the Autonomous Run Stop Condition above. The observable is AI internal judgment behavior at the rule-application moment, while the prod-deploy observation above tracks external process output. Different observable axes, same nominal 5-min budget.
+For L1 substrate changes (any file with `layer: L1-model` frontmatter, typically `rules/model/*`), apply a short-window observation once the changed rule is carried in runtime context, paired with the Autonomous Run Stop Condition above. The observable is AI internal judgment behavior at the rule-application moment, while the prod-deploy observation above tracks external process output. Different observable axes, same nominal 5-min budget.
 
 Invocation anchor: this procedure is named at the merge moment by `rules/operations/main-agent-procedures.md` Merge Execution, which the merging agent holds in either role. An `operations-*` skill cannot carry this anchor: it does not fire for the main agent, this procedure's actor in `auto` / `semi_auto`, so an anchor placed there points past its own reader. The procedure body within the 5-min window remains recall-dependent, which `rules/model/subtractive-structural-beauty.md` procedure-vs-structure binary puts on the replace side; a hook-based replacement is the open form of that repair.
 
-Required observation set within ~5 min after merge:
+Start point = the first session that carries the changed rule in runtime context, and the ~5 min budget is spent inside that session. Where the merging session carries it — a workspace running Li+ source at `main` — run the set below at merge. Where it does not — a workspace synced to a tag — the merging session defers instead: record the deferral in that PR's `memory/self-evolution-observation.md` entry, in its `notes` (`rules/evolution/memory-entry-format.md` Self-Evolution Observation Format), and take the observation in the first session that carries the rule, appending the result to the same `notes`.
 
-1. **Trigger sample**: feed one representative prompt that should fire the new or changed rule at its application moment. Verify the rule fires.
+Required observation set, within ~5 min inside that session:
+
+1. **Trigger sample**: read the changed rule, then feed one representative prompt that should fire it at its application moment. Verify the rule fires. A rule not carried in runtime context stops here — defer per Start point above.
 2. **Self-eval entry**: write a 3-5 line verdict (fire / partial / miss) to `memory/self-evaluation_log.md`. Miss verdict escalates immediately to the 2-week post-merge cycle of `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format.
+
+A deferring session writes no verdict.
 
 Optional (best-effort):
 
@@ -136,7 +140,7 @@ Optional (best-effort):
 Separation from existing observation axes:
 
 - `skills/evolution-l1-update-gating/SKILL.md` long-horizon observation = pre-merge threshold gate, applied at issue formation time.
-- `memory/self-evolution-observation.md` 2-week cycle = post-merge long window, applied to detect sustained regression.
+- `memory/self-evolution-observation.md` 2-week cycle = post-merge long window, applied to detect sustained regression. Deferral notes above ride in that entry and do not change its `expires` / verdict lifecycle.
 - Brake 1 (`skills/evolution-parallel-agent-eval`) = pre-merge gate. This observation runs post-merge and on a separate axis.
 
 </post-l1-merge-runtime-observation>

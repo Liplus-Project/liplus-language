@@ -105,6 +105,48 @@ Detection signs:
 
 </bounded-delegation-prohibit-recursive-subagent-spawn>
 
+<worktree-safe-shelving-of-uncommitted-work>
+
+# Worktree-safe shelving of uncommitted work
+
+Inject the shelving form below into every delegation prompt, worktree mode or not. It replaces `git stash push` / `git stash pop`, which are not to be used in delegated work.
+
+Injection is the structure here, not a convenience. The moment the subagent needs to shelve — "does the new test fail before the fix?" — arrives mid-implementation and announces itself to nothing: no skill description fires on it, and a skill body is lazy-loaded at invoke, so the prompt is the only surface guaranteed to be in context when the reach for `git stash` happens. Injecting unconditionally is also what removes the judgment the actor cannot make: whether another working tree is live on the same `.git` is invisible from inside a worktree, so the subagent cannot decide when the safe form is needed.
+
+`refs/stash` is a single ref in the shared `.git`. A worktree separates the working tree and the index; it does not separate the stash stack. Two worktrees pushing to it share one stack, and either `pop` takes the top entry regardless of which worktree pushed it — succeeding with no error and no warning, which is why the failure is silent rather than reported.
+
+Injected literal:
+
+```
+# shelve
+SHA=$(git stash create)
+[ -n "$SHA" ] && git update-ref refs/worktree/wipstash "$SHA"
+git checkout -- .
+
+# restore
+git stash apply refs/worktree/wipstash
+git update-ref -d refs/worktree/wipstash
+```
+
+`refs/worktree/*` is git's worktree-local ref namespace: the same ref name resolves to a different object in each worktree, and `git stash create` never touches `refs/stash`. Do not qualify the name with an issue number — the namespace already separates it, and a per-issue name is a degree of freedom that buys nothing.
+
+Three properties the caller holds that `git stash push` did not require:
+
+- `git stash create` records only; it leaves the working tree as it was. The revert is the separate `git checkout -- .` step, and omitting it shelves nothing in practice.
+- On a clean tree `git stash create` prints nothing and exits 0. Passing that empty string to `git update-ref` fails, which is what the `-n` guard is for.
+- The ref is one slot, not a stack. `apply` leaves it in place and a second shelve overwrites it, so delete it after a successful restore.
+
+Untracked files sit outside the shelve on both halves: `git stash create` does not record them, and `git checkout -- .` does not remove them. A newly added test file therefore stays in the working tree across the shelve.
+
+This is a tool-authority bound on an operation over shared repository state, not a conveyed step-by-step procedure — same reconciliation with `skills/task-subagent-delegation/SKILL.md` Rules as `bounded-delegation-prohibit-recursive-subagent-spawn` above.
+
+Detection signs:
+- A delegation prompt about to go out with no shelving clause in it.
+- `git stash push` / `git stash pop` appearing in a subagent's own plan, command, or report.
+- A `git stash pop` returning content the caller does not recognize. That is the shared-stack failure having already happened, not a git malfunction — treat the unrecognized content as another worktree's live work and return it rather than discarding it.
+
+</worktree-safe-shelving-of-uncommitted-work>
+
 <memory-only-knowledge-does-not-transfer-to-subagent>
 
 # Memory-only knowledge does not transfer to subagent

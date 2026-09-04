@@ -149,6 +149,16 @@ Subagent_Delegation:
   Parallel commits on the same branch cause staging area conflicts.
   Use worktree to isolate.
 
+  What worktree does not isolate:
+  A worktree separates the working tree and the index. It does not separate `refs/stash`,
+  a single ref in the shared .git. Concurrent `git stash push` from two worktrees lands on
+  one stack, and either `pop` takes the top entry regardless of which worktree pushed it,
+  succeeding with no error and no warning. Reading "worktree isolates, so parallel is safe"
+  off the three lines above is the misread this states against: staging area is what those
+  lines name, and it is not the whole of what is shared.
+  Shelving procedure = `skills/task-subagent-prompt/SKILL.md` Worktree-safe shelving of
+  uncommitted work. Injected into every delegation prompt; not restated here.
+
   Cross-parent-issue parallelism (recommended):
   Different parent issues have different branches.
   Create one worktree per parent branch.

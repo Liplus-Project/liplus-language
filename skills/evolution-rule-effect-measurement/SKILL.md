@@ -53,6 +53,11 @@ Measured, stage 1 only: reading the passage from a file and pasting it into the 
 - The dropped line must be the only road to the answer. A probe that can be reached by elimination is not measuring that line.
 - Do not name the section or its location in the probe.
 - Run content matching and conduct matching together. Content matching asks what the body says; conduct matching asks what to do in a situation, with no reference to the body. They split on a line that re-states a rule held on the always-loaded surface: it disappears from the body, so content matching reports a difference, while conduct is unchanged. Verbatim-omission detection is only available to content matching, so this is a pairing, not a replacement.
+- The two are written in different forms. A conduct probe is not a content probe with its wording softened, and writing one from the other's form is what collapses the pairing back into a single axis.
+  - **Content form**: name the skill to invoke, instruct the arm to answer from the body, require the answer verbatim, and require it to say that the body carries no provision when it carries none.
+  - **Conduct form**: present the situation and nothing else. Do not name the skill, do not name or imply any body, do not ask what is written anywhere. Ask what the arm does, and take the action as the answer. Every instruction the content form carries about consulting a body is absent here, not weakened.
+- Prefer a conduct probe whose answer lands on a discrete choice of action. Prose answers cannot be read against a band that has not been measured for them (Significance band below).
+- Only the conduct form can be raised over a line already dropped from arm B. Asking what the body says about an absent line has no question to raise, which is why a dropped conduct line passes a content-only round untouched.
 
 </probe-specification>
 
@@ -106,6 +111,13 @@ A third reader takes the two arms' outputs and reads the difference. Not either 
 
 That second rule exists because an arm detects an absence and restrains itself. Measured under a deliberate omission: 3/3 no leak, all three volunteering that the rule carries no such definition, one stating that the always-loaded body does carry it but that reference was barred. Such an arm is not ignorant; its output becomes a report about the hole. Whether A and B differ by one line's worth of judgment, or by the fact that a hole was noticed, are different things, and counting the second as effect makes every line look load-bearing.
 
+Those two rules read the content axis. The conduct axis is read on its own column, and the content result does not settle it:
+
+- Read which action each arm took, not which wording it cited.
+- Same action in both arms = no effect. The line's conduct is held by the always-loaded surface, or the line carried no conduct at all. A content difference standing next to this is the re-statement signature, and the keep-or-drop decision is made on the conduct column.
+- Different actions = the effect. What arm B lost is conduct, and the line is load-bearing.
+- An arm that answers a conduct probe by reporting that no provision exists has answered the content question. The probe named or implied a body; the round is void, not a difference. Re-raise it in the conduct form (Probe specification above) rather than scoring it.
+
 Suppressing mention of the hole in the probe is not the fix. The noticing does not go away, only its outward sign — and that sign is what distinguished leak from no leak. Suppressing it breaks the detector. Separating the judge is the fix.
 
 Division of labour: the script moves the arms, the judge reads the difference.
@@ -119,6 +131,8 @@ Division of labour: the script moves the arms, the judge reads the difference.
 Idle-run the same condition several times first and measure the band of variation. Only a difference outside the band counts. Measure the band per model.
 
 Measured, once: on a probe whose verdict is a discrete value (patch / minor / major), the band was 0 under those conditions — 12 arms, all agreeing. Reasoning wording differed every time, so a band of 0 belongs to the discrete-verdict axis and does not carry to prose.
+
+That measurement was taken on a content probe, and the conduct axis was not among its conditions. The band on the conduct axis is unmeasured. A conduct probe landing on a discrete action choice is expected to hold the same band, and an expectation is not a measurement — carrying the 0 across on the strength of the shared discreteness is the move this states against. Measure the band per axis as well as per model, and until the conduct band is measured, do not read a conduct difference as an effect on the strength of the content-axis figure.
 
 </significance-band>
 

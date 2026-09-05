@@ -155,10 +155,20 @@ Auto-entry trigger:
 - Deferred short-window observation: when `rules/operations/operations.md` Post-L1-Merge Runtime Observation cannot start at merge because the changed rule is not carried in runtime context yet, the merging agent writes the deferral into this entry's `notes` as one line, and the session that later takes the observation appends its result there as a second line. Add no field for it, and enter no verdict for the deferral itself.
 
 Lifecycle:
-- `pending` -> `settle`: observation period elapsed, no regression observed -> delete entry
-- `pending` -> `revert`: regression detected -> use GitHub revert path, mark verdict, delete entry
-- `pending` -> `supersede`: decision structure supersede edge issued -> delete entry
-- `expires` past without resolution -> escalate to human judgment (entry retained)
+
+Actor = the agent holding the session the entry is surfaced due in. Firing moment = that surfacing (`rules/evolution/cold-start-synthesis.md` Self-Evolution Observation Surface). A due entry is re-surfaced every session until it resolves, so a session that takes no check loses no trigger, and a check whose evidence is thin is left inconclusive rather than forced to a verdict.
+
+At that moment, take one check, write its result into `notes`, and apply exactly one outcome:
+- regression observed -> `revert`: use the GitHub revert path, mark verdict, delete entry
+- decision structure supersede edge issued -> `supersede`: delete entry
+- no regression observed -> `settle`: delete entry
+- inconclusive -> advance `next_check`, leave `verdict_state` at `pending`, and do not move `expires`
+
+`no regression observed` = both hold since `merged_at`: at least one application moment of the changed surface has been observed and is recorded in this entry's `notes`, and no `miss` verdict, human correction, or revert stands against that change in `memory/self-evaluation_log.md` or in the same `notes`. A change with no application moment yet is `inconclusive`, not `settle`.
+
+`settle` fires at this due moment, not at `expires`. Reaching `expires` still `pending` is the escalation below, and is not a settle condition.
+
+`expires` past without resolution -> escalate to human judgment (entry retained).
 
 Scope = detection axis only.
 Recovery (GitHub revert / `gh pr revert`) is on a separate axis.

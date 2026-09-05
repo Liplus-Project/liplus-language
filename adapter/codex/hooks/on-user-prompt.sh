@@ -36,6 +36,18 @@ CONTEXT=""
 append() { CONTEXT="${CONTEXT}$1
 "; }
 
+# Unknown-value surfacing (#1804). Rationale is in the claude port this one
+# mirrors.
+case "$WEBHOOK_DELIVERY" in
+  ""|poll|channel|mcp_hook) ;;
+  *)
+    append ""
+    append "━━━ Li+config: unrecognized value ━━━"
+    append "LI_PLUS_WEBHOOK_DELIVERY=$WEBHOOK_DELIVERY is not one of: poll / channel / mcp_hook. Values are case-sensitive. Falling back to the default (poll)."
+    append "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    ;;
+esac
+
 # The call half is poll-only; the handling half is unconditional. Rationale
 # and the #1798 failure it repairs are in the claude port this one mirrors.
 append ""

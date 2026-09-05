@@ -33,17 +33,35 @@ if (-not $projectRoot) { $projectRoot = (Get-Location).Path }
 $webhookDelivery = ''
 $configFile = Join-Path $projectRoot 'Li+config.md'
 if (Test-Path -LiteralPath $configFile) {
-  $line = Select-String -LiteralPath $configFile -Pattern '^LI_PLUS_WEBHOOK_DELIVERY=' -ErrorAction SilentlyContinue | Select-Object -First 1
+  # -CaseSensitive: parity with the two .sh ports, whose `awk` key match is
+  # case-sensitive. Without it this port alone picked up a
+  # `li_plus_webhook_delivery=` spelling the others leave unset (#1804).
+  $line = Select-String -LiteralPath $configFile -CaseSensitive -Pattern '^LI_PLUS_WEBHOOK_DELIVERY=' -ErrorAction SilentlyContinue | Select-Object -First 1
   if ($line) { $webhookDelivery = ($line.Line -replace '^LI_PLUS_WEBHOOK_DELIVERY=', '').Trim() }
 }
 
 $sb = [System.Text.StringBuilder]::new()
 
+# Unknown-value surfacing (#1804). Rationale is in the claude port this one
+# mirrors. -cne throughout: see the comparison note below.
+if ($webhookDelivery -and
+    $webhookDelivery -cne 'poll' -and
+    $webhookDelivery -cne 'channel' -and
+    $webhookDelivery -cne 'mcp_hook') {
+  [void]$sb.AppendLine('')
+  [void]$sb.AppendLine('━━━ Li+config: unrecognized value ━━━')
+  [void]$sb.AppendLine("LI_PLUS_WEBHOOK_DELIVERY=$webhookDelivery is not one of: poll / channel / mcp_hook. Values are case-sensitive. Falling back to the default (poll).")
+  [void]$sb.AppendLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+}
+
 # The call half is poll-only; the handling half is unconditional. Rationale
 # and the #1798 failure it repairs are in the claude port this one mirrors.
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('━━━ Webhook: check pending notifications ━━━')
-if ($webhookDelivery -ne 'channel' -and $webhookDelivery -ne 'mcp_hook') {
+# -cne (not -ne): PowerShell comparison is case-insensitive by default, while
+# the `!=` in the two .sh ports is not. Without the c-prefix, `Mcp_Hook`
+# suppressed the call half here and emitted it there (#1804).
+if ($webhookDelivery -cne 'channel' -and $webhookDelivery -cne 'mcp_hook') {
   [void]$sb.AppendLine('Run mcp__github-webhook-mcp__get_pending_status silently.')
 }
 [void]$sb.AppendLine('Report only foreground-relevant or notable items.')

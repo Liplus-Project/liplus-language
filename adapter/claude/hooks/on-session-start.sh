@@ -285,6 +285,24 @@ else
   printf '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
 fi
 
+# --- unrecognized config value surfacing (#1804) ---
+# A LI_PLUS_CHANNEL value outside the known set matches no branch of the `case`
+# above, so TARGET_TAG stays empty and the marker falls to "needed" without ever
+# saying why. What is surfaced is the key name and the literal value, not a guess
+# at what was meant: normalising `Latest` would pass while `lattest` still fell
+# through, so naming the value is what closes the whole silent-fallback class
+# rather than its mixed-case part. The fallback behaviour itself is unchanged.
+# An empty value is not surfaced -- unset is the documented default
+# (docs/B.-Configuration.md), and it was already folded into "release" above.
+case "$LI_PLUS_CHANNEL_VAL" in
+  latest|release|tag) ;;
+  *)
+    printf '━━━ Li+config: unrecognized value ━━━\n'
+    printf 'LI_PLUS_CHANNEL=%s is not one of: latest / release / tag. Values are case-sensitive. No target tag resolved, so the update status above is "needed".\n' "$LI_PLUS_CHANNEL_VAL"
+    printf '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
+    ;;
+esac
+
 # --- emit language contract values ---
 # Issue #1575: the Workspace_Language_Contract is always in context (adapter
 # CLAUDE.md), but resolving its VALUES was written as a procedure ("read

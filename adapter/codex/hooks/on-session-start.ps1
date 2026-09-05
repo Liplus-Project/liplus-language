@@ -191,8 +191,13 @@ if ($matcher -eq 'startup') {
   }
   if (-not $channel) { $channel = 'release' }
 
+  # -CaseSensitive: PowerShell `switch` matches case-insensitively by default,
+  # while the `case` statements in the two on-session-start.sh ports are
+  # case-sensitive. Without the flag, `LI_PLUS_CHANNEL=Latest` resolved a tag
+  # here and resolved nothing there, so one workspace produced two different
+  # LI_PLUS_UPDATE_STATUS values depending on which host adapter ran (#1804).
   $targetTag = ''
-  switch ($channel) {
+  switch -CaseSensitive ($channel) {
     'latest' { $targetTag = (gh release view --repo Liplus-Project/liplus-language --json tagName --jq '.tagName' 2>$null) }
     'release' { $targetTag = (gh release list --repo Liplus-Project/liplus-language --limit 1 --json tagName --jq '.[0].tagName' 2>$null) }
     'tag' {
@@ -240,6 +245,16 @@ if ($matcher -eq 'startup') {
     Emit '━━━ Li+ update status ━━━'
     Emit "LI_PLUS_UPDATE_STATUS=needed reason=$reasonStr"
     Emit 'AI must read Li+config.md and execute Li+update.md walkthrough this session.'
+    Emit '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+    Emit ''
+  }
+
+  # --- unrecognized config value surfacing (#1804) ---
+  # Rationale is in the claude port this one mirrors. -cne, not -ne: see the
+  # -CaseSensitive note on the switch above.
+  if ($channel -cne 'latest' -and $channel -cne 'release' -and $channel -cne 'tag') {
+    Emit '━━━ Li+config: unrecognized value ━━━'
+    Emit "LI_PLUS_CHANNEL=$channel is not one of: latest / release / tag. Values are case-sensitive. No target tag resolved, so the update status above is ""needed""."
     Emit '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
     Emit ''
   }

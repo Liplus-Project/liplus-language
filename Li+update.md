@@ -66,7 +66,6 @@ Repository URL form acceptance and host detection:
 Canonical comparison form (single source for every repository URL comparison in this procedure):
 - git+ssh `git@<host>:<owner>/<repo>.git` -> its HTTPS equivalent `https://<host>/<owner>/<repo>`.
 - Drop a trailing `.git` and a trailing `/`. Compare host, owner, and repository name case-insensitively.
-- Downstream phases compare repository URLs in this form and hold no normalization rule of their own.
 
 Mode selection from URL form:
 - Known HTTPS host (github.com / gitlab.com / explicitly allow-listed) -> full mode (gh CLI + API + webhook intake).

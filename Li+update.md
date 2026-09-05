@@ -117,7 +117,10 @@ api mode:
 clone mode:
 1. Target repo is the target version of LI_PLUS_REPO.
 2. Check workspace for repository directory (derived from LI_PLUS_REPO name; for git+ssh URLs use the normalized HTTPS form to derive the directory name):
-   - not exists -> clone target tag directly to workspace. Proceed to step 3.
+   - not exists -> run these two commands, in this order, to place the target tag in the workspace:
+     `git clone {LI_PLUS_REPO} {workspace_root}/{repo_dir}`
+     `git -C {workspace_root}/{repo_dir} checkout {target_tag}`
+     Both are the literal to execute; add no flags to either. Proceed to step 3.
    - exists -> fetch --tags, then:
      a. Resolve and report both values: current checked-out tag and target tag from LI_PLUS_CHANNEL.
         Name which of the two is newer: the target is not necessarily the newer one, since a channel

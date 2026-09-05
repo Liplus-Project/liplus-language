@@ -99,7 +99,10 @@ host OS は adapter 種別（runtime=claude / runtime=codex）から推測しな
 
 1. 対象リポジトリは LI_PLUS_REPO の対象バージョン
 2. ワークスペース内に LI_PLUS_REPO 由来のディレクトリが存在するか確認
-   - 存在しない → 対象タグを直接 clone し、手順 3 へ
+   - 存在しない → 次の 2 コマンドをこの順で実行して対象タグをワークスペースに配置し、手順 3 へ
+     `git clone {LI_PLUS_REPO} {workspace_root}/{repo_dir}`
+     `git -C {workspace_root}/{repo_dir} checkout {target_tag}`
+     どちらも実行する literal そのものであり、フラグを追加しない
    - 存在する → `fetch --tags` を実行し:
      a. 現在 checkout 中のタグと、`LI_PLUS_CHANNEL` から解決した対象タグを両方確認して報告する。その際、どちらが新しいかを名指す。channel によっては対象タグが現在タグより古いことがあり、対象であることから新しさは導けない
      b. 一致する場合はそのまま続行

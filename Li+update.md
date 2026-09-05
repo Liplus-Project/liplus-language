@@ -63,6 +63,11 @@ Repository URL form acceptance and host detection:
 - local path: absolute path or `~`-relative path to a local repository — accepted. clone is skipped; the path is treated as a working directory directly. gh CLI integration unavailable (git-only mode).
 - file://: `file:///<path>` — accepted. `git clone` works against the URL. gh CLI integration unavailable (git-only mode).
 
+Canonical comparison form (single source for every repository URL comparison in this procedure):
+- git+ssh `git@<host>:<owner>/<repo>.git` -> its HTTPS equivalent `https://<host>/<owner>/<repo>`.
+- Drop a trailing `.git` and a trailing `/`. Compare host, owner, and repository name case-insensitively.
+- Downstream phases compare repository URLs in this form and hold no normalization rule of their own.
+
 Mode selection from URL form:
 - Known HTTPS host (github.com / gitlab.com / explicitly allow-listed) -> full mode (gh CLI + API + webhook intake).
 - Other forms (HTTP / git+ssh on unknown host / local path / file://) -> git-only mode. Emit a warning naming the affected key and the missing capability set, then continue.
@@ -483,11 +488,18 @@ Dependencies: Phase 2 (gh CLI authenticated, repository schema resolved).
 
 5.1. Prepare working clones for every `USER_REPO<N>` entry (skip placeholder values such as `owner/repository-name`):
 - Enumerate every `USER_REPO<N>` key resolved in Phase 2.5. Process each entry independently in numeric order of `<N>`.
-- Derive the local directory name from the URL (the repository name segment for HTTPS / git+ssh / file://; the basename for local paths).
+- Derive the local directory name from the URL (the repository name segment for HTTPS / git+ssh / file://; the basename for local paths). The derived name selects a candidate directory; it does not decide whether a clone already exists.
+- Scan the workspace for the clone that already tracks the entry. Read `git remote get-url origin` for every directory one level under the workspace root that holds a `.git`. Do not recurse. A directory without a `.git`, or whose `origin` cannot be read, yields no origin and therefore never matches. Compare each origin against the entry URL in the Phase 2.5 canonical comparison form; Phase 5 holds no normalization rule of its own.
 - For each entry, by URL form:
-  - HTTPS / HTTP / git+ssh / file:// -> if the local directory is absent, `git clone <url>` into the workspace; if present, skip clone.
+  - HTTPS / HTTP / git+ssh / file:// -> resolve the working directory from the scan result and the derived-name directory:
+    - scan matched more than one directory -> STOP. Report every matched path with its origin and the entry URL.
+    - scan matched exactly one directory, and the derived-name directory is absent or is that same directory -> adopt the matched path as the working directory and skip clone.
+    - scan matched nothing, and the derived-name directory is absent -> `git clone <url>` into the workspace.
+    - scan matched exactly one directory other than the derived-name directory, and the derived-name directory also exists -> STOP. Report both paths with their origins and the entry URL. Which of the two is the working tree is not a judgment Li+ makes.
+    - scan matched nothing, and the derived-name directory exists -> STOP. Its origin does not track the entry URL (or cannot be read). Report the path, its origin, and the entry URL.
+    - A STOP leaves this entry unprepared and clones nothing for it. Continue with the remaining `USER_REPO<N>` entries, and carry every stopped entry into the Phase 6 completion report.
   - local path -> treat the path itself as the working directory; do not clone.
-- If a `USER_REPO<N>` URL matches LI_PLUS_REPO (same repository, regardless of URL form normalization): skip cloning that entry and run `git checkout main` in the existing LI_PLUS_REPO local clone instead.
+- If a `USER_REPO<N>` URL matches LI_PLUS_REPO in the Phase 2.5 canonical comparison form: skip cloning that entry and run `git checkout main` in the existing LI_PLUS_REPO local clone instead.
 - Per-entry execution mode (`USER_REPO<N>_EXE_MODE`) is consumed by downstream operations rules; Phase 5 only prepares the working tree.
 
 ## Phase 6: Completion Report

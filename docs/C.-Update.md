@@ -316,7 +316,23 @@ Codex ホストでは Phase 4 claude branch と同型に adapter / skills / hook
 
 - 値がデフォルト値（テンプレート初期値の URL プレースホルダ等）の場合はスキップ
 - 値が `LI_PLUS_REPO` と一致する場合: ローカル clone で `git checkout main` を実行
-- それ以外: ワークスペースに対象リポジトリのディレクトリが存在しなければリポジトリ名で clone。既に存在する場合はスキップ（再 clone しない）
+- それ以外: clone 要否は**ディレクトリ名ではなく remote で判定する**（下記）
+
+**clone 要否の判定（remote 照合）**
+
+ワークスペース直下1階層の各ディレクトリ（`.git` を持つもののみ、再帰しない）の `git remote get-url origin` を読み、entry の URL と Phase 2.5 の正規化形で突き合わせる。`.git` を持たない、または `origin` が読めないディレクトリは origin 無しとして扱い、一致しない。Phase 5 は独自の正規化規則を持たない。
+
+| 走査結果 | 導出名のディレクトリ | 動作 |
+|---|---|---|
+| 一致1件 | 無い、または一致したものと同一 | 一致したパスを作業ディレクトリとして採用し clone をスキップ |
+| 一致無し | 無い | `git clone <url>` |
+| 一致1件（導出名と別のディレクトリ） | 在る | **STOP**。両パスと各 origin、entry URL を報告する。どちらを作業ツリーとするかは Li+ が決めてよい判断ではない |
+| 一致無し | 在る（origin が entry URL と不一致、または読めない） | **STOP**。パスと origin、entry URL を報告する |
+| 一致2件以上 | — | **STOP**。一致した全パスと各 origin、entry URL を報告する |
+
+STOP した entry は未準備のまま残し、clone は行わない。残りの `USER_REPO<N>` は続行し、STOP した entry は Phase 6 の完了報告に載せる。
+
+リポジトリ改名（例: `liplus-chat` → `pullcept`）の後、改名前に clone したディレクトリは名前が追従しない。ディレクトリ名だけで判定すると同一リポジトリの2つ目のクローンが生まれるため、判定軸を remote に置いている。
 
 URL から owner / repository name は parse して抽出する（gh CLI integration 用）。HTTPS / git+ssh / local path / `file://` はいずれも受容する（詳細は B. Configuration の `USER_REPOn` 節を参照）。
 

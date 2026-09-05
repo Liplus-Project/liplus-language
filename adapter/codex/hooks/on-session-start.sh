@@ -220,6 +220,18 @@ if [ "$MATCHER" = "startup" ]; then
     emit "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     emit ""
   fi
+
+  # --- unrecognized config value surfacing (#1804) ---
+  # Rationale is in the claude port this one mirrors.
+  case "$LI_PLUS_CHANNEL_VAL" in
+    latest|release|tag) ;;
+    *)
+      emit "━━━ Li+config: unrecognized value ━━━"
+      emit "LI_PLUS_CHANNEL=$LI_PLUS_CHANNEL_VAL is not one of: latest / release / tag. Values are case-sensitive. No target tag resolved, so the update status above is \"needed\"."
+      emit "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      emit ""
+      ;;
+  esac
 fi
 
 # --- emit language contract values (every matcher) ---

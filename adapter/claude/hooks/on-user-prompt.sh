@@ -37,6 +37,23 @@ PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 # Latent rather than live: on a Windows/Git-Bash host both gawk and MSYS command
 # substitution drop the CR on their own, so the miss needs a POSIX host.
 WEBHOOK_DELIVERY=$(awk -F= '/^LI_PLUS_WEBHOOK_DELIVERY=/{print $2}' "$PROJECT_ROOT/Li+config.md" 2>/dev/null | tr -d '\r')
+# Unknown-value surfacing (#1804). A value outside the known set is not a mode,
+# and the comparison below silently treats it as poll. What is surfaced is the
+# key name and the literal value, not a guess at what was meant: normalising
+# `Mcp_Hook` would pass while `mcp-hook` still fell through, so naming the value
+# is what closes the whole silent-fallback class rather than its mixed-case part.
+# An empty value is not surfaced -- unset is the documented default (docs/B.-Configuration.md
+# 未設定 / poll), and the default is the correct behaviour there.
+case "$WEBHOOK_DELIVERY" in
+  ""|poll|channel|mcp_hook) ;;
+  *)
+    echo ""
+    echo "━━━ Li+config: unrecognized value ━━━"
+    echo "LI_PLUS_WEBHOOK_DELIVERY=$WEBHOOK_DELIVERY is not one of: poll / channel / mcp_hook. Values are case-sensitive. Falling back to the default (poll)."
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    ;;
+esac
+
 echo ""
 echo "━━━ Webhook: check pending notifications ━━━"
 if [ "$WEBHOOK_DELIVERY" != "channel" ] && [ "$WEBHOOK_DELIVERY" != "mcp_hook" ]; then

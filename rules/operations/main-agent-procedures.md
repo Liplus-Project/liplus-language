@@ -357,7 +357,7 @@ Pre-merge mergeable state check (direct-merge path only — in `trigger` the PR 
   gh pr view {pr} -R {owner}/{repo} --json mergeStateStatus --jq '.mergeStateStatus'
   CLEAN -> proceed to merge.
   BEHIND -> gh pr update-branch {pr} -R {owner}/{repo} -> restart [CI Loop] from step1.
-  CONFLICTING -> attempt the same non-destructive update first: gh pr update-branch {pr} -R {owner}/{repo}
+  CONFLICTING -> attempt the same non-destructive update: gh pr update-branch {pr} -R {owner}/{repo}
     if it succeeds: restart [CI Loop] from step1
     if it fails on merge conflict: comment on issue -> escalate to human.
       Do not fall back to rebase + force push here: force push is an unconditional human judgment gate

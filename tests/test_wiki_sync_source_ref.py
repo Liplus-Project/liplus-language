@@ -188,16 +188,19 @@ class SourceRefBehaviourTest(unittest.TestCase):
         _write(self.wiki / "entry-one.md", "entry one body\n")
         _write(self.wiki / "entry-two.md", "entry two body\n")
 
-    def _run_snippets(self) -> tuple[list[str], list[str]]:
+    def _run_snippets(self) -> tuple[int, list[str], list[str]]:
+        """Run step 4, then the apply, and read what each produced.
+
+        Step 4 carries an executable guard since #1806: a non-empty `unclassified`
+        exits non-zero right there, so the echo loop and the apply below are reached
+        only when that set is empty. The escalated names are read from the guard's
+        own report rather than from an echo of the array, and the return code comes
+        back to the caller instead of being asserted here.
+        """
         script = "\n".join(
             (
                 reference_algorithm(),
                 'for n in "${to_copy[@]}"; do echo "TO_COPY $n"; done',
-                'for n in "${unclassified[@]}"; do echo "UNCLASSIFIED $n"; done',
-                # The apply runs unconditionally here. Step 5's STOP on a non-empty
-                # `unclassified` is prose the agent obeys, not a branch inside the
-                # snippet, and what these assertions read is where a copied byte came
-                # from — which the escalation ordering does not bear on.
                 apply_snippet(),
             )
         ).replace("{tmpdir}", str(self.wiki).replace("\\", "/"))
@@ -209,18 +212,27 @@ class SourceRefBehaviourTest(unittest.TestCase):
             encoding="utf-8",
             errors="replace",
         )
-        self.assertEqual(run.returncode, 0, run.stderr)
         to_copy = [
             line.split(" ", 1)[1]
             for line in run.stdout.splitlines()
             if line.startswith("TO_COPY ")
         ]
         unclassified = [
-            line.split(" ", 1)[1]
+            line.split(" ", 1)[1].split(" (", 1)[0]
             for line in run.stdout.splitlines()
-            if line.startswith("UNCLASSIFIED ")
+            if line.startswith("unclassified: ")
         ]
-        return to_copy, unclassified
+        return run.returncode, to_copy, unclassified
+
+    def _withdraw_the_orphan(self) -> None:
+        """Take `Retired.md` off the wiki so the run reaches the copy side.
+
+        One fixture serves both halves. `Retired.md` is upstream-removed, so it is
+        exactly what the step-4 guard stops on; the assertions about where a copied
+        byte came from need the run to continue past step 4, and withdrawing the
+        page is the fixture change that lets it.
+        """
+        (self.wiki / "Retired.md").unlink()
 
     def test_the_working_tree_really_is_stale(self) -> None:
         """Without this, every assertion below could pass on a current tree."""
@@ -238,7 +250,9 @@ class SourceRefBehaviourTest(unittest.TestCase):
         self.assertNotEqual(head.returncode, 0, "HEAD is expected to be detached")
 
     def test_content_is_mirrored_from_the_ref_not_the_stale_tree(self) -> None:
-        to_copy, _ = self._run_snippets()
+        self._withdraw_the_orphan()
+        code, to_copy, _ = self._run_snippets()
+        self.assertEqual(code, 0)
         self.assertIn("Home.md", to_copy)
         self.assertEqual(
             (self.wiki / "Home.md").read_text(encoding="utf-8"),
@@ -247,20 +261,23 @@ class SourceRefBehaviourTest(unittest.TestCase):
         )
 
     def test_enumeration_comes_from_the_ref(self) -> None:
-        to_copy, unclassified = self._run_snippets()
-        self.assertIn(
-            "Added.md",
-            to_copy,
-            "a page added upstream was missed because the tree has never seen it",
-        )
+        code, _, unclassified = self._run_snippets()
+        self.assertNotEqual(code, 0, "the guard let the upstream-removed page through")
         self.assertIn(
             "Retired.md",
             unclassified,
             "a page removed upstream must reach the human, not stay docs/-owned",
         )
+        self._withdraw_the_orphan()
+        _, to_copy, _ = self._run_snippets()
+        self.assertIn(
+            "Added.md",
+            to_copy,
+            "a page added upstream was missed because the tree has never seen it",
+        )
 
     def test_the_decision_structure_index_is_read_from_the_ref(self) -> None:
-        _, unclassified = self._run_snippets()
+        _, _, unclassified = self._run_snippets()
         self.assertNotIn(
             "entry-two.md",
             unclassified,
@@ -321,6 +338,11 @@ class NoWorkingTreeReadTest(unittest.TestCase):
                     or "ls-tree" in before
                     # content_same takes a path *inside* the ref; it prefixes $SRC_REF.
                     or before.endswith('content_same "')
+                    # git log names its ref positionally, ahead of the `--` pathspec.
+                    or '"$SRC_REF" --' in before
+                    # A path named inside the guard's report is text for the human,
+                    # not a read of anything.
+                    or before.lstrip().startswith("echo ")
                 )
                 self.assertTrue(
                     qualified,

@@ -81,7 +81,7 @@ The source side is named by ref, not by the caller's working tree: every read of
      git -C {tmpdir} config user.email "{commit-author-email}"
   4. Compute the drift set — enumerate the exact files that differ between the `origin/main` docs/ tree and the wiki working tree, and operate only on that set. An unbounded destructive glob over the wiki working tree is not an acceptable substitute: its blast radius is the whole wiki, which `rules/evolution/memory-entry-format.md` Artifact deletion calibration puts on the wrong side of the axis, and the auto-mode classifier rejects it by construction rather than transiently.
      - **to_copy** = docs/-owned filenames whose `origin/main` content differs from the `{tmpdir}/` counterpart (covers both new and content-changed files; resolve via `git ls-tree origin/main docs/`).
-     - **unclassified** = names present in `{tmpdir}/` that are neither docs/-owned nor on the wiki-only list. Non-empty = STOP and escalate, naming each. Do not delete and do not proceed to step 5; a docs/-side rename or removal surfaces here, and so does a wiki-source page the list has not caught up with. On an explicit human go-sign for a named page, `rm -f` that page and continue; without one, the page stays.
+     - **unclassified** = names present in `{tmpdir}/` that are neither docs/-owned nor on the wiki-only list. Non-empty = STOP and escalate, naming each: the reference algorithm below exits non-zero at that point, so the stop is executed rather than left to a sentence a later reader has to remember. What the guard blocks is the silent pass-through, not a deletion — step 5 copies and never removes, so an unobserved STOP takes nothing off the wiki and instead leaves the page standing while the mirror is reported as synced. Do not delete and do not proceed to step 5; a docs/-side rename or removal surfaces here, and so does a wiki-source page the list has not caught up with. The escalation classifies each name by whether it has history under `docs/` on the source ref (`git log --diff-filter=AD -- docs/<name>`): history present = likely a leftover from a docs/-side rename or removal; history absent = likely a wiki-source page, where deleting destroys the source. That classification is a reading, not a decision — neither branch deletes, and which of the two a page is stays the human's to name (`rules/operations/operations.md` published-wiki deletion gate). On an explicit human go-sign for a named page, `rm -f` that page and continue; without one, the page stays.
      Reference algorithm:
      ```
      shopt -s nullglob
@@ -127,13 +127,26 @@ The source side is named by ref, not by the caller's working tree: every read of
        case " ${wiki_only[*]} "  in *" $name "*) continue ;; esac
        unclassified+=("$name")
      done
+     # Guard. Non-empty = stop here, non-zero, naming each page with its docs/-history
+     # reading. Nothing is deleted on either branch; the reading only shortens the human's
+     # move from investigation to confirmation.
+     if [ ${#unclassified[@]} -ne 0 ]; then
+       for name in "${unclassified[@]}"; do
+         if [ -n "$(git log --diff-filter=AD --format=%H -1 "$SRC_REF" -- "docs/$name")" ]; then
+           echo "unclassified: $name (docs/ history present; likely a rename or removal leftover)"
+         else
+           echo "unclassified: $name (no docs/ history; likely wiki-source, deleting destroys the source)"
+         fi
+       done
+       exit 1
+     fi
      ```
      If drift computation itself fails (`cmp` / `tr` unavailable, process substitution unsupported — it requires a bash-class shell, filesystem encoding mismatch), STOP and escalate. Do not fall back to a wipe pattern.
   5. Apply the drift set with explicit per-file operations, reading each blob from the same ref:
      ```
      for name in "${to_copy[@]}"; do git show "$SRC_REF:docs/$name" > "{tmpdir}/$name"; done
      ```
-     Empty `to_copy` AND empty `unclassified` = no drift; skip the commit and push steps, go straight to cleanup (step 9), and report the no-op outcome.
+     Empty `to_copy` = no drift; skip the commit and push steps, go straight to cleanup (step 9), and report the no-op outcome. The condition carries no `unclassified` term: a non-empty set exits at step 4, so this line is only ever read with it empty.
   6. Stage both copies and deletes: git -C {tmpdir} add -A
   7. Commit: git -C {tmpdir} commit -m "sync: docs -> wiki ({release_tag})"
   8. Push: git -C {tmpdir} push

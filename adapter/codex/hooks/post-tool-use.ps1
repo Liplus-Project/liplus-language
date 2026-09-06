@@ -22,7 +22,7 @@ $toolName = $payload.tool_name
 $command  = $null
 if ($payload.tool_input) { $command = $payload.tool_input.command }
 
-if ($toolName -ne 'Bash') { exit 0 }
+if ($toolName -cne 'Bash') { exit 0 }
 if (-not $command) { exit 0 }
 
 # First line only, strip heredoc tail.

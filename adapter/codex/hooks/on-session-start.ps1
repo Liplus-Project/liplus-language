@@ -92,7 +92,7 @@ if ($payload) {
   foreach ($k in @('matcher','source','session_source')) {
     if ($payload.PSObject.Properties[$k] -and $payload.$k) { $m = $payload.$k; break }
   }
-  if ($m -in @('startup','resume','clear','compact')) { $matcher = $m }
+  if ($m -cin @('startup','resume','clear','compact')) { $matcher = $m }
 }
 
 # ---------- guard: liplus source not resolved yet (pre-bootstrap) ----------
@@ -174,7 +174,7 @@ if (Test-Path -LiteralPath $configFile) {
 # re-emits its update status on every matcher too, so this startup gate is a
 # Codex-side choice, not a shared design.
 # ===================================================================
-if ($matcher -eq 'startup') {
+if ($matcher -ceq 'startup') {
   $updateReasons = @()
 
   # --- axis 1: adapter sentinel tag vs current target tag ---
@@ -312,7 +312,7 @@ if (Test-Path -LiteralPath $coldstartMd) {
 Emit-Section 'Cold-start Synthesis (rules/evolution/cold-start-synthesis.md anchor)' $coldstartLiteral
 
 # Non-startup matchers: rules were re-injected + cold-start anchor emitted; stop.
-if ($matcher -ne 'startup') {
+if ($matcher -cne 'startup') {
   Emit '━━━ Cold-start Synthesis: instruction ━━━'
   Emit "Matcher = $matcher. Session is continuous (resume/clear/compact). Rules were"
   Emit 'reinjected and the cold-start rule anchor re-anchored above. Treat the prior'

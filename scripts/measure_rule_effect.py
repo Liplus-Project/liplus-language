@@ -480,7 +480,12 @@ def launch_argv(command: Sequence[str]) -> list[str]:
     WinError 2 while `which claude` in the operator's shell answers fine - the
     launch is refused for a reason the surrounding environment gives no sign of.
     Resolution happens here rather than in `arm_command` so the run record keeps
-    naming the command as it was written, not as one host spells it.
+    naming the command as it was written, not as one host spells it, and it is
+    reached only from `launch` below - the one place a process is actually started.
+    A resolution done any earlier runs on hosts that launch nothing, which is every
+    host running the tests: CI has no `claude` on PATH and does not need one, and a
+    harness that raises there is asserting an external dependency the test seam was
+    built to do without.
     """
     argv = list(command)
     resolved = shutil.which(argv[0])
@@ -490,11 +495,25 @@ def launch_argv(command: Sequence[str]) -> list[str]:
     return argv
 
 
+def launch(command: Sequence[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
+    """Start one arm process. The only caller of `launch_argv`, and the only seam.
+
+    A harness caller that injects its own runner is testing what the surrounding
+    function does with a result, not how a process is started, so it substitutes
+    this whole function - PATH resolution included. Keeping the resolution inside
+    means the substitution actually removes the external dependency instead of
+    leaving half of it standing in front of the injected runner.
+    """
+    return subprocess.run(  # noqa: S603 - fixed argv, no shell
+        launch_argv(command), **kwargs
+    )
+
+
 def run_arm(arm_root: Path, probe: str, model: str, timeout: float | None = None) -> dict[str, Any]:
     """Launch one arm and capture its output. External dependency; not run in CI."""
     command = arm_command(probe, model)
-    completed = subprocess.run(  # noqa: S603 - fixed argv, no shell
-        launch_argv(command),
+    completed = launch(
+        command,
         cwd=str(arm_root),
         capture_output=True,
         text=True,

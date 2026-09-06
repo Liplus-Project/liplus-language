@@ -37,7 +37,6 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import subprocess
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -53,7 +52,7 @@ from measure_rule_effect import (  # noqa: E402
     acquire_lock,
     find_workspace_root,
     harness_root,
-    launch_argv,
+    launch,
     materialize_arm,
     release_lock,
     remove_tree,
@@ -301,9 +300,9 @@ def run_arm(
 ) -> dict[str, Any]:
     """Launch one arm and reduce its stream to the observable. Not run in CI."""
     command = arm_command(probe, model)
-    execute = runner or subprocess.run
-    completed = execute(  # noqa: S603 - fixed argv, no shell
-        launch_argv(command),
+    execute = runner or launch
+    completed = execute(
+        command,
         cwd=str(arm_root),
         capture_output=True,
         text=True,

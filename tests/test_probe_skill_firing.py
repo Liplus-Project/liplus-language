@@ -31,6 +31,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest import mock
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
@@ -279,6 +280,25 @@ class RunArmTest(unittest.TestCase):
         self.assertEqual(command[command.index("--model") + 1], "opus")
         self.assertEqual(command[command.index("--output-format") + 1], "stream-json")
         self.assertIn("--verbose", command)
+
+    def test_an_injected_runner_removes_the_external_dependency_entirely(self) -> None:
+        """The seam is the whole launch, PATH resolution included.
+
+        Measured on CI: resolving ahead of the injected runner raised
+        `'claude' was not found on PATH` on a host that launches nothing.
+        """
+        seen: dict[str, Any] = {}
+
+        def runner(command, **kwargs):  # type: ignore[no-untyped-def]
+            seen["command"] = command
+            return SimpleNamespace(returncode=0, stdout=stream({"type": "result"}), stderr="")
+
+        with mock.patch.object(
+            measure_rule_effect.shutil, "which", side_effect=AssertionError("resolved")
+        ):
+            module.run_arm(Path("."), "probe", "opus", runner=runner)
+
+        self.assertEqual(seen["command"], module.arm_command("probe", "opus"))
 
     def test_the_result_carries_the_observable_and_not_the_whole_stream(self) -> None:
         captured = stream(

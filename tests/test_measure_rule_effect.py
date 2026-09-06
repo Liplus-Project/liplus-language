@@ -235,6 +235,29 @@ class WorkDirTest(TempDirCase):
         self.assertEqual(recreated, arms)
         self.assertEqual(list(recreated.iterdir()), [])
 
+    def test_a_read_only_entry_does_not_wedge_the_wipe(self) -> None:
+        """The copy carries the live tree's read-only attribute; the wipe clears it.
+
+        Measured: an arm's copied `.claude` refused removal while sitting empty, and
+        the wipe that raises does so at the *head* of the next run - aborting it
+        before it launches anything.
+        """
+        root = self.temp_path()
+        arms = root / module.ARMS_DIRNAME
+        nested = arms / "a-off" / ".claude"
+        nested.mkdir(parents=True)
+        (nested / "settings.json").write_text("{}", encoding="utf-8")
+        module.os.chmod(nested / "settings.json", module.stat.S_IREAD)
+        module.os.chmod(nested, module.stat.S_IREAD | module.stat.S_IEXEC)
+
+        module.reset_work_dir(root)
+
+        self.assertTrue(arms.is_dir())
+        self.assertEqual(list(arms.iterdir()), [])
+
+    def test_removing_an_absent_tree_is_silent(self) -> None:
+        module.remove_tree(self.temp_path() / "never-existed")
+
     def test_the_wipe_does_not_take_the_lock_with_it(self) -> None:
         """The two are siblings on purpose; wiping the lock would defeat it."""
         root = self.temp_path() / "harness"

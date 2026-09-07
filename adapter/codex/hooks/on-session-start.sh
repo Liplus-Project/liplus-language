@@ -924,9 +924,8 @@ if [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ] && [ -z "$NODE_BIN" ]; then FAIL_SAFE_FULL_E
 # one "key<TAB>fingerprint" line per recorded section (flat text, easy to
 # grep from bash without needing associative arrays).
 PRIOR_FP_DUMP=""
-# The one field the state file has carried with no reader (#1910). Left empty
-# when the state holds no well-formed stamp; that only drops the read-back line
-# below, and is never a reason to fall through to full emit.
+# Left empty when the state holds no well-formed stamp; that only drops the
+# read-back line below, and is never a reason to fall through to full emit.
 PRIOR_EMIT_AT=""
 if [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ]; then
   if [ -f "$STATE_FILE" ]; then

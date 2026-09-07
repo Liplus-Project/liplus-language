@@ -1000,9 +1000,9 @@ if ($tallyBody) {
 $failSafeFull = $false
 $failSafeReason = ''
 
-# Read prior state. $priorEmitAt is the one field the state file has carried
-# with no reader (#1910); left empty when the state holds no well-formed stamp,
-# which only drops the read-back line below and never forces a full emit.
+# Read prior state. $priorEmitAt is left empty when the state holds no
+# well-formed stamp, which only drops the read-back line below and never
+# forces a full emit.
 $priorFp = @{}
 $priorEmitAt = ''
 if (Test-Path -LiteralPath $stateFile) {

@@ -72,6 +72,12 @@ BODY_TOKENS = ("remote.origin.fetch", "refs/heads/")
 WILDCARD = "+refs/heads/*:refs/remotes/origin/*"
 SINGLE_BRANCH = "+refs/heads/main:refs/remotes/origin/main"
 TAG_ONLY = "+refs/tags/build-2026-04-12.8:refs/tags/build-2026-04-12.8"
+# `refs/heads/` on the destination side only. It maps none of the remote's
+# branches, so a predicate matching the refspec as one string reads this clone
+# as healthy while it is the defect.
+DEST_ONLY = "+refs/tags/v1:refs/heads/mirror"
+# An exclusion establishes no mapping, so it is not a branch mapping either.
+EXCLUDE_ONLY = "^refs/heads/main"
 
 PORTS = (
     "adapter/claude/hooks/on-session-start.sh",
@@ -230,6 +236,19 @@ class CloneRefspecBranchCheckTestCase(unittest.TestCase):
             with self.subTest(adapter=adapter):
                 self.assertReported(adapter)
 
+    def test_refs_heads_on_the_destination_side_is_reported(self) -> None:
+        """The predicate is the source side, not the refspec as one string."""
+        make_clone(self.ws.liplus, DEST_ONLY)
+        for adapter in ADAPTERS:
+            with self.subTest(adapter=adapter):
+                self.assertReported(adapter)
+
+    def test_exclusion_refspec_alone_is_reported(self) -> None:
+        make_clone(self.ws.liplus, EXCLUDE_ONLY)
+        for adapter in ADAPTERS:
+            with self.subTest(adapter=adapter):
+                self.assertReported(adapter)
+
     def test_wildcard_refspec_is_silent(self) -> None:
         make_clone(self.ws.liplus, WILDCARD)
         for adapter in ADAPTERS:
@@ -245,7 +264,7 @@ class CloneRefspecBranchCheckTestCase(unittest.TestCase):
 
     def test_tags_alongside_a_branch_are_silent(self) -> None:
         """A branch mapping decides, not the count of tag mappings."""
-        make_clone(self.ws.liplus, TAG_ONLY, WILDCARD)
+        make_clone(self.ws.liplus, TAG_ONLY, DEST_ONLY, EXCLUDE_ONLY, WILDCARD)
         for adapter in ADAPTERS:
             with self.subTest(adapter=adapter):
                 self.assertSilent(adapter)

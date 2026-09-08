@@ -996,7 +996,7 @@ if ($tallyBody) {
 
 # --- clone branch fetch surface (outside the diff-only set) ---
 # Implements rules/evolution/cold-start-synthesis.md "Clone Branch Fetch
-# Surface" (#1911). Port of the same block in
+# Surface". Port of the same block in
 # adapter/claude/hooks/on-session-start.sh; the rationale for the placement, for
 # staying out of the diff set, and for staying off LI_PLUS_UPDATE_STATUS is
 # there. State-driven trigger, so nothing here reads a date and nothing has to
@@ -1006,7 +1006,20 @@ if ($tallyBody) {
 $cloneRefspecEmitted = $false
 if ((Test-Path -LiteralPath (Join-Path $liplusDir '.git')) -and (Get-Command git -ErrorAction SilentlyContinue)) {
   $cloneFetchRefspecs = @(git -C $liplusDir config --get-all remote.origin.fetch 2>$null)
-  if (-not ($cloneFetchRefspecs -cmatch 'refs/heads/')) {
+  # Source side only, as in the two bash ports: the src half of [+]<src>:<dst>,
+  # skipping ^<pattern> exclusions. Ordinal comparison, not StartsWith's
+  # culture-sensitive default -- git ref names are case-sensitive.
+  $cloneBranchMapped = $false
+  foreach ($cloneRefspec in $cloneFetchRefspecs) {
+    if (-not $cloneRefspec) { continue }
+    $spec = $cloneRefspec.Trim()
+    if (-not $spec -or $spec.StartsWith('^', [System.StringComparison]::Ordinal)) { continue }
+    $src = $spec.TrimStart('+')
+    $colon = $src.IndexOf(':')
+    if ($colon -ge 0) { $src = $src.Substring(0, $colon) }
+    if ($src.StartsWith('refs/heads/', [System.StringComparison]::Ordinal)) { $cloneBranchMapped = $true }
+  }
+  if (-not $cloneBranchMapped) {
     $configured = if ($cloneFetchRefspecs -and ($cloneFetchRefspecs -join ' ').Trim()) { ($cloneFetchRefspecs -join ' ').Trim() } else { '(none)' }
     Emit-Section 'Clone cannot fetch branches' @"
 $liplusDir - remote.origin.fetch maps no branch.

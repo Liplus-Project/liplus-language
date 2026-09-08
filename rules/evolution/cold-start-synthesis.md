@@ -102,7 +102,7 @@ The Li+ clone's configured fetch refspecs are surfaced at cold-start when none o
 Surface target:
 - the workspace holds a Li+ clone, and `remote.origin.fetch` carries no refspec whose source side is under `refs/heads/` -> surface as "clone cannot fetch branches"
 
-The predicate is the source side of a refspec, not the wildcard literal. A clone made with `--single-branch` carries `+refs/heads/<branch>:refs/remotes/origin/<branch>`; it does move that branch and is not this condition, so matching on `refs/heads/*` reports it every session.
+The predicate is the source side of a refspec, not the wildcard literal. A clone made with `--single-branch` carries `+refs/heads/<branch>:refs/remotes/origin/<branch>`; it does move that branch and is not this condition, so matching on `refs/heads/*` reports it every session. Read the source side as the src half of `[+]<src>:<dst>`, and read it there only: `refs/heads/` reached on the dst side (`+refs/tags/v1:refs/heads/mirror`) maps none of the remote's branches, so a predicate that tests the refspec as one string reads that clone as healthy. A `^<pattern>` exclusion satisfies the predicate in no namespace, since it establishes no mapping at all.
 
 What such a clone does instead of failing is what makes it need a surface: tags still resolve, so a `fetch --tags` succeeds, a bare `git fetch origin` succeeds as a no-op, and no branch moves. Nothing raises, and the update-status axes read tags, which are the refs that do advance.
 

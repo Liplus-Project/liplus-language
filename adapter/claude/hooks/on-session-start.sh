@@ -186,13 +186,14 @@ fi
 # 99% of sessions have no tag change, no schema change, and all config values
 # resolved — verification only, no actual changes. The walkthrough costs ~4%
 # context (10% with Li+config execution vs 6% without). The hook performs the
-# three verifications and emits a single-line update status marker the AI
+# four verifications and emits a single-line update status marker the AI
 # parses to decide whether to read Li+config + Li+update at all.
 #
-# Three axes (ALL must pass for "unnecessary"):
+# Four axes (ALL must pass for "unnecessary"):
 #   1. adapter sentinel tag in .claude/CLAUDE.md == current LI_PLUS_REPO target tag (per LI_PLUS_CHANNEL)
 #   2. Li+config.md schema canonical (no legacy keys present)
 #   3. LI_PLUS_BASE_LANGUAGE and LI_PLUS_PROJECT_LANGUAGE resolved (non-comment, non-empty)
+#   4. clone mode: remote.origin.fetch maps at least one branch (detection only; the hook does not repair)
 #
 # Marker format (machine/AI-parseable, single line + optional reason):
 #   LI_PLUS_UPDATE_STATUS=unnecessary     -> AI skips Li+update walkthrough; Li+config spot read (Read for value lookup, no execute) is permitted
@@ -265,6 +266,27 @@ if [ -f "$CONFIG_FILE" ]; then
 fi
 if [ -z "$BASE_LANG" ] || [ -z "$PROJ_LANG" ]; then
   UPDATE_REASONS+=("language-contract-unresolved(base=${BASE_LANG:-unset},project=${PROJ_LANG:-unset})")
+fi
+
+# --- axis 4: clone can fetch branches (#1911) ---
+# A clone whose `remote.origin.fetch` carries no `refs/heads/` source still
+# resolves tags, so the `fetch --tags` on Li+update.md's clone-mode `exists`
+# path succeeds while every branch stays where it was, and a later bare
+# `git fetch origin` is a silent no-op rather than an error. No other axis here
+# reports that: axis 1 reads tags, which are exactly what such a clone does
+# advance, so it keeps emitting "unnecessary" while the branch lag accumulates
+# with no surface at all.
+# Detection only. The repair writes shared local git state, which is `high`
+# caution under `rules/evolution/memory-entry-format.md` Artifact deletion
+# calibration and stays with the human; this axis names the state and stops.
+# The marker therefore reports "needed" every session until the human repairs
+# the clone -- that persistence is the escalation, not a defect in the axis.
+# Silent skip when the directory is not a clone (api mode) or `git` is absent:
+# neither state is evidence about a refspec.
+if [ -e "$LIPLUS_DIR/.git" ] && command -v git >/dev/null 2>&1; then
+  if ! git -C "$LIPLUS_DIR" config --get-all remote.origin.fetch 2>/dev/null | grep -q 'refs/heads/'; then
+    UPDATE_REASONS+=("clone-refspec-no-branch-mapping")
+  fi
 fi
 
 # --- emit update status marker ---

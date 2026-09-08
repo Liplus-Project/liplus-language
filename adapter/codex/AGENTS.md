@@ -20,7 +20,7 @@ Concept framing (Sheepdog Engineering):
 
 Execute the following at startup (never output credentials to chat):
 1. Inspect the `LI_PLUS_UPDATE_STATUS=` marker emitted by the `on-session-start` SessionStart hook (delimited by the `━━━ Li+ update status ━━━` banner) in the session-opening context.
-   - `LI_PLUS_UPDATE_STATUS=unnecessary` -> skip step 2 entirely. The hook has verified adapter sentinel tag matches the target tag, Li+config schema is canonical, and the language contract is resolved. On-demand spot read of Li+config.md for value lookup (repo URL, execution mode, language) is permitted: Read the file to extract values, but do NOT execute its contents.
+   - `LI_PLUS_UPDATE_STATUS=unnecessary` -> skip step 2 entirely. The hook has verified adapter sentinel tag matches the target tag, Li+config schema is canonical, the language contract is resolved, and the Li+ clone can fetch branches. On-demand spot read of Li+config.md for value lookup (repo URL, execution mode, language) is permitted: Read the file to extract values, but do NOT execute its contents.
    - `LI_PLUS_UPDATE_STATUS=needed` (or marker absent) -> proceed to step 2.
    - Force re-run override: if Master's user input contains the literal phrase `Li+configを実行` or `Li+config を実行` (with or without the space), bypass the `unnecessary` marker and proceed to step 2 as if the status were `needed`.
    - Marker-absent fallback: if the marker is missing (hook not trusted yet, or pre-bootstrap), treat as `needed`. The marker is absent whenever the SessionStart hook did not run — most commonly because the one-time GUI trust has not been granted (see Rules: hook trust below).

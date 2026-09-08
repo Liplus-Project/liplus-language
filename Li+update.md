@@ -1,7 +1,7 @@
 # Li+ Update
 
 Adapter / configuration sync procedure for Li+.
-Invoked when the adapter sentinel tag, Li+config schema, or workspace language contract drifts from the target state (the on-session-start.sh hook emits `LI_PLUS_UPDATE_STATUS=needed` in that case). Most sessions skip this file because the hook reports `LI_PLUS_UPDATE_STATUS=unnecessary`.
+Invoked when the adapter sentinel tag, Li+config schema, or workspace language contract drifts from the target state, or when a clone-mode workspace holds a clone that cannot fetch branches (the on-session-start.sh hook emits `LI_PLUS_UPDATE_STATUS=needed` in each of those cases). Most sessions skip this file because the hook reports `LI_PLUS_UPDATE_STATUS=unnecessary`.
 Never output credentials to chat. Read Li+config.md first to resolve all settings before executing this file.
 
 Phases execute in order. Each phase declares its dependencies.
@@ -128,17 +128,30 @@ clone mode:
      `git -C {workspace_root}/{repo_dir} checkout {target_tag}`
      Both are the literal to execute; add no flags to either. Proceed to step 3.
    - exists -> fetch --tags, then:
-     a. Resolve and report both values: current checked-out tag and target tag from LI_PLUS_CHANNEL.
+     a. Check that the clone can fetch branches: `git -C {workspace_root}/{repo_dir} config --get-all
+        remote.origin.fetch` must carry at least one refspec whose source side is under `refs/heads/`.
+        A clone carrying none of those still resolves tags, so the `fetch --tags` just run advances tags
+        and leaves every branch where it was, and a later bare `git fetch origin` succeeds as a no-op.
+        If none is present, name the finding to the user, and name what it costs: local branches never
+        advance, so a worktree or a build taken from a local branch is taken from a stale tree.
+        Detection only. Do not add the refspec, do not re-clone, do not abort — continue to step b either
+        way. The repair is the user's: it writes shared local git state, which no agent takes on its own.
+        The same check runs every session as verification axis 4 of the three on-session-start hook ports,
+        which is what puts it on the `LI_PLUS_UPDATE_STATUS` marker as the
+        `clone-refspec-no-branch-mapping` reason. While the clone stays in that state the marker reports
+        `needed` every session and this walkthrough runs again; that persistence is the escalation, not a
+        drift the walkthrough is expected to clear.
+     b. Resolve and report both values: current checked-out tag and target tag from LI_PLUS_CHANNEL.
         Name which of the two is newer: the target is not necessarily the newer one, since a channel
         can resolve to a tag behind the current one.
-     b. If same -> continue.
-     c. If different -> ask the user how to proceed before continuing to Phase 4.
+     c. If same -> continue.
+     d. If different -> ask the user how to proceed before continuing to Phase 4.
         Do not report bootstrap completion before this choice is resolved.
         Minimum choices:
         - update now to the target tag
         - stay on the current tag for this session
-     d. Checkout the target tag only if the user agrees.
-     e. If the user chooses to stay, continue on the current tag only after explicitly naming both tags.
+     e. Checkout the target tag only if the user agrees.
+     f. If the user chooses to stay, continue on the current tag only after explicitly naming both tags.
 3. Source files are now available at the resolved tag. Phase 4 handles reading.
 
 ## Phase 4: Host Integration

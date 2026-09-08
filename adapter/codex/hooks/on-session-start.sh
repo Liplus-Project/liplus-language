@@ -205,6 +205,15 @@ if [ "$MATCHER" = "startup" ]; then
     UPDATE_REASONS+=("language-contract-unresolved(base=${BASE_LANG:-unset},project=${PROJ_LANG:-unset})")
   fi
 
+  # axis 4: clone can fetch branches (#1911)
+  # Rationale is in the claude port this one mirrors. Detection only; silent
+  # skip when the directory is not a clone or `git` is absent.
+  if [ -e "$LIPLUS_DIR/.git" ] && command -v git >/dev/null 2>&1; then
+    if ! git -C "$LIPLUS_DIR" config --get-all remote.origin.fetch 2>/dev/null | grep -q 'refs/heads/'; then
+      UPDATE_REASONS+=("clone-refspec-no-branch-mapping")
+    fi
+  fi
+
   if [ "${#UPDATE_REASONS[@]}" -eq 0 ]; then
     emit "━━━ Li+ update status ━━━"
     emit "LI_PLUS_UPDATE_STATUS=unnecessary tag=$TARGET_TAG channel=$LI_PLUS_CHANNEL_VAL"

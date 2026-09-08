@@ -232,6 +232,18 @@ if ($matcher -ceq 'startup') {
     $updateReasons += "language-contract-unresolved(base=$b,project=$p)"
   }
 
+  # --- axis 4: clone can fetch branches (#1911) ---
+  # Rationale is in the claude port this one mirrors. Detection only; silent
+  # skip when the directory is not a clone or `git` is absent.
+  if ((Test-Path -LiteralPath (Join-Path $liplusDir '.git')) -and (Get-Command git -ErrorAction SilentlyContinue)) {
+    $fetchRefspecs = git -C $liplusDir config --get-all remote.origin.fetch 2>$null
+    # -cmatch, not -match: git ref names are case-sensitive and the two bash
+    # ports use a case-sensitive grep. #1804 is the same split, on another value.
+    if (-not ($fetchRefspecs -cmatch 'refs/heads/')) {
+      $updateReasons += 'clone-refspec-no-branch-mapping'
+    }
+  }
+
   # --- emit update status marker ---
   if ($updateReasons.Count -eq 0) {
     Emit '━━━ Li+ update status ━━━'

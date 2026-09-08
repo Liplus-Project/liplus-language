@@ -1,7 +1,7 @@
 # 更新同期手続き仕様書
 
 本文書は Li+ のアダプター / 設定の更新同期手続き（`Li+update.md`）の仕様を定義する。
-Li+config.md の設定値を前提とし、アダプター sentinel tag・Li+config schema・workspace 言語契約のいずれかが目標状態から逸脱した時、または clone モードの clone が branch を fetch できない状態にある時に AI が実行する Phase を記述する。
+Li+config.md の設定値を前提とし、アダプター sentinel tag・Li+config schema・workspace 言語契約のいずれかが目標状態から逸脱した時に AI が実行する Phase を記述する。
 
 ---
 
@@ -9,7 +9,7 @@ Li+config.md の設定値を前提とし、アダプター sentinel tag・Li+con
 
 更新同期手続きは **`Li+update.md`** に定義されている。Li+config.md はユーザー設定のみを保持し、同期ロジックは分離されている。
 
-`on-session-start.sh` hook が 4 軸（adapter sentinel tag / Li+config schema / 言語契約 / clone の branch fetch 可否）を verify し、いずれかが drift していれば `LI_PLUS_UPDATE_STATUS=needed` を emit する。AI はこの marker を見て本手続きを実行するか判定する。大半のセッションでは `LI_PLUS_UPDATE_STATUS=unnecessary` となり、本手続きは走らない（旧称「セッション起動フロー」が現運用とずれていたため、v1.17.10 で「更新同期手続き」へ rename した）。
+`on-session-start.sh` hook が 3 軸（adapter sentinel tag / Li+config schema / 言語契約）を verify し、いずれかが drift していれば `LI_PLUS_UPDATE_STATUS=needed` を emit する。AI はこの marker を見て本手続きを実行するか判定する。大半のセッションでは `LI_PLUS_UPDATE_STATUS=unnecessary` となり、本手続きは走らない（旧称「セッション起動フロー」が現運用とずれていたため、v1.17.10 で「更新同期手続き」へ rename した）。
 
 AI は Li+config.md を読み込んだ後、`Li+update.md` の Phase 1 から Phase 6 を順に実行する。各 Phase は直前までの Phase を依存前提として宣言する。認証情報をチャットに出力してはいけない。
 
@@ -104,7 +104,7 @@ host OS は adapter 種別（runtime=claude / runtime=codex）から推測しな
      `git -C {workspace_root}/{repo_dir} checkout {target_tag}`
      どちらも実行する literal そのものであり、フラグを追加しない
    - 存在する → `fetch --tags` を実行し:
-     a. clone が branch を fetch できるかを確認する。`git -C {workspace_root}/{repo_dir} config --get-all remote.origin.fetch` が、source 側を `refs/heads/` 以下に持つ refspec を最低 1 本保持していること。1 本も無い clone でも tag は解決するため、直前の `fetch --tags` は成功したまま branch はどれも動かず、後続の素の `git fetch origin` もエラーではなく no-op として成功する。無い場合は人間にその事実を名指し、代償も名指す（ローカル branch が永久に進まないため、ローカル branch から生やした worktree やビルドは古い木から取られる）。**検出のみ**であり、refspec の追加も re-clone も行わず、中断もしない（b へ続行する）。修理は人間の側にある（共有されたローカル git state を書き換えるため、エージェントが独断で踏まない）。同じ検査は on-session-start hook の 3 port が verify 軸 4 として毎セッション実行しており、それが `LI_PLUS_UPDATE_STATUS` marker の `clone-refspec-no-branch-mapping` reason になる。clone がその状態に留まる間、marker は毎セッション `needed` を報告し本手続きが再走する（この持続は escalation であり、本手続きが解消すべき drift ではない）
+     a. clone が branch を fetch できるかを確認する。`git -C {workspace_root}/{repo_dir} config --get-all remote.origin.fetch` が、source 側を `refs/heads/` 以下に持つ refspec を最低 1 本保持していること。1 本も無い clone でも tag は解決するため、直前の `fetch --tags` は成功したまま branch はどれも動かず、後続の素の `git fetch origin` もエラーではなく no-op として成功する。無い場合は人間にその事実を名指し、代償も名指す（ローカル branch が永久に進まないため、ローカル branch から生やした worktree やビルドは古い木から取られる）。**検出のみ**であり、refspec の追加も re-clone も行わず、中断もしない（b へ続行する）。修理は人間の側にある（共有されたローカル git state を書き換えるため、エージェントが独断で踏まない）。同じ条件は on-session-start hook が毎セッション surface しており、その状態に留まる clone はそこで報告され続ける。載せ先と、それが `LI_PLUS_UPDATE_STATUS` でない理由は `rules/evolution/cold-start-synthesis.md` の Clone Branch Fetch Surface 節
      b. 現在 checkout 中のタグと、`LI_PLUS_CHANNEL` から解決した対象タグを両方確認して報告する。その際、どちらが新しいかを名指す。channel によっては対象タグが現在タグより古いことがあり、対象であることから新しさは導けない
      c. 一致する場合はそのまま続行
      d. 不一致の場合、Phase 4 へ進む前に人間にどうするか確認する。この選択が解決するまで bootstrap 完了扱いにしない。最小選択肢は「対象タグへ更新してから続行」「今セッションは現在タグのまま続行」

@@ -186,14 +186,13 @@ fi
 # 99% of sessions have no tag change, no schema change, and all config values
 # resolved — verification only, no actual changes. The walkthrough costs ~4%
 # context (10% with Li+config execution vs 6% without). The hook performs the
-# four verifications and emits a single-line update status marker the AI
+# three verifications and emits a single-line update status marker the AI
 # parses to decide whether to read Li+config + Li+update at all.
 #
-# Four axes (ALL must pass for "unnecessary"):
+# Three axes (ALL must pass for "unnecessary"):
 #   1. adapter sentinel tag in .claude/CLAUDE.md == current LI_PLUS_REPO target tag (per LI_PLUS_CHANNEL)
 #   2. Li+config.md schema canonical (no legacy keys present)
 #   3. LI_PLUS_BASE_LANGUAGE and LI_PLUS_PROJECT_LANGUAGE resolved (non-comment, non-empty)
-#   4. clone mode: remote.origin.fetch maps at least one branch (detection only; the hook does not repair)
 #
 # Marker format (machine/AI-parseable, single line + optional reason):
 #   LI_PLUS_UPDATE_STATUS=unnecessary     -> AI skips Li+update walkthrough; Li+config spot read (Read for value lookup, no execute) is permitted
@@ -266,27 +265,6 @@ if [ -f "$CONFIG_FILE" ]; then
 fi
 if [ -z "$BASE_LANG" ] || [ -z "$PROJ_LANG" ]; then
   UPDATE_REASONS+=("language-contract-unresolved(base=${BASE_LANG:-unset},project=${PROJ_LANG:-unset})")
-fi
-
-# --- axis 4: clone can fetch branches (#1911) ---
-# A clone whose `remote.origin.fetch` carries no `refs/heads/` source still
-# resolves tags, so the `fetch --tags` on Li+update.md's clone-mode `exists`
-# path succeeds while every branch stays where it was, and a later bare
-# `git fetch origin` is a silent no-op rather than an error. No other axis here
-# reports that: axis 1 reads tags, which are exactly what such a clone does
-# advance, so it keeps emitting "unnecessary" while the branch lag accumulates
-# with no surface at all.
-# Detection only. The repair writes shared local git state, which is `high`
-# caution under `rules/evolution/memory-entry-format.md` Artifact deletion
-# calibration and stays with the human; this axis names the state and stops.
-# The marker therefore reports "needed" every session until the human repairs
-# the clone -- that persistence is the escalation, not a defect in the axis.
-# Silent skip when the directory is not a clone (api mode) or `git` is absent:
-# neither state is evidence about a refspec.
-if [ -e "$LIPLUS_DIR/.git" ] && command -v git >/dev/null 2>&1; then
-  if ! git -C "$LIPLUS_DIR" config --get-all remote.origin.fetch 2>/dev/null | grep -q 'refs/heads/'; then
-    UPDATE_REASONS+=("clone-refspec-no-branch-mapping")
-  fi
 fi
 
 # --- emit update status marker ---
@@ -1177,6 +1155,53 @@ if [ -n "$TALLY_BODY" ]; then
   TALLY_EMITTED=1
 fi
 
+# --- clone branch fetch surface (outside the diff-only set) ---
+# Implements rules/evolution/cold-start-synthesis.md "Clone Branch Fetch
+# Surface" (issue #1911). A Li+ clone whose remote.origin.fetch carries no
+# refspec sourced under refs/heads/ resolves tags and moves no branch, and
+# nothing raises: `fetch --tags` succeeds and a bare `git fetch origin` is a
+# silent no-op, so the lag accumulates with no surface at all.
+#
+# Carries no section key and is not registered for diff comparison, like the two
+# surfaces above, and for the same asymmetry: the trigger is not content-driven,
+# so a fingerprint would surface the clone once and then suppress it for the
+# whole time it stays broken. Unlike those two the trigger is state-driven, not
+# date-driven, which is why nothing here reads a date and nothing has to be
+# removed: the emission stops when the condition stops holding.
+#
+# Not placed on LI_PLUS_UPDATE_STATUS: that marker is the trigger condition for
+# step 2 of the adapter startup procedure and branches on the status alone, so a
+# reason stacked there would let a detection-only check start the update
+# walkthrough.
+#
+# Gathered here rather than in the gather phase because it is not in the diff
+# set, so its body is needed only at this point, and this point is past the
+# non-startup exit -- the `git` call is not spent on resume / clear / compact /
+# fork. Silent skip when the directory is not a clone (api mode) or `git` is
+# absent: neither state is evidence about a refspec.
+CLONE_REFSPEC_EMITTED=0
+if [ -e "$LIPLUS_DIR/.git" ] && command -v git >/dev/null 2>&1; then
+  CLONE_FETCH_REFSPECS=$(git -C "$LIPLUS_DIR" config --get-all remote.origin.fetch 2>/dev/null | tr '
+' ' ' | sed 's/[[:space:]]*$//')
+  case " $CLONE_FETCH_REFSPECS " in
+    *refs/heads/*) ;;
+    *)
+      emit_section "Clone cannot fetch branches" "${LIPLUS_DIR} - remote.origin.fetch maps no branch.
+  configured: ${CLONE_FETCH_REFSPECS:-(none)}
+  expected: at least one refspec whose source side is under refs/heads/
+Tags still resolve, so fetch --tags succeeds and a bare git fetch origin is a
+silent no-op; local branches never advance, so a worktree or a build taken from
+a local branch is taken from a stale tree.
+Surfacing is observation, not auto-action. The repair (one git config --add
+remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*' line) writes shared
+local git state and is taken on a human go-sign; name this to the human and stop
+there. Contract = rules/evolution/cold-start-synthesis.md Clone Branch Fetch
+Surface."
+      CLONE_REFSPEC_EMITTED=1
+      ;;
+  esac
+fi
+
 # --- diff-only logic (startup matcher only) ---
 #
 # Compute current fingerprint per section. Load prior fingerprint set from
@@ -1301,10 +1326,11 @@ done
 # If no section emitted under diff-only mode, emit the no-new-material marker
 # so the human can still observe that a session boundary occurred (silent
 # skip is intentionally avoided — it would hide the session transition).
-# The two date-driven surfaces count as material: pairing a just-emitted overdue
-# entry or an expired tally cluster with "No new orientation material" would be
-# self-contradictory output.
-if [ "$EMITTED_ANY" -eq 0 ] && [ "$OBSERVATION_EMITTED" -eq 0 ] && [ "$TALLY_EMITTED" -eq 0 ] && [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ]; then
+# The three surfaces outside the diff-only set count as material: pairing a
+# just-emitted overdue entry, an expired tally cluster or a clone that cannot
+# fetch branches with "No new orientation material" would be self-contradictory
+# output.
+if [ "$EMITTED_ANY" -eq 0 ] && [ "$OBSERVATION_EMITTED" -eq 0 ] && [ "$TALLY_EMITTED" -eq 0 ] && [ "$CLONE_REFSPEC_EMITTED" -eq 0 ] && [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ]; then
   emit_section "Orientation diff" "No new orientation material since last session. Prior in-context state remains authoritative."
   MARKER_EMITTED=1
 fi

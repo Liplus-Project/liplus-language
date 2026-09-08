@@ -1,7 +1,7 @@
 # Li+ Update
 
 Adapter / configuration sync procedure for Li+.
-Invoked when the adapter sentinel tag, Li+config schema, or workspace language contract drifts from the target state, or when a clone-mode workspace holds a clone that cannot fetch branches (the on-session-start.sh hook emits `LI_PLUS_UPDATE_STATUS=needed` in each of those cases). Most sessions skip this file because the hook reports `LI_PLUS_UPDATE_STATUS=unnecessary`.
+Invoked when the adapter sentinel tag, Li+config schema, or workspace language contract drifts from the target state (the on-session-start.sh hook emits `LI_PLUS_UPDATE_STATUS=needed` in that case). Most sessions skip this file because the hook reports `LI_PLUS_UPDATE_STATUS=unnecessary`.
 Never output credentials to chat. Read Li+config.md first to resolve all settings before executing this file.
 
 Phases execute in order. Each phase declares its dependencies.
@@ -136,11 +136,9 @@ clone mode:
         advance, so a worktree or a build taken from a local branch is taken from a stale tree.
         Detection only. Do not add the refspec, do not re-clone, do not abort — continue to step b either
         way. The repair is the user's: it writes shared local git state, which no agent takes on its own.
-        The same check runs every session as verification axis 4 of the three on-session-start hook ports,
-        which is what puts it on the `LI_PLUS_UPDATE_STATUS` marker as the
-        `clone-refspec-no-branch-mapping` reason. While the clone stays in that state the marker reports
-        `needed` every session and this walkthrough runs again; that persistence is the escalation, not a
-        drift the walkthrough is expected to clear.
+        The same condition is surfaced every session by the on-session-start hooks, which is where a clone
+        that stays in this state keeps being reported; the destination, and why it is not
+        `LI_PLUS_UPDATE_STATUS`, are `rules/evolution/cold-start-synthesis.md` Clone Branch Fetch Surface.
      b. Resolve and report both values: current checked-out tag and target tag from LI_PLUS_CHANNEL.
         Name which of the two is newer: the target is not necessarily the newer one, since a channel
         can resolve to a tag behind the current one.

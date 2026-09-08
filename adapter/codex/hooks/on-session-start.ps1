@@ -994,6 +994,50 @@ if ($tallyBody) {
   $tallyEmitted = $true
 }
 
+# --- clone branch fetch surface (outside the diff-only set) ---
+# Implements rules/evolution/cold-start-synthesis.md "Clone Branch Fetch
+# Surface". Port of the same block in
+# adapter/claude/hooks/on-session-start.sh; the rationale for the placement, for
+# staying out of the diff set, and for staying off LI_PLUS_UPDATE_STATUS is
+# there. State-driven trigger, so nothing here reads a date and nothing has to
+# be removed: the emission stops when the condition stops holding.
+# -cmatch, not -match: git ref names are case-sensitive and the two bash ports
+# compare case-sensitively.
+$cloneRefspecEmitted = $false
+if ((Test-Path -LiteralPath (Join-Path $liplusDir '.git')) -and (Get-Command git -ErrorAction SilentlyContinue)) {
+  $cloneFetchRefspecs = @(git -C $liplusDir config --get-all remote.origin.fetch 2>$null)
+  # Source side only, as in the two bash ports: the src half of [+]<src>:<dst>,
+  # skipping ^<pattern> exclusions. Ordinal comparison, not StartsWith's
+  # culture-sensitive default -- git ref names are case-sensitive.
+  $cloneBranchMapped = $false
+  foreach ($cloneRefspec in $cloneFetchRefspecs) {
+    if (-not $cloneRefspec) { continue }
+    $spec = $cloneRefspec.Trim()
+    if (-not $spec -or $spec.StartsWith('^', [System.StringComparison]::Ordinal)) { continue }
+    $src = $spec.TrimStart('+')
+    $colon = $src.IndexOf(':')
+    if ($colon -ge 0) { $src = $src.Substring(0, $colon) }
+    if ($src.StartsWith('refs/heads/', [System.StringComparison]::Ordinal)) { $cloneBranchMapped = $true }
+  }
+  if (-not $cloneBranchMapped) {
+    $configured = if ($cloneFetchRefspecs -and ($cloneFetchRefspecs -join ' ').Trim()) { ($cloneFetchRefspecs -join ' ').Trim() } else { '(none)' }
+    Emit-Section 'Clone cannot fetch branches' @"
+$liplusDir - remote.origin.fetch maps no branch.
+  configured: $configured
+  expected: at least one refspec whose source side is under refs/heads/
+Tags still resolve, so fetch --tags succeeds and a bare git fetch origin is a
+silent no-op; local branches never advance, so a worktree or a build taken from
+a local branch is taken from a stale tree.
+Surfacing is observation, not auto-action. The repair (one git config --add
+remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*' line) writes shared
+local git state and is taken on a human go-sign; name this to the human and stop
+there. Contract = rules/evolution/cold-start-synthesis.md Clone Branch Fetch
+Surface.
+"@
+    $cloneRefspecEmitted = $true
+  }
+}
+
 # ===================================================================
 # Diff-only emission (startup matcher)
 # ===================================================================
@@ -1040,11 +1084,12 @@ for ($i = 0; $i -lt $sectionKeys.Count; $i++) {
   }
 }
 
-# The two date-driven surfaces count as material: pairing a just-emitted overdue
-# entry or an expired tally cluster with "No new orientation material" would be
-# self-contradictory output.
+# The three surfaces outside the diff-only set count as material: pairing a
+# just-emitted overdue entry, an expired tally cluster or a clone that cannot
+# fetch branches with "No new orientation material" would be self-contradictory
+# output.
 $markerEmitted = $false
-if (-not $emittedAny -and -not $observationEmitted -and -not $tallyEmitted -and -not $failSafeFull) {
+if (-not $emittedAny -and -not $observationEmitted -and -not $tallyEmitted -and -not $cloneRefspecEmitted -and -not $failSafeFull) {
   Emit-Section 'Orientation diff' 'No new orientation material since last session. Prior in-context state remains authoritative.'
   $markerEmitted = $true
 }

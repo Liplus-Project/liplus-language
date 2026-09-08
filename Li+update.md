@@ -128,17 +128,28 @@ clone mode:
      `git -C {workspace_root}/{repo_dir} checkout {target_tag}`
      Both are the literal to execute; add no flags to either. Proceed to step 3.
    - exists -> fetch --tags, then:
-     a. Resolve and report both values: current checked-out tag and target tag from LI_PLUS_CHANNEL.
+     a. Check that the clone can fetch branches: `git -C {workspace_root}/{repo_dir} config --get-all
+        remote.origin.fetch` must carry at least one refspec whose source side is under `refs/heads/`.
+        A clone carrying none of those still resolves tags, so the `fetch --tags` just run advances tags
+        and leaves every branch where it was, and a later bare `git fetch origin` succeeds as a no-op.
+        If none is present, name the finding to the user, and name what it costs: local branches never
+        advance, so a worktree or a build taken from a local branch is taken from a stale tree.
+        Detection only. Do not add the refspec, do not re-clone, do not abort — continue to step b either
+        way. The repair is the user's: it writes shared local git state, which no agent takes on its own.
+        The same condition is surfaced every session by the on-session-start hooks, which is where a clone
+        that stays in this state keeps being reported; the destination, and why it is not
+        `LI_PLUS_UPDATE_STATUS`, are `rules/evolution/cold-start-synthesis.md` Clone Branch Fetch Surface.
+     b. Resolve and report both values: current checked-out tag and target tag from LI_PLUS_CHANNEL.
         Name which of the two is newer: the target is not necessarily the newer one, since a channel
         can resolve to a tag behind the current one.
-     b. If same -> continue.
-     c. If different -> ask the user how to proceed before continuing to Phase 4.
+     c. If same -> continue.
+     d. If different -> ask the user how to proceed before continuing to Phase 4.
         Do not report bootstrap completion before this choice is resolved.
         Minimum choices:
         - update now to the target tag
         - stay on the current tag for this session
-     d. Checkout the target tag only if the user agrees.
-     e. If the user chooses to stay, continue on the current tag only after explicitly naming both tags.
+     e. Checkout the target tag only if the user agrees.
+     f. If the user chooses to stay, continue on the current tag only after explicitly naming both tags.
 3. Source files are now available at the resolved tag. Phase 4 handles reading.
 
 ## Phase 4: Host Integration

@@ -106,9 +106,8 @@ Dependencies: Phase 2 (gh CLI authenticated, repository schema resolved to canon
 - release: use the most recent tag including pre-releases (GitHub Release API).
 - tag: use the newest git tag in tag-name version order, including tags without a GitHub Release
   (clone mode primary: `git ls-remote --tags --sort=-v:refname {repo_url} | head -1`).
-  `-v:refname` reads ref names only. Do not substitute a sort key that requires object data
-  (`-creatordate`): it fails outside a repository and inside a shallow clone whose newest tag
-  points past the truncation.
+  Do not substitute a sort key that requires object data (`-creatordate`): it fails outside a
+  repository and inside a shallow clone whose newest tag points past the truncation.
   Containment: tag ⊇ release ⊇ latest. Intended for pre-release tag verification before a
   GitHub Release is created. api mode extension is out of scope at this time.
 - Version check is mandatory on every startup before proceeding to Phase 4.

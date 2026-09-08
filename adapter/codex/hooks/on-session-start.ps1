@@ -203,7 +203,7 @@ if ($matcher -ceq 'startup') {
     'tag' {
       # ls-remote is the only source of truth (stale local clone must not emit a
       # false "unnecessary"). On failure leave empty -> forces "needed".
-      $remote = git -C $liplusDir ls-remote --tags --sort=-creatordate origin 2>$null
+      $remote = git -C $liplusDir ls-remote --tags --sort=-v:refname origin 2>$null
       if ($remote) {
         $targetTag = ($remote -split "`n" |
           ForEach-Object { if ($_ -match 'refs/tags/(.+?)(\^\{\})?$') { $matches[1] } } |

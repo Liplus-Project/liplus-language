@@ -186,7 +186,7 @@ if [ "$MATCHER" = "startup" ]; then
     latest)  TARGET_TAG=$(gh release view --repo Liplus-Project/liplus-language --json tagName --jq '.tagName' 2>/dev/null) ;;
     release) TARGET_TAG=$(gh release list --repo Liplus-Project/liplus-language --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null) ;;
     tag)
-      TARGET_TAG=$(git -C "$LIPLUS_DIR" ls-remote --tags --sort=-creatordate origin 2>/dev/null \
+      TARGET_TAG=$(git -C "$LIPLUS_DIR" ls-remote --tags --sort=-v:refname origin 2>/dev/null \
         | awk -F'refs/tags/' 'NF==2 {print $2}' | sed 's/\^{}$//' | head -n 1) ;;
   esac
   if [ -z "$ADAPTER_TAG" ] || [ -z "$TARGET_TAG" ] || [ "$ADAPTER_TAG" != "$TARGET_TAG" ]; then

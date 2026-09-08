@@ -238,7 +238,7 @@ if ($matcher -ceq 'startup') {
   if ((Test-Path -LiteralPath (Join-Path $liplusDir '.git')) -and (Get-Command git -ErrorAction SilentlyContinue)) {
     $fetchRefspecs = git -C $liplusDir config --get-all remote.origin.fetch 2>$null
     # -cmatch, not -match: git ref names are case-sensitive and the two bash
-    # ports use a case-sensitive grep. #1804 is the same split, on another value.
+    # ports use a case-sensitive grep.
     if (-not ($fetchRefspecs -cmatch 'refs/heads/')) {
       $updateReasons += 'clone-refspec-no-branch-mapping'
     }

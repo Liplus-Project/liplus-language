@@ -104,8 +104,10 @@ Dependencies: Phase 2 (gh CLI authenticated, repository schema resolved to canon
 3.1. Determine target version using LI_PLUS_CHANNEL:
 - latest: use the Latest release tag (stable release only).
 - release: use the most recent tag including pre-releases (GitHub Release API).
-- tag: use the most recent git tag by creation date, including tags without a GitHub Release
-  (clone mode primary: `git ls-remote --tags --sort=-creatordate {repo_url} | head -1`).
+- tag: use the newest git tag in tag-name version order, including tags without a GitHub Release
+  (clone mode primary: `git ls-remote --tags --sort=-v:refname {repo_url} | head -1`).
+  Do not substitute a sort key that requires object data (`-creatordate`): it fails outside a
+  repository and inside a shallow clone whose newest tag points past the truncation.
   Containment: tag ⊇ release ⊇ latest. Intended for pre-release tag verification before a
   GitHub Release is created. api mode extension is out of scope at this time.
 - Version check is mandatory on every startup before proceeding to Phase 4.

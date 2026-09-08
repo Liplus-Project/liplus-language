@@ -237,7 +237,7 @@ case "$LI_PLUS_CHANNEL_VAL" in
     # (confirm-impossible -> safe side; the normal Li+update version check runs).
     # Spec: Li+update.md Phase 3.1 (version check mandatory per startup; stale local
     # clone silent continuation prohibited). See issue #1454.
-    TARGET_TAG=$(git -C "$LIPLUS_DIR" ls-remote --tags --sort=-creatordate origin 2>/dev/null \
+    TARGET_TAG=$(git -C "$LIPLUS_DIR" ls-remote --tags --sort=-v:refname origin 2>/dev/null \
       | awk -F'refs/tags/' 'NF==2 {print $2}' | sed 's/\^{}$//' | head -n 1)
     ;;
 esac

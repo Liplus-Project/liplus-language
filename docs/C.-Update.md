@@ -84,7 +84,7 @@ host OS は adapter 種別（runtime=claude / runtime=codex）から推測しな
 
 - `latest`: Latest release タグ（stable release のみ）
 - `release`: pre-release を含む最新リリースタグ（GitHub Release API）
-- `tag`: 作成日順で最新の git タグ（GitHub Release が未作成のタグも含む）。clone モードでは `git ls-remote --tags --sort=-creatordate {repo_url} | head -1` を使用
+- `tag`: tag 名のバージョン順で最新の git タグ（GitHub Release が未作成のタグも含む）。clone モードでは `git ls-remote --tags --sort=-v:refname {repo_url} | head -1` を使用。`-v:refname` は ref 名だけを読むため、リポジトリ外でも shallow clone 内でも解決できる（object data を要求する `-creatordate` は落ちる）
 - 包含関係は tag ⊇ release ⊇ latest。tag は GitHub Release 作成前の pre-release タグ検証を意図する。api モードの tag 拡張は現時点ではスコープ外
 - バージョン確認は起動のたびに Phase 4 へ進む前に必ず実施する。ローカル clone が古いままでも黙って継続してはいけない
 

@@ -56,7 +56,7 @@ Li+リポジトリからLi+ファイルを取得する方法を指定します�
 |----|------|
 | `latest` | Latestリリースのタグを使用（安定版のみ） |
 | `release` | Pre-release含む最新リリースのタグを使用 |
-| `tag` | GitHub Release 未作成の tag も含む最新 git tag を使用（`git ls-remote --tags --sort=-creatordate` で解決、clone mode 第一対応） |
+| `tag` | GitHub Release 未作成の tag も含む、tag 名のバージョン順で最新の git tag を使用（`git ls-remote --tags --sort=-v:refname` で解決、clone mode 第一対応） |
 
 包含関係: `tag` ⊇ `release` ⊇ `latest`。
 

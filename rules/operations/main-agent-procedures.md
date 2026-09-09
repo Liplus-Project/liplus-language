@@ -54,7 +54,7 @@ Adapter literals that point the main agent at an operations skill are repaired t
 ## Issue format
 
 Canonical. `skills/operations-on-issue-format/SKILL.md` holds the pointer.
-Actor = the parent, unconditionally: `skills/task-subagent-delegation/SKILL.md` Rules puts `issue creation` and `issue management` on `Parent retains` with no mode branch. The subagent reaches this text too — it updates the issue body when premise or constraints change during implementation, and writes the failure-report comment — but it is not the actor the placement is decided on. One canonical on a main-readable surface covers both.
+Actor = the parent, unconditionally. The subagent applies this format too, when it updates the issue body mid-implementation or writes the failure-report comment.
 
 Issue title language:
 Title = ASCII English only.
@@ -96,8 +96,8 @@ Treating "黙って" as "still do full intake but skip discussing it" defeats th
 
 ## Issue maturity
 
-Canonical, and held on the resident surface rather than in an `operations-*` skill.
-Actor = the parent, unconditionally: `skills/task-subagent-delegation/SKILL.md` Rules puts `issue management (non-state lifecycle labels / type / maturity / marker / close)` on `Parent retains`, naming `maturity` with no mode branch, and the parent close condition below is `close` on that same list. The subagent is delegated an issue that has already converged and never judges the transition, so no reader is left behind on the skill surface.
+Canonical.
+Actor = the parent, unconditionally. The subagent is delegated an issue that has already converged and never judges the transition.
 
 memo/forming is not implementation-ready.
 
@@ -127,7 +127,7 @@ Memo maturity is a valid resting state, not "incomplete and embarrassing". The c
 ## Sub-issue rules
 
 Canonical. `skills/operations-on-sub-issue/SKILL.md` keeps the draft-PR CI visibility surface and points here.
-Actor = the parent on every judgment below. Creating and classifying a sub-issue is `issue creation` on `Parent retains` (`skills/task-subagent-delegation/SKILL.md` Rules); proposing a parallel structure and firing the scope-exceed confirm both speak to the human, and a subagent has no dialogue surface; re-opening an issue during recovery is the inverse of `close`, which that list's `issue management` parenthetical names. The subagent reaches this text too — it is the actor that detects a scope exceed mid-implementation, and `rules/**` loads for it without invocation — so nothing it needs at that moment is lost.
+Actor = the parent on every judgment below. The subagent is the actor that detects a scope exceed mid-implementation, and has no dialogue surface to fire the confirm on.
 
 Sub-issue = AI-trackable work unit.
 Split by responsibility, not granularity.
@@ -191,7 +191,7 @@ This is fix-up only — do not normalize per-sub-issue PRs as a workflow. The si
 ## Branch and label flow
 
 Canonical. `skills/operations-on-branch/SKILL.md` keeps the repo-first execution surface and points here.
-Actor = the main agent on every half of this flow. The trigger is human intent read from dialogue, which no subagent has. `backlog` and `deferred` are non-state lifecycle labels, which `skills/task-subagent-delegation/SKILL.md` Rules puts on `Parent retains`. Branch creation is the detection sign's own shape: the main agent creates the branch under the worktree lifecycle (`adapter/claude/CLAUDE.md` / `adapter/codex/AGENTS.md` Responsibilities), and the delegated subagent creates it when the delegation uses no worktree. The subagent reaches this text too, on that second path; one canonical on a main-readable surface covers both.
+Actor = the main agent on every half of this flow, with one split: branch creation is the main agent's under the worktree lifecycle (`adapter/claude/CLAUDE.md` / `adapter/codex/AGENTS.md` Responsibilities), and the delegated subagent's when the delegation uses no worktree.
 
 Trigger = human intent to act now detected via dialogue.
 Judgment = read atmosphere, not checklist.
@@ -254,7 +254,7 @@ If not linked = retry or escalate.
 ## PR review
 
 Canonical. `skills/operations-on-pr-review/SKILL.md` keeps the Delegated-subagent stop condition and points here.
-Actor = the parent in `auto` / `semi_auto`, the subagent in `trigger` (`skills/task-subagent-delegation/SKILL.md` Rules) — a mode-dependent actor, which is the detection sign named at The bar and its pair above. In the first two it is the agent that merges. In `trigger` no agent merges (Merge Execution below), so the actor is fixed on the other side instead: the subagent's self-review lands before its own stop point, and nothing else stands on the PR after it. The subagent reaches this text on that path, and `rules/**` loads for it without invocation.
+Actor = the parent in `auto` / `semi_auto`, the subagent in `trigger`.
 
 AI self-review is mandatory in every mode (trigger / semi_auto / auto).
 Skipping self-review before merge is a spec violation. Self-review runs first; external human check (if any) is layered on top, not in place of it.
@@ -306,7 +306,7 @@ Merge is not the closing bracket; the deferred-item handoff is.
 
 Mandatory in every mode (trigger / semi_auto / auto).
 Canonical. PR review above holds the surrounding self-review flow.
-Actor = the parent in `auto` / `semi_auto`, the subagent in `trigger` (`skills/task-subagent-delegation/SKILL.md` Rules). In the first two it is the agent that merges. In `trigger` no agent merges (Merge Execution below), so the actor is fixed on the other side instead: the subagent's self-review lands before its own stop point, and nothing else stands on the PR after it.
+Actor = the parent in `auto` / `semi_auto`, the subagent in `trigger`.
 
 After the internal self-review passes, that agent MUST post the outcome as a formal GitHub PR review:
 
@@ -323,7 +323,7 @@ Mechanism note: GitHub rejects `--add-reviewer` self-assignment silently; only `
 ## Review approval check
 
 Canonical. PR review above holds which modes raise a human gate; the procedure is here.
-Actor = the parent, in every mode that raises the gate. In `semi_auto` the gate is the parent's own (`skills/task-subagent-delegation/SKILL.md` Rules, `Parent retains: ... review judgment`; `rules/operations/execution-mode.md` Mode matrix puts the human PR check on minor / major). In `trigger` the delegated subagent has already stopped at `awaiting human review` (`skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition), so the approval arrives after its session has ended. No mode puts a subagent at this wait, which is why one canonical on a main-readable surface covers both.
+Actor = the parent, in every mode that raises the gate. No mode puts a subagent at this wait.
 
 Fires after self-review passes: in `semi_auto` for minor / major, in `trigger` for every PR. `auto` raises no human gate and never reaches here.
 
@@ -385,7 +385,7 @@ After merging any PR touching L1 Model Layer source (any file with `layer: L1-mo
 ## Human confirmation required
 
 Canonical. `skills/operations-on-release/SKILL.md` keeps the release execution procedure and points here.
-Actor = the main agent. Every item below is a confirmation asked of the human, and a subagent has no dialogue surface to ask on — the same reason `## Foreground webhook notification intake` below is main-only. `rules/operations/execution-mode.md` human judgment gate holds the gate list on the judgment-authority axis and is not restated here; what this section adds is the stop word, the branch-delete and trigger-mode items, and the confirmation's position ahead of the procedure.
+Actor = the main agent. `rules/operations/execution-mode.md` human judgment gate holds the gate list on the judgment-authority axis and is not restated here; what this section adds is the stop word, the branch-delete and trigger-mode items, and the confirmation's position ahead of the procedure.
 
 Stop immediately when:
 human says wait or stop or matte.
@@ -403,7 +403,7 @@ Mode-dependent confirm (trigger mode only): issue selection, issue execution sta
 ## Release completion report discipline
 
 Canonical. `skills/operations-on-release/SKILL.md` keeps the release execution procedure and points here.
-Actor = the main agent. The completion report is written to the human, which no subagent writes — its report goes to the parent.
+Actor = the main agent.
 
 Release create completion report contains release URL + post-release task completion only. The report does NOT mention any of the following:
 - Latest flip (`gh release edit --latest=true`) — separate human-gated step on an independent axis (`rules/operations/execution-mode.md` human judgment gate)
@@ -432,7 +432,7 @@ On detection: drop all Latest-related mentions; end the report at "release URL +
 ## Foreground webhook notification intake
 
 Canonical. `skills/operations-foreground-webhook-intake/SKILL.md` holds the pointer.
-Actor = the main agent, and only the main agent: the firing moment is the start of a user turn, and a subagent has none. Residency is therefore not a convenience here — a pull surface cannot reach an actor whose trigger is the turn boundary itself, which is the shape that was observed firing against the bar.
+Actor = the main agent, and only the main agent: the firing moment is the start of a user turn, and a subagent has none.
 
 Purpose:
 Keep the active foreground thread lightweight.
@@ -509,8 +509,8 @@ own-operation arrival confirmation:
 
 ## Notifications API
 
-Canonical, and held on the resident surface rather than in an `operations-*` skill.
-Actor = the main agent. The direct-call moment is the foreground intake path above, which only the main agent stands in. The subagent's contact with webhook material is the CI loop, and that reads the MCP surface (`skills/operations-on-ci/SKILL.md`), never these endpoints, so no reader is left behind on the skill surface.
+Canonical.
+Actor = the main agent. The direct-call moment is the foreground intake path above.
 
 PATCH  /notifications/threads/{id}   -> 205  read (stays in Inbox)
 PUT    /notifications {"read":true}  -> 205  mark all read
@@ -525,7 +525,7 @@ scope = notifications (classic PAT)
 ## Handoff continuity
 
 Canonical. `skills/operations-handoff-continuity/SKILL.md` holds the pointer.
-Actor = both, which is what puts the canonical here rather than there. The subagent holds the commits to push; the main agent holds state of its own across a boundary — the resume target for an implementation subagent, which lives in the spawning session's context alone. `chat memory` below is the main agent's and no one else's. The issue body is not the load-bearing half of that list here: the subagent may update it mid-implementation (`skills/task-subagent-delegation/SKILL.md` Responsibilities), which is why it reaches both actors rather than fixing one.
+Actor = both. The subagent holds the commits to push; the main agent holds state of its own across a boundary — the resume target for an implementation subagent, which lives in the spawning session's context alone. `chat memory` below is the main agent's and no one else's.
 
 If token/session/model boundary may interrupt work = push useful intermediate state to the linked personal branch.
 Handoff source of truth = issue body + linked branch + commits/PR.
@@ -537,8 +537,8 @@ Do not leave meaningful progress only in local workspace or chat memory.
 
 ## Chat output limit
 
-Canonical, and held on the resident surface rather than in an `operations-*` skill.
-Actor = the main agent. Chunking is a multi-message act, and the only surface carrying more than one message is the human-facing chat, which the main agent alone holds — a subagent emits one report and has nothing to chunk it across. No reader is left behind on the skill surface.
+Canonical.
+Actor = the main agent.
 
 Long output may stop = physical limit, not corruption.
 Use chunking when needed.
@@ -549,8 +549,8 @@ Use chunking when needed.
 
 ## Discussions intake
 
-Canonical, and held on the resident surface rather than in an `operations-*` skill.
-Actor = the main agent, and not by `Parent retains` — this is context for triaging an externally-originated issue, which is none of the five items that list's `issue management` is scoped to. What places it here is the other half of the maintenance rule: the skill's `description` named a moment the main agent stands in, and no reader remained on that surface once it did. The subagent implements from an issue whose origin does not reach its work, so nothing was left behind.
+Canonical.
+Actor = the main agent.
 
 Discussions = external user entry point.
 A bot is stationed in Discussions.

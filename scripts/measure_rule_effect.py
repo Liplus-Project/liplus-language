@@ -52,16 +52,46 @@ EDIT_BUDGET = 1
 # Applied to text an edit inserts, never to text that was already in the tree.
 # An arm that reads "this file is an experimental variant" inside its own rules
 # changes the frame it judges in, so the label goes in the run record instead.
-# `trial` is in the list (issue #1935 (d)): the measured example this guard's
-# grounds rest on (`skills/evolution-rule-effect-measurement/SKILL.md`
-# Containment when a file is placed) is literally "a copy made for a trial", and
-# a list that cannot catch its own grounding example is a hole in the guard, not
-# a separate concern - fixed here rather than split into a second issue.
-SELF_DECLARING_WORD = re.compile(
+#
+# What the guard catches is a sentence that says *this body* is a copy made for
+# a run - self-reference and run vocabulary together, in one sentence (issue
+# #1938 (a')). The vocabulary alone is not the form: `premise variants` and
+# `test coverage` are the L2 layer's own domain vocabulary, and a body written
+# from scratch out of judgment records carries them without ever declaring what
+# it is. Rejecting on the bare word stopped such a body (issue #1938), and the
+# provenance exemption below could not reach it because it exists in no
+# repository file. `trial` stays in the vocabulary (issue #1935 (d)): the
+# measured example the guard's grounds rest on
+# (`skills/evolution-rule-effect-measurement/SKILL.md` Containment when a file
+# is placed) is literally "a copy made for a trial".
+RUN_VOCABULARY_WORD = re.compile(
     r"(?<![a-z])(experiment\w*|variant\w*|test\w*|probe\w*|harness\w*|trial\w*)(?![a-z])",
     re.IGNORECASE,
 )
-SELF_DECLARING_SUBSTRINGS = ("実験", "変種", "テスト", "検証用", "試験")
+RUN_VOCABULARY_SUBSTRINGS = ("実験", "変種", "テスト", "検証用", "試験")
+
+# The self-reference half. A deictic naming the artifact as an artifact - not
+# the run, the round, or the object under study, which a body may discuss
+# without saying anything about itself.
+#
+# `this rule` / `this skill` / `this section` are deliberately absent. In Li+
+# prose they name what the body is about as often as what it is, so `this rule
+# names the removal test` would trip a guard that carried them - the same
+# over-rejection issue #1938 reports, reintroduced one noun over. The measured
+# grounding example names the artifact as an artifact ("the file was a copy
+# made for a trial"), which is the set kept here.
+SELF_REFERENCE = re.compile(
+    r"(?<![a-z])this\s+"
+    r"(file|copy|document|text|body|arm|version|draft)"
+    r"(?![a-z])"
+    r"|(?<![a-z])you are reading(?![a-z])"
+    r"|このファイル|この複製|このコピー|この文書|この本文|この写し",
+    re.IGNORECASE,
+)
+
+# Sentence boundaries for the co-occurrence window. Newlines split too: in
+# markdown a list item is a sentence whether or not it ends in a period.
+SENTENCE_BOUNDARY = re.compile(r"[\n\r]+|。|(?<=[.!?;])\s+")
 
 
 class HarnessError(RuntimeError):
@@ -225,20 +255,36 @@ def _reject_self_declaring(text: str, source_root: Path | None, path: str) -> No
     its verdict was not for production use. The label belongs in the run record
     and the issue, outside the artifact the arm reads.
 
+    The form refused is a sentence carrying both halves at once: a deictic
+    naming this body (`SELF_REFERENCE`) and a word naming a run
+    (`RUN_VOCABULARY_WORD` / `RUN_VOCABULARY_SUBSTRINGS`). Either half alone
+    says nothing about what the arm is standing in - a body may discuss probes
+    and test coverage as its own subject matter, and may refer to itself
+    without claiming to be a copy made for a run.
+
     Text verified against the repository as an existing file's full content
-    (`_matches_existing_file`) is exempted before the vocabulary check runs: it
-    was not written for this run, so the guard's premise does not hold for it.
+    (`_matches_existing_file`) is exempted before that check runs: it was not
+    written for this run, so the guard's premise does not hold for it.
     `source_root=None` (no repository to check against) disables only the
-    exemption, not the guard itself - vocabulary is still applied.
+    exemption, not the guard itself.
     """
     if source_root is not None and _matches_existing_file(text, source_root, path):
         return
-    hit = SELF_DECLARING_WORD.search(text)
-    if hit:
-        raise PlanError(f"inserted text names the run itself: {hit.group(0)!r}")
-    for marker in SELF_DECLARING_SUBSTRINGS:
-        if marker in text:
-            raise PlanError(f"inserted text names the run itself: {marker!r}")
+    for sentence in SENTENCE_BOUNDARY.split(text):
+        if not SELF_REFERENCE.search(sentence):
+            continue
+        hit = RUN_VOCABULARY_WORD.search(sentence)
+        if hit:
+            raise PlanError(
+                f"inserted text says this body is a copy made for the run: "
+                f"{hit.group(0)!r}"
+            )
+        for marker in RUN_VOCABULARY_SUBSTRINGS:
+            if marker in sentence:
+                raise PlanError(
+                    f"inserted text says this body is a copy made for the run: "
+                    f"{marker!r}"
+                )
 
 
 def harness_root(base_dir: Path | None = None) -> Path:

@@ -145,15 +145,22 @@ class PlanValidationTest(unittest.TestCase):
         with self.assertRaises(module.PlanError):
             module.load_plan(data)
 
-    def test_inserted_text_may_not_name_the_run_itself(self) -> None:
-        """Measured: an arm reading such a note downgraded its own verdict."""
+    def test_inserted_text_may_not_say_this_body_is_made_for_the_run(self) -> None:
+        """Acceptance case 1 (issue #1938): the measured example stays refused.
+
+        Self-reference and run vocabulary in one sentence. The first entry is the
+        literal the guard's grounds rest on
+        (`skills/evolution-rule-effect-measurement/SKILL.md` Containment when a
+        file is placed).
+        """
         for text in (
+            "This file is a copy made for a trial; "
+            "its verdict is not for production use.",
             "this file is an experimental copy",
-            "variant B",
-            "test fixture",
-            "a copy made for a trial",
-            "この節は実験用",
-            "検証用の記述",
+            "This document is variant B of the rules.",
+            "This text is a test fixture, not the shipped one.",
+            "このファイルは実験用の複写である",
+            "この複製は検証用に作られた",
         ):
             with self.subTest(text=text):
                 data = valid_plan_data()
@@ -161,11 +168,70 @@ class PlanValidationTest(unittest.TestCase):
                 with self.assertRaises(module.PlanError):
                     module.load_plan(data)
 
+    def test_run_vocabulary_without_self_reference_passes(self) -> None:
+        """Acceptance case 0 (issue #1938), in a form that carries no local path.
+
+        The failing input was a body written from scratch out of judgment
+        records: it exists in no repository file, so the provenance exemption
+        cannot reach it, and it carries the L2 layer's own domain vocabulary
+        without ever declaring what it is. The excerpt below reproduces that
+        shape - `variants`, `probe`, `test` and `tested` all present, no
+        sentence claiming this body was made for a run.
+        """
+        text = (
+            "- **`P` (premise_variations)** - how many premise variants of the "
+            "same round are run side by side.\n"
+            "Required again for a `skills/<name>/SKILL.md` draft read by a "
+            "probe-type evaluator, since a probe's validity depends on the "
+            "skill actually being invokable.\n"
+            "For the fixed axis, the source is the removal test defined in "
+            "`skills/evolution-impression-literal-detection/SKILL.md`.\n"
+            "A rejected finding gets a full reply: the finding quoted, the "
+            "source it was tested against, and what the test returned.\n"
+        )
+        data = valid_plan_data()
+        data["arms"][1]["edits"][0]["replace_with"] = text  # type: ignore[index]
+        plan = module.load_plan(data)
+        self.assertEqual(plan.arms[1].edits[0].replace_with, text)
+
+    def test_self_reference_without_run_vocabulary_passes(self) -> None:
+        """The other half alone says nothing about what the arm stands in."""
+        data = valid_plan_data()
+        data["arms"][1]["edits"][0]["replace_with"] = (  # type: ignore[index]
+            "This document holds the operational detail; this file does not "
+            "restate it."
+        )
+        plan = module.load_plan(data)
+        self.assertIn("This document", plan.arms[1].edits[0].replace_with)
+
+    def test_this_rule_is_not_a_self_reference(self) -> None:
+        """`this rule` names what the body is about, not what the body is.
+
+        Carrying it in the deictic set would reintroduce the over-rejection
+        issue #1938 reports, one noun over.
+        """
+        data = valid_plan_data()
+        data["arms"][1]["edits"][0]["replace_with"] = (  # type: ignore[index]
+            "This rule names the removal test; this section carries the probe."
+        )
+        plan = module.load_plan(data)
+        self.assertIn("removal test", plan.arms[1].edits[0].replace_with)
+
+    def test_the_two_halves_must_share_one_sentence(self) -> None:
+        """Neighbouring sentences are not a self-declaration."""
+        data = valid_plan_data()
+        data["arms"][1]["edits"][0]["replace_with"] = (  # type: ignore[index]
+            "The probe is answered once per repetition. This file holds the "
+            "adjudication rules."
+        )
+        plan = module.load_plan(data)
+        self.assertIn("probe", plan.arms[1].edits[0].replace_with)
+
     def test_ordinary_replacement_text_passes(self) -> None:
         """The guard reads whole words, so `latest` and `contest` are not hits."""
         data = valid_plan_data()
         data["arms"][1]["edits"][0]["replace_with"] = (  # type: ignore[index]
-            "the latest release wins the contest"
+            "This file names the latest release that wins the contest"
         )
         plan = module.load_plan(data)
         self.assertIn("latest", plan.arms[1].edits[0].replace_with)
@@ -175,8 +241,12 @@ class SelfDeclaringProvenanceTest(TempDirCase):
     """Issue #1935: provenance exempts a file's own full body from the vocabulary guard."""
 
     def test_text_matching_an_existing_file_in_full_is_exempted(self) -> None:
-        """(b): a verbatim full-file match was not written for this run."""
-        body = "the harness runs a probe against the test arm\nsecond line\n"
+        """(b): a verbatim full-file match was not written for this run.
+
+        The body carries a sentence the guard would otherwise refuse, so the
+        exemption is what this asserts and not the co-occurrence check.
+        """
+        body = "this file is a copy made for a trial\nsecond line\n"
         source = self.make_source_root(body=body)
         data = valid_plan_data()
         data["arms"][1]["edits"][0]["replace_with"] = body  # type: ignore[index]
@@ -184,7 +254,12 @@ class SelfDeclaringProvenanceTest(TempDirCase):
         self.assertEqual(plan.arms[1].edits[0].replace_with, body)
 
     def test_a_partial_match_is_not_exempted(self) -> None:
-        """Wrapping a self-declaration in a snippet of real text still fails."""
+        """Acceptance case 3 (issue #1938): partial fabrication stays refused.
+
+        A real file's body with one self-declaring line added clears neither
+        gate - not the exemption, which needs a full match, and not the
+        co-occurrence check, which the added line trips.
+        """
         body = "the harness runs a probe against the test arm\nsecond line\n"
         source = self.make_source_root(body=body)
         data = valid_plan_data()
@@ -194,18 +269,38 @@ class SelfDeclaringProvenanceTest(TempDirCase):
         with self.assertRaises(module.PlanError):
             module.load_plan(data, source)
 
-    def test_no_file_at_the_edit_path_falls_back_to_the_vocabulary_guard(self) -> None:
+    def test_the_guards_own_skill_passes_without_the_exemption(self) -> None:
+        """Acceptance case 2 (issue #1938): the instrument can measure its own spec.
+
+        Asserted against the co-occurrence check alone (`source_root=None`), so
+        it does not pass merely by being byte-identical to itself. The skill
+        discusses probes and tests throughout without ever saying that this body
+        was made for a run.
+        """
+        skill = (
+            Path(__file__).resolve().parents[1]
+            / "skills"
+            / "evolution-rule-effect-measurement"
+            / "SKILL.md"
+        )
+        module._reject_self_declaring(
+            skill.read_text(encoding="utf-8"), None, skill.name
+        )
+
+    def test_no_file_at_the_edit_path_falls_back_to_the_guard(self) -> None:
         source = self.make_source_root()
         data = valid_plan_data()
         data["arms"][1]["edits"][0]["path"] = ".claude/rules/model/missing.md"  # type: ignore[index]
-        data["arms"][1]["edits"][0]["replace_with"] = "test fixture"  # type: ignore[index]
+        data["arms"][1]["edits"][0]["replace_with"] = "This file is a test fixture"  # type: ignore[index]
         with self.assertRaises(module.PlanError):
             module.load_plan(data, source)
 
     def test_a_mismatched_body_at_a_real_path_is_not_exempted(self) -> None:
         source = self.make_source_root(body="keep\nthe anchor line\ntail\n")
         data = valid_plan_data()
-        data["arms"][1]["edits"][0]["replace_with"] = "test fixture, not the real body"  # type: ignore[index]
+        data["arms"][1]["edits"][0]["replace_with"] = (  # type: ignore[index]
+            "This file is a test fixture, not the real body"
+        )
         with self.assertRaises(module.PlanError):
             module.load_plan(data, source)
 

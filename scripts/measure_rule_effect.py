@@ -49,49 +49,109 @@ SETTINGS_FILENAMES = ("settings.json", "settings.local.json")
 ARM_COUNT = 2
 EDIT_BUDGET = 1
 
-# Applied to text an edit inserts, never to text that was already in the tree.
-# An arm that reads "this file is an experimental variant" inside its own rules
+# The self-declaring guard. Applied to text an edit inserts, never to text that
+# was already in the tree.
+#
+# What it refuses is one claim, not one vocabulary: a sentence whose subject is
+# the artifact the arm is standing in, predicating of it that it is a copy, or
+# was made, for a run. An arm that reads such a note inside its own source
 # changes the frame it judges in, so the label goes in the run record instead.
 #
-# What the guard catches is a sentence that says *this body* is a copy made for
-# a run - self-reference and run vocabulary together, in one sentence (issue
-# #1938 (a')). The vocabulary alone is not the form: `premise variants` and
-# `test coverage` are the L2 layer's own domain vocabulary, and a body written
-# from scratch out of judgment records carries them without ever declaring what
-# it is. Rejecting on the bare word stopped such a body (issue #1938), and the
-# provenance exemption below could not reach it because it exists in no
-# repository file. `trial` stays in the vocabulary (issue #1935 (d)): the
-# measured example the guard's grounds rest on
-# (`skills/evolution-rule-effect-measurement/SKILL.md` Containment when a file
-# is placed) is literally "a copy made for a trial".
-RUN_VOCABULARY_WORD = re.compile(
-    r"(?<![a-z])(experiment\w*|variant\w*|test\w*|probe\w*|harness\w*|trial\w*)(?![a-z])",
-    re.IGNORECASE,
-)
-RUN_VOCABULARY_SUBSTRINGS = ("実験", "変種", "テスト", "検証用", "試験")
-
-# The self-reference half. A deictic naming the artifact as an artifact - not
-# the run, the round, or the object under study, which a body may discuss
-# without saying anything about itself.
+# Two earlier shapes were measured and both failed, in opposite directions.
+# Matching a bare run word (`experiment|variant|test|probe|harness|trial`)
+# rejected a 23 KB body written from scratch out of judgment records, which
+# carries `variants` / `probe` / `test` as the L2 layer's own domain vocabulary
+# and never declares what it is (issue #1938). Requiring a `this <noun>` deictic
+# and a run word to co-occur in one sentence then let the guard's own grounding
+# measurement through - `skills/evolution-rule-effect-measurement/SKILL.md`
+# Containment when a file is placed says "the file was a copy made for a trial",
+# with the determiner `the`, not `this`.
 #
-# `this rule` / `this skill` / `this section` are deliberately absent. In Li+
-# prose they name what the body is about as often as what it is, so `this rule
-# names the removal test` would trip a guard that carried them - the same
-# over-rejection issue #1938 reports, reintroduced one noun over. The measured
-# grounding example names the artifact as an artifact ("the file was a copy
-# made for a trial"), which is the set kept here.
-SELF_REFERENCE = re.compile(
-    r"(?<![a-z])this\s+"
-    r"(file|copy|document|text|body|arm|version|draft)"
-    r"(?![a-z])"
-    r"|(?<![a-z])you are reading(?![a-z])"
-    r"|このファイル|この複製|このコピー|この文書|この本文|この写し",
+# Widening the deictic to bare `the file` is what forces the shape below: `the
+# file` is ordinary prose, so co-occurrence alone would reject far more than it
+# caught. Three constraints replace it, and each one is load-bearing:
+#
+#   1. The artifact term is the *subject* - it opens the sentence, after list
+#      markers and at most one `Label:` lead-in. This is what separates the
+#      claim from a report of the claim: the SKILL.md sentence above opens
+#      "Measured: an arm read a note ... saying the file was a copy made for a
+#      trial", whose subject is the arm, not the file.
+#   2. The predicate is copular or passive, and its complement names a copy, a
+#      making, or a run - within two words of the copula. `This text is quoted
+#      from the probe specification` fails here: the run word sits four words
+#      out, past the complement slot. The copula follows the subject directly,
+#      with one exception - a `you are reading` relative clause, which is
+#      itself a self-reference and not an ordinary intervening clause.
+#   3. A run word appears somewhere in the same sentence. `This file is a copy
+#      of the upstream body` is not a self-declaration about a run.
+#
+# The artifact nouns name the artifact as an artifact. `rule` / `skill` /
+# `section` stay out: in Li+ prose they name what a body is about at least as
+# often as what it is.
+RUN_VOCABULARY_WORD = re.compile(
+    r"(?<![a-z])("
+    r"experiment\w*|variant\w*|test\w*|probe\w*|harness\w*|trial\w*"
+    r"|runs?|measurements?|evaluations?|stud(?:y|ies)"
+    r")(?![a-z])",
+    re.IGNORECASE,
+)
+RUN_VOCABULARY_SUBSTRINGS = (
+    "実験", "変種", "テスト", "検証", "試験", "試行",
+    "計測", "測定", "お試し", "試作",
+)
+
+# The complement slot: a copy, a making, or a run.
+_COMPLEMENT = (
+    r"cop(?:y|ies)|duplicates?|clones?|replicas?|reproductions?|mirrors?"
+    r"|snapshots?|excerpts?"
+    r"|made|produced|created|generated|written|prepared|built|assembled"
+    r"|placed|copied|duplicated|cloned|derived|extracted"
+    r"|experiment\w*|variant\w*|test\w*|probe\w*|harness\w*|trial\w*"
+    r"|runs?|measurements?|evaluations?"
+)
+
+SELF_DECLARING_CLAIM = re.compile(
+    r"^(?:"
+    r"(?:this|that|these|those|the)\s+"
+    r"(?:file|copy|document|text|body|arm|version|draft|note|page)s?"
+    r"(?:\s+(?:that|which)?\s*you\s+"
+    r"(?:are\s+(?:reading|looking\s+at)|have\s+open|now\s+read))?"
+    r"\s+(?:is|was|are|were|(?:has|have|had)\s+been)"
+    r"|you\s+are\s+reading"
+    r")\s+"
+    r"(?:[\w'’-]+\s+){0,2}"
+    r"(?:" + _COMPLEMENT + r")(?![a-z])",
     re.IGNORECASE,
 )
 
-# Sentence boundaries for the co-occurrence window. Newlines split too: in
-# markdown a list item is a sentence whether or not it ends in a period.
+# Japanese is head-final, so the predicate cannot be pinned two words off the
+# copula. The subject position carries the same weight it does above, and the
+# claim is read as: artifact-as-topic, then a run word, then a copy or a making.
+SELF_DECLARING_SUBJECT_JA = re.compile(
+    r"^(?:本|この|その)"
+    r"(?:ファイル|文書|文章|本文|写し|複製|コピー|テキスト|草稿|草案|稿|版)"
+    r"(?:は|が|も)"
+)
+COPY_SUBSTRINGS_JA = (
+    "複製", "コピー", "写し", "複写", "作られ", "作成され",
+    "生成され", "用意され", "置かれ", "書かれ", "作った", "切り出し",
+)
+
+# Sentence boundaries for the claim window. Newlines split too: in markdown a
+# list item is a sentence whether or not it ends in a period.
 SENTENCE_BOUNDARY = re.compile(r"[\n\r]+|。|(?<=[.!?;])\s+")
+
+# Stripped before the subject is read, so that emphasis, list markers and one
+# `Note:` lead-in do not hide the subject from constraint 1 above.
+_EMPHASIS = re.compile(r"[*_`~\"“”]")
+_MARKER = re.compile(r"^[\s>#+\-•]*(?:\d+[.)]\s*)?[\s>#+\-•]*")
+_LABEL = re.compile(r"^[A-Za-z][A-Za-z0-9 \t-]{0,24}:\s+")
+
+
+def _subject_position(sentence: str) -> str:
+    """The sentence with emphasis, list markers and one `Label:` lead-in removed."""
+    stripped = _MARKER.sub("", _EMPHASIS.sub("", sentence)).lstrip()
+    return _LABEL.sub("", stripped, count=1).lstrip()
 
 
 class HarnessError(RuntimeError):
@@ -255,12 +315,11 @@ def _reject_self_declaring(text: str, source_root: Path | None, path: str) -> No
     its verdict was not for production use. The label belongs in the run record
     and the issue, outside the artifact the arm reads.
 
-    The form refused is a sentence carrying both halves at once: a deictic
-    naming this body (`SELF_REFERENCE`) and a word naming a run
-    (`RUN_VOCABULARY_WORD` / `RUN_VOCABULARY_SUBSTRINGS`). Either half alone
-    says nothing about what the arm is standing in - a body may discuss probes
-    and test coverage as its own subject matter, and may refer to itself
-    without claiming to be a copy made for a run.
+    The form refused is one claim, made in one sentence: the artifact is the
+    subject, the predicate is copular or passive with a copy / making / run word
+    in its complement slot, and a run word stands somewhere in the sentence.
+    The three constraints and what each of them separates are set out where
+    `SELF_DECLARING_CLAIM` is defined.
 
     Text verified against the repository as an existing file's full content
     (`_matches_existing_file`) is exempted before that check runs: it was not
@@ -270,20 +329,23 @@ def _reject_self_declaring(text: str, source_root: Path | None, path: str) -> No
     """
     if source_root is not None and _matches_existing_file(text, source_root, path):
         return
-    for sentence in SENTENCE_BOUNDARY.split(text):
-        if not SELF_REFERENCE.search(sentence):
+    for raw in SENTENCE_BOUNDARY.split(text):
+        sentence = _subject_position(raw)
+        if not sentence:
             continue
-        hit = RUN_VOCABULARY_WORD.search(sentence)
-        if hit:
-            raise PlanError(
-                f"inserted text says this body is a copy made for the run: "
-                f"{hit.group(0)!r}"
-            )
-        for marker in RUN_VOCABULARY_SUBSTRINGS:
-            if marker in sentence:
+        if SELF_DECLARING_CLAIM.search(sentence):
+            hit = RUN_VOCABULARY_WORD.search(sentence)
+            if hit:
                 raise PlanError(
-                    f"inserted text says this body is a copy made for the run: "
-                    f"{marker!r}"
+                    f"inserted text says this body was made for the run: "
+                    f"{hit.group(0)!r}"
+                )
+        if SELF_DECLARING_SUBJECT_JA.search(sentence):
+            run = next((m for m in RUN_VOCABULARY_SUBSTRINGS if m in sentence), None)
+            made = next((m for m in COPY_SUBSTRINGS_JA if m in sentence[2:]), None)
+            if run and made:
+                raise PlanError(
+                    f"inserted text says this body was made for the run: {run!r}"
                 )
 
 

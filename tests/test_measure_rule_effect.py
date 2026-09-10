@@ -145,20 +145,38 @@ class PlanValidationTest(unittest.TestCase):
         with self.assertRaises(module.PlanError):
             module.load_plan(data)
 
-    def test_inserted_text_may_not_say_this_body_is_made_for_the_run(self) -> None:
-        """Acceptance case 1 (issue #1938): the measured example stays refused.
+    def test_the_grounding_measurement_is_refused_verbatim(self) -> None:
+        """Acceptance case 0 (issue #1938): the guard catches its own grounds.
 
-        Self-reference and run vocabulary in one sentence. The first entry is the
-        literal the guard's grounds rest on
-        (`skills/evolution-rule-effect-measurement/SKILL.md` Containment when a
-        file is placed).
+        The first two entries are the measured literal, copied from
+        `skills/evolution-rule-effect-measurement/SKILL.md` Containment when a
+        file is placed, with its determiner `the` and not a paraphrase's
+        `this`. A guard that cannot reject the sentence its grounds rest on is
+        a hole in the guard; the first shipped shape rejected it on the bare
+        word `trial`, and the co-occurrence shape that replaced the bare word
+        let it through, which is what this asserts against.
         """
         for text in (
+            "The file was a copy made for a trial.",
+            "Note: the file is a copy made for a trial, so the verdict is not "
+            "for production use.",
+            "This file was a copy made for a trial.",
             "This file is a copy made for a trial; "
             "its verdict is not for production use.",
+        ):
+            with self.subTest(text=text):
+                data = valid_plan_data()
+                data["arms"][1]["edits"][0]["replace_with"] = text  # type: ignore[index]
+                with self.assertRaises(module.PlanError):
+                    module.load_plan(data)
+
+    def test_inserted_text_may_not_say_this_body_is_made_for_the_run(self) -> None:
+        """The claim in the forms the guard was already asserted against."""
+        for text in (
             "this file is an experimental copy",
             "This document is variant B of the rules.",
             "This text is a test fixture, not the shipped one.",
+            "You are reading a copy made for a trial.",
             "このファイルは実験用の複写である",
             "この複製は検証用に作られた",
         ):
@@ -168,8 +186,61 @@ class PlanValidationTest(unittest.TestCase):
                 with self.assertRaises(module.PlanError):
                     module.load_plan(data)
 
-    def test_run_vocabulary_without_self_reference_passes(self) -> None:
-        """Acceptance case 0 (issue #1938), in a form that carries no local path.
+    def test_the_claim_is_refused_in_shapes_no_earlier_list_carried(self) -> None:
+        """Acceptance case 4 (issue #1938), and fresh shapes beyond it.
+
+        The first three are the measured false negatives: a Japanese deictic
+        absent from the earlier set (`本ファイル`), a Japanese run word absent
+        from the earlier vocabulary (`試行`), and an English determiner the
+        earlier set could not reach (`That copy`). The rest are written here
+        rather than measured, to check that the predicate holds a shape and is
+        not fitted to a list: a relative clause between subject and copula,
+        markdown list markers ahead of the subject, plural subjects, and a
+        perfect passive.
+        """
+        for text in (
+            "本ファイルは試験用の複製である。",
+            "この写しは試行のために作られた。",
+            "That copy was produced by an experiment.",
+            "The document you are reading was generated for a measurement.",
+            "This draft is an excerpt prepared for the trial run.",
+            "The note was placed here by the harness and will be deleted.",
+            "These files are duplicates created for the experiment.",
+            "The body has been derived from the upstream file for this "
+            "evaluation.",
+            "* This page is a snapshot made for the variant comparison.",
+            "1. The version was cloned for a probe run.",
+            "この文書は計測のために用意されたものだ。",
+            "本稿はテスト用に書かれている。",
+        ):
+            with self.subTest(text=text):
+                data = valid_plan_data()
+                data["arms"][1]["edits"][0]["replace_with"] = text  # type: ignore[index]
+                with self.assertRaises(module.PlanError):
+                    module.load_plan(data)
+
+    def test_a_report_of_the_claim_is_not_the_claim(self) -> None:
+        """The subject constraint, which is what separates the two.
+
+        The entry below is the sentence in
+        `skills/evolution-rule-effect-measurement/SKILL.md` that the acceptance
+        case above is copied out of. It contains that sentence, word for word,
+        and its own subject is the arm - so the body reporting a measurement of
+        the claim is not itself making it. Removing the subject constraint
+        makes the guard unable to measure its own spec.
+        """
+        text = (
+            "Measured: an arm read a note inside its own source saying the "
+            "file was a copy made for a trial, and added that its verdict was "
+            "therefore not for production use."
+        )
+        data = valid_plan_data()
+        data["arms"][1]["edits"][0]["replace_with"] = text  # type: ignore[index]
+        plan = module.load_plan(data)
+        self.assertEqual(plan.arms[1].edits[0].replace_with, text)
+
+    def test_run_vocabulary_without_the_claim_passes(self) -> None:
+        """Acceptance case 1 (issue #1938), in a form that carries no local path.
 
         The failing input was a body written from scratch out of judgment
         records: it exists in no repository file, so the provenance exemption
@@ -194,30 +265,74 @@ class PlanValidationTest(unittest.TestCase):
         plan = module.load_plan(data)
         self.assertEqual(plan.arms[1].edits[0].replace_with, text)
 
-    def test_self_reference_without_run_vocabulary_passes(self) -> None:
-        """The other half alone says nothing about what the arm stands in."""
-        data = valid_plan_data()
-        data["arms"][1]["edits"][0]["replace_with"] = (  # type: ignore[index]
-            "This document holds the operational detail; this file does not "
-            "restate it."
-        )
-        plan = module.load_plan(data)
-        self.assertIn("This document", plan.arms[1].edits[0].replace_with)
+    def test_an_artifact_subject_without_the_predicate_passes(self) -> None:
+        """Acceptance case 5 (issue #1938): the measured false positives.
 
-    def test_this_rule_is_not_a_self_reference(self) -> None:
+        Each names the artifact and carries a run word, and none of them claims
+        the body was made for a run. The third is what fixes the complement
+        slot at two words off the copula: `is quoted from the probe` puts the
+        run word four words out, and a wider slot would take it.
+        """
+        for text in (
+            "This file states the removal test.",
+            "This document fixes what the harness enforces structurally.",
+            "This text is quoted from the probe specification.",
+            "Read this body against the test the spec fixes.",
+        ):
+            with self.subTest(text=text):
+                data = valid_plan_data()
+                data["arms"][1]["edits"][0]["replace_with"] = text  # type: ignore[index]
+                plan = module.load_plan(data)
+                self.assertEqual(plan.arms[1].edits[0].replace_with, text)
+
+    def test_ordinary_li_plus_prose_passes(self) -> None:
+        """Fresh sentences, written here rather than taken from a measured list.
+
+        Every one names an artifact and a run word, several in copular form.
+        A predicate fitted to the measured false positives above would let the
+        next sentence off that list fail, which is the failure mode this whole
+        issue repairs.
+        """
+        for text in (
+            "The file the harness copies is never the one under test.",
+            "This document is the canonical surface for the removal test.",
+            "The arm reads the probe once per repetition.",
+            "This body was written to be read at the application moment.",
+            "The copy the reviewer sees is the PR diff, not a local tree.",
+            "This note explains why the trial vocabulary is not the predicate.",
+            "A test that has stopped checking what it claims still reports "
+            "green.",
+            "The measurement is raised before brake 1, not after it.",
+            "Every probe in this file is answered by a separate process.",
+            "This version of the harness places nothing under .claude/.",
+            "The draft is reviewed against the issue body, and the test suite "
+            "is run.",
+            "This text fixes what the probe specification leaves open.",
+            "This file names the latest release that wins the contest.",
+            "This document holds the operational detail; this file does not "
+            "restate it.",
+        ):
+            with self.subTest(text=text):
+                data = valid_plan_data()
+                data["arms"][1]["edits"][0]["replace_with"] = text  # type: ignore[index]
+                plan = module.load_plan(data)
+                self.assertEqual(plan.arms[1].edits[0].replace_with, text)
+
+    def test_this_rule_is_not_an_artifact_subject(self) -> None:
         """`this rule` names what the body is about, not what the body is.
 
-        Carrying it in the deictic set would reintroduce the over-rejection
-        issue #1938 reports, one noun over.
+        Carrying it in the artifact-noun set would reintroduce the
+        over-rejection issue #1938 reports, one noun over.
         """
         data = valid_plan_data()
         data["arms"][1]["edits"][0]["replace_with"] = (  # type: ignore[index]
-            "This rule names the removal test; this section carries the probe."
+            "This rule is a test of the removal criterion; this section is a "
+            "copy of the probe."
         )
         plan = module.load_plan(data)
-        self.assertIn("removal test", plan.arms[1].edits[0].replace_with)
+        self.assertIn("removal criterion", plan.arms[1].edits[0].replace_with)
 
-    def test_the_two_halves_must_share_one_sentence(self) -> None:
+    def test_the_claim_must_stand_in_one_sentence(self) -> None:
         """Neighbouring sentences are not a self-declaration."""
         data = valid_plan_data()
         data["arms"][1]["edits"][0]["replace_with"] = (  # type: ignore[index]
@@ -227,14 +342,26 @@ class PlanValidationTest(unittest.TestCase):
         plan = module.load_plan(data)
         self.assertIn("probe", plan.arms[1].edits[0].replace_with)
 
-    def test_ordinary_replacement_text_passes(self) -> None:
-        """The guard reads whole words, so `latest` and `contest` are not hits."""
-        data = valid_plan_data()
-        data["arms"][1]["edits"][0]["replace_with"] = (  # type: ignore[index]
-            "This file names the latest release that wins the contest"
-        )
-        plan = module.load_plan(data)
-        self.assertIn("latest", plan.arms[1].edits[0].replace_with)
+    def test_no_repository_markdown_body_is_rejected(self) -> None:
+        """Acceptance case 6 (issue #1938): the over-rejection sweep, as a test.
+
+        Every markdown body under the always-loaded surfaces and the docs tree,
+        put to the guard with the provenance exemption off, so that each one is
+        judged on the predicate alone. A hit here is the guard reading ordinary
+        Li+ prose as a self-declaration, which is the direction the earlier bare
+        word shape failed in.
+        """
+        root = Path(__file__).resolve().parents[1]
+        swept = 0
+        for directory in ("rules", "skills", "adapter", "docs"):
+            for body in sorted((root / directory).rglob("*.md")):
+                swept += 1
+                with self.subTest(body=str(body.relative_to(root))):
+                    module._reject_self_declaring(
+                        body.read_text(encoding="utf-8"), None, body.name
+                    )
+        self.assertGreater(swept, 50)
+
 
 
 class SelfDeclaringProvenanceTest(TempDirCase):
@@ -244,7 +371,7 @@ class SelfDeclaringProvenanceTest(TempDirCase):
         """(b): a verbatim full-file match was not written for this run.
 
         The body carries a sentence the guard would otherwise refuse, so the
-        exemption is what this asserts and not the co-occurrence check.
+        exemption is what this asserts and not the claim check.
         """
         body = "this file is a copy made for a trial\nsecond line\n"
         source = self.make_source_root(body=body)
@@ -258,7 +385,7 @@ class SelfDeclaringProvenanceTest(TempDirCase):
 
         A real file's body with one self-declaring line added clears neither
         gate - not the exemption, which needs a full match, and not the
-        co-occurrence check, which the added line trips.
+        claim check, which the added line trips.
         """
         body = "the harness runs a probe against the test arm\nsecond line\n"
         source = self.make_source_root(body=body)
@@ -272,7 +399,7 @@ class SelfDeclaringProvenanceTest(TempDirCase):
     def test_the_guards_own_skill_passes_without_the_exemption(self) -> None:
         """Acceptance case 2 (issue #1938): the instrument can measure its own spec.
 
-        Asserted against the co-occurrence check alone (`source_root=None`), so
+        Asserted against the claim check alone (`source_root=None`), so
         it does not pass merely by being byte-identical to itself. The skill
         discusses probes and tests throughout without ever saying that this body
         was made for a run.

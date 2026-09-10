@@ -151,6 +151,7 @@ class PlanValidationTest(unittest.TestCase):
             "this file is an experimental copy",
             "variant B",
             "test fixture",
+            "a copy made for a trial",
             "この節は実験用",
             "検証用の記述",
         ):
@@ -168,6 +169,45 @@ class PlanValidationTest(unittest.TestCase):
         )
         plan = module.load_plan(data)
         self.assertIn("latest", plan.arms[1].edits[0].replace_with)
+
+
+class SelfDeclaringProvenanceTest(TempDirCase):
+    """Issue #1935: provenance exempts a file's own full body from the vocabulary guard."""
+
+    def test_text_matching_an_existing_file_in_full_is_exempted(self) -> None:
+        """(b): a verbatim full-file match was not written for this run."""
+        body = "the harness runs a probe against the test arm\nsecond line\n"
+        source = self.make_source_root(body=body)
+        data = valid_plan_data()
+        data["arms"][1]["edits"][0]["replace_with"] = body  # type: ignore[index]
+        plan = module.load_plan(data, source)
+        self.assertEqual(plan.arms[1].edits[0].replace_with, body)
+
+    def test_a_partial_match_is_not_exempted(self) -> None:
+        """Wrapping a self-declaration in a snippet of real text still fails."""
+        body = "the harness runs a probe against the test arm\nsecond line\n"
+        source = self.make_source_root(body=body)
+        data = valid_plan_data()
+        data["arms"][1]["edits"][0]["replace_with"] = (  # type: ignore[index]
+            body + "this file is an experimental copy"
+        )
+        with self.assertRaises(module.PlanError):
+            module.load_plan(data, source)
+
+    def test_no_file_at_the_edit_path_falls_back_to_the_vocabulary_guard(self) -> None:
+        source = self.make_source_root()
+        data = valid_plan_data()
+        data["arms"][1]["edits"][0]["path"] = ".claude/rules/model/missing.md"  # type: ignore[index]
+        data["arms"][1]["edits"][0]["replace_with"] = "test fixture"  # type: ignore[index]
+        with self.assertRaises(module.PlanError):
+            module.load_plan(data, source)
+
+    def test_a_mismatched_body_at_a_real_path_is_not_exempted(self) -> None:
+        source = self.make_source_root(body="keep\nthe anchor line\ntail\n")
+        data = valid_plan_data()
+        data["arms"][1]["edits"][0]["replace_with"] = "test fixture, not the real body"  # type: ignore[index]
+        with self.assertRaises(module.PlanError):
+            module.load_plan(data, source)
 
 
 class LockTest(TempDirCase):

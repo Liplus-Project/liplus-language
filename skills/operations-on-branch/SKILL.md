@@ -21,8 +21,6 @@ Local validation may happen before or after push; it does not replace the branch
 
 Pointer. Canonical = `rules/operations/main-agent-procedures.md` Branch and label flow: the act-now trigger, the NOW / SOON / SOMEDAY tiers and their label mapping, the atmosphere-reading scope, the branch existence check, the `gh issue develop` command, the merge behavior, and the local-error recovery all live there.
 
-Why the canonical is not here: the flow's trigger is human intent read from dialogue, and `backlog` / `deferred` are non-state lifecycle labels on `Parent retains`. Branch creation itself is mode-dependent — the main agent creates it under the worktree lifecycle, the subagent when the delegation uses no worktree — which is the detection sign named at `rules/operations/main-agent-procedures.md` The bar and its pair. A canonical held here would sit where its actor cannot read it.
-
 The subagent still reaches the canonical — `rules/**` loads for it without invocation — so nothing it needs when it creates the branch itself is lost by the move.
 
 </branch-and-label-flow>

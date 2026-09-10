@@ -10,7 +10,7 @@ layer: L4-operations
 
 Pointer. Canonical = `rules/operations/main-agent-procedures.md` Human confirmation required: the stop word, the confirm-before list, and the trigger-mode items all live there.
 
-Why the canonical is not here: every item is a confirmation asked of the human, and a subagent has no dialogue surface to ask on. A canonical held here would sit where its actor cannot read it (`rules/operations/main-agent-procedures.md` The bar and its pair). The confirmation precedes this procedure; nothing below runs before it has cleared.
+The confirmation precedes this procedure; nothing below runs before it has cleared.
 
 </human-confirmation-required>
 
@@ -93,8 +93,6 @@ Run `skills/operations-on-wiki-sync/SKILL.md`. The gate literal is canonical in 
 ## Release Completion Report Discipline
 
 Pointer. Canonical = `rules/operations/main-agent-procedures.md` Release completion report discipline: what the report contains, what it must not mention, the real-device verification structure, the scope bound, and the detection signs all live there.
-
-Why the canonical is not here: the completion report is written to the human, and no subagent writes one — its report goes to the parent. A canonical held here would sit where its actor cannot read it.
 
 </release-completion-report-discipline>
 

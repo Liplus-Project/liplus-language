@@ -31,12 +31,8 @@ Delegated-subagent stop condition (canonical, split by mode):
     ends before that.
   Other surfaces point here. Do not restate the condition; the second copy is what drifts.
 
-Why this condition alone is held here, while the flow around it is not: the literal's actor is the subagent,
-and the parent is only its carrier at the delegation moment (`skills/task-subagent-prompt/SKILL.md` Resume-phase
-authority boundary), which is the shape `rules/operations/main-agent-procedures.md` The bar and its pair resolves
-by leaving the canonical in the skill. The surrounding flow resolves the other way — its actor is the parent in
-`auto` / `semi_auto` — so the self-review mandate, the review basis, the self-review procedure, the mode-specific
-human gate, and the follow-through on deferred items all live at `rules/operations/main-agent-procedures.md`
-PR review. Do not restate them here; the second copy is what drifts.
+The surrounding PR review flow — the self-review mandate, the review basis, the self-review procedure, the
+mode-specific human gate, and the follow-through on deferred items — lives at
+`rules/operations/main-agent-procedures.md` PR review. Do not restate it here; the second copy is what drifts.
 
 </pr-review>

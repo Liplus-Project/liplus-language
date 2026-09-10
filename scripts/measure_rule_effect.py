@@ -52,8 +52,13 @@ EDIT_BUDGET = 1
 # Applied to text an edit inserts, never to text that was already in the tree.
 # An arm that reads "this file is an experimental variant" inside its own rules
 # changes the frame it judges in, so the label goes in the run record instead.
+# `trial` is in the list (issue #1935 (d)): the measured example this guard's
+# grounds rest on (`skills/evolution-rule-effect-measurement/SKILL.md`
+# Containment when a file is placed) is literally "a copy made for a trial", and
+# a list that cannot catch its own grounding example is a hole in the guard, not
+# a separate concern - fixed here rather than split into a second issue.
 SELF_DECLARING_WORD = re.compile(
-    r"(?<![a-z])(experiment\w*|variant\w*|test\w*|probe\w*|harness\w*)(?![a-z])",
+    r"(?<![a-z])(experiment\w*|variant\w*|test\w*|probe\w*|harness\w*|trial\w*)(?![a-z])",
     re.IGNORECASE,
 )
 SELF_DECLARING_SUBSTRINGS = ("実験", "変種", "テスト", "検証用", "試験")
@@ -105,7 +110,7 @@ def _require_str(data: dict[str, Any], key: str) -> str:
     return value
 
 
-def load_plan(data: Any) -> Plan:
+def load_plan(data: Any, source_root: Path | None = None) -> Plan:
     """Validate a run plan and return it, or raise `PlanError`.
 
     Two constraints are enforced here rather than left to the operator's care.
@@ -114,6 +119,13 @@ def load_plan(data: Any) -> Plan:
     the edits across both arms must total exactly one, which is the contrast
     principle - two arms differing in more than one place cannot attribute a
     difference in their outputs to any of them.
+
+    `source_root`, when given, is read by the self-declaring guard below to tell
+    provenance apart from self-declaration (issue #1935): text is checked against
+    the repository, not required. `main` resolves it ahead of the read that used
+    to come after validation, so both happen from the same value. A caller that
+    omits it (existing direct calls to this function) gets the guard's pre-#1935
+    behavior - vocabulary alone - which stays correct, just less permissive.
     """
     if not isinstance(data, dict):
         raise PlanError("plan must be a JSON object")
@@ -138,7 +150,7 @@ def load_plan(data: Any) -> Plan:
         if name in names:
             raise PlanError(f"arm name {name!r} is used twice")
         names.add(name)
-        arms.append(ArmPlan(name=name, edits=_load_edits(raw.get("edits", []))))
+        arms.append(ArmPlan(name=name, edits=_load_edits(raw.get("edits", []), source_root)))
 
     total_edits = sum(len(arm.edits) for arm in arms)
     if total_edits != EDIT_BUDGET:
@@ -150,7 +162,7 @@ def load_plan(data: Any) -> Plan:
     return Plan(probe=probe, model=model, repetitions=repetitions, arms=tuple(arms))
 
 
-def _load_edits(raw_edits: Any) -> tuple[Edit, ...]:
+def _load_edits(raw_edits: Any, source_root: Path | None) -> tuple[Edit, ...]:
     if not isinstance(raw_edits, list):
         raise PlanError("arm field 'edits' must be a list")
 
@@ -165,7 +177,7 @@ def _load_edits(raw_edits: Any) -> tuple[Edit, ...]:
             raise PlanError("edit field 'replace_with' must be a string")
         _reject_relative_escape(path)
         _reject_uncopied_target(path)
-        _reject_self_declaring(replace_with)
+        _reject_self_declaring(replace_with, source_root, path)
         edits.append(Edit(path=path, drop=drop, replace_with=replace_with))
     return tuple(edits)
 
@@ -185,13 +197,42 @@ def _reject_uncopied_target(path: str) -> None:
         )
 
 
-def _reject_self_declaring(text: str) -> None:
+def _matches_existing_file(text: str, source_root: Path, path: str) -> bool:
+    """True when `text` is the verbatim full content of the repository file `path`.
+
+    Provenance, not vocabulary (issue #1935 (b)): text that reproduces a real
+    file's own content, in full, was not written for this run - the guard's
+    concern is text declaring what the *run* is, and a file's own body does not
+    do that by carrying the same words a self-declaration would use (`premise
+    variants`, `test coverage`, and the like are the L2 layer's own domain
+    vocabulary, not a note about this harness). Checked against the file at
+    `path` specifically, not a scan of the tree: `path` is already the edit's
+    declared target, so no second lookup axis is introduced. Full match only -
+    a partial quote does not clear the guard, so fabricating a self-declaration
+    by wrapping it in a snippet of real text does not work.
+    """
+    try:
+        existing = (source_root / path).read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return text == existing
+
+
+def _reject_self_declaring(text: str, source_root: Path | None, path: str) -> None:
     """Refuse inserted text that tells the arm what it is standing in.
 
     Measured: an arm that read such a note in its own source added a caveat that
     its verdict was not for production use. The label belongs in the run record
     and the issue, outside the artifact the arm reads.
+
+    Text verified against the repository as an existing file's full content
+    (`_matches_existing_file`) is exempted before the vocabulary check runs: it
+    was not written for this run, so the guard's premise does not hold for it.
+    `source_root=None` (no repository to check against) disables only the
+    exemption, not the guard itself - vocabulary is still applied.
     """
+    if source_root is not None and _matches_existing_file(text, source_root, path):
+        return
     hit = SELF_DECLARING_WORD.search(text)
     if hit:
         raise PlanError(f"inserted text names the run itself: {hit.group(0)!r}")
@@ -587,8 +628,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     started_at = datetime.now(timezone.utc)
 
     try:
-        plan = load_plan(json.loads(args.plan.read_text(encoding="utf-8")))
         source_root = (args.source_root or find_workspace_root(Path.cwd())).resolve()
+        plan = load_plan(json.loads(args.plan.read_text(encoding="utf-8")), source_root)
     except (OSError, ValueError, HarnessError) as error:
         print(f"measure_rule_effect: {error}", file=sys.stderr)
         return 2

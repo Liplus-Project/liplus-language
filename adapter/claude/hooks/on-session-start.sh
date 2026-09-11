@@ -1087,7 +1087,7 @@ if [ -n "$TALLY_FILE" ]; then
         if (label != "") {
           printf "  - %s: %s [occurrences: %d]\n", label, name, occ
         }
-        name = ""; expires = ""; occ = 0
+        name = ""; expires = ""; occ = 0; in_occ = 0
       }
       /^##[[:space:]]+cluster:/ {
         flush()
@@ -1098,9 +1098,15 @@ if [ -n "$TALLY_FILE" ]; then
         next
       }
       name != "" && /^[[:space:]]*expires:[[:space:]]*/ {
-        v = $0; sub(/^[[:space:]]*expires:[[:space:]]*/, "", v); gsub(/[[:space:]]+$/, "", v); expires = v; next
+        v = $0; sub(/^[[:space:]]*expires:[[:space:]]*/, "", v); gsub(/[[:space:]]+$/, "", v); expires = v; in_occ = 0; next
       }
-      name != "" && /^[[:space:]]*-[[:space:]]/ { occ++; next }
+      # occurrences: opens the counted region; the region closes at the next
+      # top-level field (e.g. notes:) or at the cluster boundary, not at every
+      # subsequent "- " line. occurrences: and notes: both use "- " bullets, so
+      # counting unconditionally double-counts notes: lines into occ.
+      name != "" && /^[[:space:]]*occurrences:[[:space:]]*$/ { in_occ = 1; next }
+      name != "" && in_occ && /^[[:space:]]*-[[:space:]]/ { occ++; next }
+      name != "" && /^[^[:space:]]+:/ { in_occ = 0; next }
       /^##[[:space:]]/ { flush() }
       END { flush() }
     ' "$TALLY_FILE")

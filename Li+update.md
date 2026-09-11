@@ -139,17 +139,29 @@ clone mode:
         The same condition is surfaced every session by the on-session-start hooks, which is where a clone
         that stays in this state keeps being reported; the destination, and why it is not
         `LI_PLUS_UPDATE_STATUS`, are `rules/evolution/cold-start-synthesis.md` Clone Branch Fetch Surface.
-     b. Resolve and report both values: current checked-out tag and target tag from LI_PLUS_CHANNEL.
+     b. Check that HEAD is attached to a branch: `git -C {workspace_root}/{repo_dir} symbolic-ref -q HEAD`
+        returns a value. Li+update never puts a clone in this state itself — the `not exists` path above
+        and step f below both leave HEAD detached via `checkout {target_tag}` — so an attached HEAD found
+        here was produced by something outside this procedure. If attached, STOP: report the branch name
+        and the commit `HEAD` resolves to, and do not proceed to step c. Do not detach it, do not check
+        out the target tag, and do not substitute any value for step c's `current checked-out tag` in its
+        place. Which of the two states — on a branch, or detached at a tag — the clone should be in is not
+        a judgment Li+ makes (same shape as Phase 5's directory-resolution STOP). Do not use
+        `git describe --tags`, with or without `--exact-match`, for this check: it reports whether the
+        current commit carries a tag label, not whether HEAD is checked out via that tag, so a branch tip
+        that happens to coincide with a tagged commit passes `--exact-match` while HEAD stays attached to
+        the branch.
+     c. Resolve and report both values: current checked-out tag and target tag from LI_PLUS_CHANNEL.
         Name which of the two is newer: the target is not necessarily the newer one, since a channel
         can resolve to a tag behind the current one.
-     c. If same -> continue.
-     d. If different -> ask the user how to proceed before continuing to Phase 4.
+     d. If same -> continue.
+     e. If different -> ask the user how to proceed before continuing to Phase 4.
         Do not report bootstrap completion before this choice is resolved.
         Minimum choices:
         - update now to the target tag
         - stay on the current tag for this session
-     e. Checkout the target tag only if the user agrees.
-     f. If the user chooses to stay, continue on the current tag only after explicitly naming both tags.
+     f. Checkout the target tag only if the user agrees.
+     g. If the user chooses to stay, continue on the current tag only after explicitly naming both tags.
 3. Source files are now available at the resolved tag. Phase 4 handles reading.
 
 ## Phase 4: Host Integration

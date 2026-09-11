@@ -32,6 +32,7 @@ from unittest import mock
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any, Sequence
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
@@ -744,7 +745,9 @@ class CommandAndRecordTest(TempDirCase):
         json.dumps(record)  # the record has to survive serialization
 
 
-class MainTest(TempDirCase):
+class PlanFileMixin(TempDirCase):
+    """Plan-on-disk helpers, shared by the two classes that drive `main()`."""
+
     def write_plan(self, data: dict[str, object]) -> Path:
         path = self.temp_path() / "plan.json"
         path.write_text(json.dumps(data), encoding="utf-8")
@@ -756,6 +759,8 @@ class MainTest(TempDirCase):
         data["arms"][1]["edits"][0]["drop"] = "the anchor line\n"  # type: ignore[index]
         return data
 
+
+class MainTest(PlanFileMixin):
     def test_a_dry_run_builds_the_arms_and_leaves_nothing_behind(self) -> None:
         source = self.make_source_root()
         base = self.temp_path()
@@ -842,6 +847,92 @@ class MainTest(TempDirCase):
         )
         self.assertEqual(code, 2)
         self.assertFalse((module.harness_root(base) / module.LOCK_DIRNAME).exists())
+
+
+class ArmExitCodeTest(PlanFileMixin):
+    """The exit code is the surface a reader opens first, so it has to carry the wipeout.
+
+    Measured (issue #1944): a stage 2 run whose six launches all returned 1 - every one
+    of them a spend-limit refusal - exited 0, and two readers in succession took that
+    zero as evidence the measurement had run. The per-arm `returncode` held the truth
+    and nobody opened it.
+
+    The launch is substituted here, as everywhere in this file: no `claude -p` process
+    starts, and none ever does in CI.
+    """
+
+    def run_with(self, returncodes: Sequence[int]) -> tuple[int, dict[str, Any]]:
+        source = self.make_source_root()
+        base = self.temp_path()
+        out = self.temp_path() / "record.json"
+        remaining = list(returncodes)
+
+        def fake_launch(command, **kwargs):  # type: ignore[no-untyped-def]
+            return SimpleNamespace(
+                returncode=remaining.pop(0), stdout="answer", stderr=""
+            )
+
+        with mock.patch.object(module, "launch", fake_launch):
+            code = module.main(
+                [
+                    str(self.write_plan(self.full_plan())),
+                    "--source-root",
+                    str(source),
+                    "--base-dir",
+                    str(base),
+                    "--out",
+                    str(out),
+                ]
+            )
+        self.assertEqual(remaining, [], "the plan launched a different arm count")
+        return code, json.loads(out.read_text(encoding="utf-8"))
+
+    def test_a_run_where_no_arm_returned_zero_exits_non_zero(self) -> None:
+        code, record = self.run_with([1, 1, 1, 1])
+        self.assertEqual(code, module.EXIT_NO_ARM_RETURNED)
+        self.assertEqual(module.EXIT_NO_ARM_RETURNED, 4)
+        # The record is still written: dropping the information and fixing the exit
+        # code are separate axes, and the per-arm returncode is where the reader goes.
+        self.assertEqual([entry["returncode"] for entry in record["results"]], [1] * 4)
+
+    def test_the_new_code_does_not_collide_with_the_plan_and_lock_codes(self) -> None:
+        self.assertEqual(
+            len({module.EXIT_PLAN, module.EXIT_LOCK, module.EXIT_NO_ARM_RETURNED}), 3
+        )
+
+    def test_one_surviving_arm_keeps_the_run_at_zero(self) -> None:
+        """A non-zero arm can be the behavior under measurement, so it is not the line."""
+        code, record = self.run_with([1, 1, 1, 0])
+        self.assertEqual(code, 0)
+        self.assertEqual(len(record["results"]), 4)
+
+    def test_a_clean_run_exits_zero(self) -> None:
+        code, _ = self.run_with([0, 0, 0, 0])
+        self.assertEqual(code, 0)
+
+    def test_a_dry_run_is_outside_the_judgment(self) -> None:
+        """No entry carries a `returncode`, so there is no wipeout to detect."""
+        source = self.make_source_root()
+        base = self.temp_path()
+        out = self.temp_path() / "record.json"
+        code = module.main(
+            [
+                str(self.write_plan(self.full_plan())),
+                "--source-root",
+                str(source),
+                "--base-dir",
+                str(base),
+                "--out",
+                str(out),
+                "--dry-run",
+            ]
+        )
+        self.assertEqual(code, 0)
+        record = json.loads(out.read_text(encoding="utf-8"))
+        self.assertFalse(any("returncode" in entry for entry in record["results"]))
+
+    def test_an_empty_result_set_is_not_a_wipeout(self) -> None:
+        self.assertFalse(module.every_arm_failed([]))
 
 
 if __name__ == "__main__":

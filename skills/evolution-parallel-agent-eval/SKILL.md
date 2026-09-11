@@ -260,7 +260,7 @@ Accepted on the Li+ correctness criterion (`rules/model/foundational-invariant.m
 
 ## Implementation Note
 
-Subagent spawn goes through the host's Agent tool (Claude Code: `Agent` tool; Codex: equivalent mechanism). Parallel execution = multiple Agent tool calls in a single message. subagent_type is selected per task (typically general-purpose).
+Subagent spawn goes through the host's Agent tool (Claude Code: `Agent` tool; Codex: equivalent mechanism). Parallel execution = multiple Agent tool calls in a single message. The evaluators spawn as the host's built-in general-purpose agent, with no Li+ agent definition file: their bare behavior is what this eval reads, and a definition body would replace the system prompt it reads (`skills/task-subagent-spawn/SKILL.md`). The implementation delegate's definition does not reach them.
 
 On hosts without a per-call `model` parameter, verify the session model satisfies the sonnet-class floor before spawning; a session model that cannot be positively classified as sonnet-class or above counts as sub-floor and cannot satisfy brake 1. Run the eval from a floor-satisfying session instead.
 

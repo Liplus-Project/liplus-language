@@ -87,7 +87,7 @@ Detection signs:
 
 # Bounded delegation: prohibit recursive subagent spawn
 
-A subagent with Agent tool access (`Tools: *`, typically `general-purpose`) defaults to the same fan-out instinct the parent has: when its assigned task looks like it has multiple independent sub-checks, it may spawn its own nested Agent-tool children rather than executing directly. Absent an explicit prohibition, this can cascade at every level — each hop adds real API cost with no visible warning until the rate limit wall is hit, and the top-level report ends up as coordinator meta-commentary ("waiting for background agent") instead of actual findings.
+A subagent with Agent tool access (`Tools: *`) defaults to the same fan-out instinct the parent has — the Li+ implementation delegate `implementer`, which names no `tools` and so takes the default set, and the host's built-in general-purpose agent alike: when its assigned task looks like it has multiple independent sub-checks, it may spawn its own nested Agent-tool children rather than executing directly. Absent an explicit prohibition, this can cascade at every level — each hop adds real API cost with no visible warning until the rate limit wall is hit, and the top-level report ends up as coordinator meta-commentary ("waiting for background agent") instead of actual findings.
 
 How to apply:
 - When delegating a bounded read-only investigation (audit / consistency check / grep-and-report) to a subagent, explicitly state in the prompt: "Do this yourself directly using Read/Grep/Bash — do not spawn further subagents via the Agent tool for this task."

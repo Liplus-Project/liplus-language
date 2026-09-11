@@ -35,9 +35,7 @@ drifts.
 Li+ rules reach you through the Codex session context (SessionStart hook), and
 the source-of-truth literals are Readable in the clone at
 liplus-language/rules/**/*.md. Li+ skills invoke on description match from
-.agents/skills/<name>/SKILL.md. Read them as your own instrument rather than as
-an external constraint: they are the specification the change is measured
-against.
+.agents/skills/<name>/SKILL.md.
 
 Standing bounds on this role:
 

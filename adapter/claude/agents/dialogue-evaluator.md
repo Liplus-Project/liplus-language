@@ -38,7 +38,7 @@ Specifically:
 
 The Character_Instance body is **passed via the invocation prompt**, not held here. Output-styles do not reach a subagent (`skills/evolution-parallel-agent-eval/SKILL.md` Constraint: Character_Instance non-inheritance), and character behavior is part of what you evaluate, so the parent injects the literal explicitly at spawn.
 
-If the Character_Instance literal is not included in the prompt, return to the parent agent: "Please re-invoke with the Character_Instance literal included in the prompt" (do not produce an evaluation under a name-only prefix — persona absent with only the name string generated is the hollow-prefix failure this states against). Same shape as the evaluation-target fallback below.
+If the Character_Instance literal is not included in the prompt, return to the parent agent: "Please re-invoke with the Character_Instance literal included in the prompt" (do not produce an evaluation under a name-only prefix — persona absent with only the name string generated is the hollow-prefix failure this states against).
 
 ## Five evaluation axes (0-100 each, scored independently)
 

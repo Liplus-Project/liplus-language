@@ -105,11 +105,12 @@ host OS は adapter 種別（runtime=claude / runtime=codex）から推測しな
      どちらも実行する literal そのものであり、フラグを追加しない
    - 存在する → `fetch --tags` を実行し:
      a. clone が branch を fetch できるかを確認する。`git -C {workspace_root}/{repo_dir} config --get-all remote.origin.fetch` が、source 側を `refs/heads/` 以下に持つ refspec を最低 1 本保持していること。1 本も無い clone でも tag は解決するため、直前の `fetch --tags` は成功したまま branch はどれも動かず、後続の素の `git fetch origin` もエラーではなく no-op として成功する。無い場合は人間にその事実を名指し、代償も名指す（ローカル branch が永久に進まないため、ローカル branch から生やした worktree やビルドは古い木から取られる）。**検出のみ**であり、refspec の追加も re-clone も行わず、中断もしない（b へ続行する）。修理は人間の側にある（共有されたローカル git state を書き換えるため、エージェントが独断で踏まない）。同じ条件は on-session-start hook が毎セッション surface しており、その状態に留まる clone はそこで報告され続ける。載せ先と、それが `LI_PLUS_UPDATE_STATUS` でない理由は `rules/evolution/cold-start-synthesis.md` の Clone Branch Fetch Surface 節
-     b. 現在 checkout 中のタグと、`LI_PLUS_CHANNEL` から解決した対象タグを両方確認して報告する。その際、どちらが新しいかを名指す。channel によっては対象タグが現在タグより古いことがあり、対象であることから新しさは導けない
-     c. 一致する場合はそのまま続行
-     d. 不一致の場合、Phase 4 へ進む前に人間にどうするか確認する。この選択が解決するまで bootstrap 完了扱いにしない。最小選択肢は「対象タグへ更新してから続行」「今セッションは現在タグのまま続行」
-     e. 人間が更新に同意した場合のみ対象タグへ checkout
-     f. 現在タグのまま続行を選んだ場合は、現在タグと対象タグを明示してから続行
+     b. HEAD がブランチに attach しているかを確認する: `git -C {workspace_root}/{repo_dir} symbolic-ref -q HEAD` が値を返す状態がこれにあたる。Li+update 自身はこの状態を作らない —— 上の「存在しない」経路も、下の手順 f も、`checkout {target_tag}` によって HEAD を detached にする。したがってここで attach 状態が見つかったとすれば、それは本手続きの外側で作られたものである。attach していれば **STOP**：ブランチ名と、`HEAD` が指す commit を報告し、手順 c へは進まない。detach させることも、対象タグへ checkout することも、手順 c の「現在 checkout 中のタグ」に何らかの値を代入することもしない。ブランチに在る状態と、タグに detached な状態のどちらであるべきかは Li+ が決めてよい判断ではない（Phase 5 のディレクトリ解決 STOP と同型）。この判定に `git describe --tags`（`--exact-match` を付けても同様）は使わない：あれは現在の commit にタグが付いているかを答えるだけで、そのタグを checkout しているかは答えない。ブランチの先端がたまたまタグ付き commit と一致していれば `--exact-match` は成功するが、HEAD はブランチに attach したままである
+     c. 現在 checkout 中のタグと、`LI_PLUS_CHANNEL` から解決した対象タグを両方確認して報告する。その際、どちらが新しいかを名指す。channel によっては対象タグが現在タグより古いことがあり、対象であることから新しさは導けない
+     d. 一致する場合はそのまま続行
+     e. 不一致の場合、Phase 4 へ進む前に人間にどうするか確認する。この選択が解決するまで bootstrap 完了扱いにしない。最小選択肢は「対象タグへ更新してから続行」「今セッションは現在タグのまま続行」
+     f. 人間が更新に同意した場合のみ対象タグへ checkout
+     g. 現在タグのまま続行を選んだ場合は、現在タグと対象タグを明示してから続行
 3. 解決済みタグでソースファイルが参照可能な状態になる。読み込みは Phase 4 が担う
 
 ---

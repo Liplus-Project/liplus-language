@@ -953,13 +953,19 @@ if ($tallyFile) {
   foreach ($l in (Get-Content -LiteralPath $tallyFile -ErrorAction SilentlyContinue)) {
     if ($l -cmatch '^##\s+cluster:\s*(.*)$') {
       if ($curC) { $clusters += $curC }
-      $curC = @{ name = $matches[1].Trim(); expires = ''; occ = 0 }
+      $curC = @{ name = $matches[1].Trim(); expires = ''; occ = 0; inOcc = $false }
       continue
     }
     if ($l -cmatch '^##\s') { if ($curC) { $clusters += $curC; $curC = $null }; continue }
     if (-not $curC) { continue }
-    if ($l -cmatch '^\s*expires:\s*(.*)$') { $curC.expires = $matches[1].Trim(); continue }
-    if ($l -cmatch '^\s*-\s')              { $curC.occ++; continue }
+    if ($l -cmatch '^\s*expires:\s*(.*)$')   { $curC.expires = $matches[1].Trim(); $curC.inOcc = $false; continue }
+    # occurrences: opens the counted region; the region closes at the next
+    # top-level field (e.g. notes:) or at the cluster boundary, not at every
+    # subsequent "- " line. occurrences: and notes: both use "- " bullets, so
+    # counting unconditionally double-counts notes: lines into occ.
+    if ($l -cmatch '^\s*occurrences:\s*$')   { $curC.inOcc = $true; continue }
+    if ($curC.inOcc -and $l -cmatch '^\s*-\s') { $curC.occ++; continue }
+    if ($l -cmatch '^\S+:')                  { $curC.inOcc = $false; continue }
   }
   if ($curC) { $clusters += $curC }
 

@@ -162,6 +162,45 @@ class ExpiryJudgmentTest(TallySurfaceTestCase):
                 )
                 self.assertEqual(clusters[descriptors[0]].occurrences, 4)
 
+    def test_notes_bullets_are_not_counted_as_occurrences(self) -> None:
+        """occurrences: and notes: both use "- " bullets; only the former counts.
+
+        Regression for #1929: the aggregation counted every "- " line seen
+        after the cluster header, so a cluster's notes: section inflated its
+        reported count past the Threshold Rules row the real occurrence count
+        falls under.
+        """
+        self.ws.write(self.ws.shared_memory, "self-evaluation_log.md", "# log\n")
+        self.ws.write(
+            self.ws.shared_memory,
+            "promotion_tally.md",
+            "\n".join(
+                [
+                    "## cluster: real count is four",
+                    f"first_observation: {iso(-3)}",
+                    f"expires: {iso(-1)}",
+                    "occurrences:",
+                    f"  - {iso(-3)} self-eval#0 axis=frame",
+                    f"  - {iso(-3)} self-eval#1 axis=frame",
+                    f"  - {iso(-2)} self-eval#2 axis=frame",
+                    f"  - {iso(-2)} self-eval#3 axis=frame",
+                    "",
+                    "notes:",
+                    "  - an aside that should not be counted",
+                    "  - another aside line",
+                    "  - a third aside line",
+                    "",
+                ]
+            ),
+        )
+        for adapter in ADAPTERS:
+            with self.subTest(adapter=adapter):
+                self.ws.clear_state()
+                clusters = surfaced_clusters(
+                    tally_section(self.run_hook(adapter)), ("real count is four",)
+                )
+                self.assertEqual(clusters["real count is four"].occurrences, 4)
+
     def test_no_cluster_past_its_window_is_a_silent_skip(self) -> None:
         self.write_tally_file(("window still open", iso(+2), 3))
         for adapter in ADAPTERS:

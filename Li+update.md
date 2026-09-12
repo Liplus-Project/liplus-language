@@ -248,8 +248,15 @@ Note: Claude Code's skill discovery does NOT recurse into subdirectories under `
 - {workspace_root}/.claude/settings.json is Li+ owned (compare-and-overwrite):
   - If it does not exist: create it from the JSON code block in adapter/claude/hooks-settings.md.
     Also create {workspace_root}/.claude/hooks/ and copy all adapter/claude/hooks/*.sh there.
-  - If it exists and content matches the rendered template byte-for-byte: skip
+  - Write the rendered template with LF line endings and a trailing newline, on both the
+    create branch above and the overwrite branch below. Fix the newline at write time; do not
+    leave it to the writer's default text mode (Windows text mode converts `\n` to `\r\n`,
+    which makes the skip below unreachable from the moment the file is written).
+  - If it exists and content matches the rendered template after newline normalization: skip
     (no overwrite, no sensitive-file permission prompt).
+    Normalization applies to both sides before comparison and covers two points only:
+    CRLF -> LF, and presence or absence of a trailing newline. Nothing else is normalized —
+    a difference in whitespace, key order, indentation or any value falls to the branch below.
   - If it exists and content differs: overwrite with the rendered template.
     settings.json is Li+ owned; intentional user customizations
     (permissions / env / theme / additional hooks / additional MCP entries) belong in
@@ -421,7 +428,15 @@ is expressed via the skill-name prefix convention (e.g. `evolution-judgment-lear
     adapter/codex/hooks-config.md (with {WORKSPACE_ROOT} substituted).
     Also create {workspace_root}/.codex/hooks/ and copy all
     adapter/codex/hooks/*.ps1 and *.sh there (byte-faithful per above).
-  - If it exists and content matches the rendered template byte-for-byte: skip.
+  - Write the rendered template with LF line endings and a trailing newline, on both the
+    create branch above and the overwrite branch below. Fix the newline at write time; do not
+    leave it to the writer's default text mode (Windows text mode converts `\n` to `\r\n`,
+    which makes the skip below unreachable from the moment the file is written).
+    Scope = this JSON config file. The `.ps1` / `.sh` hook copies stay byte-faithful per above.
+  - If it exists and content matches the rendered template after newline normalization: skip.
+    Normalization applies to both sides before comparison and covers two points only:
+    CRLF -> LF, and presence or absence of a trailing newline. Nothing else is normalized —
+    a difference in whitespace, key order, indentation or any value falls to the branch below.
   - If it exists and content differs: overwrite with the rendered template.
     (User-specific Codex settings belong in {workspace_root}/.codex/config.toml,
     which Li+ does not own; see adapter/codex/hooks-config.md File ownership

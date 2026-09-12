@@ -14,6 +14,15 @@ from typing import Any
 
 ENV_STATE_DIR = "LI_PLUS_WEBHOOK_STATE_DIR"
 CLAIMS_FILENAME = "notification-claims.json"
+EVENTS_FILENAME = "events.json"
+TRIGGER_EVENTS_DIRNAME = "trigger-events"
+CODEX_RUNS_DIRNAME = "codex-runs"
+STATE_DIR_MARKERS = (
+    EVENTS_FILENAME,
+    CLAIMS_FILENAME,
+    TRIGGER_EVENTS_DIRNAME,
+    CODEX_RUNS_DIRNAME,
+)
 SUCCESS_CONCLUSIONS = {"success", "skipped", "neutral"}
 COMMENT_EVENT_TYPES = {
     "discussion",
@@ -51,13 +60,27 @@ def candidate_state_dirs(workspace_root: Path) -> list[Path]:
     ]
 
 
+def has_state_dir_shape(candidate: Path) -> bool:
+    """A directory counts as a state dir only if it carries a name this helper reads.
+
+    A directory that merely shares the name `github-webhook-mcp` (the tool's own
+    source checkout, for instance) resolves without holding any state, and every
+    count read out of it is zero. That zero is indistinguishable from an empty
+    backlog, so the shape is checked instead of the name alone.
+    """
+    if not candidate.is_dir():
+        return False
+    return any((candidate / marker).exists() for marker in STATE_DIR_MARKERS)
+
+
 def resolve_state_dir(configured: str | None, workspace_root: Path) -> Path | None:
     if configured:
         candidate = Path(configured)
-        return candidate if candidate.is_absolute() else workspace_root / candidate
+        candidate = candidate if candidate.is_absolute() else workspace_root / candidate
+        return candidate if has_state_dir_shape(candidate) else None
 
     for candidate in candidate_state_dirs(workspace_root):
-        if candidate.exists():
+        if has_state_dir_shape(candidate):
             return candidate
     return None
 
@@ -198,8 +221,8 @@ def summarize(event: dict[str, Any], *, claims: dict[str, dict[str, Any]] | None
 
 def artifact_paths(event_id: str, *, state_dir: Path) -> list[Path]:
     return [
-        state_dir / "trigger-events" / f"{event_id}.json",
-        state_dir / "codex-runs" / f"{event_id}.md",
+        state_dir / TRIGGER_EVENTS_DIRNAME / f"{event_id}.json",
+        state_dir / CODEX_RUNS_DIRNAME / f"{event_id}.md",
     ]
 
 
@@ -468,10 +491,17 @@ def evaluate_pending(
 
 
 def no_source_payload() -> dict[str, Any]:
+    """Payload for the unresolved-state-dir skip.
+
+    `pending_unknown` is what keeps this apart from an observed empty backlog:
+    nothing was read, so nothing is known about the backlog, and `pending_count`
+    stays null rather than 0. A reader must not report this as "no backlog".
+    """
     return {
         "source": "none",
         "state_dir": None,
-        "pending_count": 0,
+        "pending_unknown": True,
+        "pending_count": None,
         "consumed_count": 0,
         "remaining_count": 0,
         "relevant_count": 0,
@@ -519,6 +549,7 @@ def inspect_pending(
     return {
         "source": "local_state_dir",
         "state_dir": str(state_dir),
+        "pending_unknown": False,
         "pending_count": len(evaluated["pending"]),
         "relevant_count": len(evaluated["relevant"]),
         "notable_count": len(evaluated["notable"]),
@@ -670,7 +701,7 @@ def main() -> int:
         print(json.dumps(no_source_payload(), ensure_ascii=False))
         return 0
 
-    events_path = state_dir / "events.json"
+    events_path = state_dir / EVENTS_FILENAME
     events = load_events(events_path)
     context = build_context(args)
     cleanup_after = timedelta(hours=args.older_than_hours)

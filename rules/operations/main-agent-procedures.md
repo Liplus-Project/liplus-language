@@ -476,7 +476,17 @@ local webhook store:
     a = LI_PLUS_WEBHOOK_STATE_DIR from Li+config.md (absolute or workspace_root-relative)
     b = {workspace_root}/github-webhook-mcp
     c = {workspace_root}/../github-webhook-mcp
+  state dir shape check = a candidate that exists is a state dir only if it carries at least one of the
+    names the helper reads (`events.json`, `notification-claims.json`, `trigger-events/`, `codex-runs/`).
+    A candidate failing it is not resolved: move to the next candidate, and treat all candidates failing
+    as unresolved. The name alone does not settle it — a workspace that clones the tool's own source to
+    `{workspace_root}/github-webhook-mcp` makes `b` hit a directory holding no state, which resolves and
+    then reads every count as zero. Take the names from `scripts/check_webhook_notifications.py`, which
+    holds them as one list; this line is the contract, not a second source for them.
   if helper missing or state dir unresolved = skip silently
+  a silent skip is not an observation of the backlog. Unresolved means nothing was read, so the backlog
+    is unknown, not empty. Do not report it as "no pending events" — on that axis say nothing, which is
+    what the silent skip already is.
   helper output = inspect summary with foreground-matched items, notable items, and cleanup candidates
   helper default = inspect only; preserve unmatched backlog
   destructive actions = explicit `read` / `done` / `claim` / `cleanup-safe-success` calls only

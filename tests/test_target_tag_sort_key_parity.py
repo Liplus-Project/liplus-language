@@ -8,7 +8,7 @@ the update path actually reaches -- run from outside a git repository (Phase 3.1
 before the first clone exists), and run inside a shallow clone whose newest tag
 points past the truncation. Both failures are swallowed (`2>/dev/null`), leaving
 the target tag empty, which pins the workspace at
-`sentinel-tag(adapter=...,target=unknown)` permanently.
+`sentinel-tag(adapter=...,target=unknown)` for as long as either state holds.
 
 The replacement is `-v:refname`: it reads ref names only, so it resolves in both
 states, and it compares numeric components numerically, so the two-digit `N` in

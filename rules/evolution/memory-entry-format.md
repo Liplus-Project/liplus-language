@@ -193,7 +193,7 @@ The pass applies the Entry Format maintenance discipline above to the memory set
 4. Check that every `[[wikilink]]` resolves. For one that does not, decide between writing the entry and dropping the link; leaving it unresolved is neither.
 5. Record the run per the line below.
 
-No external tool is named here, and naming one is what this states against: a procedure whose only stated path is a skill Li+ does not ship stops on a host that lacks it, and the agent that meets that stop improvises a pass nobody else can read. The five steps are Li+'s own discipline applied in order, so the procedure runs wherever Li+ runs.
+No external tool is named here, and naming one is what this states against: a procedure whose only stated path is a skill Li+ does not ship stops on a host that lacks it, and the agent that meets that stop improvises a pass nobody else can read.
 
 Record the run as a single `**Last consolidate run:** <YYYY-MM-DD>` line at the head of the index `MEMORY.md`. One place, not one per file: the run is one fact about the memory set, and a timestamp copied into every memory file is the second copy that drifts (`rules/model/subtractive-structural-beauty.md` Core principle (A)). No line = never consolidated, and the trigger fires.
 

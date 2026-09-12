@@ -162,9 +162,14 @@ At that moment, take one check, write its result into `notes`, and apply exactly
 - regression observed -> `revert`: use the GitHub revert path, mark verdict, delete entry
 - decision structure supersede edge issued -> `supersede`: delete entry
 - no regression observed -> `settle`: delete entry
+- firing condition gone -> `retired`: record the grounds in `notes`, delete entry
 - inconclusive -> advance `next_check`, leave `verdict_state` at `pending`, and do not move `expires`
 
 `no regression observed` = both hold since `merged_at`: at least one application moment of the changed surface has been observed and is recorded in this entry's `notes`, and no `miss` verdict, human correction, or revert stands against that change in `memory/self-evaluation_log.md` or in the same `notes`. A change with no application moment yet is `inconclusive`, not `settle`.
+
+`firing condition gone` = the condition that would fire this entry's observation point no longer exists on any reachable surface, so no application moment of the changed surface can arrive. The input to this verdict is the measured absence of the condition, not the absence of regression — that is the line against `settle`, which rests on a sample: `settle` holds an observed application moment, `retired` shows that no sample can exist. Write into `notes` what established that the firing condition holds on no surface — the surfaces enumerated, and the check that none of them meets the condition. "Have not seen it" is not grounds: non-observation is not disappearance of the condition.
+
+The line against `inconclusive` is `has not arrived` versus `cannot arrive`. `inconclusive` is a sample still awaited; `retired` is a sample that cannot be produced, and grounds for that are writable. An entry whose grounds cannot be written stays `inconclusive`. Replacing the observation point with a substitute one and redrawing `expires` remains available underneath `inconclusive`; it is not an outcome, and it does not close an entry.
 
 `settle` fires at this due moment, not at `expires`. Reaching `expires` still `pending` is the escalation below, and is not a settle condition.
 

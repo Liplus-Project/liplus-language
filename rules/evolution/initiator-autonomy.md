@@ -37,6 +37,14 @@ Excluded, each by the property that excludes it:
 
 A changed file the criterion places on neither side is on the firing side. A needless eval costs one eval; a missed one costs the gate.
 
+### Prose in `tests/**`
+
+Binds every line of prose — docstring, comment — in a `tests/**` file. What such prose may state is what that test observes, and where the claim it tests is fixed; a norm of its own it may not state. Where a norm is needed, point at the surface that holds it (`rules/**`, `skills/**`) instead of restating it.
+
+A statement about system behavior carries the conditions it was observed under. A word reaching past them — `permanently`, `always`, `never`, `any` — is written out, or the conditions are written in beside it.
+
+Out of scope: the test's intent, reproduction steps, and references to a prior issue / PR / commit. This states nothing about them.
+
 `docs/` is in Scope below and excluded here. The two lists run on different axes — Scope is what the AI may initiate, condition 2 is what brake 1 gates — and `docs/` is the entry where they disagree, so reading either membership off the other is what produces the wrong answer.
 
 </self-evolution-pr-definition>

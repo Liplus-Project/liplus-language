@@ -162,9 +162,14 @@ At that moment, take one check, write its result into `notes`, and apply exactly
 - regression observed -> `revert`: use the GitHub revert path, mark verdict, delete entry
 - decision structure supersede edge issued -> `supersede`: delete entry
 - no regression observed -> `settle`: delete entry
+- firing condition gone -> `retired`: record the grounds in `notes`, delete entry
 - inconclusive -> advance `next_check`, leave `verdict_state` at `pending`, and do not move `expires`
 
 `no regression observed` = both hold since `merged_at`: at least one application moment of the changed surface has been observed and is recorded in this entry's `notes`, and no `miss` verdict, human correction, or revert stands against that change in `memory/self-evaluation_log.md` or in the same `notes`. A change with no application moment yet is `inconclusive`, not `settle`.
+
+`firing condition gone` = the condition that would fire this entry's observation point no longer exists on any reachable surface, so no application moment of the changed surface can arrive. The input to this verdict is the measured absence of the condition, not the absence of regression — that is the line against `settle`, which rests on a sample: `settle` holds an observed application moment, `retired` shows that no sample can exist. Write into `notes` what established that the firing condition holds on no surface — the surfaces enumerated, and the check that none of them meets the condition. "Have not seen it" is not grounds: non-observation is not disappearance of the condition.
+
+The line against `inconclusive` is `has not arrived` versus `cannot arrive`. `inconclusive` is a sample still awaited; `retired` is a sample that cannot be produced, and grounds for that are writable. An entry whose grounds cannot be written stays `inconclusive`. Replacing the observation point with a substitute one and redrawing `expires` remains available underneath `inconclusive`; it is not an outcome, and it does not close an entry.
 
 `settle` fires at this due moment, not at `expires`. Reaching `expires` still `pending` is the escalation below, and is not a settle condition.
 
@@ -181,11 +186,21 @@ Cold-start surfacing of due / overdue entries follows `rules/evolution/cold-star
 
 ## Consolidate Trigger
 
-Periodic cleanup via the `anthropic-skills:consolidate-memory` skill.
+Periodic cleanup, run by the agent holding the session the trigger fires in.
 
 Firing condition: 2 weeks since the last consolidate.
 
-After running the skill, record the run as a single `**Last consolidate run:** <YYYY-MM-DD>` line at the head of the index `MEMORY.md`. The write is the caller's own step, performed after the skill's pass returns — not something the skill is relied on to do. One place, not one per file: the run is one fact about the memory set, and a timestamp copied into every memory file is the second copy that drifts (`rules/model/subtractive-structural-beauty.md` Core principle (A)). No line = never consolidated, and the trigger fires.
+The pass applies the Entry Format maintenance discipline above to the memory set as a whole, in this order:
+
+1. Fold same-kind entries into one (the discipline's `handle duplicates by update`). Delete the folded-away file.
+2. Delete obsolete entries (same discipline).
+3. Rewrite the `MEMORY.md` index to the entries that remain.
+4. Check that every `[[wikilink]]` resolves. For one that does not, decide between writing the entry and dropping the link; leaving it unresolved is neither.
+5. Record the run per the line below.
+
+No external tool is named here, and naming one is what this states against: a procedure whose only stated path is a skill Li+ does not ship stops on a host that lacks it, and the agent that meets that stop improvises a pass nobody else can read.
+
+Record the run as a single `**Last consolidate run:** <YYYY-MM-DD>` line at the head of the index `MEMORY.md`. One place, not one per file: the run is one fact about the memory set, and a timestamp copied into every memory file is the second copy that drifts (`rules/model/subtractive-structural-beauty.md` Core principle (A)). No line = never consolidated, and the trigger fires.
 
 One arm, because the second one could not be measured. It read `5 or more new additions since the last consolidate` and asked a gross question, and no snapshot of the memory set's size returns a gross count: the deletions the Entry Format maintenance discipline above calls for destroy the difference between what was added and what remains, and an addition to an operational file already indexed moves no size at all. Recording a size here and subtracting it answers a net question that arm was not asking. Narrowing what it counts does not restore it either — the narrowed set is still counted gross, and is still subject to the same deletion. A monotonic counter splits, and neither half holds: the half a structure can guarantee, a hook over writes to the memory directory, counts write operations, and a write operation is not an addition — one edit can carry several entries, and several edits can carry one; the half that counts additions needs the writer to increment, since the writer alone knows how many entries its edit carried, and that is the unguaranteed procedure `rules/model/subtractive-structural-beauty.md` sends back to be replaced by a structure.
 

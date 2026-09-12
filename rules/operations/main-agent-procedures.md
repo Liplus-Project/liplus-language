@@ -498,10 +498,21 @@ own-operation arrival confirmation:
   ownership test - run it; own / external is not judged by feel:
     1. head_branch = this session's working branch -> own.
     2. head_branch = main -> read `gh run view <id> --json displayTitle` and match it against what
-       this session authored (event=issues carries the issue title, push the commit title,
-       pull_request the PR title).
+       this session wrote to (event=issues carries the issue title, push the commit title,
+       pull_request the PR title). `wrote to` is the whole write set, not the creation: a session
+       that edited an issue body matches that issue's title as surely as the session that opened it.
+       What this step asks is whether the run confirms arrival of an operation this session
+       performed, which is what the purpose line above states; issue authorship is not the question.
     3. sender is another account -> external, preserve.
     4. nothing above settles it -> hold, and leave the event unprocessed.
+
+    Residual limit at step 2, left in place deliberately: the title names the issue, not the writer.
+    Two sessions writing to one issue raise two runs carrying the same title, and each reads both as
+    own. No session starves — each holds one arrival confirmation of its own, and mark_processed is
+    idempotent, so the duplicate consume writes the same state the first did. Identifying the writer
+    is given up rather than closed, because sessions authenticating as one account carry no GitHub-side
+    identifier that separates them. Do not repair this by narrowing step 2 back to creation: that
+    returns every non-creator write to step 4, where no actor can consume it.
 
 </foreground-webhook-notification-intake>
 

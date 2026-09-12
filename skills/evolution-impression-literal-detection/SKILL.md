@@ -12,7 +12,12 @@ For Li+ source drafts, impression-literal detection is a fixed axis included alo
 
 Scope — what counts as a Li+ source draft for this axis: prose the agent loads and runs as its own instruction. The criterion is derived from the removal test below, which can only run where the text is itself the behavior being regulated. Surfaces it currently resolves to: `rules/**/*.md`, `skills/**/SKILL.md`, `adapter/**/*`, `Li+update.md`.
 
-That is the prose arm of brake 1's own firing side (`rules/evolution/initiator-autonomy.md` Self-evolution PR definition, Governed surface), and it stops there: `tests/**` and `.github/workflows/**` fire brake 1 as the enforcement backstop, but they are executed code, not prose loaded as instruction, so the removal test has no behavior semantic to hold constant on them. The two coincide on that one arm by derivation, not by being one list — matching this axis to the firing side path-for-path over-applies it.
+Unit — the criterion applies to text, not to files. A path enumerated above selects a file to open, and the criterion then runs on each phrase inside it; a file is never in or out as a whole. Read both directions of that, because each one alone gives the wrong answer on a file holding both kinds of text:
+
+- Executed code carries text this axis covers wherever what it emits reaches the agent's context. A hook's emitted string is prose the agent reads and acts on, so the file being executed code does not take it out — `adapter/**/hooks/*` is enumerated above for exactly this text.
+- Executed code also carries text this axis does not cover. A comment inside a script explains code the shell runs; nothing loads it as instruction, so the removal test has no behavior semantic to hold constant on it. That is the same ground the exclusion below stands on.
+
+That is the prose arm of brake 1's own firing side (`rules/evolution/initiator-autonomy.md` Self-evolution PR definition, Governed surface), and it stops there: `tests/**` and `.github/workflows/**` fire brake 1 as the enforcement backstop, but nothing in them is loaded as instruction — neither their code nor their comments reaches the agent's context as prose it runs on — so the removal test has no behavior semantic to hold constant on them. The two coincide on that one arm by derivation, not by being one list — matching this axis to the firing side path-for-path over-applies it.
 
 Operational criterion: a phrase is impression literal if removing it does not change the rule's behavior semantic. Rhetorical layer that does not load-bear on the spec's behavior regulation is the detection target.
 

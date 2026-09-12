@@ -8,7 +8,8 @@ everything the design turned from a procedure into a structure, which is exactly
 part that fails silently when it regresses:
 
 - the lock, which replaces "take care not to run two at once" with "the second one
-  cannot start", including the stale-lock takeover the accepted tradeoff names;
+  cannot start", including both ways a held lock is broken - a dead holder PID, and
+  the stale-timestamp takeover the accepted tradeoff names;
 - the two cleanup layers, the unconditional wipe at the head of a run and the
   `finally` removal, and the fact that the wipe does not take the lock with it;
 - the contrast principle, held in two places - the plan's edit budget, and the
@@ -25,6 +26,7 @@ structures from decaying back into procedures without anything reporting it.
 from __future__ import annotations
 
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -441,14 +443,65 @@ class LockTest(TempDirCase):
         with self.assertRaises(module.LockUnavailable):
             module.acquire_lock(root, NOW)
 
-    def test_the_lock_carries_a_timestamp_and_no_pid(self) -> None:
-        """Accepted tradeoff: no PID, so a long run's lock can be read as abandoned."""
+    def test_the_lock_carries_a_timestamp_and_the_holder_pid(self) -> None:
+        """Both are written: the PID decides first, the timestamp is the fallback."""
         root = self.temp_path() / "harness"
         lock_dir = module.acquire_lock(root, NOW)
         entries = sorted(path.name for path in lock_dir.iterdir())
-        self.assertEqual(entries, [module.LOCK_STAMP_FILENAME])
+        self.assertEqual(
+            entries, sorted([module.LOCK_STAMP_FILENAME, module.LOCK_PID_FILENAME])
+        )
         stamp = (lock_dir / module.LOCK_STAMP_FILENAME).read_text(encoding="utf-8")
         self.assertEqual(datetime.fromisoformat(stamp), NOW)
+        self.assertEqual(module.lock_holder_pid(lock_dir), os.getpid())
+
+    def test_a_live_holder_still_refuses_a_fresh_lock(self) -> None:
+        """The acceptance line: holder alive, so the refusal is unchanged."""
+        root = self.temp_path() / "harness"
+        module.acquire_lock(root, NOW)
+        with mock.patch.object(module, "process_is_alive", return_value=True):
+            with self.assertRaises(module.LockUnavailable) as caught:
+                module.acquire_lock(root, NOW)
+        self.assertIn(f"held by pid {os.getpid()}", str(caught.exception))
+
+    def test_a_dead_holder_lock_is_broken_well_inside_the_threshold(self) -> None:
+        """The defect #1945 reports: a killed run must not lock successors out."""
+        root = self.temp_path() / "harness"
+        module.acquire_lock(root, NOW)
+        moments_later = NOW + timedelta(seconds=257)
+        with mock.patch.object(module, "process_is_alive", return_value=False):
+            retaken = module.acquire_lock(root, moments_later)
+        stamp = (retaken / module.LOCK_STAMP_FILENAME).read_text(encoding="utf-8")
+        self.assertEqual(datetime.fromisoformat(stamp), moments_later)
+
+    def test_a_lock_with_no_pid_is_judged_by_the_threshold_alone(self) -> None:
+        """Backward compatibility: a lock from the revision that wrote no PID."""
+        root = self.temp_path() / "harness"
+        lock_dir = module.acquire_lock(root, NOW)
+        (lock_dir / module.LOCK_PID_FILENAME).unlink()
+        self.assertIsNone(module.lock_holder_pid(lock_dir))
+        with mock.patch.object(module, "process_is_alive") as probe:
+            with self.assertRaises(module.LockUnavailable):
+                module.acquire_lock(root, NOW)
+            probe.assert_not_called()
+        later = NOW + timedelta(seconds=module.STALE_LOCK_SECONDS + 1)
+        with mock.patch.object(module, "process_is_alive") as probe:
+            module.acquire_lock(root, later)
+            probe.assert_not_called()
+
+    def test_a_liveness_check_that_raises_reads_as_alive(self) -> None:
+        """Undecidable falls to refusal; breaking a live run's lock is the worse error."""
+        root = self.temp_path() / "harness"
+        module.acquire_lock(root, NOW)
+        with mock.patch.object(module, "process_is_alive", side_effect=OSError("opaque")):
+            with self.assertRaises(module.LockUnavailable):
+                module.acquire_lock(root, NOW)
+
+    def test_the_live_probe_answers_for_this_process_without_starting_one(self) -> None:
+        """The real probe, on both platforms, against the one PID known to be alive."""
+        self.assertTrue(module.process_is_alive(os.getpid()))
+        self.assertTrue(module.process_is_alive(0))
+        self.assertTrue(module.process_is_alive(-1))
 
     def test_a_lock_older_than_the_threshold_is_taken_over(self) -> None:
         root = self.temp_path() / "harness"

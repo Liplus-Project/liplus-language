@@ -14,11 +14,23 @@ the head of the run catches what `finally` cannot (kill, power loss). The fixed 
 is what makes the second layer possible - a per-run unique name would accumulate
 debris and turn cleanup back into a procedure.
 
-Accepted tradeoff: the lock carries a timestamp and no PID, so a run lasting longer
-than the stale threshold has its lock read as abandoned and another run may enter.
-A PID would close it and costs more than the hole is worth; the threshold is set far
-above the expected run time instead. Recorded as a hole that is accepted, not as an
-absence of holes.
+The lock carries the holder's PID alongside its timestamp, and a run that finds the
+lock held checks whether that PID is still alive. Alive, it is refused as before;
+gone, the lock is broken and taken. An earlier revision of this paragraph judged a
+PID as costing more than the hole was worth and set the threshold far above the
+expected run time instead. That judgment was re-formed on a measurement: a killed
+run left its lock behind and locked the harness out for up to the full six hours,
+with no recovery but reading a process list by hand and deleting the directory - the
+manual procedure this design exists to replace with structure (#1945).
+
+Two holes remain, and both are narrower than the one that was there before. PID
+reuse: a dead holder's number may have been handed to an unrelated process, which
+reads as alive and refuses entry. It is the safe side of the two, and it is also
+what the stale threshold - kept for exactly this - eventually clears. Stale
+takeover: a run outliving the threshold can still have its lock read as abandoned,
+but now only when the PID check also fails to say the holder lives, so the
+false entry needs both to hold at once rather than the threshold alone. Recorded as
+holes that are accepted, not as an absence of holes.
 """
 
 from __future__ import annotations
@@ -41,6 +53,7 @@ from typing import Any, Sequence
 HARNESS_DIRNAME = "liplus-rule-effect"
 LOCK_DIRNAME = "lock"
 LOCK_STAMP_FILENAME = "acquired-at"
+LOCK_PID_FILENAME = "holder-pid"
 ARMS_DIRNAME = "arms"
 STALE_LOCK_SECONDS = 6 * 60 * 60
 COPIED_ENTRIES = (".claude", "CLAUDE.md", "Li+config.md")
@@ -379,6 +392,65 @@ def lock_age_seconds(lock_dir: Path, now: datetime) -> float:
     return (now - acquired).total_seconds()
 
 
+def lock_holder_pid(lock_dir: Path) -> int | None:
+    """The PID recorded in a held lock, or `None` when there is none to read.
+
+    `None` is the answer for a lock written by a revision that carried no PID, and
+    for one killed between taking the directory and writing the file. Both fall back
+    to the timestamp and the stale threshold, which is what those locks were always
+    judged by.
+    """
+    try:
+        return int((lock_dir / LOCK_PID_FILENAME).read_text(encoding="utf-8").strip())
+    except (OSError, ValueError):
+        return None
+
+
+def process_is_alive(pid: int) -> bool:
+    """Whether `pid` names a live process. The seam, substituted the way `launch` is.
+
+    A caller testing what `acquire_lock` does with the answer is not testing how the
+    answer is obtained, so the whole function is replaced rather than a flag passed
+    in - and no test has to start a real process to get a determinate one.
+
+    No external dependency on either platform. POSIX sends signal 0, which performs
+    the permission and existence checks and delivers nothing; `PermissionError` means
+    the process is there and owned by somebody else, which is alive. Windows has no
+    such signal, so `OpenProcess` is called through `ctypes` and a handle at all is
+    the answer.
+
+    Undecidable falls to alive, and that direction is deliberate: refusing entry is
+    the recoverable error, and breaking a live run's lock is not. A PID of zero or
+    below names no process this can ask about and is read the same way.
+    """
+    if pid <= 0:
+        return True
+    if os.name == "nt":
+        import ctypes
+
+        PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+        ERROR_INVALID_PARAMETER = 87
+        # `use_last_error` rather than a bare `GetLastError` call: ctypes captures
+        # the error at the call itself, so nothing in between can overwrite it.
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)  # type: ignore[attr-defined]
+        handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+        if handle:
+            kernel32.CloseHandle(handle)
+            return True
+        # Access denied and the like mean the process exists; only "invalid
+        # parameter" is the kernel saying there is no process with that id.
+        return ctypes.get_last_error() != ERROR_INVALID_PARAMETER
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except OSError:
+        return True
+    return True
+
+
 def acquire_lock(
     root: Path,
     now: datetime | None = None,
@@ -388,8 +460,14 @@ def acquire_lock(
 
     `mkdir` is the whole mechanism: it either creates the directory or raises. That
     turns "take care not to run two of these at once" into "the second one cannot
-    start". The lock holds a timestamp and no PID (see the module docstring's
-    accepted tradeoff).
+    start".
+
+    A lock already there is judged on its holder first: a PID that no longer names a
+    live process is a run that died before its `finally` could run, and its lock is
+    broken here rather than left for an operator to clear by hand. Only where the
+    holder cannot be settled - no PID recorded, or a liveness check that says alive -
+    does the timestamp and the stale threshold decide, as they did alone before
+    (see the module docstring).
     """
     moment = now or datetime.now(timezone.utc)
     root.mkdir(parents=True, exist_ok=True)
@@ -398,11 +476,21 @@ def acquire_lock(
     try:
         lock_dir.mkdir()
     except FileExistsError:
-        age = lock_age_seconds(lock_dir, moment)
-        if age <= stale_after:
-            raise LockUnavailable(
-                f"{lock_dir} is held (age {age:.0f}s, stale threshold {stale_after:.0f}s)"
-            ) from None
+        holder = lock_holder_pid(lock_dir)
+        try:
+            holder_lives = holder is None or process_is_alive(holder)
+        except Exception:  # noqa: BLE001 - undecidable is refusal, never a crash
+            # The probe reaches the OS, and a host that answers in a way it does
+            # not model must not take the run down or break a possibly-live lock.
+            holder_lives = True
+        if holder_lives:
+            age = lock_age_seconds(lock_dir, moment)
+            if age <= stale_after:
+                held_by = f", held by pid {holder}" if holder is not None else ""
+                raise LockUnavailable(
+                    f"{lock_dir} is held (age {age:.0f}s, "
+                    f"stale threshold {stale_after:.0f}s{held_by})"
+                ) from None
         shutil.rmtree(lock_dir, ignore_errors=True)
         try:
             lock_dir.mkdir()
@@ -410,6 +498,7 @@ def acquire_lock(
             raise LockUnavailable(f"{lock_dir} could not be retaken") from None
 
     (lock_dir / LOCK_STAMP_FILENAME).write_text(moment.isoformat(), encoding="utf-8")
+    (lock_dir / LOCK_PID_FILENAME).write_text(str(os.getpid()), encoding="utf-8")
     return lock_dir
 
 

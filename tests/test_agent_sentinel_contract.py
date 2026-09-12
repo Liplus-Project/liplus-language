@@ -33,14 +33,13 @@ BEGIN_LITERAL = "Li+ BEGIN"
 END_LITERAL = "Li+ END"
 BEGIN_TAG_RE = re.compile(r"Li\+ BEGIN \(([^)]*)\)")
 
-# Li+update.md 4c.6 names these as the worked example of the question-2 branch
-# (Li+-owned criteria interleaved with a Character_Instance literal, so no one
-# contiguous region separates them). Pinning them here tests a claim the spec
-# already makes by name; it is not a second enumeration of the criterion.
-NAMED_NON_CARRIERS = (
-    "adapter/claude/agents/dialogue-evaluator.md",
-    "adapter/codex/agents/dialogue-evaluator.toml",
-)
+# Character_Instance context keys. A persona literal in an agent source is what
+# put a file on the question-2 branch: user-owned content interleaved with
+# Li+-owned criteria, which no one contiguous region separates. The literal now
+# arrives through the invocation prompt instead, and this asserts it did not
+# come back — a reappearance would silently make the file's region enclose user
+# content, the failure the region exists to prevent.
+CHARACTER_INSTANCE_KEYS = ("LIN_CONTEXT", "LAY_CONTEXT", "HUMOR_STYLE")
 
 # Instance-surface keys the Codex region must leave outside itself.
 CODEX_INSTANCE_KEYS = ("name = ", "description = ", "model_reasoning_effort = ", "sandbox_mode = ")
@@ -138,12 +137,11 @@ class AgentSentinelContractTest(unittest.TestCase):
                 else:
                     self.assertNotIn(END_LITERAL, text)
 
-    def test_named_non_carriers_carry_no_region(self) -> None:
-        for name in NAMED_NON_CARRIERS:
-            with self.subTest(source=name):
-                self.assertIn(name, self.sources)
-                self.assertNotIn(BEGIN_LITERAL, self.sources[name])
-                self.assertNotIn(END_LITERAL, self.sources[name])
+    def test_no_agent_source_embeds_a_character_instance_literal(self) -> None:
+        for name, text in self.sources.items():
+            for key in CHARACTER_INSTANCE_KEYS:
+                with self.subTest(source=name, key=key):
+                    self.assertNotIn(key, text)
 
     def test_non_carrier_toml_keeps_its_tag_in_the_source_header(self) -> None:
         for name, text in self.sources.items():

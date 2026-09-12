@@ -150,6 +150,8 @@ webhook 通知がセッションへ届く方法を指定します。`mcp__github
 
 想定ディレクトリは `github-webhook-mcp` の状態保存先で、`events.json`、`trigger-events/`、`codex-runs/` を含みます。
 
+helper は当たったディレクトリが state dir の体裁（`events.json` / `notification-claims.json` / `trigger-events/` / `codex-runs/` のいずれか）を持つかを検査し、持たなければ**未解決**として扱います。絶対パス / 相対パスで明示した場合も同じ検査が掛かります。名前だけが一致するディレクトリ（`github-webhook-mcp` ツール自身のソースを workspace 直下にクローンしている構成など）を state dir と誤認し、滞留 0 を偽って返すのを防ぐためです。未解決時の silent skip は「滞留なし」の観測ではありません。
+
 注意:
 
 - local fallback helper は `LI_PLUS_MODE=clone` で `liplus-language/` clone が手元にある場合にだけ使えます

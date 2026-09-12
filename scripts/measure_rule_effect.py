@@ -48,6 +48,9 @@ REQUIRED_ENTRIES = (".claude",)
 SETTINGS_FILENAMES = ("settings.json", "settings.local.json")
 ARM_COUNT = 2
 EDIT_BUDGET = 1
+EXIT_PLAN = 2
+EXIT_LOCK = 3
+EXIT_NO_ARM_RETURNED = 4
 
 # The self-declaring guard. Applied to text an edit inserts, never to text that
 # was already in the tree.
@@ -705,6 +708,21 @@ def build_run_record(
     }
 
 
+def every_arm_failed(results: Sequence[dict[str, Any]]) -> bool:
+    """No launch came back clean, so the run left nothing to read a difference from.
+
+    The line is "not one arm returned zero", not "some arm did not". A single
+    non-zero arm can be the behavior under measurement, and the harness does not
+    read it as its own failure. A run where every launch failed holds no material
+    for the judge whatever the probe was designed to do - the value the verdict is
+    formed from does not exist, which is a fact about the run rather than about the
+    subject. `--dry-run` entries carry no `returncode`, are not launches, and leave
+    the question unasked.
+    """
+    launched = [entry for entry in results if "returncode" in entry]
+    return bool(launched) and all(entry["returncode"] != 0 for entry in launched)
+
+
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("plan", type=Path, help="JSON run plan")
@@ -740,14 +758,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         plan = load_plan(json.loads(args.plan.read_text(encoding="utf-8")), source_root)
     except (OSError, ValueError, HarnessError) as error:
         print(f"measure_rule_effect: {error}", file=sys.stderr)
-        return 2
+        return EXIT_PLAN
 
     root = harness_root(args.base_dir)
     try:
         lock_dir = acquire_lock(root, started_at, args.stale_after)
     except LockUnavailable as error:
         print(f"measure_rule_effect: {error}", file=sys.stderr)
-        return 3
+        return EXIT_LOCK
 
     try:
         arms_dir = reset_work_dir(root)
@@ -774,7 +792,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         record = build_run_record(plan, source_root, differences, results, started_at)
     except HarnessError as error:
         print(f"measure_rule_effect: {error}", file=sys.stderr)
-        return 2
+        return EXIT_PLAN
     finally:
         try:
             remove_tree(root / ARMS_DIRNAME)
@@ -787,6 +805,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         args.out.write_text(payload, encoding="utf-8")
     else:
         sys.stdout.write(payload)
+
+    # The record is written first. Reporting the failure and keeping the record are
+    # separate axes, and the per-arm `returncode` is what the reader opens next.
+    if every_arm_failed(record["results"]):
+        print(
+            "measure_rule_effect: every arm returned non-zero; nothing was measured",
+            file=sys.stderr,
+        )
+        return EXIT_NO_ARM_RETURNED
     return 0
 
 

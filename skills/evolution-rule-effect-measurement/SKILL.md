@@ -171,6 +171,7 @@ What the harness enforces structurally, so it is not left to care at run time:
 - the arm's model named in the plan, with no default
 - hooks removed from each arm, so nothing injects material into one side
 - no `.git` in the arm, so no remote by construction
+- a non-zero exit (4) when no arm returned zero, so a run that measured nothing cannot be read as a run that did. The run record is written first either way; a single failed arm can be the behavior under measurement and leaves the exit at 0
 
 Cost floor: one minimal arm charged 95,069 cache-creation input tokens, which is the always-loaded surface being read and is near-independent of probe length. One round of 5 probes x 3 repetitions x 2 arms is 30 launches. Measurement consumes external budget, so it is not made mandatory.
 

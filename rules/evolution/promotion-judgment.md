@@ -71,7 +71,7 @@ The same file carries a `<!-- disposition log -->` section. One line per cluster
 
 Placement: the log is the file's last section, after every cluster. Cluster parsing reads the `## cluster:` headings above it, so the log sits outside that region rather than between two clusters.
 
-Fields: deletion date, cluster descriptor, `first_observation`, occurrence count, disposition. The disposition names which Threshold Rules exit was taken, and for the two issue-creation exits carries the issue number (created, or folded into). Occurrence bodies are not carried over — the line records the disposition, not the observations.
+Fields: deletion date, cluster descriptor, `first_observation`, occurrence count, disposition. The disposition names which Threshold Rules exit was taken, and for the two issue-creation exits carries the issue number (created, or folded into). Occurrence bodies are not carried over.
 
 Cap = 10 lines, oldest-first deletion once exceeded. The log is an append surface inside memory, and memory is transient (Scope, `rules/evolution/memory-entry-format.md`); an uncapped one is not what that Scope holds. Same shape as the self-evaluation log's cap (`skills/evolution-self-eval/SKILL.md`).
 

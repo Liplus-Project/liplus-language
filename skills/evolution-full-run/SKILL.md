@@ -24,7 +24,7 @@ Thin orchestrator: it sequences existing skills and does not re-host their logic
 
 ## Sequence
 
-1. **Consolidate memory** — run `anthropic-skills:consolidate-memory` first (merge duplicates, fix stale facts, prune the index).
+1. **Consolidate memory** — run the consolidate pass first, per `rules/evolution/memory-entry-format.md` Consolidate Trigger, whose steps this skill does not re-host. Run it here regardless of that trigger's 2-week firing condition: the sweep is the moment the pass is wanted.
 2. **Full self-evolution loop** — run the complete `skills/evolution-loop` pass over all of Li+ including memory: observe → evaluate → distill → reflect → improve → re-observe. Every resulting Li+ source change flows through the normal issue → PR → CI pipeline; gates are NOT bypassed. Brake 1 (`skills/evolution-parallel-agent-eval`, N≥3) on every self-evolution PR, L1 Model layer source included — L1 adds no brake of its own.
 3. **Full refactor** — refactor across `rules/` / `skills/` / `docs/` / wiki / `memory/` for structural coherence (organize → consolidate → delete → verify; verification surface = `skills/evolution-parallel-agent-eval`). `docs/` is source of truth, wiki is its mirror — wiki sync follows the standard release/operations path, not ad-hoc edits.
 

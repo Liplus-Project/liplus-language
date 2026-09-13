@@ -82,10 +82,14 @@ class ImplementerAgentContractTest(unittest.TestCase):
         # and nothing else. A literal wider than its reason bars this file.
         spawn = SPAWN_SKILL.read_text(encoding="utf-8")
         self.assertIn("whose bare behavior is the observation target", spawn)
-        self.assertIn("Outside the evaluators a definition file is permitted", spawn)
+        self.assertIn("Outside them a definition file is permitted", spawn)
 
-    def test_brake_evaluators_stay_on_the_built_in_agent(self) -> None:
+    def test_probe_type_evaluators_stay_on_the_built_in_agent(self) -> None:
+        # Narrowed 2026-09-14 (#1968): the judge-type evaluator now carries its
+        # own definition. What keeps no definition is the probe-type round,
+        # whose bare behavior is the thing being read.
         evaluation = EVAL_SKILL.read_text(encoding="utf-8")
+        self.assertIn("A probe-type evaluator spawns as the host's", evaluation)
         self.assertIn("built-in general-purpose agent", evaluation)
         self.assertIn("no Li+ agent definition file", evaluation)
 

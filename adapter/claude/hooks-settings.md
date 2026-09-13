@@ -32,8 +32,17 @@ compare-and-overwrite step (see below) detects content drift and overwrites
 
 - If `{workspace_root}/.claude/settings.json` does **not exist**: create it from
   the literal JSON below.
+- Write the rendered template with LF line endings and a trailing newline, on the
+  create branch above and the overwrite branch below alike. Fix the newline at write
+  time; do not leave it to the writer's default text mode (Windows text mode converts
+  `\n` to `\r\n`, which makes the skip below unreachable from the moment the file is
+  written).
 - If `{workspace_root}/.claude/settings.json` **exists and content matches** the
-  rendered template byte-for-byte: skip (no overwrite, no permission prompt).
+  rendered template after newline normalization: skip (no overwrite, no permission
+  prompt). Normalization applies to both sides before comparison and covers two points
+  only: CRLF -> LF, and presence or absence of a trailing newline. Nothing else is
+  normalized — a difference in whitespace, key order, indentation or any value falls to
+  the branch below.
 - If `{workspace_root}/.claude/settings.json` **exists and content differs**:
   overwrite with the rendered template. `settings.json` is Li+ owned per the
   File ownership boundary; intentional user customizations belong in

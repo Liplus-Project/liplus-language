@@ -959,12 +959,25 @@ if ($tallyFile) {
     if ($l -cmatch '^##\s') { if ($curC) { $clusters += $curC; $curC = $null }; continue }
     if (-not $curC) { continue }
     if ($l -cmatch '^\s*expires:\s*(.*)$')   { $curC.expires = $matches[1].Trim(); $curC.inOcc = $false; continue }
-    # occurrences: opens the counted region; the region closes at the next
-    # top-level field (e.g. notes:) or at the cluster boundary, not at every
-    # subsequent "- " line. occurrences: and notes: both use "- " bullets, so
-    # counting unconditionally double-counts notes: lines into occ.
+    # occurrences: opens the counted region; the region closes at the first
+    # line that is neither a "- " bullet nor blank, not at every subsequent
+    # "- " line. occurrences: and notes: both use "- " bullets, so counting
+    # unconditionally double-counts notes: lines into occ.
+    #
+    # The close condition reads the region's own content, not the shape of
+    # whatever is placed next: everything inside occurrences: is a "- " bullet,
+    # so anything else means the region has ended. Closing on a top-level key:
+    # alone left the closing role with the neighbour -- a
+    # "<!-- disposition log -->" section placed directly after a cluster whose
+    # last field is occurrences: is neither a key: line nor a "##" heading, so
+    # its bullets were counted into that cluster (#1958).
+    #
+    # Blank lines do not close: occurrence bullets are separated by blank lines
+    # in practice, and closing there would under-count instead.
     if ($l -cmatch '^\s*occurrences:\s*$')   { $curC.inOcc = $true; continue }
     if ($curC.inOcc -and $l -cmatch '^\s*-\s') { $curC.occ++; continue }
+    if ($curC.inOcc -and $l -cmatch '^\s*$') { continue }
+    if ($curC.inOcc)                         { $curC.inOcc = $false }
     if ($l -cmatch '^\S+:')                  { $curC.inOcc = $false; continue }
   }
   if ($curC) { $clusters += $curC }

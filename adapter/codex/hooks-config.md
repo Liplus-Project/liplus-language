@@ -65,7 +65,17 @@ the Li+ default; the TOML snippet is the documented alternate.
 
 - If `{workspace_root}/.codex/hooks.json` does **not exist**: create it from the
   literal JSON below.
-- If it **exists and content matches** byte-for-byte: skip (no overwrite).
+- Write the rendered template with LF line endings and a trailing newline, on the
+  create branch above and the overwrite branch below alike. Fix the newline at write
+  time; do not leave it to the writer's default text mode (Windows text mode converts
+  `\n` to `\r\n`, which makes the skip below unreachable from the moment the file is
+  written). Scope = this JSON config file. The `.ps1` / `.sh` hook copies stay
+  byte-faithful per below.
+- If it **exists and content matches** after newline normalization: skip (no
+  overwrite). Normalization applies to both sides before comparison and covers two
+  points only: CRLF -> LF, and presence or absence of a trailing newline. Nothing else
+  is normalized — a difference in whitespace, key order, indentation or any value falls
+  to the branch below.
 - If it **exists and content differs**: overwrite with the rendered template
   (`hooks.json` is Li+ owned).
 - Hook script bodies (`hooks/*.ps1`, `hooks/*.sh`) are regenerated on tag

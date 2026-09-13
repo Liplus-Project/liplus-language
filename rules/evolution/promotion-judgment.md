@@ -61,6 +61,20 @@ occurrences:
 Each cluster runs a per-cluster timer with first_observation = t=0. expires = first_observation + 3d.
 No past-occurrence carryover. Expired clusters are deleted in full.
 
+Disposition log:
+The same file carries a `<!-- disposition log -->` section. One line per cluster that has left the tally, appended as the cluster is deleted:
+
+```
+<!-- disposition log -->
+- 2026-09-10 cluster `<short descriptor>` (first_observation 2026-09-07, 2 occurrences) -> <disposition>
+```
+
+Placement: the log is the file's last section, after every cluster. Cluster parsing reads the `## cluster:` headings above it, so the log sits outside that region rather than between two clusters.
+
+Fields: deletion date, cluster descriptor, `first_observation`, occurrence count, disposition. The disposition names which Threshold Rules exit was taken, and for the two issue-creation exits carries the issue number (created, or folded into). Occurrence bodies are not carried over.
+
+Cap = 10 lines, oldest-first deletion once exceeded. The log is an append surface inside memory, and memory is transient (Scope, `rules/evolution/memory-entry-format.md`); an uncapped one is not what that Scope holds. Same shape as the self-evaluation log's cap (`skills/evolution-self-eval/SKILL.md`).
+
 </tally>
 
 <threshold-rules>
@@ -75,6 +89,10 @@ No past-occurrence carryover. Expired clusters are deleted in full.
 | same-kind reoccurrence on day 4+ after deletion | restart as a new cluster with t=0 (no past-occurrence carryover) |
 
 Actor = the agent holding the session the cluster is surfaced in. Firing moment = that surfacing, which is `rules/evolution/cold-start-synthesis.md` Promotion Tally Expiry Surface. A cluster past its window is re-surfaced every session until the judgment removes it, so a session that takes none loses no trigger. Opening the tally on recall is not the firing moment and was never a guaranteed one (`rules/model/subtractive-structural-beauty.md` Spec write applies (B), procedure-to-structure rider).
+
+Disposition line on every exit: three of the rows above end in the cluster leaving the tally — full deletion at sub-threshold, deletion after issue creation, and deletion after folding into an existing `promotion` issue under Reconciliation below. Each requires one line in the disposition log (Tally above), written by this same actor in the same hand as the deletion. Not a separate procedure: a procedure whose execution is not guaranteed is what `rules/model/subtractive-structural-beauty.md` Spec write applies (B) sends back to be replaced.
+
+The requirement covers all three, not sub-threshold alone. A cluster gone from the tally is indistinguishable from one never observed, and that holds identically on each exit; requiring the line on one exit only would leave the other two reading as never-observed — the same surface this closes.
 
 Reconciliation before creation: both issue-creation rows above are reached through one prior step. Search the existing `promotion` marker issues (that marker is the creation-path flag Issue Creation Metadata below attaches at creation, so it is the field the search runs on) for one already covering this cluster. Found -> the verdict is not creation: fold the occurrences into that issue and delete the cluster. Not found -> create, per Issue Creation Metadata below.
 

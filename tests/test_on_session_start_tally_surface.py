@@ -201,6 +201,122 @@ class ExpiryJudgmentTest(TallySurfaceTestCase):
                 )
                 self.assertEqual(clusters["real count is four"].occurrences, 4)
 
+    def test_disposition_log_bullets_are_not_counted_as_occurrences(self) -> None:
+        """The region closes on its own content, not on the neighbour's shape.
+
+        Regression for #1958: the counted region closed only at a top-level
+        `key:` line or a `##` heading. The `<!-- disposition log -->` section
+        `rules/evolution/promotion-judgment.md` Tally places at the end of the
+        file is neither, so when the last cluster's final field was
+        `occurrences:`, the log's `- ` lines were added to that cluster's count
+        -- the value that selects which Threshold Rules row applies.
+        """
+        self.ws.write(self.ws.shared_memory, "self-evaluation_log.md", "# log\n")
+        self.ws.write(
+            self.ws.shared_memory,
+            "promotion_tally.md",
+            "\n".join(
+                [
+                    "## cluster: real count is two",
+                    f"first_observation: {iso(-3)}",
+                    f"expires: {iso(-1)}",
+                    "occurrences:",
+                    f"  - {iso(-3)} self-eval#0 axis=frame",
+                    f"  - {iso(-2)} self-eval#1 axis=frame",
+                    "",
+                    "<!-- disposition log -->",
+                    "- 2026-09-10 cluster `gone one` (first_observation 2026-09-07, 2 occurrences) -> deleted",
+                    "- 2026-09-11 cluster `gone two` (first_observation 2026-09-08, 4 occurrences) -> issue #1",
+                    "- 2026-09-12 cluster `gone three` (first_observation 2026-09-09, 5 occurrences) -> issue #2",
+                    "",
+                ]
+            ),
+        )
+        for adapter in ADAPTERS:
+            with self.subTest(adapter=adapter):
+                self.ws.clear_state()
+                clusters = surfaced_clusters(
+                    tally_section(self.run_hook(adapter)), ("real count is two",)
+                )
+                self.assertEqual(clusters["real count is two"].occurrences, 2)
+
+    def test_blank_separated_occurrence_bullets_are_all_counted(self) -> None:
+        """A blank line does not close the region; closing there under-counts.
+
+        The opposite failure of the case above, and the reason the close
+        condition is "neither a bullet nor blank" rather than "not a bullet":
+        occurrence bullets appear blank-separated in the real tally file.
+        """
+        self.ws.write(self.ws.shared_memory, "self-evaluation_log.md", "# log\n")
+        self.ws.write(
+            self.ws.shared_memory,
+            "promotion_tally.md",
+            "\n".join(
+                [
+                    "## cluster: blank separated count is four",
+                    f"first_observation: {iso(-3)}",
+                    f"expires: {iso(-1)}",
+                    "occurrences:",
+                    f"  - {iso(-3)} self-eval#0 axis=frame",
+                    "",
+                    f"  - {iso(-3)} self-eval#1 axis=frame",
+                    f"  - {iso(-2)} self-eval#2 axis=frame",
+                    "",
+                    f"  - {iso(-2)} self-eval#3 axis=frame",
+                    "",
+                ]
+            ),
+        )
+        for adapter in ADAPTERS:
+            with self.subTest(adapter=adapter):
+                self.ws.clear_state()
+                clusters = surfaced_clusters(
+                    tally_section(self.run_hook(adapter)),
+                    ("blank separated count is four",),
+                )
+                self.assertEqual(
+                    clusters["blank separated count is four"].occurrences, 4
+                )
+
+    def test_next_cluster_heading_still_closes_the_region(self) -> None:
+        """The `##` boundary behaviour is unchanged by the new close condition.
+
+        A cluster whose last field is `occurrences:` must not absorb the
+        following cluster's bullets, and the following cluster must still be
+        parsed with its own count.
+        """
+        self.ws.write(self.ws.shared_memory, "self-evaluation_log.md", "# log\n")
+        self.ws.write(
+            self.ws.shared_memory,
+            "promotion_tally.md",
+            "\n".join(
+                [
+                    "## cluster: first has two",
+                    f"expires: {iso(-1)}",
+                    "occurrences:",
+                    f"  - {iso(-3)} self-eval#0 axis=frame",
+                    f"  - {iso(-2)} self-eval#1 axis=frame",
+                    "",
+                    "## cluster: second has three",
+                    f"expires: {iso(-1)}",
+                    "occurrences:",
+                    f"  - {iso(-3)} self-eval#0 axis=frame",
+                    f"  - {iso(-2)} self-eval#1 axis=frame",
+                    f"  - {iso(-1)} self-eval#2 axis=frame",
+                    "",
+                ]
+            ),
+        )
+        descriptors = ("first has two", "second has three")
+        for adapter in ADAPTERS:
+            with self.subTest(adapter=adapter):
+                self.ws.clear_state()
+                clusters = surfaced_clusters(
+                    tally_section(self.run_hook(adapter)), descriptors
+                )
+                self.assertEqual(clusters["first has two"].occurrences, 2)
+                self.assertEqual(clusters["second has three"].occurrences, 3)
+
     def test_no_cluster_past_its_window_is_a_silent_skip(self) -> None:
         self.write_tally_file(("window still open", iso(+2), 3))
         for adapter in ADAPTERS:

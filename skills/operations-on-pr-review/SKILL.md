@@ -11,7 +11,7 @@ layer: L4-operations
 Delegated-subagent stop condition (canonical, split by mode):
   if execution_mode == auto or execution_mode == semi_auto:
     Stop at `PR open + CI green`. The subagent neither runs nor posts the self-review; it reports there and exits.
-    This point is reached twice, and the literal above is the whole condition at both:
+    This point is reached on each pass below, and the literal above is the whole condition at every one:
       first pass  - the issue's change is implemented. The parent then runs brake 1 at the position fixed by
                     `rules/evolution/initiator-autonomy.md` Merge brake.
       second pass - the parent has resumed this subagent onto a brake round's evaluator findings on the PR;

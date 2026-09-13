@@ -87,7 +87,7 @@ Description required on creation.
 
 Lifecycle:
 in-progress    = work started, implementation ongoing
-review-pending = implementation phase finished, awaiting orchestration (brake eval / review / merge / close). Executor-agnostic semantic. subagent: mandate at every exit (just before parent report); a delegation resumed for brake adjudication exits twice. main: best-effort at PR open + CI green + self-review pass.
+review-pending = implementation phase finished, awaiting orchestration (brake eval / review / merge / close). Executor-agnostic semantic. subagent: mandate at every exit (just before parent report). main: best-effort at PR open + CI green + self-review pass.
 waiting        = external dependency wait (CI / dependent issue / environment). pause state. Issue comment with reason is required at transition.
 blocked        = human input wait. stop state. Issue comment with reason is required at transition.
 backlog        = accepted, not yet scheduled

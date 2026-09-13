@@ -94,10 +94,19 @@ class ImplementerAgentContractTest(unittest.TestCase):
         self.assertIn("no Li+ agent definition file", evaluation)
 
     def test_delegation_skill_routes_the_agent_type_choice_to_the_spawn_skill(self) -> None:
+        # Observed: the delegation skill's spawn-parameter bullet points at the
+        # spawn skill, where the agent type choice is fixed
+        # (`skills/task-subagent-spawn/SKILL.md`). The pointer is what is
+        # asserted; an enumeration of the spawn skill's sections restated in the
+        # delegation skill would be a second copy of them.
         delegation = DELEGATION_SKILL.read_text(encoding="utf-8")
-        self.assertIn(
-            "the agent type these delegations name", delegation
-        )
+        routing = [
+            line
+            for line in delegation.split("\n")
+            if "Setting the Agent tool spawn parameters" in line
+        ]
+        self.assertEqual(len(routing), 1)
+        self.assertIn("skills/task-subagent-spawn/SKILL.md", routing[0])
 
     def test_running_sessions_are_named_as_reached_by_a_definition_change(self) -> None:
         # Measured 2026-09-11: an edit takes effect on the next spawn in an

@@ -128,7 +128,7 @@ That second rule exists because an arm detects an absence and restrains itself. 
 Those two rules read the content axis. The conduct axis is read on its own column, and the content result does not settle it:
 
 - Read one arm's repetitions against each other first, before reading the two arms against each other. That column is the band (Significance band below). Only a between-arm difference falling outside it is counted as effect.
-- Record the band with the run count attached. Intra-arm band 0 and between-arm difference 0 is written as "no difference detected at `n=<repetitions>`", naming the figure; do not write it as "no difference". A difference observed within an arm is usable as it stands whatever n was — a spread that showed itself is a fact at n=3 — and the asymmetry runs in that direction only.
+- Record the band with the run count attached. Intra-arm band 0 and between-arm difference 0 is written as "no difference detected at `n=<repetitions>`", naming the figure; do not write it as "no difference". A difference observed within an arm is usable as it stands whatever n was.
 - Read which action each arm took, not which wording it cited.
 - Same action in both arms = no effect. The line's conduct is held by the always-loaded surface, or the line carried no conduct at all. A content difference standing next to this is the re-statement signature, and the keep-or-drop decision is made on the conduct column.
 - Different actions = the effect. What arm B lost is conduct, and the line is load-bearing.

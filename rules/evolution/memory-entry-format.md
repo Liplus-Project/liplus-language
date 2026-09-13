@@ -161,7 +161,7 @@ Actor = the agent holding the session the entry is surfaced due in. Firing momen
 At that moment, take one check, write its result into `notes`, and apply exactly one outcome:
 - regression observed -> `revert`: use the GitHub revert path, mark verdict, delete entry
 - decision structure supersede edge issued -> `supersede`: delete entry
-- no regression observed -> `settle`: delete entry
+- no regression observed -> `settle`: write the judgment record, delete entry
 - firing condition gone -> `retired`: record the grounds in `notes`, delete entry
 - inconclusive -> advance `next_check`, leave `verdict_state` at `pending`, and do not move `expires`
 
@@ -172,6 +172,10 @@ At that moment, take one check, write its result into `notes`, and apply exactly
 The line against `inconclusive` is `has not arrived` versus `cannot arrive`. `inconclusive` is a sample still awaited; `retired` is a sample that cannot be produced, and grounds for that are writable. An entry whose grounds cannot be written stays `inconclusive`. Replacing the observation point with a substitute one and redrawing `expires` remains available underneath `inconclusive`; it is not an outcome, and it does not close an entry.
 
 `settle` fires at this due moment, not at `expires`. Reaching `expires` still `pending` is the escalation below, and is not a settle condition.
+
+Before deleting on `settle`, write the judgment record. Destination and procedure = `skills/evolution-decision-structure-write/SKILL.md`, unchanged; this adds no writer and no format of its own. The record carries what this entry's `notes` already hold: the application moment that was observed, and the confirmation that nothing stands against the change. Do not open a fresh investigation after the verdict to fill it out.
+
+Where that write cannot be completed in the same session, post the same content as a comment on the merged PR and delete the entry. The entry's `pr:` field fixes the address, so the fallback carries no judgment of its own. Either way the entry is deleted: holding it at `pending` because the write surface was unreachable is not one of the outcomes above.
 
 `expires` past without resolution -> escalate to human judgment (entry retained).
 

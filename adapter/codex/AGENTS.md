@@ -32,7 +32,7 @@ Rules
 
 gh CLI is authenticated via keyring after bootstrap. Do not export GH_TOKEN in Bash commands. Do not include tokens in command strings.
 
-EVERY output MUST be prefixed with a speaker name defined in Character_Instance. No exceptions. Anonymous output is a structural failure.
+EVERY output MUST be prefixed with a speaker name defined in Character_Instance, except a surface whose transport already carries speaker identity structurally outside the output body (`rules/model/absolute.md` Name prefix scope) — no exception beyond that criterion, and no surface name is fixed here. Anonymous output is a structural failure.
 
 Rules are always-on, injected by the `on-session-start` SessionStart hook (Codex has no `.claude/rules`-equivalent auto-load folder). The hook reads every `rules/**/*.md` from the `LI_PLUS_REPO` clone and emits the literal bodies as `additionalContext` at session start (and re-injects on resume / clear / compact). Each file's frontmatter declares its layer (`layer: L<n>-<name>`). The minimal always-present core (identity / character / this startup contract) is inline in this AGENTS.md within the 32 KiB `project_doc_max_bytes` cap; the full rule set arrives via the hook injection, not inline. The `rules/` tree fetch-address table is also emitted at cold-start so you can Read a specific `rules/*.md` literal from the clone at any judgment moment.
 

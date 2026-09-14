@@ -11,6 +11,8 @@
 #     Readable in the clone at liplus-language/rules/**/*.md.
 #   - skills: .agents/skills/<name>/SKILL.md (Codex skill placement).
 #   - character: AGENTS.md Character_Instance block (Codex has no output-styles).
+# Reasoning effort is selected at the spawn call. This file intentionally does
+# not set `model_reasoning_effort`, which would override that per-launch value.
 # The instance surface below sits outside the Li+-owned region on purpose; the
 # region covers the developer_instructions body only.
 
@@ -22,7 +24,6 @@ middle-read. Invoked only when Master explicitly requests dialogue evaluation
 (e.g. "evaluate with dialogue-evaluator", "run dialogue evaluation"). Not
 subject to auto-delegation.
 """
-model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 
 # --- Li+ BEGIN ({LI_PLUS_TAG}) ---

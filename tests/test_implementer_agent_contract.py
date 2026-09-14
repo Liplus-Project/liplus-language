@@ -3,12 +3,12 @@
 Scope = `adapter/claude/agents/implementer.md`, `adapter/codex/agents/implementer.toml`,
 and the spawn-policy literal that routes delegations to them.
 
-Why a test rather than reading attention: the definition exists for exactly one
-field (thinking effort, which no spawn-call parameter can set), and losing that
-field is silent — the spawn still succeeds, at whatever effort the host defaults
-to, and nothing reports the drop. The `model` absence is the same shape in the
-other direction: adding a `model` pin here would silently take over the tier
-inheritance that `skills/task-subagent-spawn/SKILL.md` keeps at the spawn call.
+Why a test rather than reading attention: Claude pins thinking effort in the
+definition while Codex resolves it per launch. Either losing the Claude field or
+reintroducing the Codex override is silent — the spawn still succeeds at a
+different effort. The `model` absence is the same shape in the other direction:
+adding a `model` pin here would silently take over the tier inheritance that
+`skills/task-subagent-spawn/SKILL.md` keeps at the spawn call.
 
 The sentinel region's structural invariants are not re-asserted here;
 `tests/test_agent_sentinel_contract.py` already runs them over every source under
@@ -51,11 +51,15 @@ class ImplementerAgentContractTest(unittest.TestCase):
         self.assertEqual(frontmatter(self.claude)["name"], "implementer")
         self.assertIn('name = "implementer"', self.codex)
 
-    def test_thinking_effort_is_pinned_high_on_both_ports(self) -> None:
-        # The single field the definition exists for. No spawn-call parameter
-        # sets it, so its loss is silent.
+    def test_thinking_effort_uses_each_hosts_supported_surface(self) -> None:
+        # Claude has no per-call effort argument; Codex does, and an agent-file
+        # value would override the resolved per-launch value.
         self.assertEqual(frontmatter(self.claude)["effort"], "high")
-        self.assertIn('model_reasoning_effort = "high"', self.codex)
+        self.assertIsNone(
+            re.search(r"^\s*model_reasoning_effort\s*=", self.codex, re.MULTILINE)
+        )
+        spawn = SPAWN_SKILL.read_text(encoding="utf-8")
+        self.assertIn('Codex spawn passes `reasoning_effort="high"`', spawn)
 
     def test_neither_port_pins_a_model(self) -> None:
         # Tier inheritance stays at the spawn call by omission
@@ -82,7 +86,7 @@ class ImplementerAgentContractTest(unittest.TestCase):
         # and nothing else. A literal wider than its reason bars this file.
         spawn = SPAWN_SKILL.read_text(encoding="utf-8")
         self.assertIn("whose bare behavior is the observation target", spawn)
-        self.assertIn("Outside them a definition file is permitted", spawn)
+        self.assertIn("It reaches no other Claude spawn", spawn)
 
     def test_probe_type_evaluators_stay_on_the_built_in_agent(self) -> None:
         # Narrowed 2026-09-14 (#1968): the judge-type evaluator now carries its

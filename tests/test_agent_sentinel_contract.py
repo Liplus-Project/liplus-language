@@ -41,8 +41,14 @@ BEGIN_TAG_RE = re.compile(r"Li\+ BEGIN \(([^)]*)\)")
 # content, the failure the region exists to prevent.
 CHARACTER_INSTANCE_KEYS = ("LIN_CONTEXT", "LAY_CONTEXT", "HUMOR_STYLE")
 
-# Instance-surface keys the Codex region must leave outside itself.
-CODEX_INSTANCE_KEYS = ("name = ", "description = ", "model_reasoning_effort = ", "sandbox_mode = ")
+# Stable instance-surface keys the Codex region must leave outside itself.
+CODEX_INSTANCE_KEYS = ("name = ", "description = ", "sandbox_mode = ")
+
+LEGACY_CODEX_EFFORT_DEFAULTS = {
+    "implementer.toml": b'model_reasoning_effort = "high"',
+    "dialogue-evaluator.toml": b'model_reasoning_effort = "high"',
+    "brake-evaluator.toml": b'model_reasoning_effort = "medium"',
+}
 
 
 # One synthetic carrier per port, shaped as 4c.6 / 4x.5 require. These exist so
@@ -89,6 +95,34 @@ def agent_sources() -> list[Path]:
 
 def rel(path: Path) -> str:
     return path.relative_to(ROOT).as_posix()
+
+
+def migrate_legacy_codex_effort(
+    name: str, payload: bytes, source_payload: bytes = b""
+) -> bytes:
+    """Proxy for the byte-exact 4x.5 legacy-default migration."""
+    expected = LEGACY_CODEX_EFFORT_DEFAULTS.get(name)
+    if expected is None:
+        return payload
+    source_assignments = list(
+        re.finditer(
+            rb"(?m)^model_reasoning_effort[ \t]*=[^\r\n]*(?:\r\n|\n|$)",
+            source_payload,
+        )
+    )
+    if source_assignments:
+        return payload
+    assignments = list(
+        re.finditer(
+            rb"(?m)^model_reasoning_effort[ \t]*=[^\r\n]*(?:\r\n|\n|$)", payload
+        )
+    )
+    if len(assignments) != 1:
+        return payload
+    match = assignments[0]
+    if match.group(0) not in (expected + b"\n", expected + b"\r\n", expected):
+        return payload
+    return payload[: match.start()] + payload[match.end() :]
 
 
 def split_region(text: str) -> tuple[str, str, str]:
@@ -262,6 +296,69 @@ class AgentSentinelContractTest(unittest.TestCase):
         self.assertIn("Can one contiguous region cover that body", claude)
         # Branch (c)'s "skip" must name what re-raises the ask.
         self.assertIn("Re-ask cadence", claude)
+
+    def test_codex_legacy_effort_defaults_migrate_byte_exactly_once(self) -> None:
+        for name, legacy_line in LEGACY_CODEX_EFFORT_DEFAULTS.items():
+            for newline in (b"\n", b"\r\n"):
+                with self.subTest(name=name, newline=newline):
+                    before = (
+                        b'name = "fixture"'
+                        + newline
+                        + legacy_line
+                        + newline
+                        + b'sandbox_mode = "workspace-write"'
+                        + newline
+                    )
+                    migrated = migrate_legacy_codex_effort(name, before)
+                    self.assertNotIn(legacy_line, migrated)
+                    self.assertIn(b'name = "fixture"' + newline, migrated)
+                    self.assertIn(b'sandbox_mode = "workspace-write"' + newline, migrated)
+                    self.assertEqual(migrate_legacy_codex_effort(name, migrated), migrated)
+
+    def test_codex_effort_migration_preserves_custom_and_unknown_shapes(self) -> None:
+        fixtures = {
+            "custom-value": (
+                "implementer.toml",
+                b'model_reasoning_effort = "medium"\n',
+            ),
+            "custom-spacing": (
+                "implementer.toml",
+                b'model_reasoning_effort="high"\n',
+            ),
+            "unknown-agent": (
+                "custom.toml",
+                b'model_reasoning_effort = "high"\n',
+            ),
+            "multiple-assignments": (
+                "implementer.toml",
+                b'model_reasoning_effort = "high"\nmodel_reasoning_effort = "medium"\n',
+            ),
+        }
+        for label, (name, payload) in fixtures.items():
+            with self.subTest(label=label):
+                self.assertEqual(migrate_legacy_codex_effort(name, payload), payload)
+        legacy = b'model_reasoning_effort = "high"\n'
+        self.assertEqual(
+            migrate_legacy_codex_effort("implementer.toml", legacy, legacy), legacy
+        )
+
+    def test_update_literal_names_the_codex_effort_migration_boundary(self) -> None:
+        update = (ROOT / "Li+update.md").read_text(encoding="utf-8")
+        codex = update.split("4x.5. Generate .codex/agents/ files", 1)[1]
+        for name, value in (
+            ("implementer.toml", "high"),
+            ("dialogue-evaluator.toml", "high"),
+            ("brake-evaluator.toml", "medium"),
+        ):
+            with self.subTest(name=name):
+                self.assertIn(
+                    f'`{name}`: `model_reasoning_effort = "{value}"`', codex
+                )
+        self.assertIn("Before the tag-match skip", codex)
+        self.assertIn("rendered Source contains no top-level", codex)
+        self.assertIn("A second run finds no assignment and changes nothing", codex)
+        self.assertIn("Preserve Target byte-for-byte", codex)
+        self.assertIn("neither removes an agent file nor widens stale removal", codex)
 
 
 if __name__ == "__main__":

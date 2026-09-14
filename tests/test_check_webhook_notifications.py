@@ -37,9 +37,18 @@ class CheckWebhookNotificationsTest(unittest.TestCase):
         data.update(overrides)
         return module.InspectContext(**data)
 
+    def seed_state_dir(self, path: Path, marker: str = module.EVENTS_FILENAME) -> Path:
+        path.mkdir(parents=True, exist_ok=True)
+        if marker in {module.TRIGGER_EVENTS_DIRNAME, module.CODEX_RUNS_DIRNAME}:
+            (path / marker).mkdir()
+        else:
+            (path / marker).write_text("[]", encoding="utf-8")
+        return path
+
     def test_resolve_state_dir_uses_configured_relative_path(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             workspace_root = Path(tmp)
+            self.seed_state_dir(workspace_root / "custom-webhooks")
             resolved = module.resolve_state_dir("custom-webhooks", workspace_root)
             self.assertEqual(resolved, workspace_root / "custom-webhooks")
 
@@ -47,12 +56,46 @@ class CheckWebhookNotificationsTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             workspace_root = Path(tmp) / "Codex"
             workspace_root.mkdir()
-            parent_candidate = workspace_root.parent / "github-webhook-mcp"
-            parent_candidate.mkdir()
+            parent_candidate = self.seed_state_dir(workspace_root.parent / "github-webhook-mcp")
 
             resolved = module.resolve_state_dir(None, workspace_root)
 
             self.assertEqual(resolved, parent_candidate)
+
+    def test_resolve_state_dir_rejects_directory_without_state_dir_shape(self) -> None:
+        """A name-only match (the tool's own source checkout) must not resolve."""
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp) / "Code"
+            source_checkout = workspace_root / "github-webhook-mcp"
+            (source_checkout / "mcp-server").mkdir(parents=True)
+            (source_checkout / "README.md").write_text("tool source", encoding="utf-8")
+
+            self.assertIsNone(module.resolve_state_dir(None, workspace_root))
+
+    def test_resolve_state_dir_falls_through_to_parent_candidate(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp) / "Code"
+            (workspace_root / "github-webhook-mcp" / "worker").mkdir(parents=True)
+            parent_candidate = self.seed_state_dir(
+                workspace_root.parent / "github-webhook-mcp", module.TRIGGER_EVENTS_DIRNAME
+            )
+
+            self.assertEqual(module.resolve_state_dir(None, workspace_root), parent_candidate)
+
+    def test_resolve_state_dir_rejects_configured_path_without_shape(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace_root = Path(tmp)
+            (workspace_root / "custom-webhooks").mkdir()
+
+            self.assertIsNone(module.resolve_state_dir("custom-webhooks", workspace_root))
+
+    def test_resolve_state_dir_accepts_every_marker(self) -> None:
+        for marker in module.STATE_DIR_MARKERS:
+            with self.subTest(marker=marker), tempfile.TemporaryDirectory() as tmp:
+                workspace_root = Path(tmp)
+                candidate = self.seed_state_dir(workspace_root / "github-webhook-mcp", marker)
+
+                self.assertEqual(module.resolve_state_dir(None, workspace_root), candidate)
 
     def test_infer_numbers_from_branch_names(self) -> None:
         numbers = module.infer_numbers_from_branches({"spec/786-notifications-layer", "778-repo-first"})
@@ -356,9 +399,26 @@ class CheckWebhookNotificationsTest(unittest.TestCase):
     def test_no_source_payload_is_silent_noop(self) -> None:
         payload = module.no_source_payload()
         self.assertEqual(payload["source"], "none")
-        self.assertEqual(payload["pending_count"], 0)
+        self.assertTrue(payload["pending_unknown"])
+        self.assertIsNone(payload["pending_count"])
         self.assertEqual(payload["relevant_count"], 0)
         self.assertEqual(payload["items"], [])
+
+    def test_inspect_pending_marks_backlog_as_known(self) -> None:
+        state_dir, _, _ = self.make_state_dir()
+        events_path = state_dir / module.EVENTS_FILENAME
+        events_path.write_text("[]", encoding="utf-8")
+
+        payload = module.inspect_pending(
+            events_path,
+            limit=5,
+            state_dir=state_dir,
+            context=self.inspect_context(),
+            cleanup_after=timedelta(hours=24),
+        )
+
+        self.assertFalse(payload["pending_unknown"])
+        self.assertEqual(payload["pending_count"], 0)
 
 
 if __name__ == "__main__":

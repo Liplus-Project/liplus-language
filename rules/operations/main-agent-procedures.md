@@ -204,7 +204,7 @@ SOMEDAY -> label=deferred    + no branch
 
 The tiers table decides which tier applies, not what the `in-progress` transition consists of.
 That transition is the label alone, specified in
-`skills/task-subagent-state-labels/SKILL.md` Work start. Do not restate its steps here.
+`skills/task-subagent-state-labels/SKILL.md` State-machine label discipline (subagent side, mandate), Work start. Do not restate its steps here.
 
 Axis separation:
 Lifecycle labels = when to act.

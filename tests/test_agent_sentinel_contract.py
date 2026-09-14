@@ -23,6 +23,7 @@ not mean a bootstrap run behaved as specified.
 from __future__ import annotations
 
 import re
+import tomllib
 import unittest
 from pathlib import Path
 
@@ -104,25 +105,34 @@ def migrate_legacy_codex_effort(
     expected = LEGACY_CODEX_EFFORT_DEFAULTS.get(name)
     if expected is None:
         return payload
-    source_assignments = list(
-        re.finditer(
-            rb"(?m)^model_reasoning_effort[ \t]*=[^\r\n]*(?:\r\n|\n|$)",
-            source_payload,
-        )
-    )
-    if source_assignments:
+
+    def parse_toml(content: bytes) -> dict[str, object] | None:
+        try:
+            return tomllib.loads(content.decode("utf-8"))
+        except (UnicodeDecodeError, tomllib.TOMLDecodeError):
+            return None
+
+    source = parse_toml(source_payload)
+    if source is None or "model_reasoning_effort" in source:
         return payload
-    assignments = list(
-        re.finditer(
-            rb"(?m)^model_reasoning_effort[ \t]*=[^\r\n]*(?:\r\n|\n|$)", payload
-        )
-    )
-    if len(assignments) != 1:
+    target = parse_toml(payload)
+    expected_value = expected.split(b'"')[1].decode("ascii")
+    if target is None or target.get("model_reasoning_effort") != expected_value:
         return payload
-    match = assignments[0]
-    if match.group(0) not in (expected + b"\n", expected + b"\r\n", expected):
+
+    expected_without_effort = dict(target)
+    del expected_without_effort["model_reasoning_effort"]
+    candidates: list[bytes] = []
+    offset = 0
+    for line in payload.splitlines(keepends=True):
+        if line in (expected + b"\n", expected + b"\r\n"):
+            migrated = payload[:offset] + payload[offset + len(line) :]
+            if parse_toml(migrated) == expected_without_effort:
+                candidates.append(migrated)
+        offset += len(line)
+    if len(candidates) != 1:
         return payload
-    return payload[: match.start()] + payload[match.end() :]
+    return candidates[0]
 
 
 def split_region(text: str) -> tuple[str, str, str]:
@@ -299,6 +309,7 @@ class AgentSentinelContractTest(unittest.TestCase):
 
     def test_codex_legacy_effort_defaults_migrate_byte_exactly_once(self) -> None:
         for name, legacy_line in LEGACY_CODEX_EFFORT_DEFAULTS.items():
+            source = (ROOT / "adapter" / "codex" / "agents" / name).read_bytes()
             for newline in (b"\n", b"\r\n"):
                 with self.subTest(name=name, newline=newline):
                     before = (
@@ -309,11 +320,13 @@ class AgentSentinelContractTest(unittest.TestCase):
                         + b'sandbox_mode = "workspace-write"'
                         + newline
                     )
-                    migrated = migrate_legacy_codex_effort(name, before)
+                    migrated = migrate_legacy_codex_effort(name, before, source)
                     self.assertNotIn(legacy_line, migrated)
                     self.assertIn(b'name = "fixture"' + newline, migrated)
                     self.assertIn(b'sandbox_mode = "workspace-write"' + newline, migrated)
-                    self.assertEqual(migrate_legacy_codex_effort(name, migrated), migrated)
+                    self.assertEqual(
+                        migrate_legacy_codex_effort(name, migrated, source), migrated
+                    )
 
     def test_codex_effort_migration_preserves_custom_and_unknown_shapes(self) -> None:
         fixtures = {
@@ -333,6 +346,18 @@ class AgentSentinelContractTest(unittest.TestCase):
                 "implementer.toml",
                 b'model_reasoning_effort = "high"\nmodel_reasoning_effort = "medium"\n',
             ),
+            "multiline-description": (
+                "implementer.toml",
+                b'description = """\nmodel_reasoning_effort = "high"\n"""\n',
+            ),
+            "table-value": (
+                "implementer.toml",
+                b'[custom]\nmodel_reasoning_effort = "high"\n',
+            ),
+            "no-terminator": (
+                "implementer.toml",
+                b'model_reasoning_effort = "high"',
+            ),
         }
         for label, (name, payload) in fixtures.items():
             with self.subTest(label=label):
@@ -340,6 +365,25 @@ class AgentSentinelContractTest(unittest.TestCase):
         legacy = b'model_reasoning_effort = "high"\n'
         self.assertEqual(
             migrate_legacy_codex_effort("implementer.toml", legacy, legacy), legacy
+        )
+        source_description = (
+            b'description = """\nmodel_reasoning_effort = "high"\n"""\n'
+        )
+        self.assertEqual(
+            migrate_legacy_codex_effort(
+                "implementer.toml", legacy, source_description
+            ),
+            b"",
+        )
+
+    def test_codex_effort_migration_preserves_nested_instance_fields(self) -> None:
+        before = (
+            b'model_reasoning_effort = "high"\n'
+            b'[custom]\nmodel_reasoning_effort = "medium"\n'
+        )
+        self.assertEqual(
+            migrate_legacy_codex_effort("implementer.toml", before),
+            b'[custom]\nmodel_reasoning_effort = "medium"\n',
         )
 
     def test_update_literal_names_the_codex_effort_migration_boundary(self) -> None:

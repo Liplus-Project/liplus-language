@@ -1,18 +1,28 @@
 """Contract tests for the brake 1 judge-type evaluator's agent definition.
 
-Scope = `adapter/claude/agents/brake-evaluator.md`,
-`adapter/codex/agents/brake-evaluator.toml`, and the two skill literals that
-route judge-type rounds to them and keep probe-type rounds off them.
+Scope = `adapter/claude/agents/medium.md`, `adapter/codex/agents/brake-evaluator.toml`,
+and the skill literals that route judge-type rounds to them, carry the
+judge-type role on the Claude side, and keep probe-type rounds off them.
 
-Why a test rather than reading attention: the definition exists for one field
-(thinking effort, for which the spawn call carried no parameter on either host
-as of 2026-09-13), and losing it is silent — the
-spawn still succeeds at whatever effort the session carries, which is the state
-measured on 2026-09-13, and nothing reports the drop. The `model` and `tools`
-absences are the same shape in the other direction: a `model` key here would
-take over the per-call sonnet floor, and a `tools` key would express the
-no-write requirement as a permission, which
-`skills/evolution-parallel-agent-eval/SKILL.md` Non-scope rejects.
+Reorganized at #1972: `adapter/claude/agents/` no longer carries a
+`brake-evaluator.md`. The judge-type role literal that used to live in that
+file's body now lives in `skills/evolution-parallel-agent-eval/SKILL.md`
+Constraint: Effort floor, and the Claude Code spawn selects the effort-named
+`medium.md` (or a higher effort-named agent) instead of a role-named
+definition. The Codex port is out of scope for this split (Master agreement,
+2026-09-14) and is asserted here unchanged.
+
+Why a test rather than reading attention: the Claude Code definition exists for
+one field (thinking effort, for which the spawn call carried no parameter on
+either host as of 2026-09-13), and losing it is silent — the spawn still
+succeeds at whatever effort the session carries, and nothing reports the drop.
+The `model` and `tools` absences are the same shape in the other direction: a
+`model` key here would take over the per-call sonnet floor, and a `tools` key
+would express the no-write requirement as a permission, which
+`skills/evolution-parallel-agent-eval/SKILL.md` Non-scope rejects. On the
+Claude side, a role fragment written into `medium.md` would silently duplicate
+the role literal now canonical in the eval skill, and would also steer every
+other medium-effort spawn that is not a brake evaluator at all.
 
 The sentinel region's structural invariants are not re-asserted here;
 `tests/test_agent_sentinel_contract.py` already runs them over every source
@@ -27,7 +37,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CLAUDE_AGENT = ROOT / "adapter" / "claude" / "agents" / "brake-evaluator.md"
+CLAUDE_AGENT = ROOT / "adapter" / "claude" / "agents" / "medium.md"
 CODEX_AGENT = ROOT / "adapter" / "codex" / "agents" / "brake-evaluator.toml"
 EVAL_SKILL = ROOT / "skills" / "evolution-parallel-agent-eval" / "SKILL.md"
 SPAWN_SKILL = ROOT / "skills" / "task-subagent-spawn" / "SKILL.md"
@@ -56,14 +66,17 @@ class BrakeEvaluatorAgentContractTest(unittest.TestCase):
         self.claude = CLAUDE_AGENT.read_text(encoding="utf-8")
         self.codex = CODEX_AGENT.read_text(encoding="utf-8")
 
-    def test_both_ports_exist_and_carry_the_same_agent_name(self) -> None:
-        self.assertEqual(frontmatter(self.claude)["name"], "brake-evaluator")
+    def test_claude_agent_is_named_by_effort_not_role(self) -> None:
+        # Deliberately not "brake-evaluator" any more: #1972 dropped per-role
+        # Claude Code definitions. The Codex port keeps its own role name.
+        self.assertEqual(frontmatter(self.claude)["name"], "medium")
+        self.assertEqual(frontmatter(self.claude)["effort"], "medium")
         self.assertIn('name = "brake-evaluator"', self.codex)
 
     def test_thinking_effort_is_pinned_medium_on_both_ports(self) -> None:
-        # The single field the definition exists for. Master fixed the value on
-        # 2026-09-13 at one step above the `low` the evaluators were measured
-        # running at; `medium` against `high` is untested (#1968).
+        # Master fixed the value on 2026-09-13 at one step above the `low` the
+        # evaluators were measured running at; `medium` against `high` is
+        # untested (#1968).
         self.assertEqual(frontmatter(self.claude)["effort"], "medium")
         self.assertIn('model_reasoning_effort = "medium"', self.codex)
 
@@ -82,20 +95,30 @@ class BrakeEvaluatorAgentContractTest(unittest.TestCase):
         self.assertNotIn("tools", frontmatter(self.claude))
         self.assertIn('sandbox_mode = "workspace-write"', self.codex)
 
-    def test_the_definition_body_carries_role_only(self) -> None:
-        # The body replaces the subagent's system prompt, so evaluation content
-        # placed here would steer every round it is spawned for. What may stand
-        # in it is the role; the axes and the criteria arrive in the prompt.
+    def test_claude_definition_carries_no_role_fragment(self) -> None:
+        # medium.md is shared by every medium-effort Claude Code spawn, not
+        # just the judge-type evaluator. Evaluation content placed here would
+        # steer every round any medium-effort agent is spawned for, not only
+        # brake 1 rounds.
         prose = body(self.claude)
-        for steering in ("axis", "Axis", "finding is one", "Verdict terms", "Basis"):
+        self.assertIn("no role, no procedure", prose)
+        for steering in ("axis", "Axis", "finding is one", "Verdict terms", "Basis", "evaluator"):
             with self.subTest(literal=steering):
                 self.assertNotIn(steering, prose)
-        self.assertIn("arrives in that prompt", prose)
+
+    def test_the_role_literal_lives_in_the_eval_skill(self) -> None:
+        # The one place the judge-type role now lives on Claude Code, per
+        # #1972 decision point 4 (role conveyed by prompt, held in exactly one
+        # skill — the eval skill for judge-type, the prompt skill for the
+        # implementation delegate).
+        evaluation = EVAL_SKILL.read_text(encoding="utf-8")
+        self.assertIn("You are a Li+ brake 1 evaluator.", evaluation)
+        self.assertIn("arrives in that prompt", evaluation)
+        self.assertIn("Do not write a role fragment into", evaluation)
 
     def test_the_eval_skill_routes_judge_type_rounds_to_the_definition(self) -> None:
         evaluation = EVAL_SKILL.read_text(encoding="utf-8")
-        self.assertIn("subagent_type: brake-evaluator", evaluation)
-        self.assertIn("adapter/claude/agents/brake-evaluator.md", evaluation)
+        self.assertIn("subagent_type: medium", evaluation)
         self.assertIn("adapter/codex/agents/brake-evaluator.toml", evaluation)
         self.assertIn("Effort floor = `medium`", evaluation)
 
@@ -114,6 +137,10 @@ class BrakeEvaluatorAgentContractTest(unittest.TestCase):
         spawn = SPAWN_SKILL.read_text(encoding="utf-8")
         self.assertIn("the probe-type brake 1 evaluators", spawn)
         self.assertIn("judge-type brake 1 evaluator", spawn)
+
+    def test_the_spawn_policy_names_the_effort_floor_agent(self) -> None:
+        spawn = SPAWN_SKILL.read_text(encoding="utf-8")
+        self.assertIn("adapter/claude/agents/medium.md", spawn)
 
 
 if __name__ == "__main__":

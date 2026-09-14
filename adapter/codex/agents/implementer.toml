@@ -2,7 +2,9 @@
 # Codex port of adapter/claude/agents/implementer.md.
 #
 # Codex agents are TOML (not Markdown+frontmatter like Claude). The mapping:
-#   - Claude frontmatter `effort: high` maps to model_reasoning_effort = "high".
+#   - Claude frontmatter pins `effort: high`; Codex sets
+#     `reasoning_effort = "high"` at the spawn call. This file must not set
+#     `model_reasoning_effort`, which would override the per-launch value.
 #   - `model` is named on neither port: the parent model is inherited by
 #     omission at the spawn call (`skills/task-subagent-spawn/SKILL.md`).
 #   - This role writes to the repository (commit, push, PR), so the sandbox is
@@ -18,7 +20,6 @@ implementation, commit, push, PR, CI loop, and brake adjudication when resumed.
 Named as the spawn's agent by every delegation under
 skills/task-subagent-delegation/SKILL.md; not a self-invoked agent.
 """
-model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 
 # --- Li+ BEGIN ({LI_PLUS_TAG}) ---

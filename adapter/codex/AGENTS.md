@@ -131,15 +131,22 @@ Subagent_Delegation:
   Delegation semantics (what to convey, what to retain, hook chain, issue management, failure reporting)
   are defined in skills/task-subagent-delegation/SKILL.md. This section covers adapter-layer execution details only.
 
-  Codex context inheritance (per-call):
-  - Every subagent spawn must set `fork_turns` explicitly. Omitting it is prohibited.
+  Codex spawn arguments (per-call):
+  - Every subagent spawn must set `reasoning_effort` and `fork_turns` explicitly. Omitting either is prohibited.
   - Normal non-brake spawn: omit `model` so the parent model is inherited, and set `fork_turns="none"`.
   - Brake evaluator spawn: set `model` explicitly under the existing evaluator policy, set
-    `fork_turns="none"`, and pass all evaluation material in a self-contained prompt.
+    `reasoning_effort="medium"` independently of that model floor, set `fork_turns="none"`,
+    use no agent definition file, and pass all evaluation material in a self-contained prompt.
+  - Implementation-delegate and dialogue-evaluator spawns set `reasoning_effort="high"`.
+  - A bounded read-only investigation selects `reasoning_effort="low"`, `"medium"`, or `"high"`
+    for its purpose. It does not omit the argument to inherit the parent value.
+  - Pass only a `reasoning_effort` value supported by the model selected for that spawn. Do not
+    guess a fallback when the model does not expose the requested value.
   - The only positive form allowed is a decimal string such as `fork_turns="3"`, and only when the
     bounded dialogue segment itself is required as evaluation material.
   - Full-history inheritance via `fork_turns="all"` is normally prohibited.
-  - Keep this binding at the spawn call, not in `adapter/codex/agents/*.toml`, because context needs vary by use.
+  - Keep these bindings at the spawn call. Do not set `model_reasoning_effort` in
+    `adapter/codex/agents/*.toml`: an agent-file value overrides the resolved per-launch value.
 
   This host-specific binding does not change the L3 context-isolation semantics, the independent `model`
   policy, or the evaluator model floor / N / M / P / self-contained-prompt contracts.

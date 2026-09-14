@@ -488,12 +488,31 @@ is expressed via the skill-name prefix convention (e.g. `evolution-judgment-lear
   sentinel is written in TOML comment syntax (`# --- Li+ BEGIN (<tag>) ---` /
   `# --- Li+ END ---`) rather than as an HTML comment. On this surface the region
   covers the `developer_instructions` assignment; the instance fields (`name` /
-  `description` / `model_reasoning_effort` / `sandbox_mode`) stay outside it,
+  `description` / `sandbox_mode`, plus any locally retained
+  `model_reasoning_effort`) stay outside it,
   matching the Claude port's frontmatter placement.
 - If LI_PLUS_REPO/adapter/codex/agents/ does not exist: skip this sub-phase entirely.
 - If {workspace_root}/.codex/agents/ does not exist: create directory.
 - For each `*.toml` directly under LI_PLUS_REPO/adapter/codex/agents/ (FLAT):
   - Target = `{workspace_root}/.codex/agents/<filename>.toml`.
+  - Before the tag-match skip below, run the one-time per-launch effort migration.
+    It reaches only these filename / byte-exact legacy-default pairs:
+    - `implementer.toml`: `model_reasoning_effort = "high"`
+    - `dialogue-evaluator.toml`: `model_reasoning_effort = "high"`
+    - `brake-evaluator.toml`: `model_reasoning_effort = "medium"`
+    Run only when the rendered Source contains no top-level
+    `model_reasoning_effort` assignment. Read Target's top-level assignment lines
+    as bytes. If Target contains exactly one such assignment and its complete line
+    is the mapped ASCII literal above, with either its LF or CRLF terminator, delete
+    that complete line including its own terminator. Run this before comparing the sentinel tag so a
+    target whose owned region already matches cannot retain the legacy override.
+    A second run finds no assignment and changes nothing.
+    Preserve Target byte-for-byte instead when the filename is not mapped, the
+    assignment value or spacing differs, or more than one assignment occurs. Those
+    shapes may be user customizations and are not attributable to the distributed
+    default. Preserve every other instance field in all cases. This migration is
+    the sole exception to the outside-region preservation in branch b below; it
+    neither removes an agent file nor widens stale removal.
   - Replace {LI_PLUS_TAG} in the rendered source with the resolved target tag. In a
     source that carries a region, the sentinel is the file's only tag carrier; a
     source without a region keeps its tag in the `# Source: ... ({LI_PLUS_TAG})`
@@ -508,8 +527,9 @@ is expressed via the skill-name prefix convention (e.g. `evolution-judgment-lear
     b. If Target exists and contains "Li+ BEGIN": extract the sentinel tag; if it
        matches the current target tag, skip; if it differs or is absent, replace the
        section between "Li+ BEGIN" and "Li+ END" (inclusive) with the rendered
-       source's section, preserving everything outside it verbatim — the header
-       comment and instance fields above, and anything the user appended below.
+       source's section, preserving everything outside it verbatim after the
+       migration above — the header comment, the remaining instance fields, and
+       anything the user appended below.
     c. If Target exists but does not contain "Li+ BEGIN": ask user -- regenerate
        this file from the current source, or skip? Every install predating the
        region enters here; the ask and its consequences are as in 4c.6.

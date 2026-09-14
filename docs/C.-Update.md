@@ -292,16 +292,18 @@ Codex ホストでは Phase 4 claude branch と同型に adapter / skills / hook
 
 **4x.5. `.codex/agents/` ファイル生成（sentinel 区画ミラー）**
 
-- 4c.6 と同型（所有の境界、区画を持つかの基準、3 分岐の区画判定はすべて同じ）だが、Codex agents は `.codex/agents/*.toml`（TOML）であり、sentinel は HTML コメントではなく TOML コメント記法（`# --- Li+ BEGIN (<tag>) ---` / `# --- Li+ END ---`）で書く。本面では区画が覆うのは `developer_instructions` の代入であり、インスタンス側フィールド（`name` / `description` / `model_reasoning_effort` / `sandbox_mode`）は Claude 側の frontmatter と同じく区画外に置く
+- 4c.6 と同型（所有の境界、区画を持つかの基準、3 分岐の区画判定はすべて同じ）だが、Codex agents は `.codex/agents/*.toml`（TOML）であり、sentinel は HTML コメントではなく TOML コメント記法（`# --- Li+ BEGIN (<tag>) ---` / `# --- Li+ END ---`）で書く。本面では区画が覆うのは `developer_instructions` の代入であり、インスタンス側フィールド（`name` / `description` / `sandbox_mode` と、ローカルに保持された場合の `model_reasoning_effort`）は Claude 側の frontmatter と同じく区画外に置く
 - `LI_PLUS_REPO/adapter/codex/agents/` が存在しなければ本サブフェーズ全体をスキップ
 - `{workspace_root}/.codex/agents/` が存在しなければ作成
 - `LI_PLUS_REPO/adapter/codex/agents/` 直下の `*.toml` 各ファイルについて（FLAT）:
   - target = `{workspace_root}/.codex/agents/<filename>.toml`
+  - 下のタグ一致判定より先に、per-launch effort への one-time migration を実行する。対象は既知のファイル名と旧既定値の組だけである：`implementer.toml` の `model_reasoning_effort = "high"`、`dialogue-evaluator.toml` の `model_reasoning_effort = "high"`、`brake-evaluator.toml` の `model_reasoning_effort = "medium"`。render 済み source に top-level `model_reasoning_effort` assignment が無い場合だけ migration を走らせる。target の top-level assignment line を byte で読み、assignment がちょうど1件で、その完全な行が対応する ASCII literal と一致する場合だけ、その行自身の LF または CRLF terminator ごと削除する。owned region のタグが既に一致していても旧 override を残さないため、migration はタグ判定より先に置く。2回目は assignment が無く何も変更しない
+  - ファイル名が対象外、値または spacing が異なる、assignment が複数ある場合は target を byte-for-byte で保存する。これらはユーザーの custom 値である可能性があり、配布済み旧既定値とは帰属できない。他の instance fields は常に保存する。この migration だけが branch b の区画外逐語保存の例外であり、agent file の削除も stale-removal の拡張も行わない
   - 生成内容中の `{LI_PLUS_TAG}` を解決済みターゲットタグへ置換する。区画を持つソースでは sentinel がそのファイル唯一のタグ担持者であり、区画を持たないソースは `# Source: ... ({LI_PLUS_TAG})` 行にタグを持つ。区画を持つファイルが区画外にもう 1 つタグを持ってはならない — タグ更新で書き換わるのは区画だけであり、区画外のタグはインストール時点で凍結して実体と食い違うバージョンを表示する
   - **sentinel を持たないソース（Create-only）:** target が存在しなければ生成内容を書き、存在すればスキップ（ユーザーカスタマイズを保持）
   - **sentinel を持つソース — 区画判定:**
     - a. target が存在しない → 生成内容を書く
-    - b. target が存在し `Li+ BEGIN` を含む → sentinel のタグを抽出。現ターゲットタグと一致すればスキップ、異なる／欠落していれば `Li+ BEGIN`〜`Li+ END`（両端含む）をソース側の区画で置換し、区画外（上のヘッダコメントとインスタンス側フィールド、下にユーザーが足した記述）はそのまま保持する
+    - b. target が存在し `Li+ BEGIN` を含む → sentinel のタグを抽出。現ターゲットタグと一致すればスキップ、異なる／欠落していれば `Li+ BEGIN`〜`Li+ END`（両端含む）をソース側の区画で置換し、上の migration 後に残る区画外（ヘッダコメント、他のインスタンス側フィールド、下にユーザーが足した記述）はそのまま保持する
     - c. target が存在するが `Li+ BEGIN` を含まない → ユーザーへ確認：再生成かスキップか。区画導入以前のインストールはすべてこの状態から入る。確認の内容と帰結は 4c.6 と同じ
 - stale 削除はしない。4c.6 と同じ条件であり、Li+ ソース側が削除された target も含む
 

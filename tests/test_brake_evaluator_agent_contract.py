@@ -10,13 +10,13 @@ file's body now lives in `skills/evolution-parallel-agent-eval/SKILL.md`
 Constraint: Effort floor, and the Claude Code spawn selects the effort-named
 `medium.md` (or a higher effort-named agent) instead of a role-named
 definition. The Codex port is out of scope for this split (Master agreement,
-2026-09-14) and is asserted here unchanged.
+2026-09-14): its role definition remains as a compatibility source, while
+#1973 moves brake 1 effort and role delivery to the spawn call and prompt.
 
-Why a test rather than reading attention: the Claude Code definition exists for
-one field (thinking effort, for which the spawn call carried no parameter on
-either host as of 2026-09-13), and losing it is silent — the spawn still
-succeeds at whatever effort the session carries, and nothing reports the drop.
-The `model` and `tools` absences are the same shape in the other direction: a
+Why a test rather than reading attention: Claude resolves thinking effort in
+the definition while Codex resolves it per launch. Losing the Claude pin or
+reintroducing the Codex override is silent — the spawn still succeeds at a
+different effort. The `model` and `tools` absences are the same shape in the other direction: a
 `model` key here would take over the per-call sonnet floor, and a `tools` key
 would express the no-write requirement as a permission, which
 `skills/evolution-parallel-agent-eval/SKILL.md` Non-scope rejects. On the
@@ -73,12 +73,15 @@ class BrakeEvaluatorAgentContractTest(unittest.TestCase):
         self.assertEqual(frontmatter(self.claude)["effort"], "medium")
         self.assertIn('name = "brake-evaluator"', self.codex)
 
-    def test_thinking_effort_is_pinned_medium_on_both_ports(self) -> None:
-        # Master fixed the value on 2026-09-13 at one step above the `low` the
-        # evaluators were measured running at; `medium` against `high` is
-        # untested (#1968).
+    def test_thinking_effort_uses_each_hosts_supported_surface(self) -> None:
+        # Master fixed the floor on 2026-09-13 at one step above the observed
+        # Claude `low`; Codex can carry the same value per launch.
         self.assertEqual(frontmatter(self.claude)["effort"], "medium")
-        self.assertIn('model_reasoning_effort = "medium"', self.codex)
+        self.assertIsNone(
+            re.search(r"^\s*model_reasoning_effort\s*=", self.codex, re.MULTILINE)
+        )
+        evaluation = EVAL_SKILL.read_text(encoding="utf-8")
+        self.assertIn('explicitly pass `reasoning_effort="medium"`', evaluation)
 
     def test_neither_port_pins_a_model(self) -> None:
         # The sonnet-class floor stays an explicit spawn-call parameter
@@ -116,18 +119,23 @@ class BrakeEvaluatorAgentContractTest(unittest.TestCase):
         self.assertIn("arrives in that prompt", evaluation)
         self.assertIn("Do not write a role fragment into", evaluation)
 
-    def test_the_eval_skill_routes_judge_type_rounds_to_the_definition(self) -> None:
+    def test_the_eval_skill_routes_each_host_to_its_effort_surface(self) -> None:
         evaluation = EVAL_SKILL.read_text(encoding="utf-8")
         self.assertIn("subagent_type: medium", evaluation)
-        self.assertIn("adapter/codex/agents/brake-evaluator.toml", evaluation)
+        self.assertNotIn("adapter/codex/agents/brake-evaluator.toml", evaluation)
+        self.assertIn("On Codex, both kinds spawn with no agent definition file", evaluation)
         self.assertIn("Effort floor = `medium`", evaluation)
 
     def test_the_probe_type_round_reaches_the_floor_through_the_parent(self) -> None:
-        # Effort is not a spawn-call parameter and the probe-type round takes
-        # no definition, so the only surface left is the parent session itself.
+        # Claude has no per-call effort argument, so its probe reaches the floor
+        # through the parent. Codex passes the floor at the call instead.
         evaluation = EVAL_SKILL.read_text(encoding="utf-8")
         self.assertIn(
             "raise the parent session's effort to the floor before spawning one",
+            evaluation,
+        )
+        self.assertIn(
+            'On Codex, both kinds spawn with no agent definition file and explicitly pass `reasoning_effort="medium"`',
             evaluation,
         )
 

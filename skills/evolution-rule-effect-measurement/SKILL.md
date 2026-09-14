@@ -172,6 +172,8 @@ Do not use a weak model for the arm. It retrieves nothing, and it also fails to 
 
 The arm is a separate process, and that is fixed by measurement rather than by preference. A subagent reads the rule text as it stood when its parent session started, and an on-disk change during the run reaches it in neither direction (measured both ways, zero tool use across every trial). Stage 2 compares on-disk states, so a subagent implementation cannot express it. A consequence to hold: an arm whose context and disk disagree adopts the context without hesitating and does not detect the disagreement, so a third party touching `.claude/` mid-run corrupts the verdict undetectably.
 
+The brake 1 operational copy is one such third party, and it leaves a mark (`skills/evolution-parallel-agent-eval/SKILL.md` Procedure step 2). Before raising a run, read `scripts/window_marker.py status` on the live `.claude/` the arms are copied from, and record what it returns beside the run record. An open mark does not settle whether the run is void; whether the applied draft bears on the probe is the judge's to read. Whether the arms were copied inside a span is settled afterwards from the mark's history: the run record's `started_at` against each span's `applied_at` and `closed_at`.
+
 What the harness enforces structurally, so it is not left to care at run time:
 
 - exactly two arms differing in exactly one place, checked both against the plan and against the arms as built

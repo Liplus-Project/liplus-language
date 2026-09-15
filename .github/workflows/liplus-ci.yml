@@ -36,7 +36,7 @@ jobs:
 
           # Japanese body
           if ! echo "$BODY" | grep -P '[ぁ-んァ-ン一-龥]' ; then
-            echo "Commit body must contain Japanese."
+            echo "Commit body must contain Japanese. Governance is stated in rules/operations/operations.md (Operations Rules)."
             exit 1
           fi
 
@@ -61,7 +61,7 @@ jobs:
 
           # Japanese body
           if ! echo "$PR_BODY" | grep -P '[ぁ-んァ-ン一-龥]' ; then
-            echo "PR body must contain Japanese."
+            echo "PR body must contain Japanese. Governance is stated in rules/operations/operations.md (Operations Rules)."
             exit 1
           fi
 
@@ -89,7 +89,7 @@ jobs:
 
           # Japanese body
           if ! echo "$ISSUE_BODY" | grep -P '[ぁ-んァ-ン一-龥]' ; then
-            echo "Issue body must contain Japanese."
+            echo "Issue body must contain Japanese. Governance is stated in rules/operations/operations.md (Operations Rules)."
             exit 1
           fi
 

@@ -113,6 +113,27 @@ description: Invoke when <条件1> / <条件2> / <条件3>. <何を提供する�
 - `adapter/claude/CLAUDE.md` / `adapter/codex/AGENTS.md` — host instruction entrypoint で扱いが異なる
 - `docs/*.md` — heading 構造そのものが思想 doc の load-bearing 要素のため wrap しない
 
+## 節名参照 (Section-name reference)
+
+Li+ ソース全体で `` `<path>.md` <Section Name> `` 形式のクロスファイル参照が多用される（例: `` `rules/model/subtractive-structural-beauty.md` Core principles ``）。参照の書式自体（終端記号の追加や backtick 化など）はここで変更しない——既存参照は自然文中の言及のままで解決する対象である。
+
+### 解決は語彙的終端ではなく referenceable position による
+
+`` `<path>.md` `` の直後から続く語列に終端記号は無い。節名は、その語列のうち **referenceable position と一致する最長の候補** として決まる——長い候補から順に試し、最初に一致した候補がその参照の節名であり、参照は解決したものとする。
+
+### referenceable position
+
+参照先ファイル内で、節名が次のいずれかの位置に現れるとき解決したものとする。
+
+- 任意階層の markdown 見出し（`#` 〜 `####`）のテキスト
+- 行頭ラベル——行の先頭（先行空白は許す）に現れ、`**...**` で囲まれていてもよく、直後が区切り（`:` / `—` / `--` / `.` / 行末）であるもの
+
+上記いずれにも該当しない位置（本文中の inline 言及のみ等）は referenceable position ではない。そこだけを指す参照は、参照先を referenceable position へ昇格させるか、参照の書き方を変えるかで解消する。参照先の構造を変える判断は、それ自体が load-bearing かどうかで決める（`rules/model/subtractive-structural-beauty.md` Core principles）——checker を通すためだけに見出しを新設することはしない。
+
+### 検査
+
+`tests/test_skill_reference_resolution.py` が `rules/` / `skills/` / `adapter/` を走査し、この解決可能性を CI で検証する。checker は個別の参照に対する例外リストを持たない。解決しない参照は、参照側か参照先のどちらかを直して解決させる。`docs/*.md` は走査対象に入らない（同ファイルの既存 docstring が述べる record surface の除外理由がそのまま適用される）。
+
 ## 設計判断の経緯
 
 | 候補 | 採否 | 理由 |

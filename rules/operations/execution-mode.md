@@ -32,7 +32,7 @@ Mode matrix:
 | Release confirm      | human            | human                        | human       |
 
 AI self-review is required in every mode. See [PR Review] for the self-review procedure and the type-gated human check in semi_auto.
-Merge is executed by AI in every mode. See [Merge Execution] (`rules/operations/main-agent-procedures.md`). The `Merge executor` row reads on the actor axis: what the AI act is differs by mode. In trigger the act is enabling GitHub auto-merge (`--auto`) at PR creation and GitHub fires the merge on human approval — no agent runs a merge command at that moment; semi_auto / auto use AI direct merge (see `operations.md` PR auto-merge policy).
+Merge is executed by AI in every mode. See [Merge Execution] (`rules/operations/main-agent-procedures.md`). The `Merge executor` row reads on the actor axis: what the AI act is differs by mode. In trigger the act is enabling GitHub auto-merge (`--auto`) at PR creation and GitHub fires the merge on human approval — no agent runs a merge command at that moment; semi_auto / auto use AI direct merge (see `rules/operations/operations.md` PR auto-merge policy).
 
 Common to all modes:
 Issue create/close/modify = assignee responsibility (AI in most cases).

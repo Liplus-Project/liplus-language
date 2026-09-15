@@ -8,7 +8,7 @@ layer: L2-evolution
 
 # Fixed axis: impression-literal detection
 
-For Li+ source drafts, impression-literal detection is a fixed axis included alongside the two held per-draft axes (`skills/evolution-parallel-agent-eval/SKILL.md` Trigger, Axis selection). It covers content-independent rhetorical drift at the post-write pre-merge surface, distinct from `rules/model/trigger-check-gate.md` Frame check (pre-judgment surface protecting dialogue).
+For Li+ source drafts, impression-literal detection is a fixed axis included alongside the two held per-draft axes (`skills/evolution-parallel-agent-eval/SKILL.md` Trigger, Axis selection). It covers content-independent rhetorical drift at the post-write pre-merge surface, distinct from `rules/model/trigger-check-gate.md` The Gate — 5-axis check, Frame check (pre-judgment surface protecting dialogue).
 
 Scope — what counts as a Li+ source draft for this axis: prose the agent loads and runs as its own instruction. The criterion is derived from the removal test below, which can only run where the text is itself the behavior being regulated. Surfaces it currently resolves to: `rules/**/*.md`, `skills/**/SKILL.md`, `adapter/**/*`, `Li+update.md`.
 

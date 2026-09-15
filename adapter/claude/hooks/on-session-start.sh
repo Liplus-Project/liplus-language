@@ -58,10 +58,6 @@ CONFIG_FILE="$PROJECT_ROOT/Li+config.md"
 # workspace where multiple sessions share this directory concurrently, so
 # each person's diff-only baseline stays independent of the other's reads.
 # See rules/evolution/cold-start-synthesis.md Hook Emission Contract.
-# Claude Code's own session_id was considered and rejected for this: the
-# "startup" matcher (the only matcher that runs the diff below) always
-# carries a brand-new session_id, so keying on it would make every startup
-# a first-ever-seen key and collapse diff-only into full-emit-always.
 AGENT_KEY="${LI_PLUS_AGENT_KEY:-default}"
 
 # ===================================================================

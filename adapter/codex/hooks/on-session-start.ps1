@@ -82,6 +82,14 @@ $stateFile       = Join-Path $stateDir 'last-cold-start-emit.json'
 $adapterFile     = Join-Path $projectRoot 'AGENTS.md'
 $configFile      = Join-Path $projectRoot 'Li+config.md'
 
+# Multi-session state partition key (#1811), mirrors the Claude port. Unset
+# (the common, single-session-per-workspace case) resolves to the fixed key
+# "default" and reproduces the pre-#1811 single-partition behavior exactly.
+# See adapter/claude/hooks/on-session-start.sh for the full rationale
+# (including why Claude Code's session_id was rejected for this) and
+# rules/evolution/cold-start-synthesis.md Hook Emission Contract.
+$agentKey = if ($env:LI_PLUS_AGENT_KEY) { $env:LI_PLUS_AGENT_KEY } else { 'default' }
+
 # ---------- matcher resolution ----------
 # Codex stdin uses hook_event_name + an optional source/matcher field. We treat
 # the SessionStart "source" (startup|resume|clear|compact) the same as Claude's
@@ -1063,24 +1071,45 @@ Surface.
 $failSafeFull = $false
 $failSafeReason = ''
 
-# Read prior state. $priorEmitAt is left empty when the state holds no
-# well-formed stamp, which only drops the read-back line below and never
-# forces a full emit.
+# Read prior state, scoped to this run's own $agentKey partition
+# (state.agents.<agentKey>) — a sibling partition under a different key is
+# invisible here by design (#1811). $priorEmitAt is left empty when the
+# state holds no well-formed stamp, which only drops the read-back line
+# below and never forces a full emit.
 $priorFp = @{}
 $priorEmitAt = ''
 if (Test-Path -LiteralPath $stateFile) {
   try {
     $priorRaw = Get-Content -LiteralPath $stateFile -Raw
     $prior = $priorRaw | ConvertFrom-Json
-    if ($prior -and $prior.sections) {
-      foreach ($prop in $prior.sections.PSObject.Properties) { $priorFp[$prop.Name] = $prop.Value }
-    }
-    # Taken from the raw text, not from the parsed object: ConvertFrom-Json
-    # coerces an ISO-8601 stamp into [datetime], and coerces several
-    # malformed shapes along with it. Reading the text keeps the accepted
-    # shape byte-identical to the regex the two bash ports apply.
-    if ($priorRaw -cmatch '"last_emit_at"\s*:\s*"([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)"') {
-      $priorEmitAt = $matches[1]
+    if (-not ($prior -and $prior.agents)) {
+      # Legacy pre-#1811 single-partition shape ({sections,last_emit_at} at
+      # the root, no "agents" map at all) — nothing to migrate byte for
+      # byte; the write below re-establishes the new shape instead.
+      $failSafeFull = $true; $failSafeReason = 'legacy single-partition state schema, migrating to per-agent partition (#1811)'
+    } else {
+      $entry = $prior.agents.PSObject.Properties[$agentKey]
+      if (-not $entry) {
+        # This agent key has never been recorded (first use of this key —
+        # including "default" itself, the very first time any session reads
+        # a state file already written under the new #1811 shape).
+        $failSafeFull = $true; $failSafeReason = "no recorded state for agent key '$agentKey' (first use of this key)"
+      } else {
+        $entryVal = $entry.Value
+        if ($entryVal.sections) {
+          foreach ($prop in $entryVal.sections.PSObject.Properties) { $priorFp[$prop.Name] = $prop.Value }
+        }
+        # Taken from the raw text, not from the parsed object: ConvertFrom-Json
+        # coerces an ISO-8601 stamp into [datetime], and coerces several
+        # malformed shapes along with it. Reading the text keeps the accepted
+        # shape byte-identical to the regex the bash ports apply. Scoped to
+        # this entry's own last_emit_at occurrence, not the first in the file,
+        # so a sibling partition's stamp is never picked up by mistake.
+        $entryRaw = $entryVal | ConvertTo-Json -Depth 5 -Compress
+        if ($entryRaw -cmatch '"last_emit_at"\s*:\s*"([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)"') {
+          $priorEmitAt = $matches[1]
+        }
+      }
     }
   } catch {
     $failSafeFull = $true; $failSafeReason = 'state file malformed JSON'
@@ -1125,12 +1154,29 @@ if (-not $failSafeFull -and -not $markerEmitted -and $priorEmitAt) {
     'No identifier is recorded, so this does not say who consumed it.')
 }
 
-# Persist new state (best-effort).
+# Persist new state (best-effort). Read-merge-write: this run only owns its
+# own $agentKey partition. A sibling partition (another agent key already
+# recorded in "agents") must survive this write untouched, or the fix above
+# (each key keeps its own baseline) would be undone at the very last step. A
+# legacy pre-#1811 root-level {sections,last_emit_at} shape, or any other
+# unrecognized shape, is intentionally NOT carried forward into "agents" —
+# the fail-safe full emit above already treated it as consumed this run.
 try {
   if (-not (Test-Path -LiteralPath $stateDir)) { New-Item -ItemType Directory -Path $stateDir -Force | Out-Null }
   $ts = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
-  $stateObj = @{ sections = $newSections; last_emit_at = $ts }
-  $stateObj | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $stateFile -Encoding UTF8
+  $agents = @{}
+  if (Test-Path -LiteralPath $stateFile) {
+    try {
+      $existingRaw = Get-Content -LiteralPath $stateFile -Raw
+      $existing = $existingRaw | ConvertFrom-Json
+      if ($existing -and $existing.agents) {
+        foreach ($prop in $existing.agents.PSObject.Properties) { $agents[$prop.Name] = $prop.Value }
+      }
+    } catch { }
+  }
+  $agents[$agentKey] = @{ sections = $newSections; last_emit_at = $ts }
+  $stateObj = @{ agents = $agents }
+  $stateObj | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $stateFile -Encoding UTF8
 } catch { }
 
 # --- instruction to the AI ---

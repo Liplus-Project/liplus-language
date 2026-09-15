@@ -93,13 +93,18 @@ class PriorBaselineReadBackTest(unittest.TestCase):
         Section fingerprints are kept as written: they are what puts the second
         run into diff-only rather than back into fail-safe. `stamp` of None
         removes the field entirely.
+
+        Reaches into `state["agents"]["default"]` (#1811 partition shape):
+        none of the runs in this file set `LI_PLUS_AGENT_KEY`, so every seed
+        run resolves to the fixed `"default"` partition.
         """
         path = ws.state_file(adapter)
         state = json.loads(path.read_text(encoding="utf-8"))
+        entry = state["agents"]["default"]
         if stamp is None:
-            state.pop("last_emit_at", None)
+            entry.pop("last_emit_at", None)
         else:
-            state["last_emit_at"] = stamp
+            entry["last_emit_at"] = stamp
         path.write_text(json.dumps(state), encoding="utf-8")
 
     def change_one_section(self, ws: Workspace) -> None:
@@ -200,10 +205,14 @@ class PriorBaselineReadBackTest(unittest.TestCase):
                     f"{adapter} disagrees with claude_sh on identical state",
                 )
 
-    def test_state_file_still_carries_no_identifier(self) -> None:
-        # The read-back can only report what the state holds. A new field there
-        # would be the change that lets the line start naming a writer, which
-        # the issue's constraint set rules out.
+    def test_state_file_still_carries_no_identifier_within_a_partition(self) -> None:
+        # The read-back can only report what the state holds. #1811 added a
+        # partition key at the top level (state["agents"]["<key>"]) precisely
+        # so a writer *can* be told apart across partitions; what stays ruled
+        # out is a second identifier appearing a level deeper, inside a single
+        # partition's own entry, which is the shape the read-back line above
+        # actually draws from. No run in this file sets LI_PLUS_AGENT_KEY, so
+        # every seed run resolves to the fixed "default" partition.
         for adapter in ADAPTERS:
             with self.subTest(adapter=adapter):
                 ws = self.fixture()
@@ -211,7 +220,11 @@ class PriorBaselineReadBackTest(unittest.TestCase):
                 state = json.loads(
                     ws.state_file(adapter).read_text(encoding="utf-8")
                 )
-                self.assertEqual(set(state), {"sections", "last_emit_at"})
+                self.assertEqual(set(state), {"agents"})
+                self.assertEqual(set(state["agents"]), {"default"})
+                self.assertEqual(
+                    set(state["agents"]["default"]), {"sections", "last_emit_at"}
+                )
 
 
 if __name__ == "__main__":

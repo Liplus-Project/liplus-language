@@ -8,17 +8,22 @@ Reorganized at #1972: `adapter/claude/agents/` was split by role
 (`implementer.md` / `brake-evaluator.md` / `dialogue-evaluator.md`) up to that
 issue; from it on the Claude Code source is three files named by effort
 (`low.md` / `medium.md` / `high.md`), none of which carries a role. The
-implementation delegate now spawns as `subagent_type: high` with its role
-literal injected into the prompt by `skills/task-subagent-prompt/SKILL.md`
-instead of arriving through a role-named definition file's body. The Codex
-port is out of scope for that split (Master agreement, 2026-09-14): its role
-definition remains, while #1973 moves its effort resolution to the spawn call.
+implementation delegate spawns under one of those three, with its role literal
+injected into the prompt by `skills/task-subagent-prompt/SKILL.md` instead of
+arriving through a role-named definition file's body. The Codex port is out of
+scope for that split (Master agreement, 2026-09-14): its role definition
+remains, while #1973 moves its effort resolution to the spawn call.
+
+Which of the three a given delegation names is no longer fixed by the role:
+#1967 put both axes on the parent, chosen per spawn against the work that
+delegation carries (`skills/task-subagent-spawn/SKILL.md` Selection criteria).
+What each definition file still fixes is the effort its own name states.
 
 Why a test rather than reading attention: Claude pins thinking effort in the
 definition while Codex resolves it per launch. Either losing the Claude field or
 reintroducing the Codex override is silent — the spawn still succeeds at a
 different effort. The `model` absence is the same shape in the other direction:
-adding a `model` pin here would silently take over the tier inheritance that
+adding a `model` pin here would silently take over the per-spawn selection that
 `skills/task-subagent-spawn/SKILL.md` keeps at the spawn call. On the Claude
 side, a role fragment written into `high.md` would silently
 duplicate the role literal now canonical in `skills/task-subagent-prompt/SKILL.md`
@@ -84,14 +89,15 @@ class ImplementerAgentContractTest(unittest.TestCase):
         )
         spawn = SPAWN_SKILL.read_text(encoding="utf-8")
         self.assertIn(
-            'An implementation-delegate or dialogue-evaluator spawn passes `reasoning_effort="high"`',
+            "**Every Codex spawn explicitly sets `reasoning_effort`; omission is prohibited.**",
             spawn,
         )
 
     def test_neither_port_pins_a_model(self) -> None:
-        # Tier inheritance stays at the spawn call by omission
-        # (`skills/task-subagent-spawn/SKILL.md`). A pin here takes it over
-        # silently and rots the moment the parent tier changes.
+        # The model selection stays at the spawn call
+        # (`skills/task-subagent-spawn/SKILL.md` Selection criteria), and
+        # omitting it there inherits the parent. A pin here takes the selection
+        # over silently and rots the moment the parent tier changes.
         self.assertNotIn("model", frontmatter(self.claude))
         self.assertIsNone(re.search(r"^\s*model\s*=", self.codex, re.MULTILINE))
 
@@ -119,14 +125,27 @@ class ImplementerAgentContractTest(unittest.TestCase):
         self.assertIn("Role literal: implementation delegate", prompt)
         self.assertIn("You are the Li+ implementation delegate.", prompt)
         self.assertIn("Do not create, move, or remove worktrees.", prompt)
-        self.assertIn("subagent_type: high", prompt)
+        self.assertIn("`subagent_type: low` / `medium` / `high`", prompt)
 
-    def test_spawn_policy_names_the_agent_for_delegations(self) -> None:
+    def test_spawn_policy_names_the_agents_a_delegation_selects_among(self) -> None:
         spawn = SPAWN_SKILL.read_text(encoding="utf-8")
-        self.assertIn("subagent_type: high", spawn)
-        self.assertIn("adapter/claude/agents/high.md", spawn)
+        self.assertIn("`subagent_type: low` / `medium` / `high`", spawn)
+        for agent in ("low.md", "medium.md", "high.md"):
+            with self.subTest(agent=agent):
+                self.assertIn(f"adapter/claude/agents/{agent}", spawn)
         self.assertIn("adapter/codex/agents/implementer.toml", spawn)
         self.assertIn("skills/task-subagent-delegation/SKILL.md", spawn)
+
+    def test_the_selection_is_the_parents_and_no_role_fixes_it(self) -> None:
+        # #1967: the role no longer picks either axis. The criteria the parent
+        # reads live in one place, and a role-fixed value reintroduced anywhere
+        # would read as a default nobody chose.
+        spawn = SPAWN_SKILL.read_text(encoding="utf-8")
+        self.assertIn("## Selection criteria", spawn)
+        self.assertIn(
+            "No role fixes the value, and none of the three is a default to fall back on.",
+            spawn,
+        )
 
     def test_the_definition_prohibition_is_scoped_to_the_observation_target(self) -> None:
         # Narrowed from a blanket prohibition: the reason (a definition body

@@ -25,7 +25,7 @@ On Claude Code, `adapter/claude/agents/` carries no per-role definition file (#1
 >
 > Correctness is repository state, not local success: the issue's requirement met in the pushed diff, with CI green on it.
 
-Spawn call: `subagent_type: high` — `skills/task-subagent-spawn/SKILL.md` fixes the floor for every delegation under `skills/task-subagent-delegation/SKILL.md` (implementation, operations, bounded read-only investigation alike) at `high`, unchanged from the prior `implementer` definition's pin. Do not write a role fragment into `adapter/claude/agents/{low,medium,high}.md` — those files fix effort only, per their own body.
+Spawn call: one of `subagent_type: low` / `medium` / `high`, selected by the parent against the work that delegation carries (criteria = `skills/task-subagent-spawn/SKILL.md` Subagent Model Policy). The role is not what picks it: the literal above is injected whichever of the three the spawn names, and the same holds of the `model` axis. Do not write a role fragment into `adapter/claude/agents/{low,medium,high}.md` — those files fix effort only, per their own body.
 
 The Codex port is unaffected: `adapter/codex/agents/implementer.toml` still carries its own role body and is out of scope for this split (Master agreement, 2026-09-14, tracked separately from #1972).
 
@@ -114,7 +114,7 @@ Detection signs:
 
 # Bounded delegation: prohibit recursive subagent spawn
 
-A subagent with Agent tool access (`Tools: *`) defaults to the same fan-out instinct the parent has — the Li+ implementation delegate, spawned under `high` on Claude Code (Role literal: implementation delegate, above) or `implementer` on Codex, neither of which names `tools` and so both take the default set, and the host's built-in general-purpose agent alike: when its assigned task looks like it has multiple independent sub-checks, it may spawn its own nested Agent-tool children rather than executing directly. Absent an explicit prohibition, this can cascade at every level — each hop adds real API cost with no visible warning until the rate limit wall is hit, and the top-level report ends up as coordinator meta-commentary ("waiting for background agent") instead of actual findings.
+A subagent with Agent tool access (`Tools: *`) defaults to the same fan-out instinct the parent has — the Li+ implementation delegate, spawned under one of the effort-named agents on Claude Code (Role literal: implementation delegate, above) or `implementer` on Codex, neither of which names `tools` and so both take the default set, and the host's built-in general-purpose agent alike: when its assigned task looks like it has multiple independent sub-checks, it may spawn its own nested Agent-tool children rather than executing directly. Absent an explicit prohibition, this can cascade at every level — each hop adds real API cost with no visible warning until the rate limit wall is hit, and the top-level report ends up as coordinator meta-commentary ("waiting for background agent") instead of actual findings.
 
 How to apply:
 - When delegating a bounded read-only investigation (audit / consistency check / grep-and-report) to a subagent, explicitly state in the prompt: "Do this yourself directly using Read/Grep/Bash — do not spawn further subagents via the Agent tool for this task."

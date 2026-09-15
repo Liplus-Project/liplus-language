@@ -133,11 +133,13 @@ Subagent_Delegation:
 
   Codex spawn arguments (per-call):
   - Every subagent spawn must set `reasoning_effort` and `fork_turns` explicitly. Omitting either is prohibited.
-  - Normal non-brake spawn: omit `model` so the parent model is inherited, and set `fork_turns="none"`.
+  - Normal non-brake spawn: select `model` for the work that spawn carries, or omit it to inherit the
+    parent model, and set `fork_turns="none"`.
   - Brake evaluator spawn: set `model` explicitly under the existing evaluator policy, set
     `reasoning_effort="medium"` independently of that model floor, set `fork_turns="none"`,
     use no agent definition file, and pass all evaluation material in a self-contained prompt.
-  - Implementation-delegate and dialogue-evaluator spawns set `reasoning_effort="high"`.
+  - Implementation-delegate and dialogue-evaluator spawns select `reasoning_effort` for the work they
+    carry. No role fixes the value (`skills/task-subagent-spawn/SKILL.md` Selection criteria).
   - A bounded read-only investigation selects `reasoning_effort="low"`, `"medium"`, or `"high"`
     for its purpose. It does not omit the argument to inherit the parent value.
   - Pass only a `reasoning_effort` value supported by the model selected for that spawn. Do not

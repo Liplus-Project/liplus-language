@@ -36,11 +36,9 @@
 #
 #   Multi-session partition (#1811): the state file's "agents" map holds one
 #   independent {sections, last_emit_at} entry per AGENT_KEY value (env var
-#   LI_PLUS_AGENT_KEY, default "default"). This exists so that two sessions
-#   sharing one working directory each get their own diff-only baseline
-#   instead of one session's read silently consuming the other's pending
-#   diff. See the AGENT_KEY declaration below and
-#   rules/evolution/cold-start-synthesis.md Hook Emission Contract.
+#   LI_PLUS_AGENT_KEY, default "default"). See the AGENT_KEY declaration
+#   below and rules/evolution/cold-start-synthesis.md Hook Emission
+#   Contract.
 export PATH="$HOME/.local/bin:$PATH"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 LIPLUS_DIR="$PROJECT_ROOT/liplus-language"

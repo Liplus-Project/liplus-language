@@ -150,10 +150,8 @@ Real files, copied verbatim into `{workspace_root}/.claude/hooks/` on bootstrap
 - `adapter/claude/hooks/on-user-prompt.sh` — per-turn Trigger Check Gate re-arm + webhook re-arm (the call half is `poll`-only; the handling half is emitted in every delivery mode — see the mcp_tool entry behavior section below). Character_Instance is loaded via output-styles, not per-turn re-notify
 - `adapter/claude/hooks/on-session-start.sh` — Cold-start Synthesis material emitter (matcher-aware: `startup` runs diff-only against `{workspace_root}/.claude/state/last-cold-start-emit.json`; `resume` / `clear` / `compact` / `fork` re-anchor only the cold-start rule anchor — see `rules/evolution/cold-start-synthesis.md` for the emission-state table)
 
-  `LI_PLUS_AGENT_KEY` (env var, default `default`, #1811): partitions that
-  diff-only state file so two sessions sharing one working directory each
-  keep their own baseline instead of one session's read silently consuming
-  the other's pending diff. Unset reproduces prior single-partition
+  `LI_PLUS_AGENT_KEY` (env var, default `default`, #1811): partitions the
+  diff-only state file per key. Unset reproduces prior single-partition
   behavior exactly. Set it distinctly per person's own launch profile
   (shell env) only in a workspace where multiple sessions share this
   directory concurrently — see `rules/evolution/cold-start-synthesis.md`

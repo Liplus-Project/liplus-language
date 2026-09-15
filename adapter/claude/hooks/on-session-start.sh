@@ -51,17 +51,13 @@ STATE_FILE="$STATE_DIR/last-cold-start-emit.json"
 ADAPTER_FILE="$PROJECT_ROOT/.claude/CLAUDE.md"
 CONFIG_FILE="$PROJECT_ROOT/Li+config.md"
 
-# Multi-session state partition key (#1811). When two independent sessions
-# share this one working directory, a single shared "last emitted" pointer
-# lets whichever session runs the diff first silently consume the pending
-# diff for sections the OTHER session never actually saw (observed as
-# distribution, not starvation — see rules/evolution/cold-start-synthesis.md
-# Hook Emission Contract and issue #1811 for the worked example). Unset
-# (the common, single-session-per-workspace case) resolves to the fixed key
-# "default" and reproduces the pre-#1811 single-partition behavior exactly.
-# Set distinctly per person's own launch profile (shell env) only in a
+# Multi-session state partition key (#1811). Unset (the common,
+# single-session-per-workspace case) resolves to the fixed key "default"
+# and reproduces the pre-#1811 single-partition behavior exactly. Set
+# distinctly per person's own launch profile (shell env) only in a
 # workspace where multiple sessions share this directory concurrently, so
 # each person's diff-only baseline stays independent of the other's reads.
+# See rules/evolution/cold-start-synthesis.md Hook Emission Contract.
 # Claude Code's own session_id was considered and rejected for this: the
 # "startup" matcher (the only matcher that runs the diff below) always
 # carries a brand-new session_id, so keying on it would make every startup

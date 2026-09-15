@@ -14,8 +14,8 @@ CONTRACT_PATTERNS = {
             r"explicitly\. Omitting either is prohibited\."
         ),
         "non_brake_model_and_context": (
-            r"Normal non-brake spawn: omit `model` so the parent model is inherited, "
-            r'and set `fork_turns="none"`\.'
+            r"Normal non-brake spawn: select `model` for the work that spawn carries, or omit it "
+            r'to inherit the\s+parent model, and set `fork_turns="none"`\.'
         ),
         "brake_model_context_and_prompt": (
             r"Brake evaluator spawn: set `model` explicitly under the existing "
@@ -23,8 +23,10 @@ CONTRACT_PATTERNS = {
             r'set `fork_turns="none"`,\s+use no agent definition file, and pass all evaluation material '
             r"in a self-contained prompt\."
         ),
-        "implementation_and_dialogue_high": (
-            r'Implementation-delegate and dialogue-evaluator spawns set `reasoning_effort="high"`\.'
+        "implementation_and_dialogue_selected": (
+            r"Implementation-delegate and dialogue-evaluator spawns select `reasoning_effort` "
+            r"for the work they\s+carry\. No role fixes the value "
+            r"\(`skills/task-subagent-spawn/SKILL\.md` Selection criteria\)\."
         ),
         "bounded_read_only_selects": (
             r'A bounded read-only investigation selects `reasoning_effort="low"`, '
@@ -59,8 +61,8 @@ CONTRACT_PATTERNS = {
             r"どちらも省略して既定値に依存することを禁止する。"
         ),
         "non_brake_model_and_context": (
-            r"通常の non-brake spawn は、`model` を省略して親モデルを継承し、"
-            r'`fork_turns="none"` を指定する。'
+            r"通常の non-brake spawn は、その spawn が担う作業に合わせて `model` を選ぶか、"
+            r'省略して親モデルを継承し、`fork_turns="none"` を指定する。'
         ),
         "brake_model_context_and_prompt": (
             r"brake evaluator spawn は既存 evaluator policy に従って "
@@ -68,8 +70,10 @@ CONTRACT_PATTERNS = {
             r'`fork_turns="none"` を指定する。定義ファイルは選ばず、'
             r"評価材料を self-contained prompt で渡す。"
         ),
-        "implementation_and_dialogue_high": (
-            r'implementation delegate と dialogue evaluator は `reasoning_effort="high"` を指定する。'
+        "implementation_and_dialogue_selected": (
+            r"implementation delegate と dialogue evaluator は、その spawn が担う作業に合わせて "
+            r"`reasoning_effort` を選ぶ。役割が値を固定することはない"
+            r"（`skills/task-subagent-spawn/SKILL\.md` Selection criteria）。"
         ),
         "bounded_read_only_selects": (
             r'bounded read-only investigation は目的に合わせて `reasoning_effort="low"` / '
@@ -145,10 +149,17 @@ class CodexSubagentContextContractTest(unittest.TestCase):
                 'Full-history inheritance via `fork_turns="all"` is normally allowed.',
             ),
             "non_brake_model_pinned": (
-                "omit `model` so the parent model is inherited",
-                "set `model` explicitly instead of inheriting the parent model",
+                "select `model` for the work that spawn carries, or omit it to inherit the",
+                "set `model` to the value this role fixes rather than choosing it, and inherit the",
             ),
-            "non_brake_full_history": ('set `fork_turns="none"`', 'set `fork_turns="all"`'),
+            "non_brake_full_history": (
+                'parent model, and set `fork_turns="none"`',
+                'parent model, and set `fork_turns="all"`',
+            ),
+            "role_fixes_the_delegate_effort": (
+                "spawns select `reasoning_effort` for the work they\n    carry. No role fixes the value",
+                'spawns set `reasoning_effort="high"`. The role fixes the value',
+            ),
             "brake_model_omitted": (
                 "set `model` explicitly under the existing evaluator policy",
                 "omit `model` under the existing evaluator policy",

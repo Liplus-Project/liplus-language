@@ -85,8 +85,6 @@ fi
 [ -n "$PROJECT_ROOT" ] || PROJECT_ROOT="${CODEX_PROJECT_DIR:-$PWD}"
 
 LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
-COLDSTART_MD="$LIPLUS_DIR/rules/evolution/cold-start-synthesis.md"
-DECISION_STRUCTURE="$LIPLUS_DIR/docs/Decision-Structure.md"
 STATE_DIR="$PROJECT_ROOT/.codex/state"
 STATE_FILE="$STATE_DIR/last-cold-start-emit.json"
 ADAPTER_FILE="$PROJECT_ROOT/AGENTS.md"
@@ -99,7 +97,9 @@ CONFIG_FILE="$PROJECT_ROOT/Li+config.md"
 # (including why Codex/Claude session identifiers were rejected for this)
 # and rules/evolution/cold-start-synthesis.md Hook Emission Contract.
 AGENT_KEY="${LI_PLUS_AGENT_KEY:-default}"
-RULES_ROOT="$LIPLUS_DIR/rules"
+# RULES_ROOT / COLDSTART_MD / DECISION_STRUCTURE are set below, after the
+# ref-pinned source extraction (#1982) — they read against SOURCE_ROOT, not
+# LIPLUS_DIR, so their assignment has to follow that block.
 
 # --- matcher resolution ---
 MATCHER="startup"
@@ -142,17 +142,47 @@ if [ ! -d "$LIPLUS_DIR" ]; then
 fi
 
 # ===================================================================
+# Ref-pinned source extraction (#1982): every read of rules/ skills/ docs/
+# content below resolves against the clone's object database at the
+# adapter's OWN installed sentinel tag, not against the clone's working
+# tree. The clone's HEAD/working tree is shared with other sessions and
+# with Phase 5's USER_REPO dev-checkout of this same repository
+# (Li+update.md Phase 5.1), and its position is no longer a resolution
+# surface Li+update or this hook may depend on (Li+update.md Phase 3.2).
+# ADAPTER_TAG is read from this file's own rendered sentinel, so a
+# workspace mid-way between two tags still reads the tag its OWN installed
+# hook was generated from, not whatever tag happens to be newest.
+# Extraction failure (tag not fetched locally, no git/tar on PATH, or no
+# sentinel yet on a pre-Li+update session) falls back to LIPLUS_DIR itself
+# — the pre-#1982 behavior — rather than emitting nothing.
+ADAPTER_TAG=""
+[ -f "$ADAPTER_FILE" ] && ADAPTER_TAG=$(sed -n 's/^# --- Li+ BEGIN (\([^)]*\)) ---.*/\1/p' "$ADAPTER_FILE" | head -n 1)
+SOURCE_ROOT="$LIPLUS_DIR"
+if [ -n "$ADAPTER_TAG" ] && [ -e "$LIPLUS_DIR/.git" ] && command -v git >/dev/null 2>&1 && command -v tar >/dev/null 2>&1; then
+  GIT_TREE_TMP=$(mktemp -d 2>/dev/null || echo "/tmp/liplus-tree-$$")
+  if git -C "$LIPLUS_DIR" archive "$ADAPTER_TAG" -- rules skills docs 2>/dev/null | tar -x -C "$GIT_TREE_TMP" 2>/dev/null; then
+    SOURCE_ROOT="$GIT_TREE_TMP"
+    trap 'rm -rf "$GIT_TREE_TMP" 2>/dev/null' EXIT
+  else
+    rm -rf "$GIT_TREE_TMP" 2>/dev/null
+  fi
+fi
+RULES_ROOT="$SOURCE_ROOT/rules"
+COLDSTART_MD="$SOURCE_ROOT/rules/evolution/cold-start-synthesis.md"
+DECISION_STRUCTURE="$SOURCE_ROOT/docs/Decision-Structure.md"
+
+# ===================================================================
 # RULES INJECTION (Codex-only; substitute for Claude .claude/rules/)
 # Runs on EVERY matcher (Codex has no folder-level persistence).
 # ===================================================================
 if [ -d "$RULES_ROOT" ]; then
-  RULE_FILES=$(cd "$LIPLUS_DIR" && find rules -type f -name '*.md' 2>/dev/null | LC_ALL=C sort)
+  RULE_FILES=$(cd "$SOURCE_ROOT" && find rules -type f -name '*.md' 2>/dev/null | LC_ALL=C sort)
   if [ -n "$RULE_FILES" ]; then
     emit "━━━ Li+ rules (always-on; injected because Codex has no .claude/rules equivalent) ━━━"
     while IFS= read -r rel; do
       [ -n "$rel" ] || continue
       emit "----- $rel -----"
-      emit "$(cat "$LIPLUS_DIR/$rel" 2>/dev/null)"
+      emit "$(cat "$SOURCE_ROOT/$rel" 2>/dev/null)"
       emit ""
     done <<< "$RULE_FILES"
     emit "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -180,10 +210,9 @@ if [ "$MATCHER" = "startup" ]; then
   UPDATE_REASONS=()
 
   # axis 1: adapter sentinel tag vs target tag
-  ADAPTER_TAG=""
-  if [ -f "$ADAPTER_FILE" ]; then
-    ADAPTER_TAG=$(sed -n 's/^# --- Li+ BEGIN (\([^)]*\)) ---.*/\1/p' "$ADAPTER_FILE" | head -n 1)
-  fi
+  # ADAPTER_TAG was already extracted above (ref-pinned source extraction,
+  # #1982) — every matcher needs it, not just startup, so it is not
+  # re-extracted here.
   LI_PLUS_CHANNEL_VAL=""
   if [ -f "$CONFIG_FILE" ]; then
     LI_PLUS_CHANNEL_VAL=$(sed -n 's/^[[:space:]]*LI_PLUS_CHANNEL[[:space:]]*=[[:space:]]*\(.*\)$/\1/p' "$CONFIG_FILE" | head -n 1 | tr -d '\r')
@@ -298,7 +327,7 @@ DECISION_HEAD=""
 register_section "decision_structure_head" "Decision structure index (docs/Decision-Structure.md head)" "$DECISION_HEAD"
 
 RULES_TREE=""
-[ -d "$RULES_ROOT" ] && RULES_TREE=$(cd "$LIPLUS_DIR" && find rules -type f -name '*.md' 2>/dev/null | LC_ALL=C sort)
+[ -d "$RULES_ROOT" ] && RULES_TREE=$(cd "$SOURCE_ROOT" && find rules -type f -name '*.md' 2>/dev/null | LC_ALL=C sort)
 register_section "rules_tree" "Rules tree (fetch address table for rules/ cache)" "$RULES_TREE"
 
 LATEST_RELEASE=$(gh release list -R Liplus-Project/liplus-language --limit 3 2>/dev/null | head -n 3)
@@ -686,10 +715,10 @@ if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
             print lbl "\t" $0
           }' >> "$TMP_TOKENS"
   done < <(memory_entry_files "$MEMORY_DIR")
-  find "$LIPLUS_DIR/rules" -type f -name '*.md' 2>/dev/null > "$TMP_SRCLIST"
-  find "$LIPLUS_DIR/skills" -maxdepth 2 -type f -name 'SKILL.md' 2>/dev/null >> "$TMP_SRCLIST"
+  find "$SOURCE_ROOT/rules" -type f -name '*.md' 2>/dev/null > "$TMP_SRCLIST"
+  find "$SOURCE_ROOT/skills" -maxdepth 2 -type f -name 'SKILL.md' 2>/dev/null >> "$TMP_SRCLIST"
   if [ -s "$TMP_TOKENS" ] && [ -s "$TMP_SRCLIST" ]; then
-    OVERLAP_ALL=$(awk -v n="$THRESHOLD_N" -v root="$LIPLUS_DIR/" '
+    OVERLAP_ALL=$(awk -v n="$THRESHOLD_N" -v root="$SOURCE_ROOT/" '
       # pass 1: "<entry label>\t<token>" lines
       NR == FNR {
         sep = index($0, "\t")

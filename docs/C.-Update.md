@@ -99,19 +99,18 @@ host OS は adapter 種別（runtime=claude / runtime=codex）から推測しな
 
 1. 対象リポジトリは LI_PLUS_REPO の対象バージョン
 2. ワークスペース内に LI_PLUS_REPO 由来のディレクトリが存在するか確認
-   - 存在しない → 次の 2 コマンドをこの順で実行して対象タグをワークスペースに配置し、手順 3 へ
+   - 存在しない → 次のコマンドを実行して clone をワークスペースに配置する
      `git clone {LI_PLUS_REPO} {workspace_root}/{repo_dir}`
-     `git -C {workspace_root}/{repo_dir} checkout {target_tag}`
-     どちらも実行する literal そのものであり、フラグを追加しない
+     実行する literal はこれのみで、フラグを追加しない。この後に対象タグへの checkout を続けない：下の手順 3 は clone の object database からタグを直接読むため、`git clone` が残す checked-out branch が何であってもソース解決には無関係であり、そのまま触れない。手順 3 へ進む
    - 存在する → `fetch --tags` を実行し:
-     a. clone が branch を fetch できるかを確認する。`git -C {workspace_root}/{repo_dir} config --get-all remote.origin.fetch` が、source 側を `refs/heads/` 以下に持つ refspec を最低 1 本保持していること。1 本も無い clone でも tag は解決するため、直前の `fetch --tags` は成功したまま branch はどれも動かず、後続の素の `git fetch origin` もエラーではなく no-op として成功する。無い場合は人間にその事実を名指し、代償も名指す（ローカル branch が永久に進まないため、ローカル branch から生やした worktree やビルドは古い木から取られる）。**検出のみ**であり、refspec の追加も re-clone も行わず、中断もしない（b へ続行する）。修理は人間の側にある（共有されたローカル git state を書き換えるため、エージェントが独断で踏まない）。同じ条件は on-session-start hook が毎セッション surface しており、その状態に留まる clone はそこで報告され続ける。載せ先と、それが `LI_PLUS_UPDATE_STATUS` でない理由は `rules/evolution/cold-start-synthesis.md` の Clone Branch Fetch Surface 節
-     b. HEAD がブランチに attach しているかを確認する: `git -C {workspace_root}/{repo_dir} symbolic-ref -q HEAD` が値を返す状態がこれにあたる。Li+update 自身はこの状態を作らない —— 上の「存在しない」経路も、下の手順 f も、`checkout {target_tag}` によって HEAD を detached にする。したがってここで attach 状態が見つかったとすれば、それは本手続きの外側で作られたものである。attach していれば **STOP**：ブランチ名と、`HEAD` が指す commit を報告し、手順 c へは進まない。detach させることも、対象タグへ checkout することも、手順 c の「現在 checkout 中のタグ」に何らかの値を代入することもしない。ブランチに在る状態と、タグに detached な状態のどちらであるべきかは Li+ が決めてよい判断ではない（Phase 5 のディレクトリ解決 STOP と同型）。この判定に `git describe --tags`（`--exact-match` を付けても同様）は使わない：あれは現在の commit にタグが付いているかを答えるだけで、そのタグを checkout しているかは答えない。ブランチの先端がたまたまタグ付き commit と一致していれば `--exact-match` は成功するが、HEAD はブランチに attach したままである
-     c. 現在 checkout 中のタグと、`LI_PLUS_CHANNEL` から解決した対象タグを両方確認して報告する。その際、どちらが新しいかを名指す。channel によっては対象タグが現在タグより古いことがあり、対象であることから新しさは導けない
-     d. 一致する場合はそのまま続行
-     e. 不一致の場合、Phase 4 へ進む前に人間にどうするか確認する。この選択が解決するまで bootstrap 完了扱いにしない。最小選択肢は「対象タグへ更新してから続行」「今セッションは現在タグのまま続行」
-     f. 人間が更新に同意した場合のみ対象タグへ checkout
-     g. 現在タグのまま続行を選んだ場合は、現在タグと対象タグを明示してから続行
-3. 解決済みタグでソースファイルが参照可能な状態になる。読み込みは Phase 4 が担う
+     a. clone が branch を fetch できるかを確認する。`git -C {workspace_root}/{repo_dir} config --get-all remote.origin.fetch` が、source 側を `refs/heads/` 以下に持つ refspec を最低 1 本保持していること。1 本も無い clone でも tag は解決するため、直前の `fetch --tags` は成功したまま branch はどれも動かず、後続の素の `git fetch origin` もエラーではなく no-op として成功する。無い場合は人間にその事実を名指し、代償も名指す（ローカル branch が永久に進まないため、ローカル branch から生やした worktree やビルドは古い木から取られる）。**検出のみ**であり、refspec の追加も re-clone も行わず、中断もしない（手順 3 へ続行する）。修理は人間の側にある（共有されたローカル git state を書き換えるため、エージェントが独断で踏まない）。同じ条件は on-session-start hook が毎セッション surface しており、その状態に留まる clone はそこで報告され続ける。載せ先と、それが `LI_PLUS_UPDATE_STATUS` でない理由は `rules/evolution/cold-start-synthesis.md` の Clone Branch Fetch Surface 節
+   この手順のあと HEAD が何であるか——branch に attach しているか、別タグで detached か、他セッションの操作の途中か——は、確認も分岐もしない。手順 3 は `{target_tag}` を object database から直接読み、working tree にも HEAD にも依存せず、干渉もしない。旧来の attached-HEAD STOP と、現在タグ／対象タグの比較（`checkout {target_tag}` の実行可否をここで判定していた部分）は、判定すべき HEAD 移動そのものが手順 3 では発生しなくなったため、判定先を失って両方とも削除した。HEAD を動かすことこそが、#1982 が同一ワークスペースで 2026-09-15 に二重に観測した共有 clone の hazard である（並行セッションの merge が brake 1 評価の最中に HEAD を動かした一方、同日の別セッションは `git archive` を用いて HEAD を動かさずに済ませている）。下の読み取り専用抽出は、この hazard の周りに guard を足すのではなく、依存そのものを除去することで解消する
+3. `{target_tag}` の tree を、clone の HEAD にも working tree にも触れずに読み取り専用で取得する:
+   `git -C {workspace_root}/{repo_dir} archive {target_tag} | tar -x -C {resolved_source_root}`
+   `{resolved_source_root}` = `{workspace_root}/.liplus-extract/{target_tag}/`（無ければ親ディレクトリごと作成する）。この対象タグ用の `{resolved_source_root}` が既に存在する場合は再抽出をスキップする（冪等——Phase 4 を通じたタグ一致スキップと同じ理由）。`git archive` は指定したタグの tree をリポジトリの object database から直接読むため、working tree を読まず、clone の HEAD が現在何であっても影響を受けない。
+   この抽出の byte 忠実性は、本フェーズをこの形に書く前に本リポジトリの `.gitattributes` に対して実測済み（`.md` / `.sh` の LF 正規化、BOM 付き `.ps1` の `-text` を含めて 146/146 ファイルが sha256 一致）。`.gitattributes` が大きく異なるリポジトリでは、利用前に再検証すること
+   任意の後片付け：`.liplus-extract/` 配下の、現在の対象タグ以外のタグの抽出ディレクトリは削除してよい。対象タグが進んだ時点で Phase 4 はそれを読まなくなる
+4. ソースファイルは `{resolved_source_root}` で参照可能な状態になる。Phase 4（clone モード）内の `LI_PLUS_REPO/<path>` という表記はすべて、`{workspace_root}/{repo_dir}` の working tree ではなく `{resolved_source_root}/<path>` を指す——working tree の checkout 状態は、どの branch・どの commit であっても、もはや Phase 4 の解決対象ではない。これは 4c.2 / 4c.3 の stale 削除手順も同時に直す：「LI_PLUS_REPO/rules/ の対応パスに存在しない」がタグ固定の抽出に対して判定されるようになるため、対象タグには存在するが clone の working tree がたまたま乗っていた branch には無かっただけのファイルを削除することがなくなる。読み込みは Phase 4 が担う
 
 ---
 

@@ -123,10 +123,11 @@ api mode:
 clone mode:
 1. Target repo is the target version of LI_PLUS_REPO.
 2. Check workspace for repository directory (derived from LI_PLUS_REPO name; for git+ssh URLs use the normalized HTTPS form to derive the directory name):
-   - not exists -> run these two commands, in this order, to place the target tag in the workspace:
+   - not exists -> run this command to place the clone in the workspace:
      `git clone {LI_PLUS_REPO} {workspace_root}/{repo_dir}`
-     `git -C {workspace_root}/{repo_dir} checkout {target_tag}`
-     Both are the literal to execute; add no flags to either. Proceed to step 3.
+     The literal to execute; add no flags. Do not follow it with a checkout of the target tag: step 3
+     below reads the target tag straight out of the clone's object database, so whatever branch `git
+     clone` leaves checked out is irrelevant to source resolution and is left untouched. Proceed to step 3.
    - exists -> fetch --tags, then:
      a. Check that the clone can fetch branches: `git -C {workspace_root}/{repo_dir} config --get-all
         remote.origin.fetch` must carry at least one refspec whose source side is under `refs/heads/`.
@@ -134,35 +135,42 @@ clone mode:
         and leaves every branch where it was, and a later bare `git fetch origin` succeeds as a no-op.
         If none is present, name the finding to the user, and name what it costs: local branches never
         advance, so a worktree or a build taken from a local branch is taken from a stale tree.
-        Detection only. Do not add the refspec, do not re-clone, do not abort — continue to step b either
+        Detection only. Do not add the refspec, do not re-clone, do not abort — continue to step 3 either
         way. The repair is the user's: it writes shared local git state, which no agent takes on its own.
         The same condition is surfaced every session by the on-session-start hooks, which is where a clone
         that stays in this state keeps being reported; the destination, and why it is not
         `LI_PLUS_UPDATE_STATUS`, are `rules/evolution/cold-start-synthesis.md` Clone Branch Fetch Surface.
-     b. Check that HEAD is attached to a branch: `git -C {workspace_root}/{repo_dir} symbolic-ref -q HEAD`
-        returns a value. Li+update never puts a clone in this state itself — the `not exists` path above
-        and step f below both leave HEAD detached via `checkout {target_tag}` — so an attached HEAD found
-        here was produced by something outside this procedure. If attached, STOP: report the branch name
-        and the commit `HEAD` resolves to, and do not proceed to step c. Do not detach it, do not check
-        out the target tag, and do not substitute any value for step c's `current checked-out tag` in its
-        place. Which of the two states — on a branch, or detached at a tag — the clone should be in is not
-        a judgment Li+ makes (same shape as Phase 5's directory-resolution STOP). Do not use
-        `git describe --tags`, with or without `--exact-match`, for this check: it reports whether the
-        current commit carries a tag label, not whether HEAD is checked out via that tag, so a branch tip
-        that happens to coincide with a tagged commit passes `--exact-match` while HEAD stays attached to
-        the branch.
-     c. Resolve and report both values: current checked-out tag and target tag from LI_PLUS_CHANNEL.
-        Name which of the two is newer: the target is not necessarily the newer one, since a channel
-        can resolve to a tag behind the current one.
-     d. If same -> continue.
-     e. If different -> ask the user how to proceed before continuing to Phase 4.
-        Do not report bootstrap completion before this choice is resolved.
-        Minimum choices:
-        - update now to the target tag
-        - stay on the current tag for this session
-     f. Checkout the target tag only if the user agrees.
-     g. If the user chooses to stay, continue on the current tag only after explicitly naming both tags.
-3. Source files are now available at the resolved tag. Phase 4 handles reading.
+   Whatever HEAD holds after this step — attached to a branch, detached at some other tag, mid-operation
+   in another session sharing this clone, anything — is not inspected and does not branch this procedure.
+   Step 3 reads `{target_tag}` directly from the object database; it neither depends on nor disturbs the
+   working tree or HEAD. This is why the former attached-HEAD STOP and the current/target tag comparison
+   that used to gate a `checkout {target_tag}` here are both gone rather than kept as dead branches: they
+   existed only to adjudicate a HEAD move, and step 3 makes no HEAD move for them to adjudicate. Moving
+   HEAD here was itself the shared-clone hazard #1982 observed twice in one workspace on 2026-09-15 (a
+   concurrent session's merge moved HEAD mid-brake-1-eval while this procedure would have read from the
+   working tree; a same-day run that used `git archive` instead left HEAD untouched) — the read-only
+   extraction below removes the hazard by removing the dependency, not by adding a guard around it.
+3. Extract `{target_tag}`'s tree read-only, without touching the clone's HEAD or working tree:
+   `git -C {workspace_root}/{repo_dir} archive {target_tag} | tar -x -C {resolved_source_root}`
+   `{resolved_source_root}` = `{workspace_root}/.liplus-extract/{target_tag}/` (create it, and its parent
+   directory, first if absent). If `{resolved_source_root}` already exists for this exact target tag, skip
+   re-extraction (idempotent — same rationale as the tag-match skips through Phase 4). `git archive` reads
+   the named tag's tree straight out of the repository's object database; it does not read the working
+   tree and is unaffected by whatever the clone's HEAD currently holds.
+   Byte-fidelity of this extraction against a plain checkout was verified empirically against this
+   repository's `.gitattributes` before this phase was written this way (LF-normalized `.md` / `.sh`,
+   `-text` `.ps1` with its leading BOM preserved — 146/146 files sha256-identical). A repository whose
+   `.gitattributes` differs materially should re-verify before relying on this step.
+   Optional housekeeping: an extraction directory under `.liplus-extract/` for a tag other than the
+   current target may be deleted; once the target tag advances past it, Phase 4 no longer reads it.
+4. Source files are now available at `{resolved_source_root}`. Every `LI_PLUS_REPO/<path>` reference in
+   Phase 4 (clone mode) resolves against `{resolved_source_root}/<path>`, not against
+   `{workspace_root}/{repo_dir}`'s working tree — the working tree's checked-out state is no longer a
+   resolution surface for Phase 4, whatever branch or commit it happens to sit at when Phase 4 runs. This
+   also fixes the stale-deletion step in 4c.2 / 4c.3: "no longer exists at the corresponding path in
+   LI_PLUS_REPO/rules/" now reads against the tag-pinned extraction, so it cannot delete a file that
+   exists at the target tag but was merely absent from whatever branch the clone's working tree happened
+   to be on. Phase 4 handles reading.
 
 ## Phase 4: Host Integration
 
@@ -276,8 +284,13 @@ Note: Claude Code's skill discovery does NOT recurse into subdirectories under `
 - on-session-start.sh is the Cold-start Synthesis material emitter. Its stdout is injected into
   the session-opening context (Claude Code SessionStart contract). The hook gathers material
   (literal cold-start content from rules/evolution/cold-start-synthesis.md, recent docs/Decision-Structure.md head, latest release
-  tags, open in-progress issues, self-evaluation log head). Synthesis is performed by the AI
-  through Character_Instance, not by the hook itself.
+  tags, open in-progress issues, self-evaluation log head). The rules/skills/docs-sourced reads
+  (cold-start anchor literal, Decision-Structure index head, rules tree enumeration, and the
+  promotion-candidate keyword scan's rules/skills body text) resolve against a `git archive`
+  extraction of the LI_PLUS_REPO clone pinned at the adapter's own installed sentinel tag (#1982),
+  not the clone's working tree, for the same reason as the Codex port above (falls back to the
+  working tree if the sentinel tag is unresolved or the extraction fails). Synthesis is performed
+  by the AI through Character_Instance, not by the hook itself.
 - Set executable permission on .sh files.
 
 4c.5. Prepare cold-start state directory (diff-only emission persistence):
@@ -456,9 +469,15 @@ is expressed via the skill-name prefix convention (e.g. `evolution-judgment-lear
     trust. The completion report must remind the user to re-trust after any build
     that regenerated a hook.
 - on-session-start is the Codex rules-injection + Cold-start Synthesis material
-  emitter. It reads every `rules/**/*.md` from the LI_PLUS_REPO clone and emits
-  the literal bodies as `additionalContext` (the Codex substitute for Claude's
-  always-on `.claude/rules/` folder), plus the update-status marker
+  emitter. It reads every `rules/**/*.md`, plus `docs/Decision-Structure.md` and
+  `skills/*/SKILL.md`, from a `git archive` extraction of the LI_PLUS_REPO
+  clone pinned at the adapter's own installed sentinel tag (#1982) — not from
+  the clone's working tree, whose checkout position is shared with other
+  sessions and is not a resolution surface this hook may depend on (mirrors
+  Li+update.md Phase 3.2; falls back to the working tree if the sentinel tag
+  is unresolved or the extraction fails). It emits the rules bodies as
+  `additionalContext` (the Codex substitute for Claude's always-on
+  `.claude/rules/` folder), plus the update-status marker
   (LI_PLUS_UPDATE_STATUS) and diff-only cold-start material. Synthesis itself is
   performed by the AI through Character_Instance, not by the hook.
 - Set executable permission on the .sh files (the .ps1 files are invoked via

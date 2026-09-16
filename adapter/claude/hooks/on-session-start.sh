@@ -42,8 +42,8 @@
 export PATH="$HOME/.local/bin:$PATH"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
-COLDSTART_MD="$LIPLUS_DIR/rules/evolution/cold-start-synthesis.md"
-DECISION_STRUCTURE="$LIPLUS_DIR/docs/Decision-Structure.md"
+# COLDSTART_MD / DECISION_STRUCTURE are set below, after the ref-pinned
+# source extraction (#1982) — they read against SOURCE_ROOT, not LIPLUS_DIR.
 STATE_DIR="$PROJECT_ROOT/.claude/state"
 STATE_FILE="$STATE_DIR/last-cold-start-emit.json"
 ADAPTER_FILE="$PROJECT_ROOT/.claude/CLAUDE.md"
@@ -228,6 +228,33 @@ ADAPTER_TAG=""
 if [ -f "$ADAPTER_FILE" ]; then
   ADAPTER_TAG=$(sed -n 's/^# --- Li+ BEGIN (\([^)]*\)) ---.*/\1/p' "$ADAPTER_FILE" | head -n 1)
 fi
+
+# ===================================================================
+# Ref-pinned source extraction (#1982): every read of rules/ skills/ docs/
+# content below resolves against the clone's object database at the
+# adapter's OWN installed sentinel tag (ADAPTER_TAG, just extracted above),
+# not against the clone's working tree. The clone's HEAD/working tree is
+# shared with other sessions and with Phase 5's USER_REPO dev-checkout of
+# this same repository (Li+update.md Phase 5.1), and its position is no
+# longer a resolution surface Li+update or this hook may depend on
+# (Li+update.md Phase 3.2). Reading ADAPTER_TAG rather than the newest
+# available tag means a workspace mid-way between two tags still reads the
+# tag its OWN installed hook was generated from.
+# Extraction failure (tag not fetched locally, no git/tar on PATH, or no
+# sentinel yet on a pre-Li+update session) falls back to LIPLUS_DIR itself
+# — the pre-#1982 behavior — rather than emitting nothing.
+SOURCE_ROOT="$LIPLUS_DIR"
+if [ -n "$ADAPTER_TAG" ] && [ -e "$LIPLUS_DIR/.git" ] && command -v git >/dev/null 2>&1 && command -v tar >/dev/null 2>&1; then
+  GIT_TREE_TMP=$(mktemp -d 2>/dev/null || echo "/tmp/liplus-tree-$$")
+  if git -C "$LIPLUS_DIR" archive "$ADAPTER_TAG" -- rules skills docs 2>/dev/null | tar -x -C "$GIT_TREE_TMP" 2>/dev/null; then
+    SOURCE_ROOT="$GIT_TREE_TMP"
+    trap 'rm -rf "$GIT_TREE_TMP" 2>/dev/null' EXIT
+  else
+    rm -rf "$GIT_TREE_TMP" 2>/dev/null
+  fi
+fi
+COLDSTART_MD="$SOURCE_ROOT/rules/evolution/cold-start-synthesis.md"
+DECISION_STRUCTURE="$SOURCE_ROOT/docs/Decision-Structure.md"
 
 # Resolve LI_PLUS_CHANNEL from config (default = release, matches Li+update.md Phase 3.1).
 LI_PLUS_CHANNEL_VAL=""
@@ -432,8 +459,8 @@ register_section "decision_structure_head" "Decision structure index (docs/Decis
 # Scope = rules/ only. skills/ is handled by the host auto-invoke router on a
 # separate axis; adapter/ is not a judgment-time fetch target.
 RULES_TREE=""
-if [ -d "$LIPLUS_DIR/rules" ]; then
-  RULES_TREE=$(cd "$LIPLUS_DIR" && find rules -type f -name '*.md' 2>/dev/null | LC_ALL=C sort)
+if [ -d "$SOURCE_ROOT/rules" ]; then
+  RULES_TREE=$(cd "$SOURCE_ROOT" && find rules -type f -name '*.md' 2>/dev/null | LC_ALL=C sort)
 fi
 register_section "rules_tree" "Rules tree (fetch address table for rules/ cache)" "$RULES_TREE"
 
@@ -915,10 +942,10 @@ if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
             print lbl "\t" $0
           }' >> "$TMP_TOKENS"
   done < <(memory_entry_files "$MEMORY_DIR")
-  find "$LIPLUS_DIR/rules" -type f -name '*.md' 2>/dev/null > "$TMP_SRCLIST"
-  find "$LIPLUS_DIR/skills" -maxdepth 2 -type f -name 'SKILL.md' 2>/dev/null >> "$TMP_SRCLIST"
+  find "$SOURCE_ROOT/rules" -type f -name '*.md' 2>/dev/null > "$TMP_SRCLIST"
+  find "$SOURCE_ROOT/skills" -maxdepth 2 -type f -name 'SKILL.md' 2>/dev/null >> "$TMP_SRCLIST"
   if [ -s "$TMP_TOKENS" ] && [ -s "$TMP_SRCLIST" ]; then
-    OVERLAP_ALL=$(awk -v n="$THRESHOLD_N" -v root="$LIPLUS_DIR/" '
+    OVERLAP_ALL=$(awk -v n="$THRESHOLD_N" -v root="$SOURCE_ROOT/" '
       # pass 1: "<entry label>\t<token>" lines
       NR == FNR {
         sep = index($0, "\t")

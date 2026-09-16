@@ -75,8 +75,8 @@ if (-not $projectRoot -and $env:CODEX_PROJECT_DIR) { $projectRoot = $env:CODEX_P
 if (-not $projectRoot) { $projectRoot = (Get-Location).Path }
 
 $liplusDir       = Join-Path $projectRoot 'liplus-language'
-$coldstartMd     = Join-Path $liplusDir 'rules/evolution/cold-start-synthesis.md'
-$decisionStruct  = Join-Path $liplusDir 'docs/Decision-Structure.md'
+# $coldstartMd / $decisionStruct are set below, after the ref-pinned source
+# extraction (#1982) — they read against $sourceRoot, not $liplusDir.
 $stateDir        = Join-Path $projectRoot '.codex/state'
 $stateFile       = Join-Path $stateDir 'last-cold-start-emit.json'
 $adapterFile     = Join-Path $projectRoot 'AGENTS.md'
@@ -114,9 +114,48 @@ if (-not (Test-Path -LiteralPath $liplusDir)) {
 }
 
 # ===================================================================
+# Ref-pinned source extraction (#1982): every read of rules/ skills/ docs/
+# content below resolves against the clone's object database at the
+# adapter's OWN installed sentinel tag, not against the clone's working
+# tree. The clone's HEAD/working tree is shared with other sessions and
+# with Phase 5's USER_REPO dev-checkout of this same repository
+# (Li+update.md Phase 5.1), and its position is no longer a resolution
+# surface Li+update or this hook may depend on (Li+update.md Phase 3.2).
+# $adapterTag is read from this file's own rendered sentinel, so a
+# workspace mid-way between two tags still reads the tag its OWN installed
+# hook was generated from, not whatever tag happens to be newest.
+# Extraction failure (tag not fetched locally, no git/tar on PATH, or no
+# sentinel yet on a pre-Li+update session) falls back to $liplusDir itself
+# — the pre-#1982 behavior — rather than emitting nothing.
+$adapterTag = ''
+if (Test-Path -LiteralPath $adapterFile) {
+  $line = Select-String -LiteralPath $adapterFile -CaseSensitive -Pattern '^# --- Li\+ BEGIN \(([^)]*)\) ---' -ErrorAction SilentlyContinue | Select-Object -First 1
+  if ($line) { $adapterTag = $line.Matches[0].Groups[1].Value }
+}
+$sourceRoot = $liplusDir
+$gitTreeTmp = $null
+if ($adapterTag -and (Test-Path -LiteralPath (Join-Path $liplusDir '.git')) -and (Get-Command git -ErrorAction SilentlyContinue) -and (Get-Command tar -ErrorAction SilentlyContinue)) {
+  $candidateTmp = Join-Path ([System.IO.Path]::GetTempPath()) ('liplus-tree-' + [System.Guid]::NewGuid().ToString('N'))
+  New-Item -ItemType Directory -Path $candidateTmp -Force -ErrorAction SilentlyContinue | Out-Null
+  $archiveOk = $false
+  try {
+    & git -C $liplusDir archive $adapterTag -- rules skills docs 2>$null | & tar -x -C $candidateTmp 2>$null
+    if ($LASTEXITCODE -eq 0) { $archiveOk = $true }
+  } catch { $archiveOk = $false }
+  if ($archiveOk) {
+    $sourceRoot = $candidateTmp
+    $gitTreeTmp = $candidateTmp
+  } else {
+    Remove-Item -LiteralPath $candidateTmp -Recurse -Force -ErrorAction SilentlyContinue
+  }
+}
+$coldstartMd    = Join-Path $sourceRoot 'rules/evolution/cold-start-synthesis.md'
+$decisionStruct = Join-Path $sourceRoot 'docs/Decision-Structure.md'
+
+# ===================================================================
 # RULES INJECTION (Codex-only; substitute for Claude .claude/rules/)
 # ===================================================================
-# Read every rules/**/*.md from the clone and emit the literal bodies. This is
+# Read every rules/**/*.md from $sourceRoot and emit the literal bodies. This is
 # the always-on rules surface for Codex. Runs on EVERY matcher (startup and
 # resume/clear/compact) because Codex has no folder-level persistence — the
 # only always-on substrate is re-injection per session boundary.
@@ -124,16 +163,16 @@ if (-not (Test-Path -LiteralPath $liplusDir)) {
 # emission order matches the bash ports' `find rules ... | LC_ALL=C sort` on both
 # axes at once: `Sort-Object` is culture-aware, and `FullName` would order on the
 # native separator instead of the `/` the bash ports compare.
-$rulesRoot = Join-Path $liplusDir 'rules'
+$rulesRoot = Join-Path $sourceRoot 'rules'
 if (Test-Path -LiteralPath $rulesRoot) {
   $ruleFiles = [string[]]@(
     Get-ChildItem -LiteralPath $rulesRoot -Recurse -Filter '*.md' -File -ErrorAction SilentlyContinue |
-      ForEach-Object { $_.FullName.Substring($liplusDir.Length).TrimStart('\', '/') -replace '\\', '/' })
+      ForEach-Object { $_.FullName.Substring($sourceRoot.Length).TrimStart('\', '/') -replace '\\', '/' })
   if ($ruleFiles.Count -gt 0) {
     [Array]::Sort($ruleFiles, [System.StringComparer]::Ordinal)
     Emit '━━━ Li+ rules (always-on; injected because Codex has no .claude/rules equivalent) ━━━'
     foreach ($rel in $ruleFiles) {
-      $content = Get-Content -LiteralPath (Join-Path $liplusDir $rel) -Raw -ErrorAction SilentlyContinue
+      $content = Get-Content -LiteralPath (Join-Path $sourceRoot $rel) -Raw -ErrorAction SilentlyContinue
       Emit "----- $rel -----"
       Emit $content
       Emit ''
@@ -186,11 +225,9 @@ if ($matcher -ceq 'startup') {
   $updateReasons = @()
 
   # --- axis 1: adapter sentinel tag vs current target tag ---
-  $adapterTag = ''
-  if (Test-Path -LiteralPath $adapterFile) {
-    $line = Select-String -LiteralPath $adapterFile -CaseSensitive -Pattern '^# --- Li\+ BEGIN \(([^)]*)\) ---' -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($line) { $adapterTag = $line.Matches[0].Groups[1].Value }
-  }
+  # $adapterTag was already extracted above (ref-pinned source extraction,
+  # #1982) — every matcher needs it, not just startup, so it is not
+  # re-extracted here.
 
   $channel = ''
   if (Test-Path -LiteralPath $configFile) {
@@ -326,6 +363,7 @@ if ($matcher -cne 'startup') {
   Emit 'reinjected and the cold-start rule anchor re-anchored above. Treat the prior'
   Emit "session's in-context state as authoritative; do not re-orient from scratch."
   Emit '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+  if ($gitTreeTmp) { Remove-Item -LiteralPath $gitTreeTmp -Recurse -Force -ErrorAction SilentlyContinue }
   Flush-Json
   exit 0
 }
@@ -788,7 +826,7 @@ if ($memoryDir -and (Test-Path -LiteralPath $memoryDir)) {
   if (Test-Path -LiteralPath $rulesRoot) {
     $srcFiles += @(Get-ChildItem -LiteralPath $rulesRoot -Recurse -Filter '*.md' -File -ErrorAction SilentlyContinue)
   }
-  $skillsRoot = Join-Path $liplusDir 'skills'
+  $skillsRoot = Join-Path $sourceRoot 'skills'
   if (Test-Path -LiteralPath $skillsRoot) {
     $srcFiles += @(Get-ChildItem -LiteralPath $skillsRoot -Recurse -Depth 1 -Filter 'SKILL.md' -File -ErrorAction SilentlyContinue)
   }
@@ -796,7 +834,7 @@ if ($memoryDir -and (Test-Path -LiteralPath $memoryDir)) {
     $wanted = @{}
     foreach ($tok in $tokenNames) { $wanted[$tok] = $true }
     $srcHits = @{}
-    $rootPrefix = ($liplusDir -replace '\\', '/').TrimEnd('/') + '/'
+    $rootPrefix = ($sourceRoot -replace '\\', '/').TrimEnd('/') + '/'
     foreach ($sf in $srcFiles) {
       $rel = $sf.FullName -replace '\\', '/'
       if ($rel.StartsWith($rootPrefix)) { $rel = $rel.Substring($rootPrefix.Length) }
@@ -1201,5 +1239,6 @@ if ($failSafeFull) {
   Emit '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
 }
 
+if ($gitTreeTmp) { Remove-Item -LiteralPath $gitTreeTmp -Recurse -Force -ErrorAction SilentlyContinue }
 Flush-Json
 exit 0

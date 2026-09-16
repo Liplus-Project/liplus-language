@@ -110,7 +110,7 @@ host OS は adapter 種別（runtime=claude / runtime=codex）から推測しな
    `{resolved_source_root}` = `{workspace_root}/.liplus-extract/{target_tag}/`（無ければ親ディレクトリごと作成する）。この対象タグ用の `{resolved_source_root}` が既に存在する場合は再抽出をスキップする
    この抽出は、本リポジトリの `.gitattributes`（`.md` / `.sh` の LF 正規化、先頭 BOM を保つ `-text` の `.ps1`）のもとで通常の checkout と byte 一致する。`.gitattributes` がこれと大きく異なるリポジトリでは、利用前に再検証すること
    任意の後片付け：`.liplus-extract/` 配下の、現在の対象タグ以外のタグの抽出ディレクトリは削除してよい。対象タグが進んだ時点で Phase 4 はそれを読まなくなる
-4. ソースファイルは `{resolved_source_root}` で参照可能な状態になる。Phase 4（clone モード）内の `LI_PLUS_REPO/<path>` という表記はすべて、`{workspace_root}/{repo_dir}` の working tree ではなく `{resolved_source_root}/<path>` を指す——working tree の checkout 状態は、どの branch・どの commit であっても、もはや Phase 4 の解決対象ではない。読み込みは Phase 4 が担う
+4. ソースファイルは `{resolved_source_root}` で参照可能な状態になる。Phase 4（clone モード）が LI_PLUS_REPO から読むソースパスはすべて——`LI_PLUS_REPO/` 接頭辞付き（`LI_PLUS_REPO/rules/`）で書かれていても、接頭辞なしのリポジトリ相対パス（`adapter/claude/CLAUDE.md`、`adapter/claude/hooks/*.sh`、`adapter/codex/AGENTS.md`、`adapter/codex/hooks/*`）で書かれていても——`{workspace_root}/{repo_dir}` の working tree ではなく `{resolved_source_root}/<path>` を指す。読み込みは Phase 4 が担う
 
 ---
 
@@ -271,7 +271,7 @@ Codex ホストでは Phase 4 claude branch と同型に adapter / skills / hook
 - `{workspace_root}/.codex/hooks/*.{ps1,sh}` の tag 追跡再生成:
   - 既存ファイルの `# Source: ... (build-...)` 行のタグを確認。一致でスキップ、不一致 / タグなしで再コピー（バイト忠実 .ps1 + `{LI_PLUS_TAG}` 置換）
   - 再生成は hook 内容ハッシュを変えるため Codex の GUI trust を**無効化**する。完了報告で再 trust を案内する
-- `on-session-start` が Codex の rules 注入 + Cold-start Synthesis 素材 emitter。`rules/**/*.md`、および `docs/Decision-Structure.md` と `skills/*/SKILL.md` を、clone の working tree ではなく、adapter 自身のインストール済み sentinel タグに固定した LI_PLUS_REPO clone の `git archive` 抽出から読む（working tree の checkout 位置は他セッションと共有されており、この hook が依存してよい解決面ではない。sentinel タグが解決できない場合や抽出に失敗した場合は working tree にフォールバック）。rules の literal を `additionalContext` で注入（Claude の `.claude/rules/` 常時フォルダの Codex 代替）+ update-status marker（LI_PLUS_UPDATE_STATUS、startup matcher 限定）+ language contract marker（LI_PLUS_BASE_LANGUAGE / LI_PLUS_PROJECT_LANGUAGE、全 matcher）+ diff-only cold-start 素材。synthesis は hook ではなく Character_Instance を介して AI が行う
+- `on-session-start` が Codex の rules 注入 + Cold-start Synthesis 素材 emitter。`rules/**/*.md`、および `docs/Decision-Structure.md` と `skills/*/SKILL.md` を、clone の working tree ではなく、adapter 自身のインストール済み sentinel タグに固定した LI_PLUS_REPO clone の `git archive` 抽出から読む（sentinel タグが解決できない場合や抽出に失敗した場合は working tree にフォールバック）。rules の literal を `additionalContext` で注入（Claude の `.claude/rules/` 常時フォルダの Codex 代替）+ update-status marker（LI_PLUS_UPDATE_STATUS、startup matcher 限定）+ language contract marker（LI_PLUS_BASE_LANGUAGE / LI_PLUS_PROJECT_LANGUAGE、全 matcher）+ diff-only cold-start 素材。synthesis は hook ではなく Character_Instance を介して AI が行う
 - `.sh` ファイルに実行権限を付与（`.ps1` は `powershell -File` 経由で呼ばれるため実行ビット不要）
 
 **4x.4. cold-start state ディレクトリの準備（diff-only 出力の永続化）**

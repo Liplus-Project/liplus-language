@@ -156,11 +156,11 @@ clone mode:
    `.gitattributes` differs materially from that should re-verify before relying on this step.
    Optional housekeeping: an extraction directory under `.liplus-extract/` for a tag other than the
    current target may be deleted; once the target tag advances past it, Phase 4 no longer reads it.
-4. Source files are now available at `{resolved_source_root}`. Every `LI_PLUS_REPO/<path>` reference in
-   Phase 4 (clone mode) resolves against `{resolved_source_root}/<path>`, not against
-   `{workspace_root}/{repo_dir}`'s working tree — the working tree's checked-out state is no longer a
-   resolution surface for Phase 4, whatever branch or commit it happens to sit at when Phase 4 runs.
-   Phase 4 handles reading.
+4. Source files are now available at `{resolved_source_root}`. Every source path Phase 4 (clone mode)
+   reads out of LI_PLUS_REPO — whether written with the `LI_PLUS_REPO/` prefix (`LI_PLUS_REPO/rules/`)
+   or as a bare repository-relative path (`adapter/claude/CLAUDE.md`, `adapter/claude/hooks/*.sh`,
+   `adapter/codex/AGENTS.md`, `adapter/codex/hooks/*`) — resolves against `{resolved_source_root}/<path>`,
+   not against `{workspace_root}/{repo_dir}`'s working tree. Phase 4 handles reading.
 
 ## Phase 4: Host Integration
 
@@ -462,10 +462,8 @@ is expressed via the skill-name prefix convention (e.g. `evolution-judgment-lear
   emitter. It reads every `rules/**/*.md`, plus `docs/Decision-Structure.md` and
   `skills/*/SKILL.md`, from a `git archive` extraction of the LI_PLUS_REPO
   clone pinned at the adapter's own installed sentinel tag — not from
-  the clone's working tree, whose checkout position is shared with other
-  sessions and is not a resolution surface this hook may depend on (mirrors
-  Li+update.md Phase 3.2; falls back to the working tree if the sentinel tag
-  is unresolved or the extraction fails). It emits the rules bodies as
+  the clone's working tree (mirrors Li+update.md Phase 3.2; falls back to the
+  working tree if the sentinel tag is unresolved or the extraction fails). It emits the rules bodies as
   `additionalContext` (the Codex substitute for Claude's always-on
   `.claude/rules/` folder), plus the update-status marker
   (LI_PLUS_UPDATE_STATUS) and diff-only cold-start material. Synthesis itself is

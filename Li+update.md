@@ -145,11 +145,7 @@ clone mode:
    Step 3 reads `{target_tag}` directly from the object database; it neither depends on nor disturbs the
    working tree or HEAD. This is why the former attached-HEAD STOP and the current/target tag comparison
    that used to gate a `checkout {target_tag}` here are both gone rather than kept as dead branches: they
-   existed only to adjudicate a HEAD move, and step 3 makes no HEAD move for them to adjudicate. Moving
-   HEAD here was itself the shared-clone hazard #1982 observed twice in one workspace on 2026-09-15 (a
-   concurrent session's merge moved HEAD mid-brake-1-eval while this procedure would have read from the
-   working tree; a same-day run that used `git archive` instead left HEAD untouched) — the read-only
-   extraction below removes the hazard by removing the dependency, not by adding a guard around it.
+   existed only to adjudicate a HEAD move, and step 3 makes no HEAD move for them to adjudicate.
 3. Extract `{target_tag}`'s tree read-only, without touching the clone's HEAD or working tree:
    `git -C {workspace_root}/{repo_dir} archive {target_tag} | tar -x -C {resolved_source_root}`
    `{resolved_source_root}` = `{workspace_root}/.liplus-extract/{target_tag}/` (create it, and its parent

@@ -150,23 +150,17 @@ clone mode:
    `git -C {workspace_root}/{repo_dir} archive {target_tag} | tar -x -C {resolved_source_root}`
    `{resolved_source_root}` = `{workspace_root}/.liplus-extract/{target_tag}/` (create it, and its parent
    directory, first if absent). If `{resolved_source_root}` already exists for this exact target tag, skip
-   re-extraction (idempotent — same rationale as the tag-match skips through Phase 4). `git archive` reads
-   the named tag's tree straight out of the repository's object database; it does not read the working
-   tree and is unaffected by whatever the clone's HEAD currently holds.
-   Byte-fidelity of this extraction against a plain checkout was verified empirically against this
-   repository's `.gitattributes` before this phase was written this way (LF-normalized `.md` / `.sh`,
-   `-text` `.ps1` with its leading BOM preserved — 146/146 files sha256-identical). A repository whose
-   `.gitattributes` differs materially should re-verify before relying on this step.
+   re-extraction.
+   This extraction is byte-identical to a plain checkout under this repository's `.gitattributes`
+   (LF-normalized `.md` / `.sh`, `-text` `.ps1` with its leading BOM preserved). A repository whose
+   `.gitattributes` differs materially from that should re-verify before relying on this step.
    Optional housekeeping: an extraction directory under `.liplus-extract/` for a tag other than the
    current target may be deleted; once the target tag advances past it, Phase 4 no longer reads it.
 4. Source files are now available at `{resolved_source_root}`. Every `LI_PLUS_REPO/<path>` reference in
    Phase 4 (clone mode) resolves against `{resolved_source_root}/<path>`, not against
    `{workspace_root}/{repo_dir}`'s working tree — the working tree's checked-out state is no longer a
-   resolution surface for Phase 4, whatever branch or commit it happens to sit at when Phase 4 runs. This
-   also fixes the stale-deletion step in 4c.2 / 4c.3: "no longer exists at the corresponding path in
-   LI_PLUS_REPO/rules/" now reads against the tag-pinned extraction, so it cannot delete a file that
-   exists at the target tag but was merely absent from whatever branch the clone's working tree happened
-   to be on. Phase 4 handles reading.
+   resolution surface for Phase 4, whatever branch or commit it happens to sit at when Phase 4 runs.
+   Phase 4 handles reading.
 
 ## Phase 4: Host Integration
 
@@ -283,9 +277,9 @@ Note: Claude Code's skill discovery does NOT recurse into subdirectories under `
   tags, open in-progress issues, self-evaluation log head). The rules/skills/docs-sourced reads
   (cold-start anchor literal, Decision-Structure index head, rules tree enumeration, and the
   promotion-candidate keyword scan's rules/skills body text) resolve against a `git archive`
-  extraction of the LI_PLUS_REPO clone pinned at the adapter's own installed sentinel tag (#1982),
-  not the clone's working tree, for the same reason as the Codex port above (falls back to the
-  working tree if the sentinel tag is unresolved or the extraction fails). Synthesis is performed
+  extraction of the LI_PLUS_REPO clone pinned at the adapter's own installed sentinel tag,
+  not the clone's working tree (falls back to the working tree if the sentinel tag is unresolved
+  or the extraction fails). Synthesis is performed
   by the AI through Character_Instance, not by the hook itself.
 - Set executable permission on .sh files.
 
@@ -467,7 +461,7 @@ is expressed via the skill-name prefix convention (e.g. `evolution-judgment-lear
 - on-session-start is the Codex rules-injection + Cold-start Synthesis material
   emitter. It reads every `rules/**/*.md`, plus `docs/Decision-Structure.md` and
   `skills/*/SKILL.md`, from a `git archive` extraction of the LI_PLUS_REPO
-  clone pinned at the adapter's own installed sentinel tag (#1982) — not from
+  clone pinned at the adapter's own installed sentinel tag — not from
   the clone's working tree, whose checkout position is shared with other
   sessions and is not a resolution surface this hook may depend on (mirrors
   Li+update.md Phase 3.2; falls back to the working tree if the sentinel tag

@@ -107,10 +107,10 @@ host OS は adapter 種別（runtime=claude / runtime=codex）から推測しな
    この手順のあと HEAD が何であるか——branch に attach しているか、別タグで detached か、他セッションの操作の途中か——は、確認も分岐もしない。手順 3 は `{target_tag}` を object database から直接読み、working tree にも HEAD にも依存せず、干渉もしない。旧来の attached-HEAD STOP と、現在タグ／対象タグの比較（`checkout {target_tag}` の実行可否をここで判定していた部分）は、判定すべき HEAD 移動そのものが手順 3 では発生しなくなったため、判定先を失って両方とも削除した。
 3. `{target_tag}` の tree を、clone の HEAD にも working tree にも触れずに読み取り専用で取得する:
    `git -C {workspace_root}/{repo_dir} archive {target_tag} | tar -x -C {resolved_source_root}`
-   `{resolved_source_root}` = `{workspace_root}/.liplus-extract/{target_tag}/`（無ければ親ディレクトリごと作成する）。この対象タグ用の `{resolved_source_root}` が既に存在する場合は再抽出をスキップする（冪等——Phase 4 を通じたタグ一致スキップと同じ理由）。`git archive` は指定したタグの tree をリポジトリの object database から直接読むため、working tree を読まず、clone の HEAD が現在何であっても影響を受けない。
-   この抽出の byte 忠実性は、本フェーズをこの形に書く前に本リポジトリの `.gitattributes` に対して実測済み（`.md` / `.sh` の LF 正規化、BOM 付き `.ps1` の `-text` を含めて 146/146 ファイルが sha256 一致）。`.gitattributes` が大きく異なるリポジトリでは、利用前に再検証すること
+   `{resolved_source_root}` = `{workspace_root}/.liplus-extract/{target_tag}/`（無ければ親ディレクトリごと作成する）。この対象タグ用の `{resolved_source_root}` が既に存在する場合は再抽出をスキップする
+   この抽出は、本リポジトリの `.gitattributes`（`.md` / `.sh` の LF 正規化、先頭 BOM を保つ `-text` の `.ps1`）のもとで通常の checkout と byte 一致する。`.gitattributes` がこれと大きく異なるリポジトリでは、利用前に再検証すること
    任意の後片付け：`.liplus-extract/` 配下の、現在の対象タグ以外のタグの抽出ディレクトリは削除してよい。対象タグが進んだ時点で Phase 4 はそれを読まなくなる
-4. ソースファイルは `{resolved_source_root}` で参照可能な状態になる。Phase 4（clone モード）内の `LI_PLUS_REPO/<path>` という表記はすべて、`{workspace_root}/{repo_dir}` の working tree ではなく `{resolved_source_root}/<path>` を指す——working tree の checkout 状態は、どの branch・どの commit であっても、もはや Phase 4 の解決対象ではない。これは 4c.2 / 4c.3 の stale 削除手順も同時に直す：「LI_PLUS_REPO/rules/ の対応パスに存在しない」がタグ固定の抽出に対して判定されるようになるため、対象タグには存在するが clone の working tree がたまたま乗っていた branch には無かっただけのファイルを削除することがなくなる。読み込みは Phase 4 が担う
+4. ソースファイルは `{resolved_source_root}` で参照可能な状態になる。Phase 4（clone モード）内の `LI_PLUS_REPO/<path>` という表記はすべて、`{workspace_root}/{repo_dir}` の working tree ではなく `{resolved_source_root}/<path>` を指す——working tree の checkout 状態は、どの branch・どの commit であっても、もはや Phase 4 の解決対象ではない。読み込みは Phase 4 が担う
 
 ---
 
@@ -187,7 +187,7 @@ host OS は adapter 種別（runtime=claude / runtime=codex）から推測しな
   - 既存の `{workspace_root}/.claude/hooks/*.sh` 内のソースタグを確認（例: `# Source: adapter/claude/hooks/on-session-start.sh (build-2026-03-30.14)`）
   - 現在のターゲットタグと一致 → スキップ（最新）
   - 不一致またはタグなし → `adapter/claude/hooks/*.sh` を再コピーし、`{LI_PLUS_TAG}` を現在のターゲットタグへ置換（settings.json は再生成しない）
-- `on-session-start.sh` が Cold-start Synthesis 素材の emitter。stdout はセッション開始コンテキストへ注入される（Claude Code SessionStart 契約）。素材は `rules/evolution/cold-start-synthesis.md` の anchor（H1 preamble のみ）、直近の `docs/Decision-Structure.md` 先頭、`rules/` のパスツリー、最新リリースタグ、open in-progress issue、self-evaluation 先頭、promotion candidates、self-evolution observation surface（due / overdue）。素材の正本一覧と section key は [6. Adapter — on-session-start.sh](6.-Adapter#on-session-startsh) を参照する。synthesis は hook ではなく Character_Instance を介して AI が行う
+- `on-session-start.sh` が Cold-start Synthesis 素材の emitter。stdout はセッション開始コンテキストへ注入される（Claude Code SessionStart 契約）。素材は `rules/evolution/cold-start-synthesis.md` の anchor（H1 preamble のみ）、直近の `docs/Decision-Structure.md` 先頭、`rules/` のパスツリー、最新リリースタグ、open in-progress issue、self-evaluation 先頭、promotion candidates、self-evolution observation surface（due / overdue）。素材の正本一覧と section key は [6. Adapter — on-session-start.sh](6.-Adapter#on-session-startsh) を参照する。rules / skills / docs から読む素材（cold-start anchor、Decision-Structure 先頭、rules ツリー、promotion candidates の rules / skills 本文キーワード走査）は、clone の working tree ではなく、adapter 自身のインストール済み sentinel タグに固定した LI_PLUS_REPO clone の `git archive` 抽出から読む（sentinel タグが解決できない場合や抽出に失敗した場合は working tree にフォールバック）。synthesis は hook ではなく Character_Instance を介して AI が行う
 - `.sh` ファイルには実行権限を付与
 
 **4c.5. cold-start state ディレクトリの準備（diff-only 出力の永続化）**
@@ -271,7 +271,7 @@ Codex ホストでは Phase 4 claude branch と同型に adapter / skills / hook
 - `{workspace_root}/.codex/hooks/*.{ps1,sh}` の tag 追跡再生成:
   - 既存ファイルの `# Source: ... (build-...)` 行のタグを確認。一致でスキップ、不一致 / タグなしで再コピー（バイト忠実 .ps1 + `{LI_PLUS_TAG}` 置換）
   - 再生成は hook 内容ハッシュを変えるため Codex の GUI trust を**無効化**する。完了報告で再 trust を案内する
-- `on-session-start` が Codex の rules 注入 + Cold-start Synthesis 素材 emitter。LI_PLUS_REPO clone の `rules/**/*.md` を読み literal を `additionalContext` で注入（Claude の `.claude/rules/` 常時フォルダの Codex 代替）+ update-status marker（LI_PLUS_UPDATE_STATUS、startup matcher 限定）+ language contract marker（LI_PLUS_BASE_LANGUAGE / LI_PLUS_PROJECT_LANGUAGE、全 matcher）+ diff-only cold-start 素材。synthesis は hook ではなく Character_Instance を介して AI が行う
+- `on-session-start` が Codex の rules 注入 + Cold-start Synthesis 素材 emitter。`rules/**/*.md`、および `docs/Decision-Structure.md` と `skills/*/SKILL.md` を、clone の working tree ではなく、adapter 自身のインストール済み sentinel タグに固定した LI_PLUS_REPO clone の `git archive` 抽出から読む（working tree の checkout 位置は他セッションと共有されており、この hook が依存してよい解決面ではない。sentinel タグが解決できない場合や抽出に失敗した場合は working tree にフォールバック）。rules の literal を `additionalContext` で注入（Claude の `.claude/rules/` 常時フォルダの Codex 代替）+ update-status marker（LI_PLUS_UPDATE_STATUS、startup matcher 限定）+ language contract marker（LI_PLUS_BASE_LANGUAGE / LI_PLUS_PROJECT_LANGUAGE、全 matcher）+ diff-only cold-start 素材。synthesis は hook ではなく Character_Instance を介して AI が行う
 - `.sh` ファイルに実行権限を付与（`.ps1` は `powershell -File` 経由で呼ばれるため実行ビット不要）
 
 **4x.4. cold-start state ディレクトリの準備（diff-only 出力の永続化）**

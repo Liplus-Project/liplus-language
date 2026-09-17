@@ -258,8 +258,12 @@ def arm_command(probe: str, model: str) -> list[str]:
     ]
 
 
-def skill_invocations(stdout: str) -> list[dict[str, Any]]:
-    """Every `Skill` tool_use in a stream-json capture, in the order it appeared."""
+def _tool_use_blocks(stdout: str) -> list[dict[str, Any]]:
+    """Every `tool_use` block in a stream-json capture, in the order it appeared.
+
+    The one reader both observables below are taken from, so the Skill count and the
+    whole-stream name list cannot disagree about which blocks the stream carried.
+    """
     found: list[dict[str, Any]] = []
     for raw_line in stdout.splitlines():
         line = raw_line.strip()
@@ -278,11 +282,35 @@ def skill_invocations(stdout: str) -> list[dict[str, Any]]:
         if not isinstance(content, list):
             continue
         for block in content:
-            if not isinstance(block, dict):
-                continue
-            if block.get("type") == "tool_use" and block.get("name") == SKILL_TOOL_NAME:
-                found.append({"id": block.get("id"), "input": block.get("input")})
+            if isinstance(block, dict) and block.get("type") == "tool_use":
+                found.append(block)
     return found
+
+
+def skill_invocations(stdout: str) -> list[dict[str, Any]]:
+    """Every `Skill` tool_use in a stream-json capture, in the order it appeared."""
+    return [
+        {"id": block.get("id"), "input": block.get("input")}
+        for block in _tool_use_blocks(stdout)
+        if block.get("name") == SKILL_TOOL_NAME
+    ]
+
+
+def tool_use_names(stdout: str) -> list[str]:
+    """The name of every tool_use in the stream, in order, whatever the tool.
+
+    Issue #1992: a `Skill` count answers whether a description was matched, and
+    says nothing about what the session then did. Whether a question that needed
+    looking up was looked up - and one that did not was left alone - is read off
+    the calls the session made, so every name is kept, repeats included. Inputs
+    are not kept here: `skill_tool_uses` already carries the one input a firing
+    count needs, and a query string is not what the reading turns on.
+    """
+    names: list[str] = []
+    for block in _tool_use_blocks(stdout):
+        name = block.get("name")
+        names.append(name if isinstance(name, str) else "")
+    return names
 
 
 def terminal_result(stdout: str) -> dict[str, Any] | None:
@@ -364,6 +392,7 @@ def run_arm(
         "terminal_result": terminal_result(completed.stdout),
         "skill_tool_use_count": len(invocations),
         "skill_tool_uses": invocations,
+        "tool_use_names": tool_use_names(completed.stdout),
         "stderr_tail": completed.stderr[-2000:],
     }
 

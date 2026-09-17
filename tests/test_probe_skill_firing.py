@@ -234,6 +234,91 @@ class ObservableReadingTest(unittest.TestCase):
         self.assertEqual(counts["a"], {"runs": 3, "fired": 1, "unreadable": 1})
 
 
+class ToolUseNamesTest(unittest.TestCase):
+    """Issue #1992: every tool call is recorded by name, and the Skill count is not moved.
+
+    Retrieval behaviour is read off the calls a session made, not off whether a skill
+    fired, so the name list has to carry every tool - repeats and order included -
+    while `skill_invocations` keeps answering exactly what it answered before.
+    """
+
+    def test_every_tool_use_is_named_in_order(self) -> None:
+        captured = stream(
+            {"type": "system", "subtype": "init"},
+            assistant_tool_use("ToolSearch", "a"),
+            assistant_tool_use("WebSearch", "b"),
+            assistant_tool_use("Skill", "c", {"skill": "x"}),
+            assistant_tool_use("WebSearch", "d"),
+            {"type": "result", "subtype": "success"},
+        )
+        self.assertEqual(
+            module.tool_use_names(captured),
+            ["ToolSearch", "WebSearch", "Skill", "WebSearch"],
+        )
+
+    def test_several_tool_uses_in_one_message_are_all_named(self) -> None:
+        captured = stream(
+            {
+                "type": "assistant",
+                "message": {
+                    "content": [
+                        {"type": "tool_use", "id": "1", "name": "mcp__rag__search", "input": {}},
+                        {"type": "text", "text": "between"},
+                        {"type": "tool_use", "id": "2", "name": "Bash", "input": {}},
+                    ]
+                },
+            }
+        )
+        self.assertEqual(module.tool_use_names(captured), ["mcp__rag__search", "Bash"])
+
+    def test_a_stream_without_tool_calls_names_none(self) -> None:
+        captured = stream(
+            {"type": "assistant", "message": {"content": [{"type": "text", "text": "391"}]}},
+            {"type": "result", "subtype": "success"},
+        )
+        self.assertEqual(module.tool_use_names(captured), [])
+        self.assertEqual(module.tool_use_names(""), [])
+
+    def test_a_tool_result_block_is_not_a_call(self) -> None:
+        captured = stream(
+            {
+                "type": "user",
+                "message": {"content": [{"type": "tool_result", "tool_use_id": "t1"}]},
+            }
+        )
+        self.assertEqual(module.tool_use_names(captured), [])
+
+    def test_the_skill_count_is_unchanged_by_the_other_calls(self) -> None:
+        captured = stream(
+            assistant_tool_use("WebSearch", "w1"),
+            assistant_tool_use("Skill", "s1", {"skill": "a"}),
+            assistant_tool_use("WebFetch", "w2"),
+            assistant_tool_use("Skill", "s2", {"skill": "b"}),
+        )
+        self.assertEqual(
+            module.skill_invocations(captured),
+            [{"id": "s1", "input": {"skill": "a"}}, {"id": "s2", "input": {"skill": "b"}}],
+        )
+        self.assertEqual(
+            module.tool_use_names(captured), ["WebSearch", "Skill", "WebFetch", "Skill"]
+        )
+
+    def test_the_run_result_carries_the_names_beside_the_skill_count(self) -> None:
+        captured = stream(
+            assistant_tool_use("WebSearch", "w"),
+            assistant_tool_use("Skill", "s"),
+            {"type": "result", "subtype": "success", "is_error": False},
+        )
+
+        def runner(*_args: Any, **_kwargs: Any) -> SimpleNamespace:
+            return SimpleNamespace(returncode=0, stdout=captured, stderr="")
+
+        result = module.run_arm(Path("."), "probe", "opus", runner=runner)
+        self.assertEqual(result["tool_use_names"], ["WebSearch", "Skill"])
+        self.assertEqual(result["skill_tool_use_count"], 1)
+        self.assertEqual(result["skill_tool_uses"], [{"id": "s", "input": {}}])
+
+
 class TerminalResultTest(unittest.TestCase):
     """An arm that failed must say why in the record, or it is re-run blind."""
 

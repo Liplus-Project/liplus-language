@@ -16,7 +16,10 @@ complete and report something false:
 - the reading of the observable: a `Skill` tool_use counted from the stream, and an
   unreadable stream kept distinct from a zero count;
 - the hooks condition reaching `materialize_arm` per arm, which is the one place this
-  harness departs from the companion it borrows from.
+  harness departs from the companion it borrows from;
+- the per-arm `skill_override` (issue #1994): applied inside the arm's copy only,
+  refused when it names a skill the arm does not carry, written into the record as
+  applied, and absent from the record of a plan that does not use it.
 
 `rules/model/subtractive-structural-beauty.md` puts a procedure whose execution is not
 guaranteed on the replace-with-a-structure side. These assertions are what keeps those
@@ -467,6 +470,226 @@ class HooksConditionTest(unittest.TestCase):
         self.assertTrue((arm / ".claude" / "hooks" / "on-user-prompt.sh").is_file())
         settings = json.loads((arm / ".claude" / "settings.json").read_text(encoding="utf-8"))
         self.assertIn("hooks", settings)
+
+
+SKILL_TEXT = (
+    "---\n"
+    "name: model-sample\n"
+    "description: Invoke when the old condition holds / or another one.\n"
+    "layer: L1-model\n"
+    "---\n"
+    "\n"
+    "# Sample\n"
+    "\n"
+    "description: a body line that is not frontmatter\n"
+)
+
+
+class SkillOverridePlanTest(unittest.TestCase):
+    """Issue #1994: the override is validated before anything is spent."""
+
+    def _plan(self, override: Any) -> dict[str, object]:
+        data = valid_plan_data()
+        arms = data["arms"]
+        assert isinstance(arms, list)
+        arms[0]["skill_override"] = override
+        return data
+
+    def test_a_plan_without_the_field_carries_no_override(self) -> None:
+        plan = module.load_plan(valid_plan_data())
+        self.assertTrue(all(arm.skill_override is None for arm in plan.arms))
+
+    def test_a_removal_loads(self) -> None:
+        plan = module.load_plan(self._plan({"skill": "model-sample", "remove": True}))
+        override = plan.arms[0].skill_override
+        assert override is not None
+        self.assertEqual(override.as_record(), {"skill": "model-sample", "action": "remove"})
+
+    def test_a_replacement_loads(self) -> None:
+        plan = module.load_plan(self._plan({"skill": "model-sample", "description": "New."}))
+        override = plan.arms[0].skill_override
+        assert override is not None
+        self.assertEqual(
+            override.as_record(),
+            {"skill": "model-sample", "action": "replace_description", "description": "New."},
+        )
+
+    def test_the_override_description_is_not_held_to_the_probe_guard(self) -> None:
+        plan = module.load_plan(
+            self._plan({"skill": "model-sample", "description": "Invoke when a skill applies."})
+        )
+        self.assertIsNotNone(plan.arms[0].skill_override)
+
+    def test_invalid_overrides_are_refused(self) -> None:
+        for override in (
+            "model-sample",
+            {"skill": "model-sample"},
+            {"skill": "model-sample", "remove": True, "description": "x"},
+            {"skill": "model-sample", "remove": False},
+            {"skill": "model-sample", "remove": "yes"},
+            {"skill": "../rules", "remove": True},
+            {"skill": "a/b", "remove": True},
+            {"skill": "model-sample", "description": ""},
+            {"skill": "model-sample", "description": "two\nlines"},
+            {"skill": "model-sample", "remove": True, "extra": 1},
+        ):
+            with self.subTest(override=override):
+                with self.assertRaises(module.PlanError):
+                    module.load_plan(self._plan(override))
+
+
+class SkillOverrideApplyTest(unittest.TestCase):
+    def arm_root(self, text: str = SKILL_TEXT) -> Path:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name) / "arm"
+        skill_dir = root / ".claude" / "skills" / "model-sample"
+        skill_dir.mkdir(parents=True)
+        (skill_dir / "SKILL.md").write_bytes(text.encode("utf-8"))
+        (skill_dir / "references.md").write_text("extra\n", encoding="utf-8")
+        other = root / ".claude" / "skills" / "model-other"
+        other.mkdir(parents=True)
+        (other / "SKILL.md").write_text(SKILL_TEXT, encoding="utf-8")
+        return root
+
+    def test_removal_drops_only_the_named_skill(self) -> None:
+        root = self.arm_root()
+        applied = module.apply_skill_override(
+            root, module.SkillOverride("model-sample", True, None)
+        )
+        self.assertEqual(applied, {"skill": "model-sample", "action": "remove"})
+        self.assertFalse((root / ".claude" / "skills" / "model-sample").exists())
+        self.assertTrue((root / ".claude" / "skills" / "model-other" / "SKILL.md").is_file())
+
+    def test_replacement_changes_the_frontmatter_line_only(self) -> None:
+        root = self.arm_root()
+        new = 'When confidence is low: "fuzzy" or mixed with speculation.'
+        applied = module.apply_skill_override(
+            root, module.SkillOverride("model-sample", False, new)
+        )
+        self.assertEqual(applied["description"], new)
+        text = (root / ".claude" / "skills" / "model-sample" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        expected = SKILL_TEXT.replace(
+            "description: Invoke when the old condition holds / or another one.\n",
+            "description: " + json.dumps(new, ensure_ascii=False) + "\n",
+        )
+        self.assertEqual(text, expected)
+        self.assertIn("description: a body line that is not frontmatter", text)
+        other = (root / ".claude" / "skills" / "model-other" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertEqual(other, SKILL_TEXT)
+
+    def test_replacement_keeps_crlf_line_endings(self) -> None:
+        root = self.arm_root(SKILL_TEXT.replace("\n", "\r\n"))
+        module.apply_skill_override(root, module.SkillOverride("model-sample", False, "New."))
+        raw = (root / ".claude" / "skills" / "model-sample" / "SKILL.md").read_bytes()
+        self.assertIn(b'description: "New."\r\n', raw)
+        self.assertNotIn(b"\r\r\n", raw)
+
+    def test_a_skill_the_arm_does_not_carry_is_refused(self) -> None:
+        root = self.arm_root()
+        for override in (
+            module.SkillOverride("model-absent", True, None),
+            module.SkillOverride("model-absent", False, "New."),
+        ):
+            with self.subTest(override=override):
+                with self.assertRaises(measure_rule_effect.HarnessError):
+                    module.apply_skill_override(root, override)
+
+    def test_a_description_the_rewrite_cannot_replace_exactly_is_refused(self) -> None:
+        for text in (
+            "# no frontmatter\n",
+            "---\nname: model-sample\n",
+            "---\nname: model-sample\n---\n",
+            "---\ndescription: a\ndescription: b\n---\n",
+            "---\ndescription: >\n  folded\n---\n",
+            "---\ndescription: first\n  continued\n---\n",
+        ):
+            with self.subTest(text=text):
+                root = self.arm_root(text)
+                with self.assertRaises(measure_rule_effect.HarnessError):
+                    module.apply_skill_override(
+                        root, module.SkillOverride("model-sample", False, "New.")
+                    )
+
+
+class SkillOverrideRecordTest(unittest.TestCase):
+    def test_a_plan_without_overrides_records_the_arms_as_before(self) -> None:
+        plan = module.load_plan(valid_plan_data())
+        record = module.build_run_record(
+            plan, Path("/source"), plan.arms, [], module.datetime.now(module.timezone.utc)
+        )
+        for arm in record["arms"]:
+            self.assertEqual(
+                sorted(arm), ["control", "hooks", "name", "probe", "repetitions"]
+            )
+
+    def test_the_record_names_the_override(self) -> None:
+        data = valid_plan_data()
+        arms = data["arms"]
+        assert isinstance(arms, list)
+        arms[0]["skill_override"] = {"skill": "model-sample", "remove": True}
+        plan = module.load_plan(data)
+        record = module.build_run_record(
+            plan, Path("/source"), plan.arms, [], module.datetime.now(module.timezone.utc)
+        )
+        self.assertEqual(
+            record["arms"][0]["skill_override"], {"skill": "model-sample", "action": "remove"}
+        )
+        self.assertNotIn("skill_override", record["arms"][1])
+
+    def test_a_dry_run_applies_and_records_the_override_in_provenance(self) -> None:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        base = Path(tmp.name)
+        source = base / "workspace"
+        skill_dir = source / ".claude" / "skills" / "model-sample"
+        skill_dir.mkdir(parents=True)
+        (skill_dir / "SKILL.md").write_text(SKILL_TEXT, encoding="utf-8")
+        (source / ".claude" / "rules").mkdir()
+        (source / ".claude" / "rules" / "r.md").write_text("rule\n", encoding="utf-8")
+        (source / "CLAUDE.md").write_text("# host\n", encoding="utf-8")
+        (source / "Li+config.md").write_text("LI_PLUS_MODE=clone\n", encoding="utf-8")
+
+        data = valid_plan_data()
+        arms = data["arms"]
+        assert isinstance(arms, list)
+        arms[0]["skill_override"] = {"skill": "model-sample", "description": "New."}
+        plan_path = base / "plan.json"
+        plan_path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+        out = base / "record.json"
+
+        code = module.main(
+            [
+                str(plan_path),
+                "--source-root",
+                str(source),
+                "--base-dir",
+                str(base / "harness"),
+                "--out",
+                str(out),
+                "--dry-run",
+            ]
+        )
+        self.assertEqual(code, 0)
+        record = json.loads(out.read_text(encoding="utf-8"))
+        self.assertEqual(
+            record["provenance"]["a-on"]["skill_override_applied"],
+            {"skill": "model-sample", "action": "replace_description", "description": "New."},
+        )
+        self.assertNotIn("skill_override_applied", record["provenance"]["d"])
+        self.assertEqual(
+            record["provenance"]["a-on"]["rules_digest"],
+            record["provenance"]["d"]["rules_digest"],
+        )
+        self.assertNotEqual(
+            record["provenance"]["a-on"]["arm_digest"],
+            record["provenance"]["d"]["arm_digest"],
+        )
+        self.assertEqual((skill_dir / "SKILL.md").read_text(encoding="utf-8"), SKILL_TEXT)
 
 
 if __name__ == "__main__":

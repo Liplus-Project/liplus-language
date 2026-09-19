@@ -63,7 +63,11 @@ class CheckWebhookNotificationsTest(unittest.TestCase):
             self.assertEqual(resolved, parent_candidate)
 
     def test_resolve_state_dir_rejects_directory_without_state_dir_shape(self) -> None:
-        """A name-only match (the tool's own source checkout) must not resolve."""
+        """The measured state: `b` exists carrying no marker, `c` absent, result is None.
+
+        Shape check fixed at `rules/operations/main-agent-procedures.md`
+        Foreground webhook notification intake, state dir shape check.
+        """
         with tempfile.TemporaryDirectory() as tmp:
             workspace_root = Path(tmp) / "Code"
             source_checkout = workspace_root / "github-webhook-mcp"

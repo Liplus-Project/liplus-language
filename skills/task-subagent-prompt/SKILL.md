@@ -4,6 +4,33 @@ description: Invoke when a subagent delegation prompt is being composed / exampl
 layer: L3-task
 ---
 
+<role-literal-implementation-delegate>
+
+# Role literal: implementation delegate
+
+On Claude Code, `adapter/claude/agents/` carries no per-role definition file (#1972: reorganized into `low.md` / `medium.md` / `high.md`, each fixing effort only — no role, no procedure). The implementation-delegate role that used to live in `adapter/claude/agents/implementer.md`'s body has one home now, and this is it: every delegation prompt composed under `skills/task-subagent-delegation/SKILL.md` injects the literal below verbatim, before any mode-specific or resume-phase addition. Copy it; do not re-compose it per spawn — same discipline as the no-write literal at `skills/evolution-parallel-agent-eval/SKILL.md` Constraint: Evaluator does not modify the evaluation target.
+
+> You are the Li+ implementation delegate. A parent agent hands you one issue's change; you carry it to the stop condition, report there, and exit.
+>
+> What you execute is fixed by `skills/task-subagent-delegation/SKILL.md` Rules, split by execution mode. Where your session ends is fixed by `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition. Read both at the moment they apply. Neither is restated here; the second copy is what drifts.
+>
+> Li+ rules load into your context without being invoked (`rules/**/*.md`), and Li+ skills invoke on description match (`skills/*/SKILL.md`).
+>
+> Standing bounds on this role:
+>
+> - Work inside the path the delegation gave you, on the branch it arrived on. Do not create, move, or remove worktrees.
+> - Do not spawn subagents of your own (Bounded delegation, below).
+> - Do not post the self-review record and do not merge. Those actors are fixed elsewhere and neither is you.
+> - Report at the stop condition and exit. The parent holds the judgment; forming it for them is not your share.
+>
+> Correctness is repository state, not local success: the issue's requirement met in the pushed diff, with CI green on it.
+
+Spawn call: one of `subagent_type: low` / `medium` / `high`, selected by the parent against the work that delegation carries (criteria = `skills/task-subagent-spawn/SKILL.md` Subagent Model Policy). The role is not what picks it: the literal above is injected whichever of the three the spawn names, and the same holds of the `model` axis. Do not write a role fragment into `adapter/claude/agents/{low,medium,high}.md` — those files fix effort only, per their own body.
+
+The Codex port is unaffected: `adapter/codex/agents/implementer.toml` still carries its own role body and is out of scope for this split (Master agreement, 2026-09-14, tracked separately from #1972).
+
+</role-literal-implementation-delegate>
+
 <mode-specific-delegation-injection>
 
 # Mode-specific delegation injection
@@ -87,7 +114,7 @@ Detection signs:
 
 # Bounded delegation: prohibit recursive subagent spawn
 
-A subagent with Agent tool access (`Tools: *`) defaults to the same fan-out instinct the parent has — the Li+ implementation delegate `implementer`, which names no `tools` and so takes the default set, and the host's built-in general-purpose agent alike: when its assigned task looks like it has multiple independent sub-checks, it may spawn its own nested Agent-tool children rather than executing directly. Absent an explicit prohibition, this can cascade at every level — each hop adds real API cost with no visible warning until the rate limit wall is hit, and the top-level report ends up as coordinator meta-commentary ("waiting for background agent") instead of actual findings.
+A subagent with Agent tool access (`Tools: *`) defaults to the same fan-out instinct the parent has — the Li+ implementation delegate, spawned under one of the effort-named agents on Claude Code (Role literal: implementation delegate, above) or `implementer` on Codex, neither of which names `tools` and so both take the default set, and the host's built-in general-purpose agent alike: when its assigned task looks like it has multiple independent sub-checks, it may spawn its own nested Agent-tool children rather than executing directly. Absent an explicit prohibition, this can cascade at every level — each hop adds real API cost with no visible warning until the rate limit wall is hit, and the top-level report ends up as coordinator meta-commentary ("waiting for background agent") instead of actual findings.
 
 How to apply:
 - When delegating a bounded read-only investigation (audit / consistency check / grep-and-report) to a subagent, explicitly state in the prompt: "Do this yourself directly using Read/Grep/Bash — do not spawn further subagents via the Agent tool for this task."

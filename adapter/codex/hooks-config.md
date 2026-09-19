@@ -213,7 +213,11 @@ is `.ps1` (Windows native, primary on the verified Codex Windows env) + `.sh`
   update-status marker (`LI_PLUS_UPDATE_STATUS`, startup only) + language contract
   marker (`LI_PLUS_BASE_LANGUAGE` / `LI_PLUS_PROJECT_LANGUAGE`, every matcher) +
   diff-only Cold-start Synthesis
-  material. State at `{workspace_root}/.codex/state/last-cold-start-emit.json`.
+  material. State at `{workspace_root}/.codex/state/last-cold-start-emit.json`,
+  partitioned by `LI_PLUS_AGENT_KEY` (env var, default `default`, #1811) so two
+  sessions sharing one working directory each keep their own diff-only
+  baseline — see `rules/evolution/cold-start-synthesis.md` Hook Emission
+  Contract and `adapter/claude/hooks-settings.md`.
   On `resume` / `clear` / `compact`: rules re-injection + language contract marker
   + cold-start anchor only.
 - `adapter/codex/hooks/on-user-prompt.{ps1,sh}` — per-turn Trigger Check Gate

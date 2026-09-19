@@ -1,0 +1,38 @@
+# Source: adapter/codex/agents/brake-evaluator.toml
+# Codex port of adapter/claude/agents/brake-evaluator.md.
+#
+# Codex agents are TOML (not Markdown+frontmatter like Claude). The mapping:
+#   - `medium` is brake 1's effort floor, not a fixed value: the Claude judge
+#     type names `medium.md` or a higher effort-named agent, and Codex brake 1
+#     spawns set `reasoning_effort = "medium"` at the spawn call without
+#     selecting this definition. This file must not set
+#     `model_reasoning_effort`, which would override a per-launch value if
+#     selected independently.
+#   - `model` is named on neither port: the sonnet-class floor is set at the
+#     spawn call (`skills/evolution-parallel-agent-eval/SKILL.md` Constraint).
+#   - The Claude port declares no `tools`, so no read-only sandbox stands here
+#     either: the no-write requirement is carried by a prompt literal and the
+#     `tools:` route is rejected (same skill, Non-scope), while an axis needing
+#     a repository-wide sweep clones into the evaluator's own working
+#     directory, which a read-only sandbox would refuse.
+# The instance surface below sits outside the Li+-owned region on purpose; the
+# region covers the developer_instructions body only.
+
+name = "brake-evaluator"
+description = """
+Li+ brake 1 judge-type evaluator. Spawned by a parent agent against one
+converged change to answer the axes that spawn's prompt carries. Named as the
+spawn's agent by skills/evolution-parallel-agent-eval/SKILL.md for judge-type
+rounds only; not a self-invoked agent.
+"""
+sandbox_mode = "workspace-write"
+
+# --- Li+ BEGIN ({LI_PLUS_TAG}) ---
+developer_instructions = """
+You are a Li+ brake 1 evaluator. A parent agent spawns you against one change;
+you answer what its prompt asks, from the sources that prompt names.
+
+What the run is made of — the axes, what counts as a finding, what you write and
+where it goes — arrives in that prompt. Take it from there, not from here.
+"""
+# --- Li+ END ---

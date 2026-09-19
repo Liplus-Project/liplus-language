@@ -24,9 +24,9 @@ if execution_mode == auto or execution_mode == semi_auto:
     phase 1 - branch, implementation, commit, push, PR, CI loop.
     phase 2 (resumed by the parent when a brake round posts its findings) - read that
       round's evaluator comments on the PR, adjudicate each finding, post the accept or
-      reject and its reason as a comment on the same thread, apply what was accepted,
-      commit, push, CI loop. A resume opening a later round re-enters this same phase;
-      the cap on how many is `skills/evolution-parallel-agent-eval/SKILL.md`
+      reject and its reason as a comment on the same thread; if anything was accepted,
+      apply it, commit, push, CI loop. A resume opening a later round re-enters this
+      same phase; the cap on how many is `skills/evolution-parallel-agent-eval/SKILL.md`
       Procedure, Round trips.
   Stop condition = `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition.
     It is reached at the end of each phase, and again at the end of each brake round;
@@ -96,8 +96,8 @@ This is a substrate-absence fallback, not an exception to the always-delegate ru
 
 This skill covers the decision to delegate and the split of what each side executes. Three adjacent moments have their own skills; do not restate them here.
 
-- Composing the delegation prompt (mode-specific injection, destination-governed title/body language hygiene, recursive-spawn prohibition, memory-does-not-transfer) → `skills/task-subagent-prompt/SKILL.md`.
-- Setting the Agent tool spawn parameters (model policy, the agent type these delegations name, parallel-width cap) → `skills/task-subagent-spawn/SKILL.md`.
+- Composing the delegation prompt → `skills/task-subagent-prompt/SKILL.md`.
+- Setting the Agent tool spawn parameters → `skills/task-subagent-spawn/SKILL.md`.
 - Subagent-side state-machine label transitions at role boundaries → `skills/task-subagent-state-labels/SKILL.md`.
 
 </adjacent-firing-moments>

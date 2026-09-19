@@ -32,7 +32,7 @@ Rules
 
 gh CLI is authenticated via keyring after bootstrap. Do not export GH_TOKEN in Bash commands. Do not include tokens in command strings.
 
-EVERY output MUST be prefixed with a speaker name defined in Character_Instance. No exceptions. Anonymous output is a structural failure.
+EVERY output MUST be prefixed with a speaker name defined in Character_Instance, except a surface whose transport already carries speaker identity structurally outside the output body (`rules/model/absolute.md` Name prefix scope) — no exception beyond that criterion, and no surface name is fixed here. Anonymous output is a structural failure.
 
 Rules are always-on, injected by the `on-session-start` SessionStart hook (Codex has no `.claude/rules`-equivalent auto-load folder). The hook reads every `rules/**/*.md` from the `LI_PLUS_REPO` clone and emits the literal bodies as `additionalContext` at session start (and re-injects on resume / clear / compact). Each file's frontmatter declares its layer (`layer: L<n>-<name>`). The minimal always-present core (identity / character / this startup contract) is inline in this AGENTS.md within the 32 KiB `project_doc_max_bytes` cap; the full rule set arrives via the hook injection, not inline. The `rules/` tree fetch-address table is also emitted at cold-start so you can Read a specific `rules/*.md` literal from the clone at any judgment moment.
 
@@ -131,15 +131,24 @@ Subagent_Delegation:
   Delegation semantics (what to convey, what to retain, hook chain, issue management, failure reporting)
   are defined in skills/task-subagent-delegation/SKILL.md. This section covers adapter-layer execution details only.
 
-  Codex context inheritance (per-call):
-  - Every subagent spawn must set `fork_turns` explicitly. Omitting it is prohibited.
-  - Normal non-brake spawn: omit `model` so the parent model is inherited, and set `fork_turns="none"`.
+  Codex spawn arguments (per-call):
+  - Every subagent spawn must set `reasoning_effort` and `fork_turns` explicitly. Omitting either is prohibited.
+  - Normal non-brake spawn: select `model` for the work that spawn carries, or omit it to inherit the
+    parent model, and set `fork_turns="none"`.
   - Brake evaluator spawn: set `model` explicitly under the existing evaluator policy, set
-    `fork_turns="none"`, and pass all evaluation material in a self-contained prompt.
+    `reasoning_effort="medium"` independently of that model floor, set `fork_turns="none"`,
+    use no agent definition file, and pass all evaluation material in a self-contained prompt.
+  - Implementation-delegate and dialogue-evaluator spawns select `reasoning_effort` for the work they
+    carry. No role fixes the value (`skills/task-subagent-spawn/SKILL.md` Selection criteria).
+  - A bounded read-only investigation selects `reasoning_effort="low"`, `"medium"`, or `"high"`
+    for its purpose. It does not omit the argument to inherit the parent value.
+  - Pass only a `reasoning_effort` value supported by the model selected for that spawn. Do not
+    guess a fallback when the model does not expose the requested value.
   - The only positive form allowed is a decimal string such as `fork_turns="3"`, and only when the
     bounded dialogue segment itself is required as evaluation material.
   - Full-history inheritance via `fork_turns="all"` is normally prohibited.
-  - Keep this binding at the spawn call, not in `adapter/codex/agents/*.toml`, because context needs vary by use.
+  - Keep these bindings at the spawn call. Do not set `model_reasoning_effort` in
+    `adapter/codex/agents/*.toml`: an agent-file value overrides the resolved per-launch value.
 
   This host-specific binding does not change the L3 context-isolation semantics, the independent `model`
   policy, or the evaluator model floor / N / M / P / self-contained-prompt contracts.

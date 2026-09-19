@@ -64,8 +64,8 @@ Li+リポジトリからLi+ファイルを取得する方法を指定します�
 
 `tag` は CD や手動で tag を切っただけで GitHub Release を未作成の段階の挙動を workspace で検証したい場合に使います。api mode 向け拡張は現時点では対象外です。
 
-`LI_PLUS_MODE=clone` の場合、AI は起動時に現在 checkout 中のタグと、この設定から解決した対象タグを比較します。
-差分があれば、対象タグへ更新するか現行タグのまま続行するかを人間に確認してから進みます。
+`LI_PLUS_MODE=clone` の場合、AI は起動時にこの設定から対象タグを解決し、clone の checkout 位置（HEAD / working tree）には触れずに、そのタグの tree を `git archive` で読み取り専用に取り出してソースとして使います。
+clone の checkout 位置は他セッションと共有されうるため、比較も移動も行いません（詳細は [C. Update](C.-Update) の Phase 3.2）。
 
 ### USER_REPOn_EXE_MODE / LI_PLUS_REPO_EXE_MODE
 

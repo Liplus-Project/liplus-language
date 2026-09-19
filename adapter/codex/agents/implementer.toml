@@ -2,9 +2,14 @@
 # Codex port of adapter/claude/agents/implementer.md.
 #
 # Codex agents are TOML (not Markdown+frontmatter like Claude). The mapping:
-#   - Claude frontmatter `effort: high` maps to model_reasoning_effort = "high".
-#   - `model` is named on neither port: the parent model is inherited by
-#     omission at the spawn call (`skills/task-subagent-spawn/SKILL.md`).
+#   - Neither axis is fixed by this role: the parent selects effort and model
+#     at the spawn call against the work that delegation carries
+#     (`skills/task-subagent-spawn/SKILL.md` Selection criteria). On Claude
+#     Code the effort choice is which effort-named agent the spawn names; on
+#     Codex it is `reasoning_effort`. This file must not set
+#     `model_reasoning_effort`, which would override that per-launch value.
+#   - No model is named on either port: a definition-side value would take the
+#     selection over, and omitting it at the spawn call inherits the parent.
 #   - This role writes to the repository (commit, push, PR), so the sandbox is
 #     workspace-write rather than the evaluator's read-only.
 # The instance surface below sits outside the Li+-owned region on purpose; the
@@ -18,7 +23,6 @@ implementation, commit, push, PR, CI loop, and brake adjudication when resumed.
 Named as the spawn's agent by every delegation under
 skills/task-subagent-delegation/SKILL.md; not a self-invoked agent.
 """
-model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 
 # --- Li+ BEGIN ({LI_PLUS_TAG}) ---

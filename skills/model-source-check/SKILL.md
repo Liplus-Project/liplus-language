@@ -13,7 +13,7 @@ layer: L1-model
 ## Position
 
 Layer = L1 Model Layer
-On-demand action surface of `rules/model/trigger-check-gate.md` Source check axis. Speaker authority does not exempt verification; this skill carries the four-direction verify table, the perfect-defense illusion warning, the relationship framing, and the capability + visibility substrate note.
+On-demand action surface of `rules/model/trigger-check-gate.md` The Gate — 5-axis check, Source check axis. Speaker authority does not exempt verification; this skill carries the four-direction verify table, the perfect-defense illusion warning, the relationship framing, and the capability + visibility substrate note.
 Requires = `rules/model/trigger-check-gate.md` (Source check axis)
 Load timing = on-demand (skill auto-invoke at factual-claim handling)
 

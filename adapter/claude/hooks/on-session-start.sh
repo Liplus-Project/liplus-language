@@ -10,35 +10,53 @@
 #
 # Diff-only emission (matcher = startup only):
 #   Each material section is fingerprinted (sha256 of the raw body) and the
-#   fingerprint set is persisted at {workspace_root}/.claude/state/last-cold-start-emit.json.
-#   On the next startup the hook compares current fingerprints to the stored set
-#   and emits only sections whose body changed. The cold-start rule anchor is
-#   always emitted (drift recovery anchor), as are the two date-driven surfaces:
-#   the self-evolution observation surface and the promotion tally expiry surface
-#   (see their gather blocks). When no section changed and neither of those two
-#   has anything due, a single
+#   fingerprint set is persisted at {workspace_root}/.claude/state/last-cold-start-emit.json,
+#   under the partition named by AGENT_KEY (see below). On the next startup
+#   the hook compares current fingerprints to the stored set for that same
+#   partition and emits only sections whose body changed. The cold-start rule
+#   anchor is always emitted (drift recovery anchor), as are the two
+#   date-driven surfaces: the self-evolution observation surface and the
+#   promotion tally expiry surface (see their gather blocks). When no section
+#   changed and neither of those two has anything due, a single
 #   "No new orientation material since last session" marker is emitted so the
 #   human can still observe that a session boundary occurred.
 #
-#   Fail-safe: missing state, unreadable state, malformed JSON, or sha256/node
-#   tool absence collapses to "full emit" (every available section) and
-#   rewrites the state. A corrupted diff is heavier than a redundant full emit.
-#   JSON read/write uses Node.js (`node -e`), not an external `jq` binary —
-#   node is the runtime Claude Code itself depends on, so it is a safe
-#   assumption and removes a previously-common fail-safe trigger.
+#   Fail-safe: missing state, unreadable state, malformed JSON, legacy
+#   pre-#1811 schema, no recorded entry yet for this run's AGENT_KEY, or
+#   sha256/node tool absence collapses to "full emit" (every available
+#   section) and rewrites the state. A corrupted diff is heavier than a
+#   redundant full emit. JSON read/write uses Node.js (`node -e`), not an
+#   external `jq` binary — node is the runtime Claude Code itself depends on,
+#   so it is a safe assumption and removes a previously-common fail-safe
+#   trigger.
 #
 #   resume / clear / compact / fork matchers do not run diff comparison (the
 #   work context is continuous; only the cold-start rule anchor is
 #   re-anchored).
+#
+#   Multi-session partition (#1811): the state file's "agents" map holds one
+#   independent {sections, last_emit_at} entry per AGENT_KEY value (env var
+#   LI_PLUS_AGENT_KEY, default "default"). See the AGENT_KEY declaration
+#   below and rules/evolution/cold-start-synthesis.md Hook Emission
+#   Contract.
 export PATH="$HOME/.local/bin:$PATH"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
-COLDSTART_MD="$LIPLUS_DIR/rules/evolution/cold-start-synthesis.md"
-DECISION_STRUCTURE="$LIPLUS_DIR/docs/Decision-Structure.md"
+# COLDSTART_MD / DECISION_STRUCTURE are set below, after the ref-pinned
+# source extraction (#1982) — they read against SOURCE_ROOT, not LIPLUS_DIR.
 STATE_DIR="$PROJECT_ROOT/.claude/state"
 STATE_FILE="$STATE_DIR/last-cold-start-emit.json"
 ADAPTER_FILE="$PROJECT_ROOT/.claude/CLAUDE.md"
 CONFIG_FILE="$PROJECT_ROOT/Li+config.md"
+
+# Multi-session state partition key (#1811). Unset (the common,
+# single-session-per-workspace case) resolves to the fixed key "default"
+# and reproduces the pre-#1811 single-partition behavior exactly. Set
+# distinctly per person's own launch profile (shell env) only in a
+# workspace where multiple sessions share this directory concurrently, so
+# each person's diff-only baseline stays independent of the other's reads.
+# See rules/evolution/cold-start-synthesis.md Hook Emission Contract.
+AGENT_KEY="${LI_PLUS_AGENT_KEY:-default}"
 
 # ===================================================================
 # Prerequisite install: gh CLI
@@ -210,6 +228,33 @@ ADAPTER_TAG=""
 if [ -f "$ADAPTER_FILE" ]; then
   ADAPTER_TAG=$(sed -n 's/^# --- Li+ BEGIN (\([^)]*\)) ---.*/\1/p' "$ADAPTER_FILE" | head -n 1)
 fi
+
+# ===================================================================
+# Ref-pinned source extraction (#1982): every read of rules/ skills/ docs/
+# content below resolves against the clone's object database at the
+# adapter's OWN installed sentinel tag (ADAPTER_TAG, just extracted above),
+# not against the clone's working tree. The clone's HEAD/working tree is
+# shared with other sessions and with Phase 5's USER_REPO dev-checkout of
+# this same repository (Li+update.md Phase 5.1), and its position is no
+# longer a resolution surface Li+update or this hook may depend on
+# (Li+update.md Phase 3.2). Reading ADAPTER_TAG rather than the newest
+# available tag means a workspace mid-way between two tags still reads the
+# tag its OWN installed hook was generated from.
+# Extraction failure (tag not fetched locally, no git/tar on PATH, or no
+# sentinel yet on a pre-Li+update session) falls back to LIPLUS_DIR itself
+# — the pre-#1982 behavior — rather than emitting nothing.
+SOURCE_ROOT="$LIPLUS_DIR"
+if [ -n "$ADAPTER_TAG" ] && [ -e "$LIPLUS_DIR/.git" ] && command -v git >/dev/null 2>&1 && command -v tar >/dev/null 2>&1; then
+  GIT_TREE_TMP=$(mktemp -d 2>/dev/null || echo "/tmp/liplus-tree-$$")
+  if git -C "$LIPLUS_DIR" archive "$ADAPTER_TAG" -- rules skills docs 2>/dev/null | tar -x -C "$GIT_TREE_TMP" 2>/dev/null; then
+    SOURCE_ROOT="$GIT_TREE_TMP"
+    trap 'rm -rf "$GIT_TREE_TMP" 2>/dev/null' EXIT
+  else
+    rm -rf "$GIT_TREE_TMP" 2>/dev/null
+  fi
+fi
+COLDSTART_MD="$SOURCE_ROOT/rules/evolution/cold-start-synthesis.md"
+DECISION_STRUCTURE="$SOURCE_ROOT/docs/Decision-Structure.md"
 
 # Resolve LI_PLUS_CHANNEL from config (default = release, matches Li+update.md Phase 3.1).
 LI_PLUS_CHANNEL_VAL=""
@@ -414,8 +459,8 @@ register_section "decision_structure_head" "Decision structure index (docs/Decis
 # Scope = rules/ only. skills/ is handled by the host auto-invoke router on a
 # separate axis; adapter/ is not a judgment-time fetch target.
 RULES_TREE=""
-if [ -d "$LIPLUS_DIR/rules" ]; then
-  RULES_TREE=$(cd "$LIPLUS_DIR" && find rules -type f -name '*.md' 2>/dev/null | LC_ALL=C sort)
+if [ -d "$SOURCE_ROOT/rules" ]; then
+  RULES_TREE=$(cd "$SOURCE_ROOT" && find rules -type f -name '*.md' 2>/dev/null | LC_ALL=C sort)
 fi
 register_section "rules_tree" "Rules tree (fetch address table for rules/ cache)" "$RULES_TREE"
 
@@ -897,10 +942,10 @@ if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
             print lbl "\t" $0
           }' >> "$TMP_TOKENS"
   done < <(memory_entry_files "$MEMORY_DIR")
-  find "$LIPLUS_DIR/rules" -type f -name '*.md' 2>/dev/null > "$TMP_SRCLIST"
-  find "$LIPLUS_DIR/skills" -maxdepth 2 -type f -name 'SKILL.md' 2>/dev/null >> "$TMP_SRCLIST"
+  find "$SOURCE_ROOT/rules" -type f -name '*.md' 2>/dev/null > "$TMP_SRCLIST"
+  find "$SOURCE_ROOT/skills" -maxdepth 2 -type f -name 'SKILL.md' 2>/dev/null >> "$TMP_SRCLIST"
   if [ -s "$TMP_TOKENS" ] && [ -s "$TMP_SRCLIST" ]; then
-    OVERLAP_ALL=$(awk -v n="$THRESHOLD_N" -v root="$LIPLUS_DIR/" '
+    OVERLAP_ALL=$(awk -v n="$THRESHOLD_N" -v root="$SOURCE_ROOT/" '
       # pass 1: "<entry label>\t<token>" lines
       NR == FNR {
         sep = index($0, "\t")
@@ -1272,7 +1317,9 @@ fi
 
 # Read prior state, if present and parseable. On success, PRIOR_FP_DUMP holds
 # one "key<TAB>fingerprint" line per recorded section (flat text, easy to
-# grep from bash without needing associative arrays).
+# grep from bash without needing associative arrays). Read scope is this
+# run's own AGENT_KEY partition only (state.agents[AGENT_KEY]) — a sibling
+# partition under a different key is invisible here by design (#1811).
 PRIOR_FP_DUMP=""
 # Left empty when the state holds no well-formed stamp; that only drops the
 # read-back line below, and is never a reason to fall through to full emit.
@@ -1285,25 +1332,52 @@ if [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ]; then
         const raw = fs.readFileSync(process.argv[1], "utf8");
         const data = JSON.parse(raw);
         const obj = (data && typeof data === "object") ? data : {};
-        const stamp = obj.last_emit_at;
+        const key = process.argv[2];
+        const agents = (obj.agents && typeof obj.agents === "object") ? obj.agents : null;
+        if (!agents) {
+          // Legacy pre-#1811 single-partition shape ({sections,last_emit_at}
+          // at the root, no "agents" map at all) — nothing to migrate byte
+          // for byte; the write below re-establishes the new shape instead.
+          process.exit(3);
+        }
+        const entry = agents[key];
+        if (!entry || typeof entry !== "object") {
+          // This agent key has never been recorded (first use of this key —
+          // including "default" itself, the very first time any session
+          // reads a state file already written under the new #1811 shape).
+          process.exit(4);
+        }
+        const stamp = entry.last_emit_at;
         const shaped = typeof stamp === "string" &&
           /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$/.test(stamp);
         process.stdout.write((shaped ? stamp : "") + "\n");
-        const sections = obj.sections || {};
+        const sections = entry.sections || {};
         for (const k of Object.keys(sections)) {
           process.stdout.write(k + "\t" + String(sections[k]) + "\n");
         }
       } catch (e) {
         process.exit(1);
       }
-    ' "$STATE_FILE" 2>/dev/null)
-    if [ "$?" -ne 0 ]; then
-      FAIL_SAFE_FULL_EMIT=1
-      FAIL_SAFE_REASON="state file malformed JSON"
-    else
-      PRIOR_EMIT_AT=$(printf '%s\n' "$PRIOR_STATE_DUMP" | sed -n '1p')
-      PRIOR_FP_DUMP=$(printf '%s\n' "$PRIOR_STATE_DUMP" | tail -n +2)
-    fi
+    ' "$STATE_FILE" "$AGENT_KEY" 2>/dev/null)
+    NODE_READ_EXIT="$?"
+    case "$NODE_READ_EXIT" in
+      0)
+        PRIOR_EMIT_AT=$(printf '%s\n' "$PRIOR_STATE_DUMP" | sed -n '1p')
+        PRIOR_FP_DUMP=$(printf '%s\n' "$PRIOR_STATE_DUMP" | tail -n +2)
+        ;;
+      3)
+        FAIL_SAFE_FULL_EMIT=1
+        FAIL_SAFE_REASON="legacy single-partition state schema, migrating to per-agent partition (#1811)"
+        ;;
+      4)
+        FAIL_SAFE_FULL_EMIT=1
+        FAIL_SAFE_REASON="no recorded state for agent key '${AGENT_KEY}' (first use of this key)"
+        ;;
+      *)
+        FAIL_SAFE_FULL_EMIT=1
+        FAIL_SAFE_REASON="state file malformed JSON"
+        ;;
+    esac
   else
     FAIL_SAFE_FULL_EMIT=1
     FAIL_SAFE_REASON="state file absent (first run or post-cleanup)"
@@ -1398,23 +1472,44 @@ if [ -n "$NODE_BIN" ]; then
     NEW_FP_ARGV+=("${NEW_FP_KEYS[$j]}" "${NEW_FP_VALS[$j]}")
     j=$((j + 1))
   done
+  # Read-merge-write: this run only owns its own AGENT_KEY partition. A
+  # sibling partition (another agent key already recorded in "agents") must
+  # survive this write untouched, or the fix above (each key keeps its own
+  # baseline) would be undone at the very last step. A legacy pre-#1811
+  # root-level {sections,last_emit_at} shape, or any other unrecognized
+  # shape, is intentionally NOT carried forward into "agents" — the
+  # fail-safe full emit already treated it as consumed this run.
   "$NODE_BIN" -e '
     const fs = require("fs");
     const outPath = process.argv[1];
-    const ts = process.argv[2];
-    const rest = process.argv.slice(3);
+    const key = process.argv[2];
+    const ts = process.argv[3];
+    const rest = process.argv.slice(4);
     const sections = {};
     for (let i = 0; i < rest.length; i += 2) {
       sections[rest[i]] = rest[i + 1];
     }
-    const state = { sections: sections };
-    if (ts) { state.last_emit_at = ts; }
+    let agents = {};
+    try {
+      const raw = fs.readFileSync(outPath, "utf8");
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" &&
+          parsed.agents && typeof parsed.agents === "object") {
+        agents = parsed.agents;
+      }
+    } catch (e) {
+      // absent, unreadable, or legacy shape: start from an empty agents map.
+    }
+    const entry = { sections: sections };
+    if (ts) { entry.last_emit_at = ts; }
+    agents[key] = entry;
+    const state = { agents: agents };
     try {
       fs.writeFileSync(outPath, JSON.stringify(state) + "\n");
     } catch (e) {
       process.exit(1);
     }
-  ' "$STATE_FILE" "$TS" "${NEW_FP_ARGV[@]}" 2>/dev/null || true
+  ' "$STATE_FILE" "$AGENT_KEY" "$TS" "${NEW_FP_ARGV[@]}" 2>/dev/null || true
 fi
 
 # --- instruction to the AI: synthesize through Character_Instance ---

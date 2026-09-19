@@ -27,6 +27,15 @@ which is a second difference between arms that are supposed to differ in one pla
 Here the presence of hooks is the measured variable itself, so it is carried per arm
 and written into the run record.
 
+An arm may also carry one `skill_override`, applied to its own disposable copy and
+nowhere else: the named skill's directory removed, or its frontmatter `description`
+replaced. Issue #1994: whether a skill's description changes behaviour without the
+skill ever being invoked cannot be separated while every arm carries the same
+description. The override is written into the run record as it was applied, and an
+override naming a skill the arm does not carry is refused rather than applied to
+nothing - an arm that silently kept the description it was meant to lose would report
+the unmanipulated condition under the manipulated name.
+
 Budget is structural, not a note in a comment. Every `claude -p` launch spends real
 money, so the plan declares its total and the harness refuses a plan whose arms do
 not add up to it, or whose total exceeds the ceiling below.
@@ -63,6 +72,13 @@ from measure_rule_effect import (  # noqa: E402
 
 ARMS_DIRNAME = "arms"
 SKILL_TOOL_NAME = "Skill"
+SKILLS_SUBTREE = Path(".claude") / "skills"
+SKILL_FILENAME = "SKILL.md"
+
+# A skill name is one directory name. Anything else - a separator, a `..` - would let
+# an override reach outside the arm's skills directory.
+SKILL_NAME = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+FRONTMATTER_KEY = re.compile(r"^[A-Za-z_][A-Za-z0-9_-]*:")
 
 # A ceiling, not a target. Raising it is a budget decision belonging to the human
 # who granted the spend, so it sits here as one literal rather than being passed
@@ -85,12 +101,35 @@ class PlanError(HarnessError):
 
 
 @dataclass(frozen=True)
+class SkillOverride:
+    """One change to one skill, inside one arm's disposable copy.
+
+    Exactly one of the two actions: `remove` drops the skill's directory, and a
+    `description` replaces the frontmatter field of that name and nothing else.
+    """
+
+    skill: str
+    remove: bool
+    description: str | None
+
+    def as_record(self) -> dict[str, Any]:
+        if self.remove:
+            return {"skill": self.skill, "action": "remove"}
+        return {
+            "skill": self.skill,
+            "action": "replace_description",
+            "description": self.description,
+        }
+
+
+@dataclass(frozen=True)
 class ArmPlan:
     name: str
     probe: str
     hooks: bool
     repetitions: int
     control: bool
+    skill_override: SkillOverride | None = None
 
 
 @dataclass(frozen=True)
@@ -167,6 +206,10 @@ def load_plan(data: Any) -> Plan:
                 f"arm {name!r} field 'repetitions' must be an integer of at least 1"
             )
 
+        override = None
+        if "skill_override" in raw:
+            override = _load_skill_override(raw["skill_override"], name)
+
         arms.append(
             ArmPlan(
                 name=name,
@@ -174,6 +217,7 @@ def load_plan(data: Any) -> Plan:
                 hooks=hooks,
                 repetitions=repetitions,
                 control=control,
+                skill_override=override,
             )
         )
 
@@ -188,6 +232,82 @@ def load_plan(data: Any) -> Plan:
         raise PlanError(f"the arms total {total} invocations but the plan declares {budget}")
 
     return Plan(model=model, invocation_budget=budget, arms=tuple(arms))
+
+
+def _load_skill_override(raw: Any, arm_name: str) -> SkillOverride:
+    where = f"arm {arm_name!r} skill_override"
+    if not isinstance(raw, dict):
+        raise PlanError(f"{where} must be a JSON object")
+    unknown = sorted(set(raw) - {"skill", "remove", "description"})
+    if unknown:
+        raise PlanError(f"{where} carries unknown fields: {', '.join(unknown)}")
+    skill = _require_str(raw, "skill", where)
+    if not SKILL_NAME.match(skill):
+        raise PlanError(f"{where} field 'skill' must be a single skill directory name")
+    remove = raw.get("remove", False)
+    if not isinstance(remove, bool):
+        raise PlanError(f"{where} field 'remove' must be a boolean")
+    has_description = "description" in raw
+    if remove == has_description:
+        raise PlanError(f"{where} must carry exactly one of 'remove': true or 'description'")
+    description = None
+    if has_description:
+        description = _require_str(raw, "description", where)
+        if "\n" in description or "\r" in description:
+            raise PlanError(f"{where} field 'description' must be a single line")
+    return SkillOverride(skill=skill, remove=remove, description=description)
+
+
+def apply_skill_override(arm_root: Path, override: SkillOverride) -> dict[str, Any]:
+    """Apply one override to an arm's copy and return what was applied.
+
+    Refuses rather than guesses: a skill the arm does not carry, a SKILL.md with no
+    frontmatter, or a description the one-line rewrite cannot replace exactly (absent,
+    repeated, or continued onto further lines) each raise `HarnessError`. The
+    replacement is written as a double-quoted scalar, so the text is carried verbatim
+    whatever punctuation it holds.
+    """
+    skill_dir = arm_root / SKILLS_SUBTREE / override.skill
+    skill_file = skill_dir / SKILL_FILENAME
+    if not skill_file.is_file():
+        raise HarnessError(f"arm carries no skill {override.skill!r} at {skill_file}")
+
+    applied = override.as_record()
+    if override.remove:
+        remove_tree(skill_dir)
+        if skill_dir.exists():
+            raise HarnessError(f"skill {override.skill!r} is still present after removal")
+        return applied
+
+    # Bytes, not `read_text`: universal-newline decoding would rewrite every CRLF in
+    # the file, and the arm would then differ in more than the one line.
+    text = skill_file.read_bytes().decode("utf-8")
+    lines = text.splitlines(keepends=True)
+    if not lines or lines[0].strip() != "---":
+        raise HarnessError(f"{skill_file} has no frontmatter")
+    end = next((i for i in range(1, len(lines)) if lines[i].strip() == "---"), None)
+    if end is None:
+        raise HarnessError(f"{skill_file} frontmatter is not closed")
+
+    hits = [i for i in range(1, end) if lines[i].startswith("description:")]
+    if len(hits) != 1:
+        raise HarnessError(
+            f"{skill_file} frontmatter carries {len(hits)} description lines, expected 1"
+        )
+    index = hits[0]
+    if index + 1 < end and not FRONTMATTER_KEY.match(lines[index + 1]):
+        raise HarnessError(f"{skill_file} description continues past one line")
+    value = lines[index][len("description:"):].strip()
+    if not value or value[0] in "|>":
+        raise HarnessError(f"{skill_file} description is not a one-line scalar")
+
+    newline = "\r\n" if lines[index].endswith("\r\n") else "\n"
+    lines[index] = (
+        "description: " + json.dumps(override.description, ensure_ascii=False) + newline
+    )
+    with skill_file.open("w", encoding="utf-8", newline="") as handle:
+        handle.write("".join(lines))
+    return applied
 
 
 def _reject_skill_vocabulary(arm_name: str, probe: str) -> None:
@@ -258,8 +378,12 @@ def arm_command(probe: str, model: str) -> list[str]:
     ]
 
 
-def skill_invocations(stdout: str) -> list[dict[str, Any]]:
-    """Every `Skill` tool_use in a stream-json capture, in the order it appeared."""
+def _tool_use_blocks(stdout: str) -> list[dict[str, Any]]:
+    """Every `tool_use` block in a stream-json capture, in the order it appeared.
+
+    The one reader both observables below are taken from, so the Skill count and the
+    whole-stream name list cannot disagree about which blocks the stream carried.
+    """
     found: list[dict[str, Any]] = []
     for raw_line in stdout.splitlines():
         line = raw_line.strip()
@@ -278,11 +402,35 @@ def skill_invocations(stdout: str) -> list[dict[str, Any]]:
         if not isinstance(content, list):
             continue
         for block in content:
-            if not isinstance(block, dict):
-                continue
-            if block.get("type") == "tool_use" and block.get("name") == SKILL_TOOL_NAME:
-                found.append({"id": block.get("id"), "input": block.get("input")})
+            if isinstance(block, dict) and block.get("type") == "tool_use":
+                found.append(block)
     return found
+
+
+def skill_invocations(stdout: str) -> list[dict[str, Any]]:
+    """Every `Skill` tool_use in a stream-json capture, in the order it appeared."""
+    return [
+        {"id": block.get("id"), "input": block.get("input")}
+        for block in _tool_use_blocks(stdout)
+        if block.get("name") == SKILL_TOOL_NAME
+    ]
+
+
+def tool_use_names(stdout: str) -> list[str]:
+    """The name of every tool_use in the stream, in order, whatever the tool.
+
+    Issue #1992: a `Skill` count answers whether a description was matched, and
+    says nothing about what the session then did. Whether a question that needed
+    looking up was looked up - and one that did not was left alone - is read off
+    the calls the session made, so every name is kept, repeats included. Inputs
+    are not kept here: `skill_tool_uses` already carries the one input a firing
+    count needs, and a query string is not what the reading turns on.
+    """
+    names: list[str] = []
+    for block in _tool_use_blocks(stdout):
+        name = block.get("name")
+        names.append(name if isinstance(name, str) else "")
+    return names
 
 
 def terminal_result(stdout: str) -> dict[str, Any] | None:
@@ -364,6 +512,7 @@ def run_arm(
         "terminal_result": terminal_result(completed.stdout),
         "skill_tool_use_count": len(invocations),
         "skill_tool_uses": invocations,
+        "tool_use_names": tool_use_names(completed.stdout),
         "stderr_tail": completed.stderr[-2000:],
     }
 
@@ -405,19 +554,25 @@ def build_run_record(
         "invocation_budget": plan.invocation_budget,
         "selected_arms": [arm.name for arm in selected],
         "provenance": provenance or {},
-        "arms": [
-            {
-                "name": arm.name,
-                "probe": arm.probe,
-                "hooks": arm.hooks,
-                "repetitions": arm.repetitions,
-                "control": arm.control,
-            }
-            for arm in plan.arms
-        ],
+        "arms": [_arm_record(arm) for arm in plan.arms],
         "tally": tally(results),
         "results": list(results),
     }
+
+
+def _arm_record(arm: ArmPlan) -> dict[str, Any]:
+    """The plan's arm as recorded. `skill_override` appears only on an arm that has one,
+    so a plan written before the field existed yields the record it always did."""
+    record: dict[str, Any] = {
+        "name": arm.name,
+        "probe": arm.probe,
+        "hooks": arm.hooks,
+        "repetitions": arm.repetitions,
+        "control": arm.control,
+    }
+    if arm.skill_override is not None:
+        record["skill_override"] = arm.skill_override.as_record()
+    return record
 
 
 def select_arms(plan: Plan, only: Sequence[str] | None) -> tuple[ArmPlan, ...]:
@@ -496,7 +651,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         for arm in selected:
             arm_root = arms_dir / arm.name
             materialize_arm(source_root, arm_root, neutralize=not arm.hooks)
+            applied = None
+            if arm.skill_override is not None:
+                applied = apply_skill_override(arm_root, arm.skill_override)
             provenance[arm.name] = arm_provenance(arm_root, datetime.now(timezone.utc))
+            if applied is not None:
+                provenance[arm.name]["skill_override_applied"] = applied
             for index in range(arm.repetitions):
                 entry: dict[str, Any] = {
                     "arm": arm.name,

@@ -495,7 +495,10 @@ own-operation arrival confirmation:
     4. nothing above settles it -> hold, and leave the event unprocessed.
 
     Residual limit at step 2, left in place deliberately: the title names the issue, not the writer.
-    Do not repair it by narrowing step 2 back to creation.
+    Two sessions writing to one issue raise two runs carrying the same title, and each reads both as
+    own. No session starves — each holds one arrival confirmation of its own, and mark_processed is
+    idempotent, so the duplicate consume writes the same state the first did. Do not repair it by
+    narrowing step 2 back to creation.
 
 </foreground-webhook-notification-intake>
 

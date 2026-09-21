@@ -575,7 +575,6 @@ SURFACE_CAP=10
 # an empty higher-precedence directory would otherwise shadow a populated
 # lower-precedence one and silence every consumer at once.
 # The marker set is the files MEMORY_DIR consumers read: the observation surface,
-# the promotion tally expiry surface,
 # the per-topic entry-file prefixes the promotion detectors scan, plus
 # self-evaluation_log.md so that both resolution paths agree on what counts as a
 # memory directory. That last member never decides a case in practice: the
@@ -587,6 +586,13 @@ SURFACE_CAP=10
 # holds feedback_<topic>.md / project_<topic>.md / reference_<topic>.md /
 # user_<topic>.md and neither flat name exists. Matching prefixes rather than any
 # *.md is deliberate — an unrelated file must not let a directory claim the slot.
+# promotion_tally.md is in the set without being one of them. The tally expiry
+# surface resolved through MEMORY_DIR until #2018 and reads its own path now, so a
+# tally sitting here has no consumer. The member stays because #2018 holds the
+# memory-side resolution unchanged: what its removal would move is where a
+# directory holding nothing else resolves, and every consumer of that decision is
+# one of the other files. A directory whose only member is a pre-#2018 tally
+# therefore still claims the slot.
 memory_dir_populated() {
   for markerfile in \
     self-evaluation_log.md \
@@ -605,11 +611,14 @@ memory_dir_populated() {
 }
 
 # Memory entry files inside a resolved MEMORY_DIR, under the same one-memory-
-# per-file layout. Excluded are the index and the three transient operational
-# files, each of which has its own dedicated reader: MEMORY.md is read by the
-# index emit, self-evaluation_log.md by the self-eval head, and the two
-# date-driven surfaces below read self-evolution-observation.md and
-# promotion_tally.md. Flat feedback.md /
+# per-file layout. Excluded are the index, the two transient operational files
+# that have their own dedicated reader, and the tally: MEMORY.md is read by the
+# index emit, self-evaluation_log.md by the self-eval head, and the observation
+# surface below reads self-evolution-observation.md. promotion_tally.md stays in
+# this list on other grounds since #2018: the tally resolves outside memory, so a
+# tally left at the pre-#2018 path has no reader here, and scanning it as an entry
+# would feed its cluster descriptors into the promotion detectors below — the
+# detector reading its own output. Flat feedback.md /
 # project.md are NOT excluded, so a workspace that has not migrated is still
 # scanned. Sorted, because the detector output is sha256-fingerprinted for
 # diff-only emission and must not depend on directory order.
@@ -1112,10 +1121,26 @@ fi
 # the Threshold Rules name removes the cluster, so a cluster still written down
 # is a judgment not yet taken. The occurrence count is carried on the line
 # because it selects the Threshold Rules row that applies.
+# Resolution is independent of MEMORY_DIR (#2018). The tally is one counting
+# surface per host while a memory directory resolves per workspace, and the
+# noise floor is a count: a tally held under MEMORY_DIR gives each workspace a
+# count of its own, none of which reaches the floor, and nothing reports the
+# split. $HOME/.liplus/ is adapter-neutral on purpose -- under ~/.claude or
+# ~/.codex the other adapter reads the file as foreign and is pulled toward
+# keeping one of its own, which is that split again.
+#
+# No fallback to the pre-#2018 $MEMORY_DIR/promotion_tally.md: a path that still
+# resolves is a path still written to, and a tally written there is counted by
+# nobody. The absent file is what tells a caller reaching for the old path.
+#
+# The resolved path is printed on the body below because no rule names it
+# (rules/evolution/promotion-judgment.md Tally leaves the location to the
+# adapter), and it is where the agent writes the occurrences this surface
+# counts.
 TALLY_BODY=""
 TALLY_FILE=""
-if [ -n "$MEMORY_DIR" ] && [ -f "$MEMORY_DIR/promotion_tally.md" ]; then
-  TALLY_FILE="$MEMORY_DIR/promotion_tally.md"
+if [ -n "$HOME" ] && [ -f "$HOME/.liplus/tally/promotion_tally.md" ]; then
+  TALLY_FILE="$HOME/.liplus/tally/promotion_tally.md"
 fi
 if [ -n "$TALLY_FILE" ]; then
   TODAY=$(date +%Y-%m-%d 2>/dev/null || echo "")
@@ -1169,7 +1194,7 @@ if [ -n "$TALLY_FILE" ]; then
       END { flush() }
     ' "$TALLY_FILE")
     if [ -n "$TALLY_LIST" ]; then
-      TALLY_BODY="memory/promotion_tally.md - clusters whose 3d window has closed:
+      TALLY_BODY="${TALLY_FILE} - clusters whose 3d window has closed:
 ${TALLY_LIST}
 Surfacing is observation, not auto-action. The threshold judgment (issue
 creation / merge into an existing promotion-marker issue / deletion) follows

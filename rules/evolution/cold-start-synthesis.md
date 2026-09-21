@@ -75,7 +75,7 @@ Silent skip when the observation file is absent or no entries are due.
 
 ## Promotion Tally Expiry Surface
 
-Promotion tally clusters (`memory/promotion_tally.md`, format defined in `rules/evolution/promotion-judgment.md` Tally) are surfaced at cold-start when their 3d window has closed.
+Promotion tally clusters (storage and format defined in `rules/evolution/promotion-judgment.md` Tally) are surfaced at cold-start when their 3d window has closed. The tally file resolves outside memory and independently of it, so a session whose memory directory does not resolve still reaches the tally. The emission names the resolved path: no rule states it, and that path is where the agent writes the occurrences this surface counts.
 
 Surface targets:
 - `expires` <= today -> surface as "tally expiry reached"

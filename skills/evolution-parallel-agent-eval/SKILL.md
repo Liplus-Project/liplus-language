@@ -261,7 +261,7 @@ Accepted on the Li+ correctness criterion (`rules/model/foundational-invariant.m
 
 - **`skills/evolution-loop/SKILL.md`**: This skill is referenced inside the loop's observe / evaluate stage. The loop side "calls this method"; the method body lives here
 - **`skills/evolution-l1-update-gating/SKILL.md`**: Authorization axis for L1 source changes (long-horizon observation requirement), orthogonal to this empirical verification axis and expected to be used alongside it. In the `Evolution_Initiator_Autonomy` framing, this method is brake 1, the only brake at the merge gate and always-on for self-evolution PRs; the L1 gate it runs alongside is the observation threshold at issue formation, not a second brake
-- **`rules/evolution/promotion-judgment.md`**: Noise floor observation judgment (memory cluster tally) is observation accumulation; this method is spec verification immediately before implementation. Orthogonal
+- **`rules/evolution/promotion-judgment.md`**: Noise floor observation judgment (cluster tally) is observation accumulation; this method is spec verification immediately before implementation. Orthogonal
 - **`skills/task-subagent-delegation/SKILL.md`**: This method's subagent spawn is a special case of delegation (purpose: gather evaluation data, not delegate implementation). This skill's N / M / P width (Design Dimensions) is exempt from the 5-in-flight cap in `skills/task-subagent-spawn/SKILL.md` Parallel-Width Cap — a selection whose total invocation exceeds 5 is still within spec
 - **`skills/evolution-decision-structure-write/SKILL.md`**: Judgment record surface for Procedure step 9
 

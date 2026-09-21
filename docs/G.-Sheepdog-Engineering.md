@@ -257,7 +257,7 @@ flowchart TD
     TLY == "cold-start で次の周回" ==> O
 
     subgraph BR["ブレーキ（merge 前）"]
-        B1["ブレーキ1：並列評価 N≥3<br/>全 PR で必須（L1 も同じ 1 本）"]
+        B1["ブレーキ1：並列評価<br/>全 PR で必須（L1 も同じ 1 本）"]
     end
     R --> BR
 

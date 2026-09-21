@@ -439,6 +439,11 @@ class TallyResolutionTest(TallySurfaceTestCase):
     per workspace, so the two resolutions are separate. The separation is asserted
     from both sides: the tally is found with no memory directory at all, and a
     tally sitting at the pre-#2018 memory path is not found.
+
+    The memory-side resolution is not asserted here, and its marker set is
+    unchanged by #2018: a directory holding nothing but a pre-#2018 tally still
+    claims `MEMORY_DIR`, which is the state `test_tally_at_the_pre_move_memory_path
+    _is_not_read` runs against.
     """
 
     def cluster_text(self, descriptor: str) -> str:
@@ -492,36 +497,7 @@ class TallyResolutionTest(TallySurfaceTestCase):
                 self.ws.clear_state()
                 self.assertIsNone(tally_section(self.run_hook(adapter)))
 
-    def test_pre_move_tally_does_not_claim_the_memory_directory(self) -> None:
-        """It left the marker set with #2018, having lost its reader there.
 
-        A higher-precedence directory holding nothing but a pre-#2018 tally would
-        otherwise shadow a populated lower-precedence one and silence every memory
-        consumer at once -- the shape the populated criterion exists to prevent
-        (#1562 G2). Observed through the sibling observation surface, since that
-        is what goes silent.
-        """
-        entry = "\n".join(
-            [
-                "## observation: reachable",
-                "pr: 2018",
-                f"expires: {iso(7)}",
-                f"next_check: {iso(-1)}",
-                "verdict_state: pending",
-                "",
-            ]
-        )
-        for adapter in ADAPTERS:
-            with self.subTest(adapter=adapter):
-                workspace = self.new_workspace()
-                higher, lower = workspace.memory_candidates(adapter)
-                workspace.write(
-                    higher, "promotion_tally.md", self.cluster_text("stale cluster")
-                )
-                workspace.write(lower, "self-evolution-observation.md", entry)
-                section = observation_section(self.run_hook(adapter, workspace))
-                self.assertIsNotNone(section, "observation surface went silent")
-                self.assertIn("reachable", section)
 
 class NoNewMaterialMarkerTest(TallySurfaceTestCase):
     def test_surfaced_cluster_suppresses_the_marker(self) -> None:

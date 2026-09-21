@@ -471,16 +471,19 @@ $surfaceCap = 10
 # feedback_<topic>.md / project_<topic>.md / reference_<topic>.md /
 # user_<topic>.md and neither flat name exists. Matching prefixes rather than any
 # *.md is deliberate — an unrelated file must not let a directory claim the slot.
-# promotion_tally.md left the set with #2018: the tally expiry surface resolves its
-# file outside memory now, so a tally sitting at the pre-#2018 path is read by no
-# consumer. Leaving it in would let a directory holding nothing else claim the slot
-# and shadow a populated lower-precedence one — the shape this criterion exists to
-# prevent.
+# promotion_tally.md is in the set without being one of them. The tally expiry
+# surface resolved through $memoryDir until #2018 and reads its own path now, so a
+# tally sitting here has no consumer. The member stays because #2018 holds the
+# memory-side resolution unchanged: what its removal would move is where a
+# directory holding nothing else resolves, and every consumer of that decision is
+# one of the other files. A directory whose only member is a pre-#2018 tally
+# therefore still claims the slot.
 function Test-MemoryDirPopulated {
   param([string]$Dir)
   foreach ($markerFile in @(
       'self-evaluation_log.md',
-      'self-evolution-observation.md')) {
+      'self-evolution-observation.md',
+      'promotion_tally.md')) {
     if (Test-Path -LiteralPath (Join-Path $Dir $markerFile) -PathType Leaf) { return $true }
   }
   foreach ($markerPrefix in @('feedback', 'project', 'reference', 'user')) {

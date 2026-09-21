@@ -38,7 +38,7 @@ Pre-write judgment trigger immediately before a memory write. Carries the "Pre-w
 
 Judgment signals:
 - **Clearly persistent**: Master's long-horizon instruction / spec-class guidance / semantic duplicate of existing entries in `rules/` / `skills/` / `docs/` / wiki
-- **Clearly transient**: cluster tally / self-eval log / disposable reference (a lookup that can be reconstructed)
+- **Clearly transient**: self-eval log / disposable reference (a lookup that can be reconstructed)
 - **Ambiguous**: safer-side OR → treat as persistent (do not write to memory; surface as an escalation candidate)
 
 Routing after judgment:

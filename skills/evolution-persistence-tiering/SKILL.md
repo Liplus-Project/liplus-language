@@ -36,6 +36,8 @@ The memory ↔ docs binary sorting remains as the memory / docs axis within thes
 
 Pre-write judgment trigger immediately before a memory write. Carries the "Pre-write persistence check (hard gate)" of `Memory_Write_Autonomy` (adapter/claude/CLAUDE.md).
 
+Fires on a memory write only. A write whose storage another rule already fixes outside memory — the cluster tally (`rules/evolution/promotion-judgment.md` Tally) — does not fire it, and the signals below are not read to classify that write.
+
 Judgment signals:
 - **Clearly persistent**: Master's long-horizon instruction / spec-class guidance / semantic duplicate of existing entries in `rules/` / `skills/` / `docs/` / wiki
 - **Clearly transient**: self-eval log / disposable reference (a lookup that can be reconstructed)

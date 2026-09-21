@@ -32,7 +32,7 @@ brake 1's detector is a reader — an agent reading the diff. Condition 2 theref
 
 Excluded, each by the property that excludes it:
 
-- **Record surfaces** — `docs/**`, the wiki, `README.md`, `LICENSE`, `NOTICE`. Read on demand as a record of past judgment or as description. Nothing here is loaded as instruction, so no behavior is constrained, and a wrong line costs one re-read at retrieval time.
+- **Record surfaces** — `docs/**`, the wiki, `README.md`, `LICENSE`, `NOTICE`. Read on demand as a record of past judgment or as description, and a wrong line here costs one re-read at retrieval time — a valuation that holds only for a line whose wrongness that re-read would catch. It does not hold for a line that can go stale with no change inside the repo: nothing inside the repo detects the drift, so a re-read reproduces the same wrong line, and when such a line is cited as grounds it constrains conduct — reading is again the only thing that would catch it being wrong. A file carrying such a line is not covered by this exclusion, whichever of its lines a change touches; the criterion above places it.
 - **Executed code a check stands behind** — `scripts/**`, `.github/scripts/**`. A defect surfaces as a raised exception in the calling turn or as a red check, which is a detector other than reading; where a defect would otherwise be silent, `tests/**` is what makes it loud (`tests/test_check_webhook_notifications.py` covers the classification and filtering paths of the poll-mode helper, so a filter that quietly narrows fails a check rather than under-delivering unnoticed). The backstop itself is on the firing side above, because nothing stands behind it. Executed code this exclusion does not cover is reached by the default below, not by this bullet.
 
 A changed file the criterion places on neither side is on the firing side. A needless eval costs one eval; a missed one costs the gate.
@@ -45,7 +45,7 @@ A statement about system behavior carries the conditions it was observed under. 
 
 Out of scope: the test's intent, reproduction steps, and references to a prior issue / PR / commit. This states nothing about them.
 
-`docs/` is in Scope below and excluded here. The two lists run on different axes — Scope is what the AI may initiate, condition 2 is what brake 1 gates — and `docs/` is the entry where they disagree, so reading either membership off the other is what produces the wrong answer.
+`docs/` is in Scope below and excluded here, save a file the Record surfaces bullet hands back to the criterion. The two lists run on different axes — Scope is what the AI may initiate, condition 2 is what brake 1 gates — and `docs/` is the entry where they disagree, so reading either membership off the other is what produces the wrong answer.
 
 </self-evolution-pr-definition>
 

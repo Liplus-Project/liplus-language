@@ -236,7 +236,7 @@ Li+ はアジリティとシープドッグの**半身段階** ── 修正者�
 
 ### 自己進化ループの全体像
 
-起動者軸が AI に渡った結果、観測から再観測までのループは AI 単独で回る。中心にあるのは transient な **memory** ── 観測が昇格判定の材料 (tally) を積み、評価がその閾値を読み、再観測が merge 後の観察を書き戻す。ループが閉じるのは、cold-start が memory を surface して次の周回の観測に入る瞬間である。緑のループは AI 自走、黄の brake は自動ゲート、赤の人間ゲートはリリース・不可逆操作のみに残る。
+起動者軸が AI に渡った結果、観測から再観測までのループは AI 単独で回る。中心にあるのは transient な観測面 ── 観測が昇格判定の材料 (tally) を積み、評価がその閾値を読み、再観測が merge 後の観察を memory へ書き戻す。tally は memory の外、ホストにつき 1 ファイルに置く（#2018。床の判定が計数に依存するため、ワークスペースごとに割れてはならない）。ループが閉じるのは、cold-start が両面を surface して次の周回の観測に入る瞬間である。緑のループは AI 自走、黄の brake は自動ゲート、赤の人間ゲートはリリース・不可逆操作のみに残る。
 
 ```mermaid
 flowchart TD
@@ -246,13 +246,15 @@ flowchart TD
     R["内省・レビュー<br/>実装 → ブレーキを通過"]
     IM["改善<br/>merge → リリース実行"]
     RO["再観測<br/>merge 後の観察（5分／2週間）"]
-    MEM["memory（transient）<br/>観測 tally / 自己評価 log / merge 後観察<br/>永続情報は保持せず docs・wiki・rules へ昇格"]
+    MEM["memory（transient）<br/>自己評価 log / merge 後観察<br/>永続情報は保持せず docs・wiki・rules へ昇格"]
+    TLY["tally（transient・ホスト単位で 1 ファイル）<br/>memory の外。アダプタが解決する"]
 
     O --> E --> D --> R --> IM --> RO
-    O -. "tally 書込" .-> MEM
-    MEM -. "閾値 読出" .-> E
+    O -. "tally 書込" .-> TLY
+    TLY -. "閾値 読出" .-> E
     RO -. "観察 書込" .-> MEM
     MEM == "cold-start で次の周回" ==> O
+    TLY == "cold-start で次の周回" ==> O
 
     subgraph BR["ブレーキ（merge 前）"]
         B1["ブレーキ1：並列評価 N≥3<br/>全 PR で必須（L1 も同じ 1 本）"]
@@ -267,12 +269,12 @@ flowchart TD
     classDef brake fill:#FAEEDA,stroke:#854F0B,color:#412402;
     classDef human fill:#FAECE7,stroke:#993C1D,color:#4A1B0C;
     class O,E,D,R,IM,RO loop;
-    class MEM mem;
+    class MEM,TLY mem;
     class B1 brake;
     class H human;
 ```
 
-memory は transient 専用であり、床 (noise floor) を越えた観測だけが蒸留→改善を経て docs / wiki / rules へ昇格する (`rules/evolution/promotion-judgment.md` / `rules/evolution/memory-entry-format.md`)。図の brake と人間ゲートの literal は同節「ループ起動者」項および `rules/evolution/initiator-autonomy.md` を正本とする。
+memory と tally はどちらも transient 専用であり、床 (noise floor) を越えた観測だけが蒸留→改善を経て docs / wiki / rules へ昇格する (`rules/evolution/promotion-judgment.md` / `rules/evolution/memory-entry-format.md`)。図の brake と人間ゲートの literal は同節「ループ起動者」項および `rules/evolution/initiator-autonomy.md` を正本とする。
 
 ### substrate 層は保留
 

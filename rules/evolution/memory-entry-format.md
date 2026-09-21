@@ -13,7 +13,7 @@ layer: L2-evolution
 ## Position
 
 Layer = L2 Evolution Layer
-Entry format and maintenance discipline for the memory file set: the per-topic entry files (`feedback_<topic>.md` / `project_<topic>.md` / `reference_<topic>.md` / `user_<topic>.md` — one memory per file) plus the index and the operational files (`MEMORY.md` / `promotion_tally.md` / `self-evaluation_log.md` / `self-evolution-observation.md`).
+Entry format and maintenance discipline for the memory file set: the per-topic entry files (`feedback_<topic>.md` / `project_<topic>.md` / `reference_<topic>.md` / `user_<topic>.md` — one memory per file) plus the index and the operational files (`MEMORY.md` / `self-evaluation_log.md` / `self-evolution-observation.md`).
 Also holds Artifact deletion calibration below. That table spans every artifact class, not memory alone — memory subfile is one of its rows, and other rows are read from outside this file.
 Requires = L2 Evolution Layer (persistence-tiering / promotion-judgment surroundings)
 Load timing = always-on (memory writes occur across the entire session)
@@ -28,10 +28,11 @@ Single source. Replace the operational note at the head of each memory file with
 memory = transient only. Persistent residency is not intended.
 
 What memory holds:
-- cluster tally (3-day expire / threshold-judgment intermediate state → `rules/evolution/promotion-judgment.md`)
 - self-evaluation log (cap = 25 entries, oldest-first deletion → `skills/evolution-self-eval/SKILL.md`)
 - self-evolution observation (post-merge detection cycle, per-entry expire → see Self-Evolution Observation Format below)
 - reference (transient lookup, reconstructible if lost)
+
+The cluster tally is not among them. It is transient too, but it is one counting surface for the host while memory resolves per workspace, so it is stored outside memory (`rules/evolution/promotion-judgment.md` Tally). Do not write it back into memory.
 
 Do not place persistent information in memory. Promote it to one of the Escalation paths below.
 
@@ -131,7 +132,7 @@ Detection signs:
 
 ## Self-Evolution Observation Format
 
-Tracks the post-merge detection cycle of self-evolution PRs. Distinct from cluster tally (`memory/promotion_tally.md` is pre-issue observation; this is post-merge observation).
+Tracks the post-merge detection cycle of self-evolution PRs. Distinct from cluster tally (that is pre-issue observation and is stored outside memory — `rules/evolution/promotion-judgment.md` Tally; this is post-merge observation).
 
 Storage = `memory/self-evolution-observation.md` (workspace-local, gitignored)
 Format (YAML-like markdown):

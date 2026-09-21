@@ -23,8 +23,10 @@ specifies them.
 
 The fixture, the hook runner and the workspace layout are reused from
 `test_on_session_start_observation_surface`: the two surfaces run in the same
-hooks over the same `MEMORY_DIR` resolution, so a second copy of that harness
-would be the copy that drifts.
+hooks over the same workspace layout, so a second copy of that harness would be
+the copy that drifts. Their file resolution is not shared -- since #2018 the
+tally resolves under `$HOME/.liplus/tally/` and the observation surface through
+`MEMORY_DIR` -- which is itself asserted by `TallyResolutionTest` below.
 """
 
 from __future__ import annotations
@@ -39,6 +41,7 @@ from test_on_session_start_observation_surface import (
     ObservationSurfaceTestCase,
     emitted_sections,
     iso,
+    observation_section,
 )
 
 
@@ -61,6 +64,10 @@ class SurfacedCluster(NamedTuple):
 
 
 _LABEL_RE = re.compile(r"\b(OVERDUE|DUE)\b")
+# The resolved tally path, as the emission names it. Matched by its filename
+# rather than by a spelling: the three ports render one path three ways (an MSYS
+# path from the bash ports, a drive-letter one from PowerShell).
+_TALLY_PATH_RE = re.compile(r"\S*promotion_tally\.md")
 _EXPIRES_RE = re.compile(r"expires\s+(\d{4}-\d{2}-\d{2})")
 _COUNT_RE = re.compile(r"(\d+)")
 
@@ -106,9 +113,10 @@ class TallySurfaceTestCase(ObservationSurfaceTestCase):
     def write_tally_file(self, *clusters: tuple[str, str, int]) -> tuple[str, ...]:
         """Write `promotion_tally.md` from (descriptor, expires, occurrences).
 
-        `self-evaluation_log.md` is written alongside it so the memory directory
-        resolves through the primary (self-eval) path, keeping the resolution
-        axis out of the parsing tests. Resolution has its own case below.
+        Written to the host-level tally directory, which is where every port
+        resolves it (#2018). Nothing is planted in memory: the tally surface no
+        longer resolves through `MEMORY_DIR`, so these cases observe parsing and
+        classification only. Resolution has its own case below.
         """
         lines: list[str] = []
         descriptors: list[str] = []
@@ -121,9 +129,19 @@ class TallySurfaceTestCase(ObservationSurfaceTestCase):
             for index in range(occurrences):
                 lines.append(f"  - {iso(-3)} self-eval#{index} axis=frame")
             lines.append("")
-        self.ws.write(self.ws.shared_memory, "self-evaluation_log.md", "# log\n")
-        self.ws.write(self.ws.shared_memory, "promotion_tally.md", "\n".join(lines))
+        self.ws.write(self.ws.tally_dir, "promotion_tally.md", "\n".join(lines))
         return tuple(descriptors)
+
+    def without_resolved_path(self, section: str | None) -> str | None:
+        """The section with the resolved tally path replaced by a fixed token.
+
+        Every port names the file it read, and one path has three spellings
+        across the three ports. Parity is over the judgment, not over the host
+        spelling of a path; the path itself is asserted separately below.
+        """
+        if section is None:
+            return None
+        return _TALLY_PATH_RE.sub("<tally file>", section)
 
     def tally_for_all_adapters(self) -> dict[str, str | None]:
         sections: dict[str, str | None] = {}
@@ -170,9 +188,8 @@ class ExpiryJudgmentTest(TallySurfaceTestCase):
         reported count past the Threshold Rules row the real occurrence count
         falls under.
         """
-        self.ws.write(self.ws.shared_memory, "self-evaluation_log.md", "# log\n")
         self.ws.write(
-            self.ws.shared_memory,
+            self.ws.tally_dir,
             "promotion_tally.md",
             "\n".join(
                 [
@@ -211,9 +228,8 @@ class ExpiryJudgmentTest(TallySurfaceTestCase):
         `occurrences:`, the log's `- ` lines were added to that cluster's count
         -- the value that selects which Threshold Rules row applies.
         """
-        self.ws.write(self.ws.shared_memory, "self-evaluation_log.md", "# log\n")
         self.ws.write(
-            self.ws.shared_memory,
+            self.ws.tally_dir,
             "promotion_tally.md",
             "\n".join(
                 [
@@ -247,9 +263,8 @@ class ExpiryJudgmentTest(TallySurfaceTestCase):
         condition is "neither a bullet nor blank" rather than "not a bullet":
         occurrence bullets appear blank-separated in the real tally file.
         """
-        self.ws.write(self.ws.shared_memory, "self-evaluation_log.md", "# log\n")
         self.ws.write(
-            self.ws.shared_memory,
+            self.ws.tally_dir,
             "promotion_tally.md",
             "\n".join(
                 [
@@ -285,9 +300,8 @@ class ExpiryJudgmentTest(TallySurfaceTestCase):
         following cluster's bullets, and the following cluster must still be
         parsed with its own count.
         """
-        self.ws.write(self.ws.shared_memory, "self-evaluation_log.md", "# log\n")
         self.ws.write(
-            self.ws.shared_memory,
+            self.ws.tally_dir,
             "promotion_tally.md",
             "\n".join(
                 [
@@ -344,7 +358,33 @@ class AdapterParityTest(TallySurfaceTestCase):
         self.assertIsNotNone(reference)
         for adapter, section in sections.items():
             with self.subTest(adapter=adapter):
-                self.assertEqual(section, reference, f"{adapter} disagrees with claude_sh")
+                self.assertEqual(
+                    self.without_resolved_path(section),
+                    self.without_resolved_path(reference),
+                    f"{adapter} disagrees with claude_sh",
+                )
+
+    def test_every_port_names_the_file_it_read(self) -> None:
+        """Each port names the path it resolved, in its own emission.
+
+        The claim is fixed at `rules/evolution/cold-start-synthesis.md` Promotion
+        Tally Expiry Surface ("The emission names the resolved path"). The three
+        ports spell one path three ways, so what is observed here is that each
+        emission carries a `promotion_tally.md` under a `.liplus` directory, not
+        that the three strings agree.
+        """
+        self.write_tally_file(("named path", iso(-1), 3))
+        for adapter in ADAPTERS:
+            with self.subTest(adapter=adapter):
+                self.ws.clear_state()
+                section = tally_section(self.run_hook(adapter))
+                self.assertIsNotNone(section)
+                match = _TALLY_PATH_RE.search(section)
+                self.assertIsNotNone(match, f"no path named in {section!r}")
+                named = match.group(0).replace("\\", "/").lower()
+                self.assertTrue(
+                    named.endswith(".liplus/tally/promotion_tally.md"), named
+                )
 
     def test_header_case_is_read_case_sensitively(self) -> None:
         """`## Cluster:` is not the header literal; no port may accept it.
@@ -353,9 +393,8 @@ class AdapterParityTest(TallySurfaceTestCase):
         the three adapters on the sibling observation surface (#1562 F2). The
         same asymmetry is reachable here.
         """
-        self.ws.write(self.ws.shared_memory, "self-evaluation_log.md", "# log\n")
         self.ws.write(
-            self.ws.shared_memory,
+            self.ws.tally_dir,
             "promotion_tally.md",
             "\n".join(
                 [
@@ -374,9 +413,8 @@ class AdapterParityTest(TallySurfaceTestCase):
 
     def test_empty_descriptor_is_dropped_by_every_port(self) -> None:
         """A `## cluster:` header with no descriptor names nothing to judge."""
-        self.ws.write(self.ws.shared_memory, "self-evaluation_log.md", "# log\n")
         self.ws.write(
-            self.ws.shared_memory,
+            self.ws.tally_dir,
             "promotion_tally.md",
             "\n".join(
                 [
@@ -394,27 +432,40 @@ class AdapterParityTest(TallySurfaceTestCase):
                 self.assertIsNone(tally_section(self.run_hook(adapter)))
 
 
-class MemoryDirResolutionTest(TallySurfaceTestCase):
-    def test_tally_file_alone_resolves_the_memory_directory(self) -> None:
-        """The marker set is what consumers read, and the tally now has a reader.
+class TallyResolutionTest(TallySurfaceTestCase):
+    """Where each port looks for the tally file (#2018).
 
-        Without `promotion_tally.md` in the marker set, a workspace holding only
-        a tally would leave `MEMORY_DIR` unresolved and this surface silent --
-        the same shape as #1562 F3 on the observation surface.
+    The tally is one counting surface per host while a memory directory resolves
+    per workspace, so the two resolutions are separate. The separation is asserted
+    from both sides: the tally is found with no memory directory at all, and a
+    tally sitting at the pre-#2018 memory path is not found.
+
+    The memory-side resolution is not asserted here, and its marker set is
+    unchanged by #2018: a directory holding nothing but a pre-#2018 tally still
+    claims `MEMORY_DIR`, which is the state `test_tally_at_the_pre_move_memory_path
+    _is_not_read` runs against.
+    """
+
+    def cluster_text(self, descriptor: str) -> str:
+        return "\n".join(
+            [
+                f"## cluster: {descriptor}",
+                f"expires: {iso(-1)}",
+                "occurrences:",
+                f"  - {iso(-1)} self-eval#0 axis=frame",
+                "",
+            ]
+        )
+
+    def test_tally_resolves_with_no_memory_directory_at_all(self) -> None:
+        """Nothing is planted in memory, and the tally must still be reached.
+
+        Before #2018 the file was read through `MEMORY_DIR`, so an unresolved
+        memory directory took this surface silent with it.
         """
         descriptors = ("lone cluster",)
         self.ws.write(
-            self.ws.shared_memory,
-            "promotion_tally.md",
-            "\n".join(
-                [
-                    f"## cluster: {descriptors[0]}",
-                    f"expires: {iso(-1)}",
-                    "occurrences:",
-                    f"  - {iso(-1)} self-eval#0 axis=frame",
-                    "",
-                ]
-            ),
+            self.ws.tally_dir, "promotion_tally.md", self.cluster_text(descriptors[0])
         )
         for adapter in ADAPTERS:
             with self.subTest(adapter=adapter):
@@ -423,6 +474,29 @@ class MemoryDirResolutionTest(TallySurfaceTestCase):
                     tally_section(self.run_hook(adapter)), descriptors
                 )
                 self.assertIn(descriptors[0], clusters)
+
+    def test_tally_at_the_pre_move_memory_path_is_not_read(self) -> None:
+        """No fallback to `MEMORY_DIR/promotion_tally.md`.
+
+        A path that still resolves is a path still written to, and a tally
+        written into a memory directory is a count the rest of the host does not
+        add to. The file being absent is what tells a caller reaching for the old
+        path, so the surface stays silent here rather than reading it.
+        """
+        self.ws.write(self.ws.shared_memory, "self-evaluation_log.md", "# log\n")
+        for candidate in (
+            self.ws.claude_primary,
+            self.ws.shared_memory,
+            self.ws.codex_secondary,
+        ):
+            self.ws.write(
+                candidate, "promotion_tally.md", self.cluster_text("old path cluster")
+            )
+        for adapter in ADAPTERS:
+            with self.subTest(adapter=adapter):
+                self.ws.clear_state()
+                self.assertIsNone(tally_section(self.run_hook(adapter)))
+
 
 
 class NoNewMaterialMarkerTest(TallySurfaceTestCase):

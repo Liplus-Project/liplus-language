@@ -384,6 +384,11 @@ class Workspace:
         self.shared_memory = self.workspace / "memory"
         self.codex_secondary = self.liplus / "memory"
 
+        # The promotion tally resolves per host rather than per workspace, and
+        # outside memory entirely (#2018), so it is not a memory candidate: every
+        # port reads this one directory under the fixture HOME.
+        self.tally_dir = self.home / ".liplus" / "tally"
+
     # -- fixture construction -------------------------------------------------
 
     def _write_gh_stub(self) -> None:
@@ -472,6 +477,11 @@ class Workspace:
         elif adapter == "codex_sh":
             env["HOME"] = posix_path(self.home)
         else:
+            # Native spelling, not the MSYS form the bash ports get: PowerShell
+            # resolves a drive-letter path and not "/c/...". HOME is set at all
+            # because the ps1 port reads it for the tally directory (#2018);
+            # unset, the run would reach the real profile.
+            env["HOME"] = slash_path(self.home)
             env["PATH"] = str(self.stub_bin) + os.pathsep + env.get("PATH", "")
         if extra_env:
             env.update(extra_env)

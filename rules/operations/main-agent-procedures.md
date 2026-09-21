@@ -15,7 +15,7 @@ layer: L4-operations
 Layer = L4 Operations Layer
 Holds the operations procedures whose actor can be the main agent, on the resident rules surface instead of in an `operations-*` skill.
 Requires = L4 Operations Layer
-Load timing = always-on (the main agent is barred from the skill surface, so residency is the only way these reach their actor)
+Load timing = always-on
 
 </position>
 
@@ -23,29 +23,29 @@ Load timing = always-on (the main agent is barred from the skill surface, so res
 
 ## The bar and its pair
 
-`adapter/claude/CLAUDE.md` and `adapter/codex/AGENTS.md` each carry one line: `Main never reads operations skills directly when subagent is available.` It is not a standalone bar: it stands together with the move that pays for it — the PR review criteria sit on the layer the main agent already holds. The intent is role separation (subagent executes procedures, main judges reports), not context economy.
+`adapter/claude/CLAUDE.md` and `adapter/codex/AGENTS.md` each carry one line: `Main never reads operations skills directly when subagent is available.`
 
-The pair, stated once: **the bar holds only while every procedure whose actor can be the main agent has its canonical text on a surface the main agent may read.** Main-readable = every Li+ surface except `skills/operations-*/SKILL.md`. The subagent reads all of them, so a main-readable surface is also the surface both actors reach, and a canonical placed there needs no second copy for the other actor.
+The pair: **the bar holds only while every procedure whose actor can be the main agent has its canonical text on a surface the main agent may read.** Main-readable = every Li+ surface except `skills/operations-*/SKILL.md`.
 
-What establishes that an actor can be the main agent is one of two things, and neither is "the main agent could choose to do it". Implementation and operations are delegated by default (`skills/task-subagent-delegation/SKILL.md` Rules), so the main agent's freedom to execute something itself is not an actor axis — reading it as one fires every `operations-*` skill at once and leaves the maintenance rule below with no procedure that legitimately stays in a skill. The two that do establish it:
+What establishes that an actor can be the main agent is one of two things, and neither is "the main agent could choose to do it" — the main agent's freedom to execute something itself is not an actor axis (implementation and operations are delegated by default, `skills/task-subagent-delegation/SKILL.md` Rules). The two that do establish it:
 
 - the procedure is on `Parent retains` (`skills/task-subagent-delegation/SKILL.md` Rules). Read that list at its own granularity: `issue management` there is scoped by its parenthetical to non-state lifecycle labels, type, maturity, marker and close, so a requirement about issues that is none of those is not reached by it.
-- the procedure needs a surface no subagent has — an utterance to the human, a human-facing report, or the user-turn boundary. Escalating a stop to the human is not that surface on its own: a subagent escalates by reporting to the parent, which is why `skills/operations-on-ci/SKILL.md` does not fire on its own escalate-to-human line. What fires is a prescribed human-facing utterance the agent must author, or a go-sign the agent must receive and act on where no already-resident gate carries it.
+- the procedure needs a surface no subagent has — an utterance to the human, a human-facing report, or the user-turn boundary. Escalating a stop to the human is not that surface on its own (`skills/operations-on-ci/SKILL.md` does not fire on its own escalate-to-human line). What fires is a prescribed human-facing utterance the agent must author, or a go-sign the agent must receive and act on where no already-resident gate carries it.
 
-Both are read per requirement, not per file: one skill can hold a firing clause and a non-firing one, and the granularity that matters is the clause.
+Both are read per requirement, not per file: one skill can hold a firing clause and a non-firing one.
 
 Maintenance rule, applied when an `operations-*` skill gains a requirement whose actor can be the main agent: move the canonical to a main-readable surface and leave a pointer in the skill. Two wrong repairs:
 
-- copy the text to a main-readable surface and keep it in the skill as well — the second copy is what drifts.
-- narrow the bar so the main agent may read the skill "when it is the actor" — that discards the role separation the bar exists for, and the requirement still sits on a pull surface its actor reaches only after it has begun acting.
+- copy the text to a main-readable surface and keep it in the skill as well.
+- narrow the bar so the main agent may read the skill "when it is the actor".
 
-Detection sign: a procedure written into an `operations-*` skill whose actor is mode-dependent, or stated as "the agent holding the merge decision". That agent is the parent in `auto` / `semi_auto` (`skills/task-subagent-delegation/SKILL.md` Rules), so the requirement lands where its actor cannot read it.
+Detection sign: a procedure written into an `operations-*` skill whose actor is mode-dependent, or stated as "the agent holding the merge decision" — that agent is the parent in `auto` / `semi_auto` (`skills/task-subagent-delegation/SKILL.md` Rules).
 
-One shape resolves the other way: where the literal's actor is the subagent and the main agent is only the carrier, the canonical stays in the skill and the main agent carries a pointer to it instead (`skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary). Move the canonical when the main agent has to execute it; leave a pointer when the main agent only has to convey it.
+Where the literal's actor is the subagent and the main agent is only the carrier, the canonical stays in the skill and the main agent carries a pointer to it instead (`skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary). Move the canonical when the main agent has to execute it; leave a pointer when the main agent only has to convey it.
 
-Relocating the canonical is half the move. A skill is invoked by its `description` matching the situation at hand, so a skill whose canonical has left but whose description still names a moment the main agent stands in keeps putting the main agent into the skill — the bar is then broken by the file's own trigger, not by any agent's choice, and the relocation has renamed the violation rather than repaired it. The second half: narrow the description to the reader the skill retains. Retained readers are the subagent, and the main agent under the substrate-absence fallback (`skills/task-subagent-delegation/SKILL.md` Autonomy) — that fallback fires only when no subagent is available, which is the condition under which the bar does not apply, so a description scoped to it does not fire against the bar. A skill that retains neither reader is empty and is deleted, not left as a pointer; `rules/model/subtractive-structural-beauty.md` Core principle (A) already refuses it its place. One thing other than a reader can hold such a file up: being the resolution target of a pointer that cannot itself be edited. That is load-bearing — deleting the file would leave the pointer dangling — so the file stays, as a redirect stub whose description declares it non-invocable rather than naming any moment at all.
+Relocating the canonical is half the move. The second half: narrow the skill's `description` to the reader it retains. Retained readers are the subagent, and the main agent under the substrate-absence fallback (`skills/task-subagent-delegation/SKILL.md` Autonomy). A skill that retains neither reader is deleted, not left as a pointer — unless it is the resolution target of a pointer that cannot itself be edited, in which case it stays as a redirect stub whose description declares it non-invocable rather than naming any moment.
 
-Adapter literals that point the main agent at an operations skill are repaired the same way where they are editable. Where one is not — `adapter/claude/CLAUDE.md` and `adapter/codex/AGENTS.md` `## Optional Webhook Notification Flow` is byte-frozen, because `Li+update.md` derives the legacy trailer it strips from installed files out of that very block and drift there silently breaks the migration for pre-migration installs — the redirect is carried here instead. Editing the adapter to satisfy the bar would trade a governance defect for a live migration defect; `rules/model/axis-separation.md` sends a cross-layer contradiction back to the boundary rather than resolving it by precedence, and this file is the boundary the main agent already loads. Detection sign that this shape is present: an adapter line naming an operations skill as where policy lives, in the same sentinel section as the bar.
+Adapter literals that point the main agent at an operations skill are repaired the same way where they are editable. `adapter/claude/CLAUDE.md` and `adapter/codex/AGENTS.md` `## Optional Webhook Notification Flow` is byte-frozen: do not edit it to satisfy the bar, and carry the redirect here instead. Detection sign that this shape is present: an adapter line naming an operations skill as where policy lives, in the same sentinel section as the bar.
 
 </the-bar-and-its-pair>
 
@@ -59,7 +59,7 @@ Actor = the parent, unconditionally. The subagent applies this format too, when 
 Issue title language:
 Title = ASCII English only.
 Body  = LI_PLUS_PROJECT_LANGUAGE.
-Consistent with the commit title/body language convention (`rules/operations/operations.md` Operations Rules) and PR title convention. That convention is stated there about that section's own commit and PR lines; the two axes stated alongside it carry here by the same consistency — the title axis, and the carve-out where the repository being operated on is the repository at `LI_PLUS_REPO` itself and `LI_PLUS_PROJECT_LANGUAGE` does not reach its body language. Read both there; they are not restated here.
+The title axis, and the carve-out where the repository being operated on is the repository at `LI_PLUS_REPO` itself and `LI_PLUS_PROJECT_LANGUAGE` does not reach its body language, carry here from `rules/operations/operations.md` Operations Rules. Read both there; they are not restated here.
 
 Issue may start from memo. Three fields are convergence target, not creation gate.
 Use only necessary headings. Do not force empty sections.
@@ -88,7 +88,7 @@ Discriminator: "Is this issue creation itself the main task, or is it interrupti
 - Interrupting → rapid path.
 - Main task → full forming/ready intake.
 
-Treating "黙って" as "still do full intake but skip discussing it" defeats the interrupt-cost reduction the human asked for. Memo maturity is a valid resting state, not "incomplete and embarrassing"; promotion to forming/ready happens later when the issue itself is the focus (Issue maturity below).
+Do not read "黙って" as "still do full intake, just skip discussing it". Memo maturity is a valid resting state; promotion to forming/ready is judged at Issue maturity below.
 
 </issue-format>
 
@@ -118,7 +118,7 @@ Subjective confidence is outside this criterion.
 A premise is verified only when external evidence (docs, spec, source, runtime probe, existing issue/PR record) is cited.
 "feels correct" is not verification.
 
-Memo maturity is a valid resting state, not "incomplete and embarrassing". The creation-time rapid path that produces a memo-maturity issue lives at Issue format above, which fires at issue creation; promotion to forming/ready is judged here, later, when the issue itself is the focus.
+Memo maturity is a valid resting state. Promotion to forming/ready is judged here, when the issue itself is the focus — not at the creation moment (Issue format above).
 
 </issue-maturity>
 
@@ -135,8 +135,7 @@ Split by responsibility, not granularity.
 Classification litmus (sub-issue vs sibling issue):
 Ask: "Can this unit ship independently without breaking the parent's atomic deliverable?"
 If yes = this is a sibling issue, not a sub-issue. Create it as an independent issue.
-If no  = this is a legitimate sub-issue. It only makes sense as part of the parent's atomic deliverable.
-Rationale: if a unit can ship alone, nothing is gained by making it a sub-issue.
+If no  = this is a legitimate sub-issue.
 The feeling "I want per-sub-issue PR to ship these independently" = signal that these should have been sibling issues from the start.
 Re-classify before splitting PRs. Do not split PRs.
 
@@ -172,17 +171,16 @@ Continue / rewrite scope / stop.
 
 Master picks one of the three. No multi-turn escalation by default; if Master extends, follow the extension.
 
-Anti-pattern: "just to be safe" / "out of caution" firing without a literal trigger hit is push surplus per `rules/model/subtractive-structural-beauty.md` and prohibited.
+Firing without a literal trigger hit ("just to be safe" / "out of caution") is push surplus per `rules/model/subtractive-structural-beauty.md` and prohibited.
 
-Post-implementation (PR review time) is too late and is rejected as a firing moment — the gate must fire pre-commit, not post-commit.
+The gate fires pre-commit. Post-implementation (PR review time) is rejected as a firing moment.
 
-Recovery from accidental per-sub-issue PR runs:
-If per-sub-issue PRs already exist on a parent with sub-issues (a spec violation that may have shipped before discovery), the post-hoc recovery is:
+Recovery from accidental per-sub-issue PR runs, when per-sub-issue PRs already exist on a parent with sub-issues:
 1. Consolidate sub-issue branches into a single parent branch via cherry-pick or rebase.
 2. Manually re-open sub-issues that auto-closed via the wrong branch's merge.
 3. Close them again from the consolidated parent PR's merge once it lands.
 
-This is fix-up only — do not normalize per-sub-issue PRs as a workflow. The single parent PR layout is correct; per-sub-issue PRs trigger cascading auto-close failures on the parent, and this procedure repairs that state rather than sanctioning it.
+This is fix-up only — do not normalize per-sub-issue PRs as a workflow.
 
 </sub-issue-rules>
 
@@ -213,7 +211,6 @@ Do not use lifecycle labels as substitute for memo/forming/ready.
 
 Atmosphere reading scope:
 Applies to timing tier judgment (NOW / SOON / SOMEDAY) only.
-Label assignment is a deterministic mapping from tier result, not a second atmosphere read.
 Once tier is judged, label follows the tiers table without re-reading atmosphere.
 
 Branch existence check (before creation):
@@ -225,17 +222,15 @@ If not exists   = proceed normally.
 
 Branch creation:
 command = gh issue develop {issue_number} -R {owner}/{repo} --name {session-branch} --base main
-Branch creation carries no assignee step. The actor axis fires at the parent's delegation
-moment, upstream of branch creation and of the `in-progress` transition alike
+Branch creation carries no assignee step; the actor axis fires at the parent's delegation moment
 (`skills/task-subagent-delegation/SKILL.md` Rules; reading rules for the field at
 `skills/task-subagent-state-labels/SKILL.md` Actor axis).
 
 Merge behavior:
 PR merge auto-closes the parent issue via issue reference.
 Parent branch is linked to parent issue via gh issue develop, so any PR from that branch
-auto-closes the parent on merge. This is safe under the single parent PR flow (see Sub-issue Rules):
-the single merge happens only after all sub-issues are done, so parent auto-close lands correctly.
-Per-sub-issue PR on the parent branch is prohibited precisely because it triggers parent auto-close
+auto-closes the parent on merge.
+Per-sub-issue PR on the parent branch is prohibited: it triggers parent auto-close
 before the remaining sub-issues complete.
 If a unit needs an independent branch and PR = it is a sibling issue, not a sub-issue.
 Create it as an independent issue with its own parent branch.
@@ -281,9 +276,7 @@ if execution_mode == semi_auto:
   Version type is the same judgment axis used at release (see `rules/operations/release-version-rule.md`). AI proposes type at PR creation time; on unclear, default to the safer side (minor) and ask human.
 
   Per-PR exception (content-based axis) lives in `rules/operations/execution-mode.md` `semi_auto mode:`.
-  Read it there before waiving the human check. It was restated on the skill surface once, and a later
-  amendment to the canonical file never reached the copy — the waiver then read wider at the merge gate's
-  own surface than the canonical allowed. Do not restate it; the second copy is what drifts.
+  Read it there before waiving the human check. Do not restate it here.
 
 if execution_mode == trigger:
   Human check required on every PR after self-review pass.
@@ -313,8 +306,7 @@ After the internal self-review passes, that agent MUST post the outcome as a for
   gh pr review {pr} -R {owner}/{repo} --comment --body "<summary of self-review outcome>"
 
 Review body must include: acceptance-criteria check result, scope deviations (if any), next-step expectation (e.g. "awaiting human review" for trigger / minor-major semi_auto).
-Rationale: creates an audit trail visible on the PR's Reviews tab, separating the AI's review record from PR author authorship.
-Mechanism note: GitHub rejects `--add-reviewer` self-assignment silently; only `gh pr review --comment` works for PR author self-review records.
+GitHub rejects `--add-reviewer` self-assignment silently; only `gh pr review --comment` works for PR author self-review records.
 
 </self-review-formal-record>
 
@@ -336,7 +328,7 @@ Prefer webhook over polling.
     On signal:
       gh pr view {pr} -R {owner}/{repo} --json reviewDecision --jq '.reviewDecision'
 
-The decision read here is the input to the review judgment, not the judgment. What APPROVED and CHANGES_REQUESTED release is `skills/task-pr-review-judgment/SKILL.md`, the main agent's own surface and already main-readable; on APPROVED the mode's merge path is Merge Execution below. Do not restate either here; the second copy is what drifts.
+The decision read here is the input to the review judgment, not the judgment. What APPROVED and CHANGES_REQUESTED release is `skills/task-pr-review-judgment/SKILL.md`; on APPROVED the mode's merge path is Merge Execution below. Do not restate either here.
 
 </review-approval-check>
 
@@ -344,16 +336,17 @@ The decision read here is the input to the review judgment, not the judgment. Wh
 
 ## Merge Execution
 
-Canonical, and held on the resident surface rather than in an `operations-*` skill: at this procedure's firing moment — `self-review has passed and the mode gate has cleared` — that skill surface has no reader both present and permitted. In `auto` / `semi_auto` the agent standing there is the parent, which the bar keeps out. In `trigger` the gate clears after the delegated subagent's session has ended (`skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition), so no subagent is there to invoke it either. Whichever agent is put there reads this file, because `rules/**` loads without being invoked.
+Canonical.
+Actor = the parent in `auto` / `semi_auto`. In `trigger` the gate clears after the delegated subagent's session has ended (`skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition), so no agent stands at the merge moment.
 
-Merge executor is AI in every mode (trigger / semi_auto / auto). That is the actor axis; the act it names differs by mode. Do not read the act off the actor — that reading is what splits the source across surfaces.
+Merge executor is AI in every mode (trigger / semi_auto / auto); the act it names differs by mode. Do not read the act off the actor.
 
 - `semi_auto` / `auto` = direct merge. AI runs `gh pr merge` (no `--auto`) after all preconditions pass: self-review, the mode-specific human gate, and the mergeable state check below.
-- `trigger` = handoff. The AI act is enabling GitHub auto-merge (`gh pr merge --auto`) at PR creation, and GitHub fires the merge itself on human approval. No agent runs a merge command at the approval moment, and none stands there to run one (`skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition).
+- `trigger` = handoff. The AI act is enabling GitHub auto-merge (`gh pr merge --auto`) at PR creation, and GitHub fires the merge itself on human approval. No agent runs a merge command at the approval moment.
 
 Authoritative for the mode split: `rules/operations/operations.md` PR auto-merge policy.
 
-Pre-merge mergeable state check (direct-merge path only — in `trigger` the PR sits with auto-merge armed until GitHub can merge it, and no agent is present to check):
+Pre-merge mergeable state check (direct-merge path only):
   gh pr view {pr} -R {owner}/{repo} --json mergeStateStatus --jq '.mergeStateStatus'
   CLEAN -> proceed to merge.
   BEHIND -> gh pr update-branch {pr} -R {owner}/{repo} -> restart [CI Loop] from step1.
@@ -361,7 +354,7 @@ Pre-merge mergeable state check (direct-merge path only — in `trigger` the PR 
     if it succeeds: restart [CI Loop] from step1
     if it fails on merge conflict: comment on issue -> escalate to human.
       Do not fall back to rebase + force push: force push is an unconditional human judgment gate
-      (Human confirmation required below), so no agent-side path forward remains.
+      (Human confirmation required below).
   BLOCKED or UNKNOWN -> wait and recheck (GitHub may still be computing)
 
 Merge strategy:
@@ -376,7 +369,7 @@ Real device test:
 Merge first. Then test on main. Not a merge gate.
 
 Post-merge observation for L1 source changes:
-After merging any PR touching L1 Model Layer source (any file with `layer: L1-model` frontmatter, typically `rules/model/*`), apply `rules/operations/operations.md` Post-L1-Merge Runtime Observation. Separate observable axis from Real device test above (AI internal judgment behavior vs external process output).
+After merging any PR touching L1 Model Layer source (any file with `layer: L1-model` frontmatter, typically `rules/model/*`), apply `rules/operations/operations.md` Post-L1-Merge Runtime Observation. Separate observable axis from Real device test above.
 
 </merge-execution>
 
@@ -385,7 +378,7 @@ After merging any PR touching L1 Model Layer source (any file with `layer: L1-mo
 ## Human confirmation required
 
 Canonical. `skills/operations-on-release/SKILL.md` keeps the release execution procedure and points here.
-Actor = the main agent. `rules/operations/execution-mode.md` human judgment gate holds the gate list on the judgment-authority axis and is not restated here; what this section adds is the stop word, the branch-delete and trigger-mode items, and the confirmation's position ahead of the procedure.
+Actor = the main agent. The gate list on the judgment-authority axis is `rules/operations/execution-mode.md` human judgment gate and is not restated here.
 
 Stop immediately when:
 human says wait or stop or matte.
@@ -410,9 +403,6 @@ Release create completion report contains release URL + post-release task comple
 - Real-device verification / runtime check
 - go-sign solicitation phrasing ("いただければ" / "どうぞ" / "判断で")
 - Waiting / standby positioning ("Latest 未 flip = 待機状態")
-
-Real-device verification structure:
-Real-device verification is multi-session continuous observation by human, not a single-session event. Normal session operation after a release IS the verification. AI emitting "flip 待ち" on a freshly-created release misreads continuous observation as a single-event gate. Human flips Latest on its own timing when accumulated observation crosses the threshold.
 
 Scope: AI-side surfacing of release state. A human's explicit inquiry about release state is outside it — answer that directly.
 
@@ -448,26 +438,18 @@ source priority:
 delivery mode interaction (LI_PLUS_WEBHOOK_DELIVERY):
   poll (default) = each user turn, the AI calls mcp__github-webhook-mcp__get_pending_status.
   channel        = MCP channel pushes events; AI does not poll, intake reads the channel surface.
-  mcp_hook       = the type=mcp_tool UserPromptSubmit hook entry shipped in the
-                   default settings.json template invokes
-                   mcp__github-webhook-mcp__get_pending_status directly at hook
-                   time and injects the result into prompt context. The AI does
-                   not issue the call itself; foreground handling reads the
-                   injected status as if it had been polled.
-                   Preconditions:
-                   - github-webhook-mcp >= v0.11.3 (earlier versions return
-                     generic JSON that Claude Code silently discards because it
-                     does not match a hook decision schema; v0.11.3 wraps the
-                     result in UserPromptSubmit decision shape on the local
-                     bridge side).
-                   - github-webhook-mcp registered as an MCP server in the host
-                     (CLI: .mcp.json / ~/.claude.json / claude mcp add;
-                     Desktop: claude_desktop_config.json). When unregistered,
-                     the mcp_tool resolver returns plain `not connected` text
-                     per turn — harmless but visible noise.
-  source priority above is unchanged across modes; only the *who initiates the
-  call* axis differs. Relevance judgment and destructive consume rules apply
-  identically.
+  mcp_hook       = the type=mcp_tool UserPromptSubmit hook entry in the default
+    settings.json template calls mcp__github-webhook-mcp__get_pending_status at hook time and
+    injects the result into prompt context. The AI does not issue the call itself; foreground
+    handling reads the injected status as if it had been polled.
+    Preconditions:
+    - github-webhook-mcp >= v0.11.3.
+    - github-webhook-mcp registered as an MCP server in the host (CLI: .mcp.json /
+      ~/.claude.json / claude mcp add; Desktop: claude_desktop_config.json). When unregistered,
+      the mcp_tool resolver returns plain `not connected` text per turn — harmless but visible
+      noise.
+  source priority above is unchanged across modes; only the *who initiates the call* axis
+  differs. Relevance judgment and destructive consume rules apply identically.
 
 local webhook store:
   precondition = LI_PLUS_MODE=clone
@@ -476,7 +458,15 @@ local webhook store:
     a = LI_PLUS_WEBHOOK_STATE_DIR from Li+config.md (absolute or workspace_root-relative)
     b = {workspace_root}/github-webhook-mcp
     c = {workspace_root}/../github-webhook-mcp
+  state dir shape check = a candidate that exists is a state dir only if it carries at least one of the
+    names the helper reads (`events.json`, `notification-claims.json`, `trigger-events/`, `codex-runs/`).
+    A candidate failing it is not resolved: move to the next candidate, and treat all candidates failing
+    as unresolved. The name alone does not settle it. Take the names from
+    `scripts/check_webhook_notifications.py`, which holds them as one list; this line is the contract,
+    not a second source for them.
   if helper missing or state dir unresolved = skip silently
+  a silent skip is not an observation of the backlog. Do not report it as "no pending events" — on that
+    axis say nothing, which is what the silent skip already is.
   helper output = inspect summary with foreground-matched items, notable items, and cleanup candidates
   helper default = inspect only; preserve unmatched backlog
   destructive actions = explicit `read` / `done` / `claim` / `cleanup-safe-success` calls only
@@ -499,20 +489,16 @@ own-operation arrival confirmation:
     1. head_branch = this session's working branch -> own.
     2. head_branch = main -> read `gh run view <id> --json displayTitle` and match it against what
        this session wrote to (event=issues carries the issue title, push the commit title,
-       pull_request the PR title). `wrote to` is the whole write set, not the creation: a session
-       that edited an issue body matches that issue's title as surely as the session that opened it.
-       What this step asks is whether the run confirms arrival of an operation this session
-       performed, which is what the purpose line above states; issue authorship is not the question.
+       pull_request the PR title). `wrote to` is the whole write set, not the creation; issue
+       authorship is not the question.
     3. sender is another account -> external, preserve.
     4. nothing above settles it -> hold, and leave the event unprocessed.
 
     Residual limit at step 2, left in place deliberately: the title names the issue, not the writer.
     Two sessions writing to one issue raise two runs carrying the same title, and each reads both as
     own. No session starves — each holds one arrival confirmation of its own, and mark_processed is
-    idempotent, so the duplicate consume writes the same state the first did. Identifying the writer
-    is given up rather than closed, because sessions authenticating as one account carry no GitHub-side
-    identifier that separates them. Do not repair this by narrowing step 2 back to creation: that
-    returns every non-creator write to step 4, where no actor can consume it.
+    idempotent, so the duplicate consume writes the same state the first did. Do not repair it by
+    narrowing step 2 back to creation.
 
 </foreground-webhook-notification-intake>
 

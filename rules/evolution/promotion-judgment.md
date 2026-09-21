@@ -45,7 +45,12 @@ Design choice: do not criteria-ize the judgment. Reason: criteria-ization trades
 
 ## Tally
 
-Storage = `memory/promotion_tally.md` (workspace-local, gitignored)
+Storage = one `promotion_tally.md` outside memory (host-local, gitignored). On one host it resolves to one file, the same file under every adapter. Where that file sits is the adapter's, and no rule names it. The cold-start surface prints the path it resolved (`rules/evolution/cold-start-synthesis.md` Promotion Tally Expiry Surface); when nothing was printed, read the resolution out of the session's own hook (`adapter/*/hooks/on-session-start.*` in the Li+ source, the installed copy under the host's hooks directory otherwise) and write there.
+
+Do not give an adapter a tally file of its own. The floor splits, neither half reaches the threshold, and nothing detects the split. Name fit, ownership feel and adapter independence justify none of it.
+
+Appends are not serialized. Two sessions writing at once can drop an occurrence, and nothing raises when one is dropped — detection is by hand. Do not add locking or a per-session split before a collision has been observed; when one is, file that observation as its own issue.
+
 Format (YAML-like markdown):
 
 ```
@@ -73,7 +78,7 @@ Placement: the log is the file's last section, after every cluster. Cluster pars
 
 Fields: deletion date, cluster descriptor, `first_observation`, occurrence count, disposition. The disposition names which Threshold Rules exit was taken, and for the two issue-creation exits carries the issue number (created, or folded into). Occurrence bodies are not carried over.
 
-Cap = 10 lines, oldest-first deletion once exceeded. The log is an append surface inside memory, and memory is transient (Scope, `rules/evolution/memory-entry-format.md`); an uncapped one is not what that Scope holds. Same shape as the self-evaluation log's cap (`skills/evolution-self-eval/SKILL.md`).
+Cap = 10 lines, oldest-first deletion once exceeded. Every cluster the log records has already left the tally, and expired clusters are deleted in full (above). Same shape as the self-evaluation log's cap (`skills/evolution-self-eval/SKILL.md`).
 
 </tally>
 

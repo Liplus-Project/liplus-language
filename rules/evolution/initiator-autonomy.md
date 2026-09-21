@@ -45,7 +45,7 @@ A statement about system behavior carries the conditions it was observed under. 
 
 Out of scope: the test's intent, reproduction steps, and references to a prior issue / PR / commit. This states nothing about them.
 
-`docs/` is in Scope below and excluded here. The two lists run on different axes — Scope is what the AI may initiate, condition 2 is what brake 1 gates — and `docs/` is the entry where they disagree, so reading either membership off the other is what produces the wrong answer.
+`docs/` is in Scope below and excluded here, save a file the Record surfaces bullet hands back to the criterion. The two lists run on different axes — Scope is what the AI may initiate, condition 2 is what brake 1 gates — and `docs/` is the entry where they disagree, so reading either membership off the other is what produces the wrong answer.
 
 </self-evolution-pr-definition>
 

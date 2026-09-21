@@ -49,6 +49,8 @@ Storage = one `promotion_tally.md` outside memory (host-local, gitignored). On o
 
 Do not give an adapter a tally file of its own. The floor splits, neither half reaches the threshold, and nothing detects the split. Name fit, ownership feel and adapter independence justify none of it.
 
+Appends are not serialized. Two sessions writing at once can drop an occurrence, and nothing raises when one is dropped — detection is by hand. Do not add locking or a per-session split before a collision has been observed; when one is, file that observation as its own issue.
+
 Format (YAML-like markdown):
 
 ```

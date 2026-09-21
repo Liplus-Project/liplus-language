@@ -365,13 +365,13 @@ class AdapterParityTest(TallySurfaceTestCase):
                 )
 
     def test_every_port_names_the_file_it_read(self) -> None:
-        """The emission is the only place the resolved path is stated.
+        """Each port names the path it resolved, in its own emission.
 
-        `rules/evolution/promotion-judgment.md` Tally leaves the location to the
-        adapter, so no rule names it -- and that path is where the agent writes
-        the occurrences this surface counts. The three ports spell one path three
-        ways, so what is asserted is that each names a `promotion_tally.md` under
-        a `.liplus` directory, not that the strings agree.
+        The claim is fixed at `rules/evolution/cold-start-synthesis.md` Promotion
+        Tally Expiry Surface ("The emission names the resolved path"). The three
+        ports spell one path three ways, so what is observed here is that each
+        emission carries a `promotion_tally.md` under a `.liplus` directory, not
+        that the three strings agree.
         """
         self.write_tally_file(("named path", iso(-1), 3))
         for adapter in ADAPTERS:

@@ -22,7 +22,7 @@ Decision Structure is a semantic graph of judgment nodes joined by supersede / d
 - an Accepted Tradeoff close is confirmed
 - a spec-axis judgment settles in dialogue (architecture choice, naming convention, operational policy)
 - a failure's root cause is identified and becomes reproducible learning
-- a premise is verified and the result settles, success or failure alike
+- a premise is verified and the result settles, success or failure alike (a self-evolution observation entry's `settle` takes its destination from `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format instead)
 - the same investigation is noticed to have been repeated across multiple sessions
 
 `docs/Decision-Structure.md` carries the same accumulation conditions as the index's own spec; keep the two aligned rather than letting them drift apart.

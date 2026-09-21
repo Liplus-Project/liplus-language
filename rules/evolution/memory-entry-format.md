@@ -174,9 +174,11 @@ The line against `inconclusive` is `has not arrived` versus `cannot arrive`. `in
 
 `settle` fires at this due moment, not at `expires`. Reaching `expires` still `pending` is the escalation below, and is not a settle condition.
 
-Before deleting on `settle`, write the judgment record. Destination and procedure = `skills/evolution-decision-structure-write/SKILL.md`, unchanged. The record carries what this entry's `notes` already hold: the application moment that was observed, and the confirmation that nothing stands against the change. Do not open a fresh investigation after the verdict to fill it out.
+Before deleting on `settle`, write the judgment record. The record carries what this entry's `notes` already hold: the application moment that was observed, and the confirmation that nothing stands against the change. Do not open a fresh investigation after the verdict to fill it out.
 
-Where that write cannot be completed in the same session, post the same content as a comment on the merged PR and delete the entry. The entry's `pr:` field fixes the address. Either way the entry is deleted: holding it at `pending` because the write surface was unreachable is not one of the outcomes above.
+Choose the destination by whether a future reader would retrieve the record as grounds for a later judgment. It would -> the Decision Structure wiki; procedure = `skills/evolution-decision-structure-write/SKILL.md`, unchanged. It only confirms that the change was applied with nothing standing against it -> a comment on the merged PR is the record. The entry's `pr:` field fixes that address.
+
+Where a wiki write cannot be completed in the same session, post the same content as a comment on the merged PR instead. Either way the entry is deleted: holding it at `pending` because the write surface was unreachable is not one of the outcomes above.
 
 `expires` past without resolution -> escalate to human judgment (entry retained).
 

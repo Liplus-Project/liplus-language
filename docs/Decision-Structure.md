@@ -31,7 +31,7 @@
 
 - 設計上の分岐で選択肢を比較し、理由をもって一方を選んだとき
 - アプローチを試して失敗し、原因が判明したとき
-- 前提を検証し、結果が確定したとき（成功・失敗を問わない）
+- 前提を検証し、結果が確定したとき（成功・失敗を問わない。ただし self-evolution observation entry の `settle` は、置き場所を `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format に従って選ぶ）
 - 複数セッションにわたって同じ調査を繰り返していることに気づいたとき
 
 書かないもの：

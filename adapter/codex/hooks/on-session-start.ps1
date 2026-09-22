@@ -103,8 +103,20 @@ if ($payload) {
   if ($m -cin @('startup','resume','clear','compact')) { $matcher = $m }
 }
 
+# ---------- source mode (#2031) ----------
+# LI_PLUS_MODE decides where the Li+ source is read from, and nothing else: api
+# reads the adapter tag's tree from GitHub, clone reads it out of the local
+# clone. Everything the hook emits is the same in both modes. -CaseSensitive for
+# parity with the bash ports' `sed` extraction (see the language-pair note below).
+$liplusMode = ''
+if (Test-Path -LiteralPath $configFile) {
+  $ml = Select-String -LiteralPath $configFile -CaseSensitive -Pattern '^\s*LI_PLUS_MODE\s*=\s*(.*)$' -ErrorAction SilentlyContinue | Select-Object -First 1
+  if ($ml) { $liplusMode = $ml.Matches[0].Groups[1].Value.Trim() }
+}
+
 # ---------- guard: liplus source not resolved yet (pre-bootstrap) ----------
-if (-not (Test-Path -LiteralPath $liplusDir)) {
+# api mode holds no clone by design, so a missing clone is not "unresolved" there.
+if ($liplusMode -cne 'api' -and -not (Test-Path -LiteralPath $liplusDir)) {
   Emit '━━━ Li+ update status ━━━'
   Emit 'LI_PLUS_UPDATE_STATUS=needed reason=liplus-source-unresolved'
   Emit 'liplus-language clone not found under workspace root. Run the Li+config / Li+update walkthrough.'
@@ -132,9 +144,48 @@ if (Test-Path -LiteralPath $adapterFile) {
   $line = Select-String -LiteralPath $adapterFile -CaseSensitive -Pattern '^# --- Li\+ BEGIN \(([^)]*)\) ---' -ErrorAction SilentlyContinue | Select-Object -First 1
   if ($line) { $adapterTag = $line.Matches[0].Groups[1].Value }
 }
+#
+# api mode (#2031): the same tag's tree comes from the GitHub tarball instead of
+# the clone, cached at {workspace_root}/.liplus-extract/<tag>/ — the directory
+# Li+update.md Phase 3.2 resolves source into in both modes. Mirrors the claude
+# port; the rationale for the cache and the partial-then-rename step is there.
+# The gh -> tar pipe runs inside the platform shell, not a PowerShell pipeline:
+# Windows PowerShell 5.1 decodes a native command's stdout as text, which
+# corrupts a gzip stream. The shell runs in the partial directory, so no path
+# is quoted into its command line.
 $sourceRoot = $liplusDir
 $gitTreeTmp = $null
-if ($adapterTag -and (Test-Path -LiteralPath (Join-Path $liplusDir '.git')) -and (Get-Command git -ErrorAction SilentlyContinue) -and (Get-Command tar -ErrorAction SilentlyContinue)) {
+if ($liplusMode -ceq 'api') {
+  if ($adapterTag) {
+    $extractRoot = Join-Path $projectRoot '.liplus-extract'
+    $tagDir = Join-Path $extractRoot $adapterTag
+    if (-not (Test-Path -LiteralPath $tagDir) -and (Get-Command gh -ErrorAction SilentlyContinue) -and (Get-Command tar -ErrorAction SilentlyContinue)) {
+      $partialDir = Join-Path $extractRoot ('.partial-' + $PID)
+      New-Item -ItemType Directory -Path $partialDir -Force -ErrorAction SilentlyContinue | Out-Null
+      $tarballApi = "repos/Liplus-Project/liplus-language/tarball/$adapterTag"
+      $pushed = $false
+      try {
+        Push-Location -LiteralPath $partialDir -ErrorAction Stop
+        $pushed = $true
+        if ($env:OS -eq 'Windows_NT') {
+          $env:LIPLUS_TARBALL_API = $tarballApi
+          & cmd.exe /d /c 'gh api %LIPLUS_TARBALL_API% 2>nul | tar -xzf - --strip-components=1 2>nul'
+        } else {
+          & sh -c 'gh api "$1" 2>/dev/null | tar -xzf - --strip-components=1 2>/dev/null' sh $tarballApi
+        }
+      } catch {
+      } finally {
+        if ($pushed) { Pop-Location }
+        Remove-Item Env:LIPLUS_TARBALL_API -ErrorAction SilentlyContinue
+      }
+      if ((Test-Path -LiteralPath (Join-Path $partialDir 'rules')) -and -not (Test-Path -LiteralPath $tagDir)) {
+        try { Move-Item -LiteralPath $partialDir -Destination $tagDir -ErrorAction Stop } catch {}
+      }
+      Remove-Item -LiteralPath $partialDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    if (Test-Path -LiteralPath $tagDir) { $sourceRoot = $tagDir }
+  }
+} elseif ($adapterTag -and (Test-Path -LiteralPath (Join-Path $liplusDir '.git')) -and (Get-Command git -ErrorAction SilentlyContinue) -and (Get-Command tar -ErrorAction SilentlyContinue)) {
   $candidateTmp = Join-Path ([System.IO.Path]::GetTempPath()) ('liplus-tree-' + [System.Guid]::NewGuid().ToString('N'))
   New-Item -ItemType Directory -Path $candidateTmp -Force -ErrorAction SilentlyContinue | Out-Null
   $archiveOk = $false
@@ -248,7 +299,12 @@ if ($matcher -ceq 'startup') {
     'tag' {
       # ls-remote is the only source of truth (stale local clone must not emit a
       # false "unnecessary"). On failure leave empty -> forces "needed".
-      $remote = git -C $liplusDir ls-remote --tags --sort=-v:refname origin 2>$null
+      # api mode has no clone to ask, so it asks the repository URL directly.
+      if ($liplusMode -ceq 'api') {
+        $remote = git ls-remote --tags --sort=-v:refname https://github.com/Liplus-Project/liplus-language 2>$null
+      } else {
+        $remote = git -C $liplusDir ls-remote --tags --sort=-v:refname origin 2>$null
+      }
       if ($remote) {
         $targetTag = ($remote -split "`n" |
           ForEach-Object { if ($_ -match 'refs/tags/(.+?)(\^\{\})?$') { $matches[1] } } |

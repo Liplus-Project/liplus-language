@@ -71,6 +71,12 @@ if (-not $prMatch.Success) { exit 0 }
 $prNumber = $prMatch.Groups[1].Value
 
 $repo = Repo-From-Origin
+# No clone to ask (api mode, #2031): read the repository out of the PR URL
+# `gh pr create` printed.
+if (-not $repo) {
+  $urlMatch = [regex]::Match($output, '([^/\s]+/[^/\s]+)/pull/\d+')
+  if ($urlMatch.Success) { $repo = $urlMatch.Groups[1].Value }
+}
 if (-not $repo) { exit 0 }
 
 $prBody = gh api "repos/$repo/pulls/$prNumber" --jq '.body' 2>$null

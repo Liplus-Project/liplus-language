@@ -214,7 +214,7 @@ trust が無いと SessionStart の rules 注入と毎ターンの Trigger Check
 - 作業リポジトリを持たない場合は `USER_REPO1` 以降をデフォルト値のままにしてください（または行ごと残しておけば bootstrap がスキップします）
 - 設定ファイルの自動生成は初回のみ実行され、既存ファイルを上書きしません
 - `LI_PLUS_BASE_LANGUAGE` と `LI_PLUS_PROJECT_LANGUAGE` は配布先workspace専用です。liplus-language 本体の日本語運用ルールとは分離されます
-- `LI_PLUS_MODE=api` は軽量ですが、trigger-based re-readなどの継続機能は保証されません。継続利用には `clone` を推奨します
+- `LI_PLUS_MODE=api` は clone を置かず、対象タグの tree を GitHub から取得して `.liplus-extract/<タグ>/` に展開します。生成される内容と hook の振る舞いは `clone` と同じです
 - local webhook fallback を使うなら `LI_PLUS_MODE=clone` を推奨します。bundled helper は `liplus-language/` clone を前提にします
 - Windows環境では `python3` コマンドがMicrosoft Storeスタブになっている場合があります。hookテンプレートは `command -v` で `python3` → `python` の順にフォールバック解決します
 

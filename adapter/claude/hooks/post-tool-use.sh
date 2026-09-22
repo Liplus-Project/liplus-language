@@ -128,6 +128,9 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? pr create'; then
   [ -n "$PR_NUMBER" ] || exit 0
 
   REPO=$(repo_from_origin)
+  # No clone to ask (api mode, #2031): read the repository out of the PR URL
+  # `gh pr create` printed.
+  [ -n "$REPO" ] || REPO=$(echo "$OUTPUT" | grep -oE '[^/[:space:]]+/[^/[:space:]]+/pull/[0-9]+' | head -1 | sed 's#/pull/[0-9]*$##')
   [ -n "$REPO" ] || exit 0
 
   PR_BODY=$(gh api "repos/$REPO/pulls/$PR_NUMBER" --jq '.body' 2>/dev/null || echo "")

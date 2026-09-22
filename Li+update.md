@@ -105,20 +105,29 @@ Dependencies: Phase 2 (gh CLI authenticated, repository schema resolved to canon
 - latest: use the Latest release tag (stable release only).
 - release: use the most recent tag including pre-releases (GitHub Release API).
 - tag: use the newest git tag in tag-name version order, including tags without a GitHub Release
-  (clone mode primary: `git ls-remote --tags --sort=-v:refname {repo_url} | head -1`).
+  (`git ls-remote --tags --sort=-v:refname {repo_url} | head -1`; the literal needs no local
+  repository, so it resolves in api mode as well).
   Do not substitute a sort key that requires object data (`-creatordate`): it fails outside a
   repository and inside a shallow clone whose newest tag points past the truncation.
   Containment: tag ⊇ release ⊇ latest. Intended for pre-release tag verification before a
-  GitHub Release is created. api mode extension is out of scope at this time.
+  GitHub Release is created.
 - Version check is mandatory on every startup before proceeding to Phase 4.
 - Silent continuation on a stale local clone is prohibited.
 
 3.2. Resolve source by LI_PLUS_MODE:
 
 api mode:
-- Fetch `rules/` directory contents (all `*.md` files) for the target version via GitHub API from LI_PLUS_REPO.
-- Fetch `skills/` directory contents (all `*/SKILL.md` files) for the target version via GitHub API.
-- Fetch `adapter/claude/` and `adapter/codex/` adapter files depending on detected runtime.
+api mode differs from clone mode in where the source comes from, and nowhere else: what Phase 4
+generates, and how the installed hooks behave, is the same in both modes. No clone is placed.
+1. Fetch `{target_tag}`'s tree from GitHub as a tarball and extract it, dropping the archive's single
+   top-level directory:
+   `gh api repos/{owner}/{repo}/tarball/{target_tag} | tar -xz --strip-components=1 -C {resolved_source_root}`
+   `{resolved_source_root}` = `{workspace_root}/.liplus-extract/{target_tag}/`, the same directory clone
+   mode step 3 extracts into (create it, and its parent directory, first if absent). If it already exists
+   for this exact target tag, skip re-extraction. The optional housekeeping under clone mode step 3
+   applies here as well.
+2. Source files are now available at `{resolved_source_root}`, and clone mode step 4 applies unchanged:
+   every source path Phase 4 reads out of LI_PLUS_REPO resolves against `{resolved_source_root}/<path>`.
 
 clone mode:
 1. Target repo is the target version of LI_PLUS_REPO.
@@ -279,7 +288,10 @@ Note: Claude Code's skill discovery does NOT recurse into subdirectories under `
   promotion-candidate keyword scan's rules/skills body text) resolve against a `git archive`
   extraction of the LI_PLUS_REPO clone pinned at the adapter's own installed sentinel tag,
   not the clone's working tree (falls back to the working tree if the sentinel tag is unresolved
-  or the extraction fails). Synthesis is performed
+  or the extraction fails). In api mode the same reads resolve against
+  `{workspace_root}/.liplus-extract/{sentinel_tag}/`, which the hook fills from the GitHub tarball
+  (Phase 3.2 api mode step 1) when it is absent; a missing clone is not treated as pre-bootstrap
+  there. Synthesis is performed
   by the AI through Character_Instance, not by the hook itself.
 - Set executable permission on .sh files.
 
@@ -463,7 +475,10 @@ is expressed via the skill-name prefix convention (e.g. `evolution-judgment-lear
   `skills/*/SKILL.md`, from a `git archive` extraction of the LI_PLUS_REPO
   clone pinned at the adapter's own installed sentinel tag — not from
   the clone's working tree (mirrors Li+update.md Phase 3.2; falls back to the
-  working tree if the sentinel tag is unresolved or the extraction fails). It emits the rules bodies as
+  working tree if the sentinel tag is unresolved or the extraction fails). In api
+  mode it reads them from `{workspace_root}/.liplus-extract/{sentinel_tag}/`
+  instead, filled from the GitHub tarball when absent, the same way the Claude
+  hook does. It emits the rules bodies as
   `additionalContext` (the Codex substitute for Claude's always-on
   `.claude/rules/` folder), plus the update-status marker
   (LI_PLUS_UPDATE_STATUS) and diff-only cold-start material. Synthesis itself is

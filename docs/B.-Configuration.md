@@ -45,7 +45,7 @@ Li+リポジトリからLi+ファイルを取得する方法を指定します�
 
 | 値 | 動作 |
 |----|------|
-| `api` | GitHub APIで直接Li+ファイルを取得（軽量。trigger-based re-readなどの継続機能は保証しない） |
+| `api` | GitHub API（対象タグの tarball）から直接Li+ファイルを取得。ローカル clone を置かない |
 | `clone` | リポジトリをローカルにclone/checkoutして取得（継続利用推奨） |
 
 ### LI_PLUS_CHANNEL
@@ -56,16 +56,18 @@ Li+リポジトリからLi+ファイルを取得する方法を指定します�
 |----|------|
 | `latest` | Latestリリースのタグを使用（安定版のみ） |
 | `release` | Pre-release含む最新リリースのタグを使用 |
-| `tag` | GitHub Release 未作成の tag も含む、tag 名のバージョン順で最新の git tag を使用（`git ls-remote --tags --sort=-v:refname` で解決、clone mode 第一対応） |
+| `tag` | GitHub Release 未作成の tag も含む、tag 名のバージョン順で最新の git tag を使用（`git ls-remote --tags --sort=-v:refname` で解決。api / clone どちらのモードでも使える） |
 
 包含関係: `tag` ⊇ `release` ⊇ `latest`。
 
 値は**大小文字を区別**します。`Latest` はどの分岐にも一致せず、対象タグが解決されないため `LI_PLUS_UPDATE_STATUS=needed` へ倒れます。既知の 3 値以外が書かれている場合、hook はセッション開始時にキー名と実際の値を含む 1 行を出します（挙動そのものは既定へ倒れたまま変わりません）。
 
-`tag` は CD や手動で tag を切っただけで GitHub Release を未作成の段階の挙動を workspace で検証したい場合に使います。api mode 向け拡張は現時点では対象外です。
+`tag` は CD や手動で tag を切っただけで GitHub Release を未作成の段階の挙動を workspace で検証したい場合に使います。
 
 `LI_PLUS_MODE=clone` の場合、AI は起動時にこの設定から対象タグを解決し、clone の checkout 位置（HEAD / working tree）には触れずに、そのタグの tree を `git archive` で読み取り専用に取り出してソースとして使います。
 clone の checkout 位置は他セッションと共有されうるため、比較も移動も行いません（詳細は [C. Update](C.-Update) の Phase 3.2）。
+
+`LI_PLUS_MODE=api` の場合は、同じタグの tree を GitHub から tarball で取得して `.liplus-extract/<タグ>/` に展開し、そこをソースとして使います。取得元が違うだけで、生成される `.claude`（Codex では `AGENTS.md` / `.agents` / `.codex`）の中身と hook の振る舞いは clone モードと同じです。
 
 ### USER_REPOn_EXE_MODE / LI_PLUS_REPO_EXE_MODE
 

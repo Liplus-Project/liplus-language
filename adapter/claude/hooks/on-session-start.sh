@@ -133,9 +133,19 @@ if ! command -v gh >/dev/null 2>&1; then
   esac
 fi
 
+# Source mode (#2031). LI_PLUS_MODE decides where the Li+ source is read from,
+# and nothing else: api reads the adapter tag's tree from GitHub, clone reads it
+# out of the local clone. Everything the hook emits is the same in both modes.
+# Case-sensitive, like the other Li+config.md keys read below.
+LI_PLUS_MODE_VAL=""
+if [ -f "$CONFIG_FILE" ]; then
+  LI_PLUS_MODE_VAL=$(sed -n 's/^[[:space:]]*LI_PLUS_MODE[[:space:]]*=[[:space:]]*\(.*\)$/\1/p' "$CONFIG_FILE" | head -n 1 | tr -d '\r' | sed 's/[[:space:]]*$//')
+fi
+
 # Guard: if liplus-language source is not resolved yet (e.g. pre-bootstrap), exit silently
 # AFTER emitting the gh install failure/guidance marker if applicable.
-if [ ! -d "$LIPLUS_DIR" ]; then
+# api mode holds no clone by design, so a missing clone is not "unresolved" there.
+if [ "$LI_PLUS_MODE_VAL" != "api" ] && [ ! -d "$LIPLUS_DIR" ]; then
   if [ "${GH_INSTALL_STATUS#failed}" != "$GH_INSTALL_STATUS" ] || [ "${GH_INSTALL_STATUS#missing}" != "$GH_INSTALL_STATUS" ]; then
     printf '━━━ gh install ━━━\n%s\n%s\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' \
       "Prerequisite install failed or gh missing. Master intervention required." \
@@ -243,8 +253,31 @@ fi
 # Extraction failure (tag not fetched locally, no git/tar on PATH, or no
 # sentinel yet on a pre-Li+update session) falls back to LIPLUS_DIR itself
 # — the pre-#1982 behavior — rather than emitting nothing.
+#
+# api mode (#2031): the same tag's tree comes from the GitHub tarball instead of
+# the clone, cached at {workspace_root}/.liplus-extract/<tag>/ — the directory
+# Li+update.md Phase 3.2 resolves source into in both modes. Fetched once per
+# tag; later sessions read the cache. The extraction lands in a partial
+# directory first and is renamed into place, so a concurrent session never reads
+# a half-written tree. Fetch failure leaves SOURCE_ROOT on LIPLUS_DIR (absent in
+# api mode), so the source-derived sections are empty rather than wrong.
 SOURCE_ROOT="$LIPLUS_DIR"
-if [ -n "$ADAPTER_TAG" ] && [ -e "$LIPLUS_DIR/.git" ] && command -v git >/dev/null 2>&1 && command -v tar >/dev/null 2>&1; then
+if [ "$LI_PLUS_MODE_VAL" = "api" ]; then
+  EXTRACT_ROOT="$PROJECT_ROOT/.liplus-extract"
+  if [ -n "$ADAPTER_TAG" ] && [ ! -d "$EXTRACT_ROOT/$ADAPTER_TAG" ] && command -v gh >/dev/null 2>&1 && command -v tar >/dev/null 2>&1; then
+    PARTIAL_DIR="$EXTRACT_ROOT/.partial-$$"
+    mkdir -p "$PARTIAL_DIR" 2>/dev/null
+    if gh api "repos/Liplus-Project/liplus-language/tarball/$ADAPTER_TAG" 2>/dev/null \
+        | tar -xz --strip-components=1 -C "$PARTIAL_DIR" 2>/dev/null \
+        && [ -d "$PARTIAL_DIR/rules" ] && [ ! -e "$EXTRACT_ROOT/$ADAPTER_TAG" ]; then
+      mv "$PARTIAL_DIR" "$EXTRACT_ROOT/$ADAPTER_TAG" 2>/dev/null
+    fi
+    rm -rf "$PARTIAL_DIR" 2>/dev/null
+  fi
+  if [ -n "$ADAPTER_TAG" ] && [ -d "$EXTRACT_ROOT/$ADAPTER_TAG" ]; then
+    SOURCE_ROOT="$EXTRACT_ROOT/$ADAPTER_TAG"
+  fi
+elif [ -n "$ADAPTER_TAG" ] && [ -e "$LIPLUS_DIR/.git" ] && command -v git >/dev/null 2>&1 && command -v tar >/dev/null 2>&1; then
   GIT_TREE_TMP=$(mktemp -d 2>/dev/null || echo "/tmp/liplus-tree-$$")
   if git -C "$LIPLUS_DIR" archive "$ADAPTER_TAG" -- rules skills docs 2>/dev/null | tar -x -C "$GIT_TREE_TMP" 2>/dev/null; then
     SOURCE_ROOT="$GIT_TREE_TMP"
@@ -282,7 +315,14 @@ case "$LI_PLUS_CHANNEL_VAL" in
     # (confirm-impossible -> safe side; the normal Li+update version check runs).
     # Spec: Li+update.md Phase 3.1 (version check mandatory per startup; stale local
     # clone silent continuation prohibited). See issue #1454.
-    TARGET_TAG=$(git -C "$LIPLUS_DIR" ls-remote --tags --sort=-v:refname origin 2>/dev/null \
+    # api mode has no clone to ask, so it asks the repository URL directly;
+    # the version sort reads ref names only and needs no local repository.
+    if [ "$LI_PLUS_MODE_VAL" = "api" ]; then
+      TAG_REFS=$(git ls-remote --tags --sort=-v:refname https://github.com/Liplus-Project/liplus-language 2>/dev/null)
+    else
+      TAG_REFS=$(git -C "$LIPLUS_DIR" ls-remote --tags --sort=-v:refname origin 2>/dev/null)
+    fi
+    TARGET_TAG=$(printf '%s\n' "$TAG_REFS" \
       | awk -F'refs/tags/' 'NF==2 {print $2}' | sed 's/\^{}$//' | head -n 1)
     ;;
 esac

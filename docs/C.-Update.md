@@ -84,16 +84,20 @@ host OS は adapter 種別（runtime=claude / runtime=codex）から推測しな
 
 - `latest`: Latest release タグ（stable release のみ）
 - `release`: pre-release を含む最新リリースタグ（GitHub Release API）
-- `tag`: tag 名のバージョン順で最新の git タグ（GitHub Release が未作成のタグも含む）。clone モードでは `git ls-remote --tags --sort=-v:refname {repo_url} | head -1` を使用。`-v:refname` は ref 名だけを読むため、リポジトリ外でも shallow clone 内でも解決できる（object data を要求する `-creatordate` は落ちる）
-- 包含関係は tag ⊇ release ⊇ latest。tag は GitHub Release 作成前の pre-release タグ検証を意図する。api モードの tag 拡張は現時点ではスコープ外
+- `tag`: tag 名のバージョン順で最新の git タグ（GitHub Release が未作成のタグも含む）。`git ls-remote --tags --sort=-v:refname {repo_url} | head -1` を使用（ローカルリポジトリを要しないため api モードでも同じ literal で解決する）。`-v:refname` は ref 名だけを読むため、リポジトリ外でも shallow clone 内でも解決できる（object data を要求する `-creatordate` は落ちる）
+- 包含関係は tag ⊇ release ⊇ latest。tag は GitHub Release 作成前の pre-release タグ検証を意図する
 - バージョン確認は起動のたびに Phase 4 へ進む前に必ず実施する。ローカル clone が古いままでも黙って継続してはいけない
 
 **3.2. `LI_PLUS_MODE` による Li+ ソース取得**
 
 **api モード:**
-- `rules/` 配下の全 `*.md` を対象バージョンで GitHub API から LI_PLUS_REPO より取得
-- `skills/` 配下の全 `<name>/SKILL.md` を対象バージョンで GitHub API から取得
-- 検出した runtime に応じて `adapter/claude/` または `adapter/codex/` を取得
+
+api モードが clone モードと違うのはソースの取得元だけであり、Phase 4 が生成するものも、インストールされた hook の振る舞いも両モードで同じである。clone は置かない。
+
+1. `{target_tag}` の tree を GitHub から tarball として取得し、アーカイブ先頭の単一ディレクトリを落として展開する:
+   `gh api repos/{owner}/{repo}/tarball/{target_tag} | tar -xz --strip-components=1 -C {resolved_source_root}`
+   `{resolved_source_root}` = `{workspace_root}/.liplus-extract/{target_tag}/`（clone モード手順 3 と同じ展開先。無ければ親ディレクトリごと作成する）。この対象タグ用のディレクトリが既に存在する場合は再抽出をスキップする。clone モード手順 3 の任意の後片付けもそのまま適用する
+2. ソースファイルは `{resolved_source_root}` で参照可能な状態になり、以降は clone モード手順 4 がそのまま適用される（Phase 4 が LI_PLUS_REPO から読むソースパスはすべて `{resolved_source_root}/<path>` を指す）
 
 **clone モード:**
 
@@ -187,7 +191,7 @@ host OS は adapter 種別（runtime=claude / runtime=codex）から推測しな
   - 既存の `{workspace_root}/.claude/hooks/*.sh` 内のソースタグを確認（例: `# Source: adapter/claude/hooks/on-session-start.sh (build-2026-03-30.14)`）
   - 現在のターゲットタグと一致 → スキップ（最新）
   - 不一致またはタグなし → `adapter/claude/hooks/*.sh` を再コピーし、`{LI_PLUS_TAG}` を現在のターゲットタグへ置換（settings.json は再生成しない）
-- `on-session-start.sh` が Cold-start Synthesis 素材の emitter。stdout はセッション開始コンテキストへ注入される（Claude Code SessionStart 契約）。素材は `rules/evolution/cold-start-synthesis.md` の anchor（H1 preamble のみ）、直近の `docs/Decision-Structure.md` 先頭、`rules/` のパスツリー、最新リリースタグ、open in-progress issue、self-evaluation 先頭、promotion candidates、self-evolution observation surface（due / overdue）。素材の正本一覧と section key は [6. Adapter — on-session-start.sh](6.-Adapter#on-session-startsh) を参照する。rules / skills / docs から読む素材（cold-start anchor、Decision-Structure 先頭、rules ツリー、promotion candidates の rules / skills 本文キーワード走査）は、clone の working tree ではなく、adapter 自身のインストール済み sentinel タグに固定した LI_PLUS_REPO clone の `git archive` 抽出から読む（sentinel タグが解決できない場合や抽出に失敗した場合は working tree にフォールバック）。synthesis は hook ではなく Character_Instance を介して AI が行う
+- `on-session-start.sh` が Cold-start Synthesis 素材の emitter。stdout はセッション開始コンテキストへ注入される（Claude Code SessionStart 契約）。素材は `rules/evolution/cold-start-synthesis.md` の anchor（H1 preamble のみ）、直近の `docs/Decision-Structure.md` 先頭、`rules/` のパスツリー、最新リリースタグ、open in-progress issue、self-evaluation 先頭、promotion candidates、self-evolution observation surface（due / overdue）。素材の正本一覧と section key は [6. Adapter — on-session-start.sh](6.-Adapter#on-session-startsh) を参照する。rules / skills / docs から読む素材（cold-start anchor、Decision-Structure 先頭、rules ツリー、promotion candidates の rules / skills 本文キーワード走査）は、clone の working tree ではなく、adapter 自身のインストール済み sentinel タグに固定した LI_PLUS_REPO clone の `git archive` 抽出から読む（sentinel タグが解決できない場合や抽出に失敗した場合は working tree にフォールバック）。api モードでは同じ読み取りを `{workspace_root}/.liplus-extract/{sentinel タグ}/` から行い、無ければ hook が GitHub の tarball から埋める（Phase 3.2 api モード手順 1 と同形）。api モードでは clone が無いことを bootstrap 前とはみなさない。synthesis は hook ではなく Character_Instance を介して AI が行う
 - `.sh` ファイルには実行権限を付与
 
 **4c.5. cold-start state ディレクトリの準備（diff-only 出力の永続化）**
@@ -271,7 +275,7 @@ Codex ホストでは Phase 4 claude branch と同型に adapter / skills / hook
 - `{workspace_root}/.codex/hooks/*.{ps1,sh}` の tag 追跡再生成:
   - 既存ファイルの `# Source: ... (build-...)` 行のタグを確認。一致でスキップ、不一致 / タグなしで再コピー（バイト忠実 .ps1 + `{LI_PLUS_TAG}` 置換）
   - 再生成は hook 内容ハッシュを変えるため Codex の GUI trust を**無効化**する。完了報告で再 trust を案内する
-- `on-session-start` が Codex の rules 注入 + Cold-start Synthesis 素材 emitter。`rules/**/*.md`、および `docs/Decision-Structure.md` と `skills/*/SKILL.md` を、clone の working tree ではなく、adapter 自身のインストール済み sentinel タグに固定した LI_PLUS_REPO clone の `git archive` 抽出から読む（sentinel タグが解決できない場合や抽出に失敗した場合は working tree にフォールバック）。rules の literal を `additionalContext` で注入（Claude の `.claude/rules/` 常時フォルダの Codex 代替）+ update-status marker（LI_PLUS_UPDATE_STATUS、startup matcher 限定）+ language contract marker（LI_PLUS_BASE_LANGUAGE / LI_PLUS_PROJECT_LANGUAGE、全 matcher）+ diff-only cold-start 素材。synthesis は hook ではなく Character_Instance を介して AI が行う
+- `on-session-start` が Codex の rules 注入 + Cold-start Synthesis 素材 emitter。`rules/**/*.md`、および `docs/Decision-Structure.md` と `skills/*/SKILL.md` を、clone の working tree ではなく、adapter 自身のインストール済み sentinel タグに固定した LI_PLUS_REPO clone の `git archive` 抽出から読む（sentinel タグが解決できない場合や抽出に失敗した場合は working tree にフォールバック）。api モードでは Claude 版と同じく `{workspace_root}/.liplus-extract/{sentinel タグ}/` から読み、無ければ GitHub の tarball から埋める。rules の literal を `additionalContext` で注入（Claude の `.claude/rules/` 常時フォルダの Codex 代替）+ update-status marker（LI_PLUS_UPDATE_STATUS、startup matcher 限定）+ language contract marker（LI_PLUS_BASE_LANGUAGE / LI_PLUS_PROJECT_LANGUAGE、全 matcher）+ diff-only cold-start 素材。synthesis は hook ではなく Character_Instance を介して AI が行う
 - `.sh` ファイルに実行権限を付与（`.ps1` は `powershell -File` 経由で呼ばれるため実行ビット不要）
 
 **4x.4. cold-start state ディレクトリの準備（diff-only 出力の永続化）**

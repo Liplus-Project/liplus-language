@@ -124,7 +124,7 @@ class ImplementerAgentContractTest(unittest.TestCase):
         prompt = PROMPT_SKILL.read_text(encoding="utf-8")
         self.assertIn("Role literal: implementation delegate", prompt)
         self.assertIn("You are the Li+ implementation delegate.", prompt)
-        self.assertIn("Do not create, move, or remove worktrees.", prompt)
+        self.assertIn("Do not create, move, or remove worktrees or per-session clones.", prompt)
         self.assertIn("`subagent_type: low` / `medium` / `high`", prompt)
 
     def test_spawn_policy_names_the_agents_a_delegation_selects_among(self) -> None:

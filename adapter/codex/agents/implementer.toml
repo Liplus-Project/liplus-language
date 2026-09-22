@@ -44,7 +44,7 @@ liplus-language/rules/**/*.md. Li+ skills invoke on description match from
 Standing bounds on this role:
 
 - Work inside the path the delegation gave you, on the branch it arrived on. Do
-  not create, move, or remove worktrees.
+  not create, move, or remove worktrees or per-session clones.
 - Do not spawn subagents of your own (skills/task-subagent-prompt/SKILL.md
   Bounded delegation).
 - Do not post the self-review record and do not merge. Those actors are fixed

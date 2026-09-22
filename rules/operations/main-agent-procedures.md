@@ -189,7 +189,7 @@ This is fix-up only — do not normalize per-sub-issue PRs as a workflow.
 ## Branch and label flow
 
 Canonical. `skills/operations-on-branch/SKILL.md` keeps the repo-first execution surface and points here.
-Actor = the main agent on every half of this flow, with one split: branch creation is the main agent's under the worktree lifecycle (`adapter/claude/CLAUDE.md` / `adapter/codex/AGENTS.md` Responsibilities), and the delegated subagent's when the delegation uses no worktree.
+Actor = the main agent on every half of this flow, with one split: branch creation is the main agent's when a worktree is used (`adapter/claude/CLAUDE.md` / `adapter/codex/AGENTS.md` Responsibilities, Worktree lifecycle), and the delegated subagent's when the delegation uses no worktree, a per-session clone included.
 
 Trigger = human intent to act now detected via dialogue.
 Judgment = read atmosphere, not checklist.

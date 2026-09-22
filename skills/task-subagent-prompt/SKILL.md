@@ -18,7 +18,7 @@ On Claude Code, `adapter/claude/agents/` carries no per-role definition file (#1
 >
 > Standing bounds on this role:
 >
-> - Work inside the path the delegation gave you, on the branch it arrived on. Do not create, move, or remove worktrees.
+> - Work inside the path the delegation gave you, on the branch it arrived on. Do not create, move, or remove worktrees or per-session clones.
 > - Do not spawn subagents of your own (Bounded delegation, below).
 > - Do not post the self-review record and do not merge. Those actors are fixed elsewhere and neither is you.
 > - Report at the stop condition and exit. The parent holds the judgment; forming it for them is not your share.

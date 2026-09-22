@@ -42,11 +42,11 @@ Skills auto-invoke by description match from `.agents/skills/<name>/SKILL.md` (r
 
 Main never reads operations skills directly when subagent is available. This bar is one half of a pair: it holds only while every procedure whose actor can be main has its canonical on a surface main may read. `rules/operations/main-agent-procedures.md` states the pair and holds those procedures.
 
-Subagent does not create, move, or remove worktrees. Use raw `git worktree add` + absolute paths for parallel isolation. Subagents (Codex "agents") live under `.codex/agents/*.toml`.
+Subagent does not create, move, or remove worktrees or per-session clones. Use raw `git worktree add` + absolute paths for parallel isolation. Subagents (Codex "agents") live under `.codex/agents/*.toml`.
 
 Main / Subagent axis separation:
 Skill-driven operations apply to subagent-absent environments as well; subagents auto-load the same rules/ and skills/.
-Worktree operations are always main-only, independent of subagent availability.
+Worktree and per-session clone operations are always main-only, independent of subagent availability.
 
 #######################################################
 
@@ -83,12 +83,14 @@ Main agent after completion:
   For CHANGES_REQUESTED: read review comments, judge against issue requirements, then delegate fix to subagent.
   For release: confirm version type and tag with human.
 
-Worktree lifecycle — main agent owns all worktree operations:
-  1. Create branch: `gh issue develop` (establishes issue link). One branch per issue. Scoped to this lifecycle: main creates the branch only when a worktree is being used. Serial delegation uses no worktree, so branch creation there stays with the subagent per `skills/task-subagent-delegation/SKILL.md`.
-  2. Create worktree: `git worktree add workspace/.worktrees/{repo}-{issue_number}/ {branch_name}`
-  3. Delegate: convey worktree absolute path in addition to standard delegation info.
-  4. Subagent works entirely within the given worktree path.
-  5. Cleanup: after PR merge, `git worktree remove`. Across sessions, existing worktrees may be reused.
+Worktree lifecycle — main agent owns all worktree and per-session clone operations:
+  A per-session clone may stand in for the worktree: a separate clone of the repository, made for one session. Each step below applies to both unless it names one.
+  The shared clone of `LI_PLUS_REPO` that clone mode places in the workspace does not switch branches. Branch work on that repository runs in a worktree or a per-session clone.
+  1. Create branch: `gh issue develop` (establishes issue link). One branch per issue. Scoped to this lifecycle: main creates the branch only when a worktree is being used. Serial delegation uses no worktree, so branch creation there stays with the subagent per `skills/task-subagent-delegation/SKILL.md`. A per-session clone starts on `main`, so branch creation there also stays with the subagent, inside the clone.
+  2. Create worktree: `git worktree add workspace/.worktrees/{repo}-{issue_number}/ {branch_name}`. Per-session clone: `git clone {repo_url} {workspace_root}/{repo}-{session}/` — a directory of its own, never the shared clone.
+  3. Delegate: convey the worktree or per-session clone absolute path in addition to standard delegation info.
+  4. Subagent works entirely within the given path.
+  5. Cleanup: after PR merge, `git worktree remove`. Across sessions, existing worktrees may be reused. A per-session clone is deleted after its PR merges, or when its work is abandoned (PR closed unmerged included), without exception.
 
 #######################################################
 Autonomy

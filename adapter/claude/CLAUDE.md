@@ -84,7 +84,7 @@ Worktree lifecycle — main agent owns all worktree and per-session clone operat
   2. Create worktree: `git worktree add workspace/.worktrees/{repo}-{issue_number}/ {branch_name}`. Per-session clone: `git clone {repo_url} {workspace_root}/{repo}-{session}/` — a directory of its own, never the shared clone.
   3. Delegate: convey the worktree or per-session clone absolute path in addition to standard delegation info.
   4. Subagent works entirely within the given path.
-  5. Cleanup: after PR merge, `git worktree remove`. Across sessions, existing worktrees may be reused. A per-session clone is deleted after its PR merges, without exception.
+  5. Cleanup: after PR merge, `git worktree remove`. Across sessions, existing worktrees may be reused. A per-session clone is deleted after its PR merges, or when its work is abandoned (PR closed unmerged included), without exception.
 
 #######################################################
 Autonomy

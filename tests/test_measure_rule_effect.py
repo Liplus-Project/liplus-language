@@ -16,7 +16,9 @@ part that fails silently when it regresses:
   verification against the arms as built;
 - the guards that turn a silently-wrong run into a refused one: an anchor that
   matches zero or several times, and inserted text that tells the arm what it is
-  standing in.
+  standing in;
+- the record's single destination, the required `--out` file, so a run leaves no
+  path by which the edit bodies reach stdout.
 
 `rules/model/subtractive-structural-beauty.md` puts a procedure whose execution is not
 guaranteed on the replace-with-a-structure side. These assertions are what keeps those
@@ -25,6 +27,8 @@ structures from decaying back into procedures without anything reporting it.
 
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import os
 import sys
@@ -855,6 +859,8 @@ class MainTest(PlanFileMixin):
                 str(source),
                 "--base-dir",
                 str(base),
+                "--out",
+                str(self.temp_path() / "record.json"),
                 "--dry-run",
             ]
         )
@@ -876,6 +882,8 @@ class MainTest(PlanFileMixin):
                 str(source),
                 "--base-dir",
                 str(base),
+                "--out",
+                str(self.temp_path() / "record.json"),
                 "--dry-run",
             ]
         )
@@ -895,11 +903,89 @@ class MainTest(PlanFileMixin):
                 str(source),
                 "--base-dir",
                 str(base),
+                "--out",
+                str(self.temp_path() / "record.json"),
                 "--dry-run",
             ]
         )
         self.assertEqual(code, 2)
         self.assertFalse((module.harness_root(base) / module.LOCK_DIRNAME).exists())
+
+
+class RecordDestinationTest(PlanFileMixin):
+    """The run record reaches the `--out` file and nothing else (issue #2011).
+
+    The record carries each edit's `drop` and `replace_with` in full. Before #2011 an
+    omitted `--out` wrote it to stdout, so the edit bodies reached the terminal of
+    whoever ran the harness while the run exited 0.
+    """
+
+    DROP = "the anchor line\n"
+    REPLACE_WITH = "a rewritten body that only arm b carries\n"
+
+    def edit_plan(self) -> Path:
+        data = self.full_plan()
+        data["arms"][1]["edits"][0]["replace_with"] = self.REPLACE_WITH  # type: ignore[index]
+        return self.write_plan(data)
+
+    def test_omitting_out_is_refused_before_anything_is_built(self) -> None:
+        source = self.make_source_root()
+        base = self.temp_path()
+        stdout, stderr = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            with self.assertRaises(SystemExit) as raised:
+                module.main(
+                    [
+                        str(self.edit_plan()),
+                        "--source-root",
+                        str(source),
+                        "--base-dir",
+                        str(base),
+                        "--dry-run",
+                    ]
+                )
+        self.assertEqual(raised.exception.code, 2)
+        self.assertIn("--out", stderr.getvalue())
+        self.assertEqual(stdout.getvalue(), "")
+        for body in (self.DROP.strip(), self.REPLACE_WITH.strip()):
+            self.assertNotIn(body, stderr.getvalue())
+        root = module.harness_root(base)
+        self.assertFalse((root / module.LOCK_DIRNAME).exists())
+        self.assertFalse((root / module.ARMS_DIRNAME).exists())
+
+    def test_a_run_with_out_writes_nothing_to_stdout_and_the_full_record_to_the_file(
+        self,
+    ) -> None:
+        source = self.make_source_root()
+        base = self.temp_path()
+        out = self.temp_path() / "record.json"
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            code = module.main(
+                [
+                    str(self.edit_plan()),
+                    "--source-root",
+                    str(source),
+                    "--base-dir",
+                    str(base),
+                    "--out",
+                    str(out),
+                    "--dry-run",
+                ]
+            )
+        self.assertEqual(code, 0)
+        self.assertEqual(stdout.getvalue(), "")
+        record = json.loads(out.read_text(encoding="utf-8"))
+        self.assertEqual(
+            record["arms"][1]["edits"],
+            [
+                {
+                    "path": ".claude/rules/model/sample.md",
+                    "drop": self.DROP,
+                    "replace_with": self.REPLACE_WITH,
+                }
+            ],
+        )
 
 
 class ArmExitCodeTest(PlanFileMixin):

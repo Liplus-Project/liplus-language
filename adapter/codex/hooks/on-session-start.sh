@@ -181,10 +181,10 @@ if [ "$LI_PLUS_MODE_VAL" = "api" ]; then
     mkdir -p "$PARTIAL_DIR" 2>/dev/null
     if gh api "repos/Liplus-Project/liplus-language/tarball/$ADAPTER_TAG" 2>/dev/null \
         | tar -xz --strip-components=1 -C "$PARTIAL_DIR" 2>/dev/null \
-        && [ -d "$PARTIAL_DIR/rules" ] && [ ! -e "$EXTRACT_ROOT/$ADAPTER_TAG" ]; then
+        && [ -d "$PARTIAL_DIR/rules" ]; then
       mv "$PARTIAL_DIR" "$EXTRACT_ROOT/$ADAPTER_TAG" 2>/dev/null
     fi
-    rm -rf "$PARTIAL_DIR" 2>/dev/null
+    rm -rf "$PARTIAL_DIR" "$EXTRACT_ROOT/$ADAPTER_TAG/.partial-$$" 2>/dev/null
   fi
   if [ -n "$ADAPTER_TAG" ] && [ -d "$EXTRACT_ROOT/$ADAPTER_TAG" ]; then
     SOURCE_ROOT="$EXTRACT_ROOT/$ADAPTER_TAG"

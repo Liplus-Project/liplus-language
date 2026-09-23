@@ -10,8 +10,13 @@ layer: L2-evolution
 
 Retrieve past judgment before forming a new judgment.
 Source priority:
-1. mcp__GitHub_RAG_MCP__* = primary when available. Semantic search over issues, PRs, docs, releases.
+1. `mcp__github-rag-mcp__search` = primary when available. Hybrid search over issues, PRs, docs, releases, commit diffs.
 2. gh search = fallback when RAG MCP is unavailable. Keyword-first.
+Query order:
+1. Verbatim first. When the wording of the rule or line in question is at hand, pass that wording unchanged as the query. Do not paraphrase it into a topic.
+2. Topic query = supplementary, only when the verbatim query does not land.
+3. gh search after both.
+`git log -S` (pickaxe) confirms a commit already found; it is not a retrieval path.
 Decision Structure entries (wiki kebab-case `<topic>.md`, indexed via `docs/Decision-Structure.md`) are RAG-indexed and reach the retrieval path by design. Query the past-judgment graph (state-form entries + supersede/depend/conflict edges) before forming a new judgment.
 Do not skip retrieval because "the answer feels obvious". Verify.
 

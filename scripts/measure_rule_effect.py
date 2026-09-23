@@ -822,7 +822,15 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="workspace root to copy from (default: nearest ancestor with .claude/)",
     )
     parser.add_argument("--base-dir", type=Path, default=None, help="override temp base")
-    parser.add_argument("--out", type=Path, default=None, help="write the run record here")
+    # Required, and the record has no stdout path. The record carries every edit's
+    # `drop` and `replace_with` in full, and the one running the harness is usually
+    # the probe side, which the measurement holds blind to arm B. An optional `--out`
+    # left that blindness to remembering the flag: omitting it printed arm B to the
+    # terminal on a run that otherwise succeeded, and nothing recorded that it had
+    # been seen (#2011).
+    parser.add_argument(
+        "--out", type=Path, required=True, help="write the run record here"
+    )
     parser.add_argument(
         "--stale-after",
         type=float,
@@ -890,10 +898,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         release_lock(lock_dir)
 
     payload = json.dumps(record, indent=2, ensure_ascii=False) + "\n"
-    if args.out:
-        args.out.write_text(payload, encoding="utf-8")
-    else:
-        sys.stdout.write(payload)
+    args.out.write_text(payload, encoding="utf-8")
 
     # The record is written first. Reporting the failure and keeping the record are
     # separate axes, and the per-arm `returncode` is what the reader opens next.

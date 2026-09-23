@@ -367,7 +367,7 @@ Merge strategy:
   Deviation from squash = AI pauses and asks human.
 
 Parent close condition: closed automatically on merge via issue reference.
-When the closed issue's body carries a completion condition the PR alone cannot satisfy (Issue format above) and that condition is not yet met, the merging agent reopens the issue right after the merge and leaves it open until the condition is met.
+When the closed issue's body carries a completion condition the PR alone cannot satisfy (Issue format above) and that condition is not yet met, reopen the issue and leave it open until the condition is met. In `auto` / `semi_auto` the parent reopens it right after the merge. In `trigger`, where no agent stands at the merge, the main agent reopens it at the first turn that observes the merge.
 
 Real device test:
 Merge first. Then test on main. Not a merge gate.

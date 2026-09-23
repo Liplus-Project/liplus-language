@@ -65,13 +65,18 @@ AGENT_KEY="${LI_PLUS_AGENT_KEY:-default}"
 # the update walkthrough does not have to spell out install steps every
 # session. Behavior branches on detected host OS (not on adapter identity —
 # the Claude adapter runs natively on Linux, macOS, and Windows/Git-Bash
-# alike; see Li+update.md Phase 2.1):
-#   - Linux: auto-install into `~/.local/bin/gh` when absent (arch-detected
-#     tarball, not hardcoded). Presence is a silent skip.
+# alike; see Li+update.md Phase 2.1). The gate is `command -v gh` against
+# PATH (with `$HOME/.local/bin` prepended above): `gh` resolving anywhere on
+# PATH is a silent skip, and host OS is detected only when it does not:
+#   - Linux: auto-install into `~/.local/bin/gh` (arch-detected tarball, not
+#     hardcoded).
 #   - macOS / Windows (incl. Git-Bash/MSYS2): auto-install is NOT attempted.
-#     `gh` is treated as a documented prerequisite. When absent from PATH, a
-#     platform-appropriate install instruction is surfaced via the
-#     GH_INSTALL_STATUS marker and the hook continues without blocking.
+#     `gh` is treated as a documented prerequisite. A platform-appropriate
+#     install instruction is surfaced via the GH_INSTALL_STATUS marker and
+#     the hook continues without blocking.
+#   - Unrecognized host kernel (default branch): auto-install is NOT
+#     attempted; only generic guidance (install via the platform's package
+#     manager) is surfaced via the same marker, with no concrete command.
 # Failure/guidance does NOT abort the hook — it is surfaced as a cold-start
 # material entry so the AI can inform (Linux failure) or guide (macOS/Windows
 # absence) the user.

@@ -14,7 +14,7 @@ Concept framing (Sheepdog Engineering):
   - modifier: AI edits Li+ source itself (issue → implement → self-review → merge); human provides direction and go-sign
   - initiator: AI files self-evolution issues and runs implementation → merge end-to-end (see Evolution_Initiator_Autonomy below)
 - Stages: harness → agility (transitional, passed: position+modifier on AI, initiator on human) → sheepdog (current judgment layer: all three on AI).
-- Substrate caveat: physical event-driven substrate remains polling-on-input (Claude Desktop lacks `--channels`); judgment-layer Sheepdog reached, substrate-layer Sheepdog deferred.
+- Substrate caveat: physical event-driven substrate remains polling-on-input (`--channels` judged not to reach Claude Desktop; derivation, confidence and observation dates in `docs/G.-Sheepdog-Engineering.md` substrate section); judgment-layer Sheepdog reached, substrate-layer Sheepdog deferred.
 - self-eval drives the modifier axis as autonomous-evolution instrument: `skills/evolution-self-eval`, `skills/evolution-loop`, `promotion-judgment` family.
 - `Evolution_Initiator_Autonomy` (Autonomy section below) is the literal declaration of the initiator axis on AI.
 

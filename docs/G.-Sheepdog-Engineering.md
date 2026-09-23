@@ -278,16 +278,16 @@ memory と tally はどちらも transient 専用であり、床 (noise floor) �
 
 ### substrate 層は保留
 
-judgment 層は完成形に振り切ったが、起動者軸の**物理 substrate** は polling-on-input のままである。Claude Desktop では `--channels` が届かないため、reactive-on-event substrate への切替は今回スコープ外とした。
+judgment 層は完成形に振り切ったが、起動者軸の**物理 substrate** は polling-on-input のままである。Claude Desktop では `--channels` が届かないと判断したため、reactive-on-event substrate への切替は今回スコープ外とした。
 
-届かない理由はバージョンではなく、フラグを渡す面が無いことである。この結論は 2 段の導出の合成であり、段ごとに出所・観測時点・確度が異なる。
+この判断はバージョン要件から導いたものではなく、次の 2 段の導出の合成である。段ごとに出所・観測時点・確度が異なる。
 
 | 段 | 内容 | 出所（観測時点） | 確度 |
 |---|---|---|---|
 | 1 | `--channels` は起動時フラグであり、セッションごとに起動時に opt-in する | 公式ドキュメント [channels](https://code.claude.com/docs/en/channels)（2026-09-23 参照） | 確認済み |
-| 2 | Claude Desktop アプリ内の Claude Code には起動オプションを渡す面が無い | Master の証言（2026-09-18 対話中） | 未検証（host 側の実装であり、セッション内から観測できない） |
+| 2 | Claude Desktop には `--channels` を渡す面が無い | 公式ドキュメント [desktop](https://code.claude.com/docs/en/desktop)「CLI flag equivalents」節（2026-09-23 参照）。表に `--channels` が無く、同節は表に無いフラグには desktop の等価物が無いと記す。Master の証言（2026-09-18 対話中）も同旨 | 公式記述からの推論（表に載っていないことによる）。Desktop での実機試行は未実施 |
 
-段 1 の対象は research preview であり、公式は `--channels` の flag syntax と protocol contract が変わりうると明記している（同ページ Research preview 節、2026-09-23 参照）。したがって結論は上記時点の状態であり、恒久的な制約ではない。崩れたときは、段 1 なら公式ページの再訪で、段 2 なら Master への確認で引き直す。なお同ページは必要バージョンも Desktop の対応可否も記載していない（2026-09-23 参照）。
+段 1 の対象は research preview であり、公式は提供が段階的に展開中であること、`--channels` の flag syntax と protocol contract が変わりうることを明記している（channels ページ Research preview 節、2026-09-23 参照）。したがって判断は上記時点の状態に基づくものであり、恒久的な制約ではない。崩れたときは、段 1 は channels ページ、段 2 は desktop ページの再訪で引き直す。なお channels ページは必要バージョンも Desktop の対応可否も記載していない（2026-09-23 参照）。
 
 物理 substrate の切替が完了すると、「human の発言いらずで loop が回る」が完全な意味で成立する。それまでは judgment 層 Sheepdog 完成 + substrate 層 polling という二層構造で運用する。詳細は本文書「起動者軸の物理層」節を参照。
 
@@ -327,7 +327,7 @@ Li+ は今、judgment 層のシープドッグ段階完成形に到達してい�
 実装パターンは現状 2 系統。
 
 - **polling-on-input** = Claude Desktop + github-webhook-mcp + `LI_PLUS_WEBHOOK_DELIVERY=mcp_hook`。UserPromptSubmit hook で最新 webhook event を context に積む。**現運用**
-- **reactive-on-event** = Claude Code CLI `--channels`（起動時フラグ、research preview。Desktop で届かない理由と観測時点は「substrate 層は保留」節）。event 到着で session が自律進行、human 介在ゼロ
+- **reactive-on-event** = Claude Code CLI `--channels`（起動時フラグ、research preview。Desktop に届かないと判断した根拠と観測時点は「substrate 層は保留」節）。event 到着で session が自律進行、human 介在ゼロ
 
 `--channels` を「Telegram / Discord で remote control」と評価するのは表面の application 層 framing。本体は「外部イベント → 自律処理の汎用機構」であり、これが起動者軸を AI に渡すための物理層である。
 

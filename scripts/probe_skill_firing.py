@@ -602,7 +602,14 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="workspace root to copy from (default: nearest ancestor with .claude/)",
     )
     parser.add_argument("--base-dir", type=Path, default=None, help="override temp base")
-    parser.add_argument("--out", type=Path, default=None, help="write the run record here")
+    # Required, and the record has no stdout path. The record carries every arm's
+    # `probe` and any `skill_override` description in full. An optional `--out` left
+    # where those bodies went to remembering the flag: omitting it printed them to the
+    # terminal of whoever ran the harness on a run that otherwise exited 0 (#2042, the
+    # same shape #2011 closed in `scripts/measure_rule_effect.py`).
+    parser.add_argument(
+        "--out", type=Path, required=True, help="write the run record here"
+    )
     parser.add_argument(
         "--stale-after",
         type=float,
@@ -683,10 +690,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         release_lock(lock_dir)
 
     payload = json.dumps(record, indent=2, ensure_ascii=False) + "\n"
-    if args.out:
-        args.out.write_text(payload, encoding="utf-8")
-    else:
-        sys.stdout.write(payload)
+    args.out.write_text(payload, encoding="utf-8")
     return 0
 
 

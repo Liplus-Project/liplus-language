@@ -19,7 +19,11 @@ complete and report something false:
   harness departs from the companion it borrows from;
 - the per-arm `skill_override` (issue #1994): applied inside the arm's copy only,
   refused when it names a skill the arm does not carry, written into the record as
-  applied, and absent from the record of a plan that does not use it.
+  applied, and absent from the record of a plan that does not use it;
+- the record's destination, the required `--out` file (issue #2042): omitting `--out`
+  is refused before the lock or the arms directory exists, and on a `--dry-run` and
+  on a run whose launch is substituted, nothing reaches stdout while the file keeps
+  the probes and the override description in full.
 
 `rules/model/subtractive-structural-beauty.md` puts a procedure whose execution is not
 guaranteed on the replace-with-a-structure side. These assertions are what keeps those
@@ -28,6 +32,8 @@ structures from decaying back into procedures without anything reporting it.
 
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import sys
 import tempfile
@@ -690,6 +696,121 @@ class SkillOverrideRecordTest(unittest.TestCase):
             record["provenance"]["d"]["arm_digest"],
         )
         self.assertEqual((skill_dir / "SKILL.md").read_text(encoding="utf-8"), SKILL_TEXT)
+
+
+class RecordDestinationTest(unittest.TestCase):
+    """The run record reaches the `--out` file and not stdout (issue #2042).
+
+    The record carries each arm's `probe` and any `skill_override` description in
+    full. Before #2042 an omitted `--out` wrote it to stdout, so those bodies reached
+    the terminal of whoever ran the harness while the run exited 0.
+    """
+
+    DESCRIPTION = "A replacement description only arm a-on carries."
+
+    def temp_path(self) -> Path:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        return Path(tmp.name)
+
+    def make_source_root(self) -> Path:
+        source = self.temp_path() / "workspace"
+        skill_dir = source / ".claude" / "skills" / "model-sample"
+        skill_dir.mkdir(parents=True)
+        (skill_dir / "SKILL.md").write_text(SKILL_TEXT, encoding="utf-8")
+        (source / ".claude" / "rules").mkdir()
+        (source / ".claude" / "rules" / "r.md").write_text("rule\n", encoding="utf-8")
+        (source / "CLAUDE.md").write_text("# host\n", encoding="utf-8")
+        (source / "Li+config.md").write_text("LI_PLUS_MODE=clone\n", encoding="utf-8")
+        return source
+
+    def plan_data(self) -> dict[str, object]:
+        data = valid_plan_data()
+        arms = data["arms"]
+        assert isinstance(arms, list)
+        arms[0]["skill_override"] = {"skill": "model-sample", "description": self.DESCRIPTION}
+        return data
+
+    def plan_path(self) -> Path:
+        path = self.temp_path() / "plan.json"
+        path.write_text(json.dumps(self.plan_data(), ensure_ascii=False), encoding="utf-8")
+        return path
+
+    def bodies(self) -> list[str]:
+        arms = self.plan_data()["arms"]
+        assert isinstance(arms, list)
+        return [arm["probe"] for arm in arms] + [self.DESCRIPTION]
+
+    def test_omitting_out_is_refused_before_the_lock_or_arms_exist(self) -> None:
+        source = self.make_source_root()
+        base = self.temp_path() / "harness"
+        stdout, stderr = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            with self.assertRaises(SystemExit) as raised:
+                module.main(
+                    [
+                        str(self.plan_path()),
+                        "--source-root",
+                        str(source),
+                        "--base-dir",
+                        str(base),
+                        "--dry-run",
+                    ]
+                )
+        self.assertEqual(raised.exception.code, 2)
+        self.assertIn("--out", stderr.getvalue())
+        self.assertEqual(stdout.getvalue(), "")
+        for body in self.bodies():
+            self.assertNotIn(body, stderr.getvalue())
+        root = measure_rule_effect.harness_root(base)
+        self.assertFalse((root / measure_rule_effect.LOCK_DIRNAME).exists())
+        self.assertFalse((root / module.ARMS_DIRNAME).exists())
+
+    def test_a_run_with_out_writes_nothing_to_stdout_and_the_full_record_to_the_file(
+        self,
+    ) -> None:
+        """Observed on a `--dry-run` and on a run whose launch is substituted.
+
+        The substituted launch returns at once; no `claude -p` process starts.
+        """
+
+        def fake_launch(command, **kwargs):  # type: ignore[no-untyped-def]
+            return SimpleNamespace(returncode=0, stdout=stream({"type": "result"}), stderr="")
+
+        for dry_run in (True, False):
+            with self.subTest(dry_run=dry_run):
+                source = self.make_source_root()
+                base = self.temp_path() / "harness"
+                out = self.temp_path() / "record.json"
+                argv = [
+                    str(self.plan_path()),
+                    "--source-root",
+                    str(source),
+                    "--base-dir",
+                    str(base),
+                    "--out",
+                    str(out),
+                ]
+                if dry_run:
+                    argv.append("--dry-run")
+                stdout = io.StringIO()
+                with mock.patch.object(module, "launch", fake_launch):
+                    with contextlib.redirect_stdout(stdout):
+                        code = module.main(argv)
+                self.assertEqual(code, 0)
+                self.assertEqual(stdout.getvalue(), "")
+                record = json.loads(out.read_text(encoding="utf-8"))
+                self.assertEqual(
+                    any("returncode" in entry for entry in record["results"]),
+                    not dry_run,
+                )
+                self.assertEqual(
+                    [arm["probe"] for arm in record["arms"]], self.bodies()[:-1]
+                )
+                self.assertEqual(
+                    record["provenance"]["a-on"]["skill_override_applied"]["description"],
+                    self.DESCRIPTION,
+                )
 
 
 if __name__ == "__main__":

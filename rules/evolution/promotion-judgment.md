@@ -99,7 +99,7 @@ Disposition line on every exit: three of the rows above end in the cluster leavi
 
 The requirement covers all three, not sub-threshold alone. A cluster gone from the tally is indistinguishable from one never observed, and that holds identically on each exit; requiring the line on one exit only would leave the other two reading as never-observed — the same surface this closes.
 
-Reconciliation before creation and before sub-threshold deletion: both issue-creation rows and the full-deletion row above are reached through one prior step. Search the existing `promotion` marker issues (that marker is the creation-path flag Issue Creation Metadata below attaches at creation, so it is the field the search runs on) for one already covering this cluster. Found -> the verdict is neither creation nor deletion as noise: fold the occurrences into that issue and delete the cluster. Not found -> the row's own action: create, per Issue Creation Metadata below, or full deletion. The noise floor gates new issue creation only, not a fold.
+Reconciliation before creation and before sub-threshold deletion: both issue-creation rows and the full-deletion row above are reached through one prior step. Search the existing `promotion` marker issues (that marker is the creation-path flag Issue Creation Metadata below attaches at creation, so it is the field the search runs on) for one already covering this cluster. Found -> the verdict is neither creation nor deletion as noise: fold the occurrences into that issue and delete the cluster. Not found -> the row's own action: create, per Issue Creation Metadata below, or full deletion.
 
 </threshold-rules>
 

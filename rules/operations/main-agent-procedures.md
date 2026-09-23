@@ -72,6 +72,7 @@ Target files = list of files expected to change, with dependency notes (e.g. sou
 Target files are optional during memo/forming. Recommended once issue reaches ready.
 Rewrite issue body whenever accepted understanding changes.
 Issue completion is managed through issue state plus PR/CI/release flow, not a dedicated issue-body field.
+Exception: a completion condition the PR alone cannot satisfy (post-deploy production state, real-device behavior, observation after N cron cycles, human confirmation) is written in the issue body. A condition the PR alone can satisfy is not written. Test = can the PR alone satisfy it.
 
 Checklist = human judgment required (real device test, operational verification).
 Use checklist only when AI cannot judge.
@@ -366,6 +367,7 @@ Merge strategy:
   Deviation from squash = AI pauses and asks human.
 
 Parent close condition: closed automatically on merge via issue reference.
+When the closed issue's body carries a completion condition the PR alone cannot satisfy (Issue format above) and that condition is not yet met, the merging agent reopens the issue right after the merge and leaves it open until the condition is met.
 
 Real device test:
 Merge first. Then test on main. Not a merge gate.

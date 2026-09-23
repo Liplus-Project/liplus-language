@@ -76,7 +76,7 @@ The same file carries a `<!-- disposition log -->` section. One line per cluster
 
 Placement: the log is the file's last section, after every cluster. Cluster parsing reads the `## cluster:` headings above it, so the log sits outside that region rather than between two clusters.
 
-Fields: deletion date, cluster descriptor, `first_observation`, occurrence count, disposition. The disposition names which Threshold Rules exit was taken, and for the two issue-creation exits carries the issue number (created, or folded into). Occurrence bodies are not carried over.
+Fields: deletion date, cluster descriptor, `first_observation`, occurrence count, disposition. The disposition names which Threshold Rules exit was taken, and for the creation and fold exits carries the issue number (created, or folded into). Occurrence bodies are not carried over.
 
 Cap = 10 lines, oldest-first deletion once exceeded. Every cluster the log records has already left the tally, and expired clusters are deleted in full (above). Same shape as the self-evaluation log's cap (`skills/evolution-self-eval/SKILL.md`).
 
@@ -99,7 +99,7 @@ Disposition line on every exit: three of the rows above end in the cluster leavi
 
 The requirement covers all three, not sub-threshold alone. A cluster gone from the tally is indistinguishable from one never observed, and that holds identically on each exit; requiring the line on one exit only would leave the other two reading as never-observed — the same surface this closes.
 
-Reconciliation before creation: both issue-creation rows above are reached through one prior step. Search the existing `promotion` marker issues (that marker is the creation-path flag Issue Creation Metadata below attaches at creation, so it is the field the search runs on) for one already covering this cluster. Found -> the verdict is not creation: fold the occurrences into that issue and delete the cluster. Not found -> create, per Issue Creation Metadata below.
+Reconciliation before creation and before sub-threshold deletion: both issue-creation rows and the full-deletion row above are reached through one prior step. Search the existing `promotion` marker issues (that marker is the creation-path flag Issue Creation Metadata below attaches at creation, so it is the field the search runs on) for one already covering this cluster. Found -> the verdict is neither creation nor deletion as noise: fold the occurrences into that issue and delete the cluster. Not found -> the row's own action: create, per Issue Creation Metadata below, or full deletion. The noise floor gates new issue creation only, not a fold.
 
 </threshold-rules>
 

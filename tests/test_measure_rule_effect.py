@@ -18,8 +18,9 @@ part that fails silently when it regresses:
   matches zero or several times, and inserted text that tells the arm what it is
   standing in;
 - the record's destination, the required `--out` file: omitting `--out` is refused
-  before anything is built, and on a `--dry-run` and on a run whose launch is
-  substituted, nothing reaches stdout while the file keeps the edit bodies in full.
+  before the lock or the arms directory exists, and on a `--dry-run` and on a run
+  whose launch is substituted, nothing reaches stdout while the file keeps the edit
+  bodies in full.
 
 `rules/model/subtractive-structural-beauty.md` puts a procedure whose execution is not
 guaranteed on the replace-with-a-structure side. These assertions are what keeps those
@@ -929,7 +930,7 @@ class RecordDestinationTest(PlanFileMixin):
         data["arms"][1]["edits"][0]["replace_with"] = self.REPLACE_WITH  # type: ignore[index]
         return self.write_plan(data)
 
-    def test_omitting_out_is_refused_before_anything_is_built(self) -> None:
+    def test_omitting_out_is_refused_before_the_lock_or_arms_exist(self) -> None:
         source = self.make_source_root()
         base = self.temp_path()
         stdout, stderr = io.StringIO(), io.StringIO()

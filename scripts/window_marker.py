@@ -25,6 +25,9 @@ opened" and "closed", and reading one as the other produced a wrong report once
 The record carries what a stranger needs to end the span: the procedure that opened
 it, when, the digest of the tree to restore to, and where the backup sits. The agent
 that finds an abandoned mark is not the one that wrote it and has no channel to it.
+`status` also names the recovery the tree permits (`RECOVERY`), so the stranger does
+not have to derive from `tree_carries` whether writing the backup back is a restore or
+a rollback (issue #2016).
 
 Both ends of the span carry a time and a digest. `opened_at` is when the mark was
 taken, `applied_at` when the draft was recorded as landed, `closed_at` when the record
@@ -66,6 +69,18 @@ STAMP_FORMAT = "%Y%m%dT%H%M%S%fZ"
 # Procedure step 2): rule bodies and skill bodies. The mark sits under `state/`,
 # outside this scope, so writing the record does not move the digest it records.
 DIGEST_SCOPE = ("rules", "skills")
+
+# What an agent ending a standing mark may do, keyed by `tree_carries` (issue #2016).
+# The backup is the pre-draft state of the files the draft touched, so writing it back
+# is safe only while the digest scope is byte-identical to the recorded apply: then no
+# other write has reached rules/ or skills/ since. Off both recorded digests, something
+# the record did not make has written the tree (a Li+ update syncing a later tag, for
+# one), and the backup can be older than what it would overwrite.
+RECOVERY = {
+    "applied": "restore_then_close",
+    "restore": "close",
+    "neither": "close_without_restore",
+}
 
 EXIT_WAITING = 1
 EXIT_ERROR = 2
@@ -354,6 +369,7 @@ def status(claude_dir: Path, now: datetime | None = None) -> dict[str, Any]:
             "age_seconds": (moment - opened).total_seconds(),
             "current_digest": current,
             "tree_carries": carries,
+            "recovery": RECOVERY[carries],
             "record": record,
         }
 
@@ -388,7 +404,7 @@ def main(argv: list[str] | None = None) -> int:
     closer = sub.add_parser("close", help="write the close into the record and move it under history/")
     closer.add_argument("--closed-by", required=True)
 
-    sub.add_parser("status", help="report whether a mark is open and what the tree carries")
+    sub.add_parser("status", help="report whether a mark is open, what the tree carries, and the recovery it permits")
 
     args = parser.parse_args(argv)
     claude_dir = Path(args.claude_dir)

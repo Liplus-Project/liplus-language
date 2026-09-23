@@ -18,7 +18,11 @@ Every case runs on a temporary directory standing in for `.claude/`, holding one
   has closed a span reports `closed` where one that has not opened one reports
   `never_opened`;
 - a mark with no record, the state left by an agent stopped between `mkdir` and the
-  record's write, reads as open and is closed by a second caller.
+  record's write, reads as open and is closed by a second caller;
+- `status` on an open mark names `restore_then_close` only while the tree carries the
+  recorded apply digest, `close` while it carries the restore digest, and
+  `close_without_restore` when it carries neither, the mark with no record included
+  (issue #2016).
 """
 
 from __future__ import annotations
@@ -222,6 +226,27 @@ class StatusTest(WindowMarkerCase):
         self.assertEqual(module.status(self.claude)["tree_carries"], "neither")
         self.write_rule(CANONICAL)
         self.assertEqual(module.status(self.claude)["tree_carries"], "restore")
+
+    def test_recovery_names_a_restore_only_while_the_tree_carries_the_apply(self) -> None:
+        self.open()
+        self.assertEqual(module.status(self.claude)["recovery"], "close")
+        module.record_response(self.claude, "peer", now=NOW + timedelta(seconds=5))
+        self.write_rule(DRAFT)
+        module.mark_applied(self.claude, now=NOW + timedelta(seconds=6))
+        self.assertEqual(module.status(self.claude)["recovery"], "restore_then_close")
+        self.write_rule(CANONICAL)
+        self.assertEqual(module.status(self.claude)["recovery"], "close")
+
+    def test_a_tree_written_after_the_apply_is_not_restored_over(self) -> None:
+        self.applied_span()
+        (self.claude / SKILL).write_text("skill body at a later tag\n", encoding="utf-8")
+        report = module.status(self.claude)
+        self.assertEqual(report["tree_carries"], "neither")
+        self.assertEqual(report["recovery"], "close_without_restore")
+
+    def test_a_mark_with_no_record_is_closed_without_restore(self) -> None:
+        self.open_dir().mkdir(parents=True)
+        self.assertEqual(module.status(self.claude)["recovery"], "close_without_restore")
 
 
 class CliTest(WindowMarkerCase):

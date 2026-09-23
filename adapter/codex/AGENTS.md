@@ -221,8 +221,8 @@ Memory_Write_Autonomy:
 
 Decision_Structure_Write_Autonomy:
   Decision Structure Wiki entry writes (kebab-case `<topic>.md` files in wiki) indexed via `docs/Decision-Structure.md`
-  are AI-autonomous decisions. Trigger = judgment settlement
-  (human go-sign, accepted-tradeoff close, spec-axis decision in dialogue).
+  are AI-autonomous decisions. Trigger = every firing moment in the `description` of
+  `skills/evolution-decision-structure-write/SKILL.md`, which is the single source for that list; none is restated here.
   When the trigger fires, read `skills/evolution-decision-structure-write/SKILL.md` and write immediately — no permission ask.
 
   Boundary clarification:

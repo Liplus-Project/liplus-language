@@ -17,8 +17,9 @@ part that fails silently when it regresses:
 - the guards that turn a silently-wrong run into a refused one: an anchor that
   matches zero or several times, and inserted text that tells the arm what it is
   standing in;
-- the record's single destination, the required `--out` file, so a run leaves no
-  path by which the edit bodies reach stdout.
+- the record's destination, the required `--out` file: omitting `--out` is refused
+  before anything is built, and on a `--dry-run` and on a run whose launch is
+  substituted, nothing reaches stdout while the file keeps the edit bodies in full.
 
 `rules/model/subtractive-structural-beauty.md` puts a procedure whose execution is not
 guaranteed on the replace-with-a-structure side. These assertions are what keeps those
@@ -913,7 +914,7 @@ class MainTest(PlanFileMixin):
 
 
 class RecordDestinationTest(PlanFileMixin):
-    """The run record reaches the `--out` file and nothing else (issue #2011).
+    """The run record reaches the `--out` file and not stdout (issue #2011).
 
     The record carries each edit's `drop` and `replace_with` in full. Before #2011 an
     omitted `--out` wrote it to stdout, so the edit bodies reached the terminal of
@@ -956,13 +957,20 @@ class RecordDestinationTest(PlanFileMixin):
     def test_a_run_with_out_writes_nothing_to_stdout_and_the_full_record_to_the_file(
         self,
     ) -> None:
-        source = self.make_source_root()
-        base = self.temp_path()
-        out = self.temp_path() / "record.json"
-        stdout = io.StringIO()
-        with contextlib.redirect_stdout(stdout):
-            code = module.main(
-                [
+        """Observed on a `--dry-run` and on a run whose launch is substituted.
+
+        The substituted launch returns at once; no `claude -p` process starts.
+        """
+
+        def fake_launch(command, **kwargs):  # type: ignore[no-untyped-def]
+            return SimpleNamespace(returncode=0, stdout="answer", stderr="")
+
+        for dry_run in (True, False):
+            with self.subTest(dry_run=dry_run):
+                source = self.make_source_root()
+                base = self.temp_path()
+                out = self.temp_path() / "record.json"
+                argv = [
                     str(self.edit_plan()),
                     "--source-root",
                     str(source),
@@ -970,22 +978,30 @@ class RecordDestinationTest(PlanFileMixin):
                     str(base),
                     "--out",
                     str(out),
-                    "--dry-run",
                 ]
-            )
-        self.assertEqual(code, 0)
-        self.assertEqual(stdout.getvalue(), "")
-        record = json.loads(out.read_text(encoding="utf-8"))
-        self.assertEqual(
-            record["arms"][1]["edits"],
-            [
-                {
-                    "path": ".claude/rules/model/sample.md",
-                    "drop": self.DROP,
-                    "replace_with": self.REPLACE_WITH,
-                }
-            ],
-        )
+                if dry_run:
+                    argv.append("--dry-run")
+                stdout = io.StringIO()
+                with mock.patch.object(module, "launch", fake_launch):
+                    with contextlib.redirect_stdout(stdout):
+                        code = module.main(argv)
+                self.assertEqual(code, 0)
+                self.assertEqual(stdout.getvalue(), "")
+                record = json.loads(out.read_text(encoding="utf-8"))
+                self.assertEqual(
+                    any("returncode" in entry for entry in record["results"]),
+                    not dry_run,
+                )
+                self.assertEqual(
+                    record["arms"][1]["edits"],
+                    [
+                        {
+                            "path": ".claude/rules/model/sample.md",
+                            "drop": self.DROP,
+                            "replace_with": self.REPLACE_WITH,
+                        }
+                    ],
+                )
 
 
 class ArmExitCodeTest(PlanFileMixin):

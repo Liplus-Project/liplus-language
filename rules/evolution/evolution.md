@@ -37,7 +37,7 @@ Both layers follow intra-layer order. Their responsibilities differ by surface.
 
 Primary axis = AI-led evolution loop.
 Goal: observation → evaluation → distillation → Li+ source update → behavior improvement → next observation, runnable by AI alone.
-Current state: judgment-layer Sheepdog reached. Initiator authority sits on AI per `Evolution_Initiator_Autonomy` (`adapter/claude/CLAUDE.md`); the merge brake (brake 1 = `skills/evolution-parallel-agent-eval` mandatory for every self-evolution PR, uniform across the gate) preserves safer-side discipline. Substrate layer is polling-on-input (`--channels` judged not to reach Claude Desktop; derivation, confidence and observation dates in `docs/G.-Sheepdog-Engineering.md` substrate section); substrate-layer Sheepdog is deferred (out of scope for the judgment-layer completion).
+Current state: judgment-layer Sheepdog reached. Initiator authority sits on AI per `Evolution_Initiator_Autonomy` (`adapter/claude/CLAUDE.md`); the merge brake (brake 1 = `skills/evolution-parallel-agent-eval` mandatory for every self-evolution PR, uniform across the gate) preserves safer-side discipline. Substrate layer is polling-on-input (`--channels` judged not to reach Claude Desktop; see `docs/G.-Sheepdog-Engineering.md` substrate section); substrate-layer Sheepdog is deferred (out of scope for the judgment-layer completion).
 
 </evolution-layer>
 

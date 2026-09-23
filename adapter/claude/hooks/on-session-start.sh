@@ -264,8 +264,14 @@ fi
 # Li+update.md Phase 3.2 resolves source into in both modes. Fetched once per
 # tag; later sessions read the cache. The extraction lands in a partial
 # directory first and is renamed into place, so a concurrent session never reads
-# a half-written tree. Fetch failure leaves SOURCE_ROOT on LIPLUS_DIR (absent in
-# api mode), so the source-derived sections are empty rather than wrong.
+# a half-written tree. Two sessions fetching the same tag for the first time
+# race to that rename (#2033): when the peer's lands first, `mv` onto the
+# now-existing directory moves the partial INSIDE it rather than failing, so the
+# nested `<tag>/.partial-<pid>` is discarded after the move. The peer's tree is
+# the one kept; no existence check before `mv` is made, since one cannot close
+# the window and the discard covers every case it would. (`mv -T`, which refuses
+# to nest, is GNU-only.) Fetch failure leaves SOURCE_ROOT on LIPLUS_DIR (absent
+# in api mode), so the source-derived sections are empty rather than wrong.
 SOURCE_ROOT="$LIPLUS_DIR"
 if [ "$LI_PLUS_MODE_VAL" = "api" ]; then
   EXTRACT_ROOT="$PROJECT_ROOT/.liplus-extract"
@@ -274,10 +280,10 @@ if [ "$LI_PLUS_MODE_VAL" = "api" ]; then
     mkdir -p "$PARTIAL_DIR" 2>/dev/null
     if gh api "repos/Liplus-Project/liplus-language/tarball/$ADAPTER_TAG" 2>/dev/null \
         | tar -xz --strip-components=1 -C "$PARTIAL_DIR" 2>/dev/null \
-        && [ -d "$PARTIAL_DIR/rules" ] && [ ! -e "$EXTRACT_ROOT/$ADAPTER_TAG" ]; then
+        && [ -d "$PARTIAL_DIR/rules" ]; then
       mv "$PARTIAL_DIR" "$EXTRACT_ROOT/$ADAPTER_TAG" 2>/dev/null
     fi
-    rm -rf "$PARTIAL_DIR" 2>/dev/null
+    rm -rf "$PARTIAL_DIR" "$EXTRACT_ROOT/$ADAPTER_TAG/.partial-$$" 2>/dev/null
   fi
   if [ -n "$ADAPTER_TAG" ] && [ -d "$EXTRACT_ROOT/$ADAPTER_TAG" ]; then
     SOURCE_ROOT="$EXTRACT_ROOT/$ADAPTER_TAG"

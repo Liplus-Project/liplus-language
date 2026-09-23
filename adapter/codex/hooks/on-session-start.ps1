@@ -153,6 +153,10 @@ if (Test-Path -LiteralPath $adapterFile) {
 # Windows PowerShell 5.1 decodes a native command's stdout as text, which
 # corrupts a gzip stream. The shell runs in the partial directory, so no path
 # is quoted into its command line.
+# The rename is Directory.Move, not Move-Item (#2033): Move-Item onto a directory
+# a peer session renamed into place first nests the partial inside it, while
+# Directory.Move fails on an existing destination and leaves the partial for
+# the removal below.
 $sourceRoot = $liplusDir
 $gitTreeTmp = $null
 if ($liplusMode -ceq 'api') {
@@ -178,8 +182,8 @@ if ($liplusMode -ceq 'api') {
         if ($pushed) { Pop-Location }
         Remove-Item Env:LIPLUS_TARBALL_API -ErrorAction SilentlyContinue
       }
-      if ((Test-Path -LiteralPath (Join-Path $partialDir 'rules')) -and -not (Test-Path -LiteralPath $tagDir)) {
-        try { Move-Item -LiteralPath $partialDir -Destination $tagDir -ErrorAction Stop } catch {}
+      if (Test-Path -LiteralPath (Join-Path $partialDir 'rules')) {
+        try { [System.IO.Directory]::Move($partialDir, $tagDir) } catch {}
       }
       Remove-Item -LiteralPath $partialDir -Recurse -Force -ErrorAction SilentlyContinue
     }

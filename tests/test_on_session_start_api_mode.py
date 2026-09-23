@@ -18,6 +18,9 @@ What is pinned:
   `gh`, kept at `.liplus-extract/<tag>/`, and read from there on a later run
   without fetching again.
 - clone mode without a clone keeps its pre-#2031 exit, on every port.
+- a session whose rename loses the race to a peer's (the peer's `<tag>/` lands
+  while this session is still fetching) keeps the peer's tree and leaves no
+  partial directory behind, nested inside `<tag>/` or beside it. Issue #2033.
 
 `gh` is a stub that serves one fixture tarball for the tarball endpoint and
 returns nothing for every other call, so the run stays offline. The channel is
@@ -47,6 +50,7 @@ TAG = "build-2099-01-01.1"
 ANCHOR_TOKEN = "APIMODE-ANCHOR-TOKEN"
 RULE_TOKEN = "APIMODE-RULE-TOKEN"
 DECISION_TOKEN = "APIMODE-DECISION-TOKEN"
+PEER_FILE = "peer-session-marker.md"
 
 
 def fixture_tarball(path: Path) -> None:
@@ -76,16 +80,26 @@ class ApiModeWorkspace(Workspace):
         shutil.rmtree(self.liplus)
         self.tarball = self.root / "source.tar.gz"
         fixture_tarball(self.tarball)
+        # Present -> the stub plants a peer session's finished `<tag>/` before it
+        # streams the tarball: the peer's rename lands mid-fetch, after this
+        # session's existence gate and before its own rename.
+        self.peer_flag = self.root / "peer-wins.flag"
         self._write_tarball_gh_stub()
 
     def _write_tarball_gh_stub(self) -> None:
         endpoint = f"repos/Liplus-Project/liplus-language/tarball/{TAG}"
+        peer_rules = self.extract_root / TAG / "rules"
         stub_py = self.stub_bin / "gh_stub.py"
         stub_py.write_text(
             "import sys\n"
             "from pathlib import Path\n"
             f"tarball = Path({str(self.tarball)!r})\n"
+            f"peer_flag = Path({str(self.peer_flag)!r})\n"
+            f"peer_rules = Path({str(peer_rules)!r})\n"
             f"if sys.argv[1:3] == ['api', {endpoint!r}] and tarball.is_file():\n"
+            "    if peer_flag.is_file():\n"
+            "        peer_rules.mkdir(parents=True, exist_ok=True)\n"
+            f"        (peer_rules / {PEER_FILE!r}).write_text('peer', encoding='utf-8')\n"
             "    sys.stdout.buffer.write(tarball.read_bytes())\n",
             encoding="utf-8",
         )
@@ -93,6 +107,10 @@ class ApiModeWorkspace(Workspace):
         unix_stub.write_text(
             "#!/bin/sh\n"
             f'if [ "$1" = api ] && [ "$2" = "{endpoint}" ] && [ -f "{posix_path(self.tarball)}" ]; then\n'
+            f'  if [ -f "{posix_path(self.peer_flag)}" ]; then\n'
+            f'    mkdir -p "{posix_path(peer_rules)}"\n'
+            f'    printf peer > "{posix_path(peer_rules)}/{PEER_FILE}"\n'
+            "  fi\n"
             f'  cat "{posix_path(self.tarball)}"\n'
             "fi\n"
             "exit 0\n",
@@ -175,6 +193,22 @@ class ApiModeSessionStartTestCase(unittest.TestCase):
                 ws.clear_state()
                 output = ws.run(adapter, matcher="resume")
                 self.assertIn(ANCHOR_TOKEN, output)
+
+    def test_losing_the_rename_race_leaves_no_partial_behind(self) -> None:
+        for adapter in ADAPTERS:
+            with self.subTest(adapter=adapter):
+                ws = self.new_workspace("api")
+                ws.peer_flag.write_text("", encoding="utf-8")
+                ws.run(adapter)
+                cached = ws.extract_root / TAG
+                self.assertTrue(
+                    (cached / "rules" / PEER_FILE).is_file(),
+                    "the peer's tree stays in place",
+                )
+                nested = [p.name for p in cached.iterdir() if p.name.startswith(".partial-")]
+                self.assertEqual(nested, [], "no partial may be nested inside the tag directory")
+                leftovers = [p.name for p in ws.extract_root.iterdir() if p.name != TAG]
+                self.assertEqual(leftovers, [], "no partial extraction may be left behind")
 
     def test_clone_mode_without_clone_keeps_its_exit(self) -> None:
         for adapter in ADAPTERS:

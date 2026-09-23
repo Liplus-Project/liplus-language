@@ -161,6 +161,8 @@ Issue body literal is the scope boundary. At sub-issue creation OR mid-implement
 
 Threshold axis: issue body literal diff (primary). Parent design intent (secondary fallback for cases where the body is silent but the planned change feels intentional scope creep).
 
+Synchronized-set carve-out: a change to another member of the synchronized set an enumerated file's edit belongs to is not a scope exceed and fires no confirm, when that member was enumerated by the pre-edit grep-sweep (`skills/operations-on-docs-ownership/SKILL.md` Detection signs) as holding the same content and the change carries that same content. A change outside that set — adapter-specific wiring included — still fires.
+
 Confirm shape — 1 turn, 3 sentences max, 3 fixed options:
 
 ```

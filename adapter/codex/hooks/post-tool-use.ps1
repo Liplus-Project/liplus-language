@@ -95,10 +95,8 @@ if (-not $repo) {
 }
 if (-not $repo) { Emit-Trace "PR #${prNumber}: repository could not be resolved; no sub-issue refs appended." }
 
-# Native output arrives as one string per line. Join it back into a single
-# string with its newlines (#2061): left as an array, `"$prBody..."` joins the
-# lines with spaces and flattens the body on PATCH, and `-notmatch` filters the
-# lines instead of returning a boolean.
+# Native output arrives as one string per line. Keep the body as one string
+# with its newlines, so the PATCH below sends its line breaks intact.
 $prBody = (gh api "repos/$repo/pulls/$prNumber" --jq '.body' 2>$null) -join "`n"
 if (-not $prBody) { Emit-Trace "PR #${prNumber}: body could not be read or is empty; no sub-issue refs appended." }
 

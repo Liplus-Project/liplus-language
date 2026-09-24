@@ -40,7 +40,7 @@ Aggregation — this axis fixes no threshold and takes no count. Every flagged l
 
 Where the adjudication finds the flagged phrase sitting on the line between the Positive and Negative lists above rather than on one side of it, that is a finding about those lists: record it and route it as a spec-gap observation (`rules/evolution/promotion-judgment.md`). It does not change the adjudication of the phrase, which the removal test settles.
 
-False-negative backstop: a literal this axis did not flag routes to post-merge observation per `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format (2-week cycle). Post-merge drift surfacing is on a separate axis from this pre-merge detection.
+False-negative backstop: a literal this axis did not flag routes to post-merge observation per `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format (2-week cycle) on a PR that has an entry there. On a PR that gets no entry under that format's creation criterion, nothing tracks the literal after merge. Post-merge drift surfacing is on a separate axis from this pre-merge detection.
 
 Rationale: the behavior-vs-impression boundary is context-dependent, so a flag does not carry its own verdict — what settles it is the removal test run against the source, which is why the finding goes to the author's adjudication rather than to an automatic refine. That is what keeps load-bearing L1 spec phrasing from being over-trimmed.
 

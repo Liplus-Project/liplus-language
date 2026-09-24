@@ -115,27 +115,40 @@ repo_from_origin() {
     | sed 's/\.git$//' 2>/dev/null || echo ""
 }
 
+# Firing trace (#1710). Once the command has matched `gh pr create`, every exit
+# below emits one line naming how the run ended, so a run that appends nothing
+# is told apart from a run that never happened. Channel =
+# `hookSpecificOutput.additionalContext` on exit 0, the PostToolUse output both
+# hosts deliver to the model (plain stdout and exit-0 stderr do not reach it;
+# exit 2 turns the line into tool feedback). Calls that never matched stay
+# silent. docs/6.-Adapter.md post-tool-use.sh holds the per-line table.
+emit_trace() {
+  emit_context "post-tool-use: $1"
+  exit 0
+}
+
 # on_pr: gh pr create → sub-issue auto-append to PR body (only remaining injection)
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? pr create'; then
   OUTPUT=$(json_field 'tool_response.output')
+  [ -n "$OUTPUT" ] || emit_trace "gh pr create matched, but tool_response.output is absent or empty; no sub-issue refs appended."
   PR_NUMBER=$(echo "$OUTPUT" | grep -oE '/pull/[0-9]+' | grep -oE '[0-9]+' | head -1)
-  [ -n "$PR_NUMBER" ] || exit 0
+  [ -n "$PR_NUMBER" ] || emit_trace "gh pr create matched, but tool_response.output carries no /pull/<number> URL; no sub-issue refs appended."
 
   REPO=$(repo_from_origin)
   # No clone to ask (api mode, #2031): read the repository out of the PR URL
   # `gh pr create` printed.
   [ -n "$REPO" ] || REPO=$(echo "$OUTPUT" | grep -oE '[^/[:space:]]+/[^/[:space:]]+/pull/[0-9]+' | head -1 | sed 's#/pull/[0-9]*$##')
-  [ -n "$REPO" ] || exit 0
+  [ -n "$REPO" ] || emit_trace "PR #${PR_NUMBER}: repository could not be resolved; no sub-issue refs appended."
 
   PR_BODY=$(gh api "repos/$REPO/pulls/$PR_NUMBER" --jq '.body' 2>/dev/null || echo "")
-  [ -n "$PR_BODY" ] || exit 0
+  [ -n "$PR_BODY" ] || emit_trace "PR #${PR_NUMBER}: body could not be read or is empty; no sub-issue refs appended."
 
   PARENT_ISSUE=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | head -1 | tr -d '#')
-  [ -n "$PARENT_ISSUE" ] || exit 0
+  [ -n "$PARENT_ISSUE" ] || emit_trace "PR #${PR_NUMBER}: body carries no #<issue> reference; no sub-issue refs appended."
 
   SUB_ISSUE_NUMBERS=$(gh api "repos/$REPO/issues/$PARENT_ISSUE/sub_issues" \
     --jq '.[].number' 2>/dev/null || echo "")
-  [ -n "$SUB_ISSUE_NUMBERS" ] || exit 0
+  [ -n "$SUB_ISSUE_NUMBERS" ] || emit_trace "PR #${PR_NUMBER}: parent #${PARENT_ISSUE} has no sub-issues, or they could not be read; nothing to append."
 
   MISSING=()
   while IFS= read -r issue_num; do
@@ -145,28 +158,24 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? pr create'; then
     fi
   done <<< "$SUB_ISSUE_NUMBERS"
 
-  [ ${#MISSING[@]} -gt 0 ] || exit 0
+  [ ${#MISSING[@]} -gt 0 ] || emit_trace "PR #${PR_NUMBER}: every sub-issue of parent #${PARENT_ISSUE} is already referenced; nothing to append."
 
   ADDITIONS=""
+  REFS=""
   for num in "${MISSING[@]}"; do
     ADDITIONS="${ADDITIONS}
 Closes #${num}"
+    REFS="${REFS:+${REFS}, }Closes #${num}"
   done
 
   NEW_BODY="${PR_BODY}${ADDITIONS}"
-  gh api "repos/$REPO/pulls/$PR_NUMBER" \
-    --method PATCH -f body="$NEW_BODY" > /dev/null 2>&1
-
-  APPEND_MSG="━━━ PR #${PR_NUMBER}: sub-issue refs auto-appended ━━━"
-  for num in "${MISSING[@]}"; do
-    APPEND_MSG="${APPEND_MSG}
-  + Closes #${num}"
-  done
-  APPEND_MSG="${APPEND_MSG}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-  emit_context "$APPEND_MSG"
-  exit 0
+  # The exit status decides which line is emitted: an append is reported only
+  # when the PATCH itself succeeded.
+  if gh api "repos/$REPO/pulls/$PR_NUMBER" \
+    --method PATCH -f body="$NEW_BODY" > /dev/null 2>&1; then
+    emit_trace "PR #${PR_NUMBER}: sub-issue refs auto-appended (parent #${PARENT_ISSUE}): ${REFS}."
+  fi
+  emit_trace "PR #${PR_NUMBER}: PATCH of the body failed; sub-issue refs NOT appended (parent #${PARENT_ISSUE}): ${REFS}."
 fi
 
 exit 0

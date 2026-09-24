@@ -59,15 +59,27 @@ function Repo-From-Origin {
   return ($m.Value -replace '\.git$', '')
 }
 
+# Firing trace (#1710). Once the command has matched `gh pr create`, every exit
+# below emits one line naming how the run ended, so a run that appends nothing
+# is told apart from a run that never happened. Channel =
+# `hookSpecificOutput.additionalContext` on exit 0, the PostToolUse output both
+# hosts deliver to the model (plain stdout and exit-0 stderr do not reach it;
+# exit 2 turns the line into tool feedback). Calls that never matched stay
+# silent. docs/6.-Adapter.md post-tool-use.sh holds the per-line table.
+function Emit-Trace([string]$line) {
+  Emit-Context "post-tool-use: $line"
+  exit 0
+}
+
 # on_pr: gh pr create -> sub-issue auto-append to PR body.
 if ($cmdLine -notmatch 'gh(\.exe)? pr create') { exit 0 }
 
 $output = $null
 if ($payload.tool_response) { $output = $payload.tool_response.output }
-if (-not $output) { exit 0 }
+if (-not $output) { Emit-Trace 'gh pr create matched, but tool_response.output is absent or empty; no sub-issue refs appended.' }
 
 $prMatch = [regex]::Match($output, '/pull/(\d+)')
-if (-not $prMatch.Success) { exit 0 }
+if (-not $prMatch.Success) { Emit-Trace 'gh pr create matched, but tool_response.output carries no /pull/<number> URL; no sub-issue refs appended.' }
 $prNumber = $prMatch.Groups[1].Value
 
 $repo = Repo-From-Origin
@@ -77,18 +89,18 @@ if (-not $repo) {
   $urlMatch = [regex]::Match($output, '([^/\s]+/[^/\s]+)/pull/\d+')
   if ($urlMatch.Success) { $repo = $urlMatch.Groups[1].Value }
 }
-if (-not $repo) { exit 0 }
+if (-not $repo) { Emit-Trace "PR #${prNumber}: repository could not be resolved; no sub-issue refs appended." }
 
 $prBody = gh api "repos/$repo/pulls/$prNumber" --jq '.body' 2>$null
-if (-not $prBody) { exit 0 }
+if (-not $prBody) { Emit-Trace "PR #${prNumber}: body could not be read or is empty; no sub-issue refs appended." }
 
 $parentMatch = [regex]::Match($prBody, '#(\d+)')
-if (-not $parentMatch.Success) { exit 0 }
+if (-not $parentMatch.Success) { Emit-Trace "PR #${prNumber}: body carries no #<issue> reference; no sub-issue refs appended." }
 $parentIssue = $parentMatch.Groups[1].Value
 
 $subRaw = gh api "repos/$repo/issues/$parentIssue/sub_issues" --jq '.[].number' 2>$null
-if (-not $subRaw) { exit 0 }
-$subIssueNumbers = $subRaw -split "`n" | Where-Object { $_ -match '^\d+$' }
+$subIssueNumbers = @($subRaw -split "`n" | Where-Object { $_ -match '^\d+$' })
+if ($subIssueNumbers.Count -eq 0) { Emit-Trace "PR #${prNumber}: parent #${parentIssue} has no sub-issues, or they could not be read; nothing to append." }
 
 $missing = @()
 foreach ($num in $subIssueNumbers) {
@@ -96,17 +108,15 @@ foreach ($num in $subIssueNumbers) {
   if (-not $num) { continue }
   if ($prBody -notmatch "#$num(\D|$)") { $missing += $num }
 }
-if ($missing.Count -eq 0) { exit 0 }
+if ($missing.Count -eq 0) { Emit-Trace "PR #${prNumber}: every sub-issue of parent #${parentIssue} is already referenced; nothing to append." }
 
 $additions = ''
 foreach ($num in $missing) { $additions += "`nCloses #$num" }
 $newBody = "$prBody$additions"
+$refs = ($missing | ForEach-Object { "Closes #$_" }) -join ', '
 
+# The exit status decides which line is emitted: an append is reported only
+# when the PATCH itself succeeded.
 gh api "repos/$repo/pulls/$prNumber" --method PATCH -f body="$newBody" 2>$null | Out-Null
-
-$msg = "━━━ PR #${prNumber}: sub-issue refs auto-appended ━━━"
-foreach ($num in $missing) { $msg += "`n  + Closes #$num" }
-$msg += "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-Emit-Context $msg
-exit 0
+if ($LASTEXITCODE -eq 0) { Emit-Trace "PR #${prNumber}: sub-issue refs auto-appended (parent #${parentIssue}): $refs." }
+Emit-Trace "PR #${prNumber}: PATCH of the body failed; sub-issue refs NOT appended (parent #${parentIssue}): $refs."

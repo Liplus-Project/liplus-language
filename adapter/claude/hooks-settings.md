@@ -166,7 +166,9 @@ Real files, copied verbatim into `{workspace_root}/.claude/hooks/` on bootstrap
   covers `--fork-session` with `--resume` / `--continue`, the `/fork`
   background copy, and `/branch`; before Claude Code v2.1.214 those sessions
   reported `resume` instead, which is why the earlier four-matcher set held.
-- `adapter/claude/hooks/post-tool-use.sh` — sub-issue refs auto-append on PR create
+- `adapter/claude/hooks/post-tool-use.sh` — sub-issue refs auto-append on PR create,
+  with a one-line `additionalContext` firing trace on every run that matched the
+  command (#1710; per-line table in `docs/6.-Adapter.md`)
 
 Each script carries a `# Source: ... ({LI_PLUS_TAG})` comment line near the top as
 the tag-tracking anchor. Bootstrap's tag-mismatch check reads this line.

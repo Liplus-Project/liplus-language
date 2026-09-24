@@ -202,11 +202,29 @@ class ArmPlan:
 
 
 @dataclass(frozen=True)
+class Scope:
+    """What the measurement round this run belongs to answered, as its author declares it.
+
+    One run puts one probe; a round is several runs, and a green round speaks only
+    for the probes it put. Without these fields the record of a round that measured
+    8 probes of 30, chosen by predicting what the change would break, reads the same
+    as one that measured everything (#2013). The values are self-declared and
+    nothing here checks them against anything; what is enforced is that they exist.
+    """
+
+    probes_measured: int
+    probes_total: int
+    selection: str
+    unmeasured: str
+
+
+@dataclass(frozen=True)
 class Plan:
     probe: str
     model: str
     repetitions: int
     arms: tuple[ArmPlan, ...]
+    scope: Scope
 
 
 def _require_str(data: dict[str, Any], key: str) -> str:
@@ -226,6 +244,11 @@ def load_plan(data: Any, source_root: Path | None = None) -> Plan:
     principle - two arms differing in more than one place cannot attribute a
     difference in their outputs to any of them.
 
+    `scope` is required for the same reason `model` is: a run record that does not
+    say how much of the question its round answered is read as having answered all
+    of it, and a line an operator is asked to add by hand is one nothing misses when
+    it is left out (see `Scope`).
+
     `source_root`, when given, is read by the self-declaring guard below to tell
     provenance apart from self-declaration (issue #1935): text is checked against
     the repository, not required. `main` resolves it ahead of the read that used
@@ -238,6 +261,7 @@ def load_plan(data: Any, source_root: Path | None = None) -> Plan:
 
     probe = _require_str(data, "probe")
     model = _require_str(data, "model")
+    scope = _load_scope(data.get("scope"))
 
     repetitions = data.get("repetitions", 1)
     if not isinstance(repetitions, int) or isinstance(repetitions, bool) or repetitions < 1:
@@ -265,7 +289,49 @@ def load_plan(data: Any, source_root: Path | None = None) -> Plan:
             f"but the plan carries {total_edits}"
         )
 
-    return Plan(probe=probe, model=model, repetitions=repetitions, arms=tuple(arms))
+    return Plan(
+        probe=probe, model=model, repetitions=repetitions, arms=tuple(arms), scope=scope
+    )
+
+
+def _require_count(data: dict[str, Any], key: str) -> int:
+    value = data.get(key)
+    if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+        raise PlanError(f"scope field {key!r} must be an integer of at least 1")
+    return value
+
+
+def _load_scope(raw: Any) -> Scope:
+    """The plan's `scope` object, every field present, or raise `PlanError`.
+
+    `unmeasured` is required even when every probe of the round was put: the round's
+    probes were themselves drawn from the change by somebody, and what they leave out
+    is the half of the answer a green result does not carry.
+    """
+    if not isinstance(raw, dict):
+        raise PlanError(
+            "plan field 'scope' must be an object carrying probes_measured, "
+            "probes_total, selection and unmeasured"
+        )
+    measured = _require_count(raw, "probes_measured")
+    total = _require_count(raw, "probes_total")
+    if measured > total:
+        raise PlanError(
+            f"scope field 'probes_measured' ({measured}) exceeds 'probes_total' ({total})"
+        )
+    return Scope(
+        probes_measured=measured,
+        probes_total=total,
+        selection=_require_scope_text(raw, "selection"),
+        unmeasured=_require_scope_text(raw, "unmeasured"),
+    )
+
+
+def _require_scope_text(data: dict[str, Any], key: str) -> str:
+    value = data.get(key)
+    if not isinstance(value, str) or not value.strip():
+        raise PlanError(f"scope field {key!r} must be a non-empty string")
+    return value
 
 
 def _load_edits(raw_edits: Any, source_root: Path | None) -> tuple[Edit, ...]:
@@ -787,6 +853,7 @@ def build_run_record(
         "source_root": str(source_root),
         "model": plan.model,
         "repetitions": plan.repetitions,
+        "scope": vars(plan.scope),
         "probe": plan.probe,
         "arms": [
             {"name": arm.name, "edits": [vars(edit) for edit in arm.edits]}

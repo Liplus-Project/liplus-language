@@ -1652,16 +1652,20 @@ class AxisTagFormatTest(ObservationSurfaceTestCase):
     def test_ports_agree_on_order_when_the_ambient_locale_is_culture_aware(self) -> None:
         """Same fixture, same order, on all three ports.
 
-        The bash ports are handed a culture-aware locale here. The names differ
-        only in a punctuation character, which byte order ranks by code point
-        (`-` < `_` < `a`) and a culture-aware collation reorders, and they stay
-        distinct on a case-insensitive filesystem — a case-mixed fixture would
-        collapse to one file on Windows. Where the locale is not installed the
-        run degrades to the C collation and the assertion is merely redundant —
-        never wrong — which is why the source-level pin above carries the
-        regression guard.
+        The bash ports are handed a culture-aware locale here. The stems are
+        `B`, `a` and `c`: byte order ranks `B` (0x42) ahead of both lowercase
+        letters, and glibc's en_US.UTF-8 collation, as observed on ubuntu-latest
+        (#2063), ranks it between them. The workflow's locale-report step prints
+        which of the two orders the CI host produced for the same stems. They are
+        three different letters, not case variants of one, so they stay three
+        files on a case-insensitive filesystem. The previous stems (`z-a` /
+        `z_a` / `za`) differed only in punctuation, and that host's en_US.UTF-8
+        collation ordered them as C does (#2063). Where the locale is not
+        installed, or collates these stems as C does, the bash ports run in C
+        order and this assertion does not observe a culture-aware order; the
+        source-level pin above is the check that still applies in that run.
         """
-        stems = ("z-a", "z_a", "za")
+        stems = ("B", "a", "c")
         for index, stem in enumerate(stems):
             self.ws.write(
                 self.ws.shared_memory,

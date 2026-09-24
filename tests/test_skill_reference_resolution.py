@@ -35,6 +35,16 @@ resolvable position (a markdown heading, or a line-start label ending at a delim
 specified in `docs/K.-Source-File-Format.md`; this file only asserts resolution and does
 not restate that norm. There is no per-reference exception list: a reference that does
 not resolve is fixed at the reference or at its target, not waived here.
+
+Two further checks run over the same files (issue #1574). A `rules/<path>.md` path
+reference resolves to a file under `rules/`. A path whose text carries a glob or
+placeholder character (`rules/**/*.md`, `rules/*.md`, `rules/<name>.md`) names no single
+file, and the reference pattern does not match it. A `github.com/<owner>/<repo>/wiki/<slug>`
+link carries its slug without a `.md` suffix: the slug form is fixed by
+`skills/operations-on-wiki-sync/SKILL.md` Sidebar integrity (slug = filename without
+`.md`), and the suffixed form is the one issue #1557 repaired. Scanned files include the
+`.toml` agent definitions under `adapter/`, which is where the wiki links on these three
+surfaces sit as of #1574.
 """
 
 from __future__ import annotations
@@ -48,8 +58,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 INSTRUCTION_SURFACES = ("rules", "skills", "adapter")
-SCANNED_SUFFIXES = (".md", ".sh", ".ps1")
+SCANNED_SUFFIXES = (".md", ".sh", ".ps1", ".toml")
 SKILL_REFERENCE = re.compile(r"skills/([a-z0-9-]+)/SKILL\.md")
+# A `rules/` path reference: path segments of word characters and hyphens only, so a glob
+# (`*`) or placeholder (`<`, `{`) inside the path stops the match. The lookbehind lets a
+# prefix ending in `/` (`.claude/rules/...`, `SOURCE_ROOT/rules/...`) through and reads the
+# remainder against the repository's `rules/` tree.
+RULES_REFERENCE = re.compile(
+    r"(?<![\w.-])rules/((?:[\w-]+/)*[\w-]+(?:\.[\w-]+)*?\.md)(?![\w-])"
+)
+WIKI_LINK = re.compile(r"github\.com/[\w.-]+/[\w.-]+/wiki/([A-Za-z0-9._%-]*)")
 
 # A section-name reference is triggered by a backtick-quoted `.md` path immediately
 # followed (same line) by a capitalized word — the shape `` `<path>.md` Section Name ``.
@@ -190,6 +208,42 @@ class SkillReferenceResolutionTest(unittest.TestCase):
                         "line-start label, see docs/K.-Source-File-Format.md) in "
                         "the target",
                     )
+
+    def test_every_rules_path_reference_resolves(self) -> None:
+        references = 0
+        for path in scanned_files():
+            text = path.read_text(encoding="utf-8")
+            for match in RULES_REFERENCE.finditer(text):
+                references += 1
+                relative = match.group(1)
+                line = text.count("\n", 0, match.start()) + 1
+                with self.subTest(
+                    source=str(path.relative_to(ROOT)), target=relative, line=line
+                ):
+                    self.assertTrue(
+                        (ROOT / "rules" / relative).is_file(),
+                        f"{path.relative_to(ROOT)}:{line} points at rules/{relative}, "
+                        "which does not exist",
+                    )
+        # A pattern that silently matched nothing would pass the loop above.
+        self.assertGreater(references, 0)
+
+    def test_no_wiki_link_slug_carries_an_md_suffix(self) -> None:
+        links = 0
+        for path in scanned_files():
+            text = path.read_text(encoding="utf-8")
+            for match in WIKI_LINK.finditer(text):
+                links += 1
+                slug = match.group(1).rstrip(".")
+                line = text.count("\n", 0, match.start()) + 1
+                with self.subTest(source=str(path.relative_to(ROOT)), slug=slug, line=line):
+                    self.assertFalse(
+                        slug.lower().endswith(".md"),
+                        f"{path.relative_to(ROOT)}:{line} links wiki slug {slug!r}; "
+                        "a wiki slug carries no .md suffix",
+                    )
+        # A pattern that silently matched nothing would pass the loop above.
+        self.assertGreater(links, 0)
 
 
 if __name__ == "__main__":

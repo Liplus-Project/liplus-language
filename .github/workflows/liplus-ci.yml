@@ -71,9 +71,10 @@ jobs:
             exit 1
           fi
 
-      # Report only; never fails. Behavior tests that set a locale degrade on a
-      # host without it (en_US: the ordering test becomes redundant; tr_TR: the
-      # case-folding test skips), and a passing run does not say which mode ran.
+      # Report only; never fails. Behavior tests that set a locale degrade where
+      # the locale is missing or does not change the outcome (en_US: the ordering
+      # test becomes redundant; tr_TR: the case-folding test skips), and a
+      # passing run does not say which mode ran.
       - name: Report locales used by behavior tests
         if: github.event_name != 'issues'
         continue-on-error: true
@@ -90,10 +91,12 @@ jobs:
           done
           c_order=$(printf 'z-a\nz_a\nza\n' | LC_ALL=C sort | tr '\n' ' ')
           en_order=$(printf 'z-a\nz_a\nza\n' | LC_ALL=en_US.UTF-8 sort 2>/dev/null | tr '\n' ' ')
-          if [ "$c_order" != "$en_order" ]; then
-            echo "ordering test (en_US.UTF-8): culture-aware branch exercised (C: $c_order/ en_US: $en_order)"
+          if [ -z "$en_order" ]; then
+            echo "ordering test (en_US.UTF-8): sort under en_US.UTF-8 produced no output, mode unknown"
+          elif [ "$c_order" != "$en_order" ]; then
+            echo "ordering test (en_US.UTF-8): exercised, ambient collation reorders the fixture (C: $c_order/ en_US: $en_order)"
           else
-            echo "ordering test (en_US.UTF-8): degraded to C collation, assertion redundant (order: $c_order)"
+            echo "ordering test (en_US.UTF-8): redundant, ambient collation orders the fixture as C does (order: $c_order)"
           fi
           folded=$(LC_ALL=tr_TR.UTF-8 LC_CTYPE=tr_TR.UTF-8 LANG=tr_TR.UTF-8 awk 'BEGIN { printf "%s", tolower("I") }' 2>/dev/null)
           case "$folded" in

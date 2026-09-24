@@ -71,6 +71,37 @@ jobs:
             exit 1
           fi
 
+      # Report only; never fails. Behavior tests that set a locale degrade on a
+      # host without it (en_US: the ordering test becomes redundant; tr_TR: the
+      # case-folding test skips), and a passing run does not say which mode ran.
+      - name: Report locales used by behavior tests
+        if: github.event_name != 'issues'
+        continue-on-error: true
+        run: |
+          set +e
+          available=$(locale -a 2>/dev/null | tr 'A-Z' 'a-z' | tr -d '.-')
+          for name in en_US.UTF-8 tr_TR.UTF-8; do
+            key=$(echo "$name" | tr 'A-Z' 'a-z' | tr -d '.-')
+            if echo "$available" | grep -qx "$key"; then
+              echo "locale $name: available"
+            else
+              echo "locale $name: missing"
+            fi
+          done
+          c_order=$(printf 'z-a\nz_a\nza\n' | LC_ALL=C sort | tr '\n' ' ')
+          en_order=$(printf 'z-a\nz_a\nza\n' | LC_ALL=en_US.UTF-8 sort 2>/dev/null | tr '\n' ' ')
+          if [ "$c_order" != "$en_order" ]; then
+            echo "ordering test (en_US.UTF-8): culture-aware branch exercised (C: $c_order/ en_US: $en_order)"
+          else
+            echo "ordering test (en_US.UTF-8): degraded to C collation, assertion redundant (order: $c_order)"
+          fi
+          folded=$(LC_ALL=tr_TR.UTF-8 LC_CTYPE=tr_TR.UTF-8 LANG=tr_TR.UTF-8 awk 'BEGIN { printf "%s", tolower("I") }' 2>/dev/null)
+          case "$folded" in
+            ""|I|i) echo "case-folding test (tr_TR.UTF-8): will skip, awk tolower(\"I\") = '$folded'" ;;
+            *) echo "case-folding test (tr_TR.UTF-8): exercised, awk tolower(\"I\") = '$folded'" ;;
+          esac
+          exit 0
+
       - name: Run unit tests
         if: github.event_name != 'issues'
         run: python3 -m unittest discover -s tests

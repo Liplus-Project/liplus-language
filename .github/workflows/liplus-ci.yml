@@ -89,8 +89,8 @@ jobs:
               echo "locale $name: missing"
             fi
           done
-          c_order=$(printf 'z-a\nz_a\nza\n' | LC_ALL=C sort | tr '\n' ' ')
-          en_order=$(printf 'z-a\nz_a\nza\n' | LC_ALL=en_US.UTF-8 sort 2>/dev/null | tr '\n' ' ')
+          c_order=$(printf 'B\na\nc\n' | LC_ALL=C sort | tr '\n' ' ')
+          en_order=$(printf 'B\na\nc\n' | LC_ALL=en_US.UTF-8 sort 2>/dev/null | tr '\n' ' ')
           if [ -z "$en_order" ]; then
             echo "ordering test (en_US.UTF-8): sort under en_US.UTF-8 produced no output, mode unknown"
           elif [ "$c_order" != "$en_order" ]; then

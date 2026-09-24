@@ -129,7 +129,7 @@ Target: `{workspace_root}/.claude/settings.json`
     ],
     "PostToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "Bash|Write|Edit|MultiEdit",
         "hooks": [
           {
             "type": "command",
@@ -168,7 +168,10 @@ Real files, copied verbatim into `{workspace_root}/.claude/hooks/` on bootstrap
   reported `resume` instead, which is why the earlier four-matcher set held.
 - `adapter/claude/hooks/post-tool-use.sh` — sub-issue refs auto-append on PR create,
   with a one-line `additionalContext` firing trace on every run that matched the
-  command (#1710; per-line table in `docs/6.-Adapter.md`)
+  command (#1710; per-line table in `docs/6.-Adapter.md`), and a stray-script scan
+  of the file a `Write` / `Edit` / `MultiEdit` call just wrote, reported through
+  `additionalContext` without rewriting the file (#2047). The PostToolUse matcher
+  `Bash|Write|Edit|MultiEdit` is what lets the file-writing tools reach it.
 
 Each script carries a `# Source: ... ({LI_PLUS_TAG})` comment line near the top as
 the tag-tracking anchor. Bootstrap's tag-mismatch check reads this line.

@@ -506,8 +506,10 @@ Register-Section 'self_eval_head' 'Self-evaluation log head (most recent)' $self
 # Case sensitivity: the bash ports match with awk / sed / `case`, which are
 # case-sensitive, so every comparison here that stands in for one of those uses
 # the case-sensitive operator (`-cmatch` / `-ccontains` / `-cnotcontains`) or an
-# ordinal comparer. `ToLowerInvariant` stands in for awk `tolower`, which is
-# ASCII-only and culture-independent.
+# ordinal comparer. Case folding goes through ConvertTo-AsciiLower, the same
+# A-Z-only mapping the bash ports' awk `ascii_lower` applies (#1654), and the
+# splits that follow a fold are `-csplit`: `-split` matches its pattern
+# case-insensitively under the current culture.
 $thresholdN = 2
 # $surfaceCap bounds the two list-shaped detectors. This is an orientation
 # surface read at session opening, and a list past roughly this length stops
@@ -712,13 +714,26 @@ function Split-AxisPairs {
   return $pairs
 }
 
+# ASCII-only lowercase (#1654), the counterpart of the bash ports' awk
+# `ascii_lower`: A-Z map to a-z and every other character passes through
+# unchanged. `ToLowerInvariant` over the whole string also folds non-ASCII
+# letters (`Ä` -> `ä`, the Kelvin sign -> `k`), which awk under a C locale does
+# not, so it is applied only to runs that are already A-Z, where invariant
+# casing is exactly A-Z -> a-z. The regex runs without IgnoreCase, so its
+# range is ordinal code points and not the current culture.
+function ConvertTo-AsciiLower {
+  param([string]$Text)
+  return [regex]::Replace($Text, '[A-Z]+',
+    [System.Text.RegularExpressions.MatchEvaluator] { param($m) $m.Value.ToLowerInvariant() })
+}
+
 # Axis name normal form, step for step as the skill lists it.
 function Get-AxisNormalForm {
   param([string]$Axis)
   $name = $Axis -replace '\*', ''
   $p = Get-OpenIndex $name
   if ($p -ge 0) { $name = $name.Substring(0, $p) }
-  $name = (($name -replace '[-_]', ' ') -replace '\s+', ' ').Trim().ToLowerInvariant()
+  $name = ConvertTo-AsciiLower ((($name -replace '[-_]', ' ') -replace '\s+', ' ').Trim())
   if (-not $name) { return '' }
   $hits = 0
   $expanded = ''
@@ -743,7 +758,7 @@ function Add-AxisMiss {
   $axis = Get-AxisNormalForm $Pair.Substring(0, $sep)
   $verdict = $Pair.Substring($sep + 1)
   if (-not $axis) { return }
-  if ($verdict.ToLowerInvariant().IndexOf('miss', [System.StringComparison]::Ordinal) -lt 0) { return }
+  if ((ConvertTo-AsciiLower $verdict).IndexOf('miss', [System.StringComparison]::Ordinal) -lt 0) { return }
   if ($Tally.ContainsKey($axis)) { $Tally[$axis]++ } else { $Tally[$axis] = 1 }
 }
 
@@ -776,12 +791,11 @@ $promotionBody = ''
 #   - <axis>: <verdict>                                          (bullets)
 if ($selfEvalFound -and (Test-Path -LiteralPath $selfEvalFound)) {
   # Ordinal comparer to match the awk arrays of the bash ports, which key
-  # case-sensitively while a `@{}` literal does not. Unlike the overlap detector
-  # below, no input reaches this table still carrying case: Get-AxisNormalForm
-  # lowercases on every return path, so the comparer cannot change a tally today.
-  # It is set anyway because the parity it holds is with awk's semantics, not
-  # with the current normalizer — a normalizer that stopped lowercasing would
-  # otherwise split this port's tally away from the bash ports silently.
+  # case-sensitively while a `@{}` literal does not. Get-AxisNormalForm folds
+  # only A-Z (#1654), so a non-ASCII capital reaches this table as written:
+  # `Ärger` and `ärger` are two keys in awk and must stay two here. The
+  # comparer does not stand in for the fold itself — ports that folded
+  # differently would produce different keys, not case variants of one.
   $axisCount = New-Object System.Collections.Hashtable ([System.StringComparer]::Ordinal)
   $inAxisBlock = $false
   foreach ($l in @(Get-Content -LiteralPath $selfEvalFound -ErrorAction SilentlyContinue)) {
@@ -884,7 +898,7 @@ if ($memoryDir -and (Test-Path -LiteralPath $memoryDir)) {
   foreach ($mf in (Get-MemoryEntryFiles $memoryDir)) {
     $entryTitle = Get-MemoryEntryTitle $mf
     $entryLabel = "$(Split-Path -Leaf $mf) [$entryTitle]"
-    foreach ($tok in ($entryTitle.ToLowerInvariant() -split '[^a-z0-9]+')) {
+    foreach ($tok in ((ConvertTo-AsciiLower $entryTitle) -csplit '[^a-z0-9]+')) {
       if ($tok.Length -lt 4) { continue }
       if (@('feedback', 'project', 'reference', 'user') -ccontains $tok) { continue }
       $tokenLabels += $entryLabel
@@ -910,7 +924,7 @@ if ($memoryDir -and (Test-Path -LiteralPath $memoryDir)) {
       $content = Get-Content -LiteralPath $sf.FullName -Raw -ErrorAction SilentlyContinue
       if (-not $content) { continue }
       $seen = @{}
-      foreach ($word in ($content.ToLowerInvariant() -split '[^a-z0-9]+')) {
+      foreach ($word in ((ConvertTo-AsciiLower $content) -csplit '[^a-z0-9]+')) {
         if (-not $wanted.ContainsKey($word)) { continue }
         if ($seen.ContainsKey($word)) { continue }
         $seen[$word] = $true

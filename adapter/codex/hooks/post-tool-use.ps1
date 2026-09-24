@@ -76,9 +76,8 @@ if ($cmdLine -notmatch 'gh(\.exe)? pr create') { exit 0 }
 
 # Codex's Bash tool_response is itself the output string: the hook runtime
 # hands over the command's model-facing output as a JSON string value, with no
-# `output` field to read. Before #2060 this read `tool_response.output`, which a
-# string does not have, so every run ended at this step. Any other type reads
-# as absent, as in the shell ports, rather than being coerced to text.
+# `output` field to read. Any other type reads as absent, as in the shell
+# ports, rather than being coerced to text.
 $output = $null
 if ($payload.tool_response -is [string]) { $output = $payload.tool_response }
 if (-not $output) { Emit-Trace 'gh pr create matched, but tool_response is absent, empty or not a string; no sub-issue refs appended.' }

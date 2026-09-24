@@ -137,8 +137,7 @@ emit_trace() {
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? pr create'; then
   # Codex's Bash tool_response is itself the output string: the hook runtime
   # hands over the command's model-facing output as a JSON string value, with
-  # no `output` field to read. Before #2060 this read `tool_response.output`,
-  # which a string does not have, so every run ended at this step.
+  # no `output` field to read.
   OUTPUT=$(json_field 'tool_response' string)
   [ -n "$OUTPUT" ] || emit_trace "gh pr create matched, but tool_response is absent, empty or not a string; no sub-issue refs appended."
   PR_NUMBER=$(echo "$OUTPUT" | grep -oE '/pull/[0-9]+' | grep -oE '[0-9]+' | head -1)

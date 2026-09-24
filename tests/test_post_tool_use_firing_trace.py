@@ -265,13 +265,13 @@ class FiringTraceTestCase(unittest.TestCase):
                 self.assertIn("--method PATCH", fixture.gh_calls(), adapter)
 
     def test_host_shape_carries_no_output_field_and_is_read(self) -> None:
-        """#2060: the shape each host sends has no `output` for the old read.
+        """#2060: the host-shape payload has no `output` for the old read.
 
-        Before #2060 all three ports read `tool_response.output`. The payload fed
-        here is the one the host really sends, and a `.output` read of it comes
-        back empty on every port — so the pre-#2060 ports ended at the URL step
-        on every real run. The ports now read the field that holds the URL, and
-        reach the append.
+        Observed per port, on the payload `bash_tool_response` builds for that
+        port's host: the payload carries no `output` key, so a
+        `tool_response.output` read of it — what the ports did before #2060 —
+        returns nothing, and the port reading its host's field reaches the
+        append. Where each shape is fixed: `bash_tool_response`.
         """
         for adapter in ADAPTERS:
             with self.subTest(adapter=adapter):

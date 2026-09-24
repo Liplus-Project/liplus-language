@@ -143,9 +143,8 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? pr create'; then
   # `interrupted` and `isImage`, with no `output` field: the hooks reference
   # gives that shape for a PostToolUse `updatedToolOutput` replacing a Bash
   # result, and transcripts record the same object as `toolUseResult`.
-  # `gh pr create` prints the PR URL on stdout. Before #2060 this read
-  # `tool_response.output`, which is never present, so every run ended at this
-  # step. The Codex ports read a different shape (#2060).
+  # `gh pr create` prints the PR URL on stdout. The Codex ports read a
+  # different shape (#2060).
   OUTPUT=$(json_field 'tool_response.stdout' string)
   [ -n "$OUTPUT" ] || emit_trace "gh pr create matched, but tool_response.stdout is absent, empty or not a string; no sub-issue refs appended."
   PR_NUMBER=$(echo "$OUTPUT" | grep -oE '/pull/[0-9]+' | grep -oE '[0-9]+' | head -1)

@@ -242,7 +242,7 @@ Destination = a comment on the same PR thread, posted whether or not the round p
 
 - This method is a pre-spec-reflection verification surface; it does not replace PR review (semi_auto mode minor/major human review is a separate axis)
 - Facts that change over time (API spec, library behavior, host behavior) are checked per occurrence and nowhere else. On the brake 1 path an occurrence = the diff adds or modifies a line stating such a fact. The evaluator reports that line as a finding when it shows no backing — a cited source or an observation — and does not verify the fact itself. The author, adjudicating that finding at Procedure step 7, checks the fact against the current external source and leaves the grounds on the line or on the PR thread; where it cannot check, it drops the line or marks it unverified. Drift in a line the diff does not touch is outside this method's range
-- Evaluator tool permissions are not restricted, and the custom-agent `tools:` route is rejected. The no-write requirement therefore rests on a prompt literal the parent has to remember to include. Accepted; recurrence is tracked on the post-merge axis per `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format
+- Evaluator tool permissions are not restricted, and the custom-agent `tools:` route is rejected. The no-write requirement therefore rests on a prompt literal the parent has to remember to include. Accepted; recurrence is tracked on the post-merge axis per `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format on a PR that has an entry there. On a PR that gets no entry under that format's creation criterion, nothing tracks recurrence after merge
 
 ### What the three-round cap gives up
 

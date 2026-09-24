@@ -95,8 +95,9 @@ class PriorBaselineReadBackTest(unittest.TestCase):
         removes the field entirely.
 
         Reaches into `state["agents"]["default"]` (#1811 partition shape):
-        none of the runs in this file set `LI_PLUS_AGENT_KEY`, so every seed
-        run resolves to the fixed `"default"` partition.
+        none of the runs in this file pass `LI_PLUS_AGENT_KEY`, and the shared
+        runner drops an inherited one, so every seed run resolves to the fixed
+        `"default"` partition.
         """
         path = ws.state_file(adapter)
         state = json.loads(path.read_text(encoding="utf-8"))
@@ -211,8 +212,9 @@ class PriorBaselineReadBackTest(unittest.TestCase):
         # so a writer *can* be told apart across partitions; what stays ruled
         # out is a second identifier appearing a level deeper, inside a single
         # partition's own entry, which is the shape the read-back line above
-        # actually draws from. No run in this file sets LI_PLUS_AGENT_KEY, so
-        # every seed run resolves to the fixed "default" partition.
+        # actually draws from. No run in this file passes LI_PLUS_AGENT_KEY,
+        # and the shared runner drops an inherited one, so every seed run
+        # resolves to the fixed "default" partition.
         for adapter in ADAPTERS:
             with self.subTest(adapter=adapter):
                 ws = self.fixture()

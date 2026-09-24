@@ -225,7 +225,8 @@ is `.ps1` (Windows native, primary on the verified Codex Windows env) + `.sh`
   is emitted in every delivery mode (Character_Instance lives in AGENTS.md, not
   re-notified per turn).
 - `adapter/codex/hooks/post-tool-use.{ps1,sh}` — sub-issue refs auto-append on
-  `gh pr create`.
+  `gh pr create`, with a one-line `additionalContext` firing trace on every run
+  that matched the command (#1710; per-line table in `docs/6.-Adapter.md`).
 
 Each script carries a `# Source: ... ({LI_PLUS_TAG})` comment near the top as the
 tag-tracking anchor. Bootstrap's tag-mismatch check reads this line.

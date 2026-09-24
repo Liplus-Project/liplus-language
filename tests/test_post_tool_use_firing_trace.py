@@ -6,8 +6,11 @@ and that line names how the run ended — appended, PATCH failed, or which step
 found nothing to append. Tool calls that do not match write nothing and never
 reach `gh`.
 
-The payload carries the PR URL in `tool_response.output`, the field the ports
-read. `gh` is a stub reading canned answers from files in the fixture root and
+Each port is fed the Bash `tool_response` shape of its own host (#2060): the
+claude port an object whose `stdout` holds the PR URL, the codex ports a bare
+JSON string. Neither shape carries an `output` field, which is what the ports
+read before #2060. Where each shape was taken from is stated at
+`bash_tool_response` below. `gh` is a stub reading canned answers from files in the fixture root and
 logging each call, so the append path is observed without a network, and the
 PATCH it sends is read back from the log.
 
@@ -47,6 +50,33 @@ POST_TOOL_USE = {
 ORIGIN_URL = "https://github.com/Liplus-Project/liplus-language.git"
 PR_URL = "https://github.com/Liplus-Project/liplus-language/pull/4242"
 TRACE_PREFIX = "post-tool-use: "
+
+# The field each port names in its trace when the output cannot be read.
+OUTPUT_FIELD = {
+    "claude_sh": "tool_response.stdout",
+    "codex_sh": "tool_response",
+    "codex_ps1": "tool_response",
+}
+
+
+def bash_tool_response(adapter: str, text: str) -> object:
+    """The Bash `tool_response` a PostToolUse payload carries on this port's host.
+
+    Claude Code: an object with `stdout` / `stderr` / `interrupted` / `isImage`.
+    Taken from the hooks reference (https://code.claude.com/docs/en/hooks), whose
+    PostToolUse `updatedToolOutput` example replacing a Bash result has that
+    shape, and from transcripts, which record the same object as `toolUseResult`.
+
+    Codex: the output text as a JSON string. Taken from openai/codex
+    `codex-rs/core/src/tools/context.rs` (`ExecCommandToolOutput::
+    post_tool_use_response` returns `JsonValue::String`) and its tests in
+    `codex-rs/core/src/tools/handlers/unified_exec_tests.rs`
+    (`tool_response: serde_json::json!("three")`). The Codex hooks page itself
+    types the field only as a JSON value.
+    """
+    if adapter == "claude_sh":
+        return {"stdout": text, "stderr": "", "interrupted": False, "isImage": False}
+    return text
 
 
 class Fixture:
@@ -145,6 +175,7 @@ class Fixture:
         command: str = "gh pr create --fill",
         tool_response: object = None,
     ) -> str:
+        """Run one port. `tool_response=None` sends this host's shape of PR_URL."""
         if adapter in ("claude_sh", "codex_sh"):
             if not BASH:
                 require_runtime("bash", "claude / codex shell hooks")
@@ -158,7 +189,9 @@ class Fixture:
             "tool_name": tool_name,
             "tool_input": {"command": command},
             "tool_response": (
-                {"output": PR_URL} if tool_response is None else tool_response
+                bash_tool_response(adapter, PR_URL)
+                if tool_response is None
+                else tool_response
             ),
         }
         hook = POST_TOOL_USE[adapter]
@@ -231,7 +264,32 @@ class FiringTraceTestCase(unittest.TestCase):
                 self.assertNotIn("auto-appended", line)
                 self.assertIn("--method PATCH", fixture.gh_calls(), adapter)
 
+    def test_host_shape_carries_no_output_field_and_is_read(self) -> None:
+        """#2060: the host-shape payload has no `output` for the old read.
+
+        Observed per port, on the payload `bash_tool_response` builds for that
+        port's host: the payload carries no `output` key, so a
+        `tool_response.output` read of it — what the ports did before #2060 —
+        returns nothing, and the port reading its host's field reaches the
+        append. Where each shape is fixed: `bash_tool_response`.
+        """
+        for adapter in ADAPTERS:
+            with self.subTest(adapter=adapter):
+                response = bash_tool_response(adapter, PR_URL)
+                old_read = response.get("output") if isinstance(response, dict) else None
+                self.assertIsNone(old_read, f"{adapter}: host shape carries `output`")
+                fixture = self.fixture()
+                fixture.answer(body="Implements #100.", subs="101\n", patch_exit=0)
+                line = trace_line(
+                    self, adapter, fixture.run(adapter, tool_response=response)
+                )
+                self.assertIn("PR #4242: sub-issue refs auto-appended", line)
+
     def test_each_no_append_exit_names_its_reason(self) -> None:
+        # A response of None sends this host's shape of PR_URL; a callable
+        # builds the response per port. `{field}` in the expected text is the
+        # field that port reads (OUTPUT_FIELD).
+        missing = "{field} is absent, empty or not a string"
         cases = (
             ("already referenced", dict(body="Implements #100. Closes #101", subs="101\n"),
              None, "every sub-issue of parent #100 is already referenced"),
@@ -241,30 +299,39 @@ class FiringTraceTestCase(unittest.TestCase):
              None, "body carries no #<issue> reference"),
             ("empty body", dict(body="", subs="101\n"),
              None, "body could not be read or is empty"),
-            ("output absent", dict(body="Implements #100.", subs="101\n"),
-             {"stdout": PR_URL}, "tool_response.output is absent or empty"),
+            ("output empty", dict(body="Implements #100.", subs="101\n"),
+             lambda adapter: bash_tool_response(adapter, ""), missing),
+            ("pre-#2060 `output` field only", dict(body="Implements #100.", subs="101\n"),
+             lambda adapter: {"output": PR_URL}, missing),
+            ("other host's shape", dict(body="Implements #100.", subs="101\n"),
+             lambda adapter: bash_tool_response(
+                 "codex_sh" if adapter == "claude_sh" else "claude_sh", PR_URL
+             ), missing),
             ("output without URL", dict(body="Implements #100.", subs="101\n"),
-             {"output": "aborted: you must first push the current branch"},
-             "carries no /pull/<number> URL"),
+             lambda adapter: bash_tool_response(
+                 adapter, "aborted: you must first push the current branch"
+             ), "{field} carries no /pull/<number> URL"),
         )
         for adapter in ADAPTERS:
             for name, answers, response, expected in cases:
                 with self.subTest(adapter=adapter, case=name):
                     fixture = self.fixture()
                     fixture.answer(patch_exit=0, **answers)
+                    if callable(response):
+                        response = response(adapter)
                     line = trace_line(
                         self, adapter, fixture.run(adapter, tool_response=response)
                     )
-                    self.assertIn(expected, line)
+                    self.assertIn(expected.format(field=OUTPUT_FIELD[adapter]), line)
                     self.assertNotIn("auto-appended", line)
                     self.assertNotIn("--method PATCH", fixture.gh_calls(), adapter)
 
     def test_unrelated_tool_calls_emit_nothing(self) -> None:
         cases = (
             ("other command", dict(command="git status",
-                                   tool_response={"output": "nothing to commit"})),
+                                   tool_response="nothing to commit")),
             ("mention in output only", dict(command="echo hi",
-                                            tool_response={"output": "gh pr create " + PR_URL})),
+                                            tool_response="gh pr create " + PR_URL)),
             ("mention past first line", dict(command="echo hi\ngh pr create --fill")),
             ("non-Bash tool", dict(tool_name="Read")),
         )
@@ -273,6 +340,9 @@ class FiringTraceTestCase(unittest.TestCase):
                 with self.subTest(adapter=adapter, case=name):
                     fixture = self.fixture()
                     fixture.answer(body="Implements #100.", subs="101\n", patch_exit=0)
+                    if isinstance(kwargs.get("tool_response"), str):
+                        kwargs = dict(kwargs, tool_response=bash_tool_response(
+                            adapter, kwargs["tool_response"]))
                     stdout = fixture.run(adapter, **kwargs)
                     self.assertEqual("", stdout.strip(), f"{adapter} emitted on {name}")
                     self.assertEqual("", fixture.gh_calls(), f"{adapter} called gh on {name}")

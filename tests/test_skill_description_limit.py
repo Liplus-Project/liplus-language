@@ -16,6 +16,7 @@ that structure.
 
 from __future__ import annotations
 
+import re
 import unittest
 from pathlib import Path
 
@@ -72,6 +73,14 @@ def description_value(text: str) -> str | None:
     return None
 
 
+def declares_content(description: str) -> bool:
+    r"""True when `description` holds at least one word character (`\w`).
+
+    A value made only of whitespace, quotes and backslashes reads as empty here.
+    """
+    return re.search(r"\w", description) is not None
+
+
 class SkillDescriptionLimitTest(unittest.TestCase):
     def setUp(self) -> None:
         self.descriptions = {
@@ -84,7 +93,7 @@ class SkillDescriptionLimitTest(unittest.TestCase):
         for name, description in self.descriptions.items():
             with self.subTest(skill=name):
                 self.assertIsNotNone(description)
-                self.assertNotEqual(description, "")
+                self.assertTrue(declares_content(description or ""))
 
     def test_description_stays_within_the_character_limit(self) -> None:
         for name, description in self.descriptions.items():
@@ -126,6 +135,22 @@ class SkillDescriptionLimitTest(unittest.TestCase):
         }.items():
             with self.subTest(layout=name):
                 self.assertEqual(description_value(text), "")
+
+    def test_a_semantically_empty_value_declares_no_content(self) -> None:
+        """The #1665 quoted-empty inputs and the #1672 backslash line continuation.
+
+        #1672 records each of these resolving to "" under a YAML parser. What is
+        observed here is that the check reads each as declaring no content.
+        """
+        for name, text in {
+            "double_quoted": '---\nname: x\ndescription: ""\n---\n',
+            "single_quoted": "---\nname: x\ndescription: ''\n---\n",
+            "backslash_continuation": '---\nname: x\ndescription: "\\\n  "\n---\n',
+        }.items():
+            with self.subTest(layout=name):
+                description = description_value(text)
+                self.assertIsNotNone(description)
+                self.assertFalse(declares_content(description or ""))
 
     def test_extractor_leaves_quotes_that_are_not_delimiters(self) -> None:
         cases = {

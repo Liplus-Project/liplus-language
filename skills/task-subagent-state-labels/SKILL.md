@@ -43,6 +43,8 @@ Handoff record on takeover (both, they carry different content):
 
 Consequence of additivity: your own account appearing in the Assignees field does not establish that you are the current owner. Current ownership is read from the handoff record, never from the assignee field alone.
 
+Reading the field before an issue is taken — when another account there stops the start, and what lifts that stop — is `rules/operations/main-agent-procedures.md` Branch and label flow, Assignee read.
+
 A new session finding an issue `in-progress` with no memory of starting is a normal detection signal, not an anomaly. Read the handoff record, determine whether the current owner is you or another actor, and only then judge whether to resume. The Assignees field carries no part of that signal: the parent assigns at delegation, so your own account standing there is the expected state of work that has just been handed to you.
 
 </actor-axis-issue-assignee>

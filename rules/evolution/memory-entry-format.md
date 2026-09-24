@@ -151,15 +151,21 @@ notes:
 ```
 
 Auto-entry trigger:
-- Right after a self-evolution PR merges (`Evolution_Initiator_Autonomy` initiator path), the parent AI or merge subagent writes an entry. expiration window is chosen per PR risk (default 2 weeks).
-- Short-window miss escalation: when `rules/operations/operations.md` Post-L1-Merge Runtime Observation surfaces a `miss` verdict, the parent AI writes the entry immediately rather than waiting for the default cycle.
-- Deferred short-window observation: when `rules/operations/operations.md` Post-L1-Merge Runtime Observation cannot start at merge because the changed rule is not carried in runtime context yet, the merging agent writes the deferral into this entry's `notes` as one line, and the session that later takes the observation appends its result there as a second line. Add no field for it, and enter no verdict for the deferral itself.
+- Right after a self-evolution PR merges (`Evolution_Initiator_Autonomy` initiator path), the parent AI or merge subagent writes an entry when at least one surface the PR changes meets the creation criterion below. expiration window is chosen per PR risk (default 2 weeks). A PR that meets it on no surface gets no entry; instead, comment on the merged PR one line naming the condition that failed.
+- Short-window miss escalation: when `rules/operations/operations.md` Post-L1-Merge Runtime Observation surfaces a `miss` verdict, the parent AI writes the entry immediately rather than waiting for the default cycle, whether or not the change meets the creation criterion.
+- Deferred short-window observation: when `rules/operations/operations.md` Post-L1-Merge Runtime Observation cannot start at merge because the changed rule is not carried in runtime context yet, the merging agent writes the deferral into this entry's `notes` as one line, and the session that later takes the observation appends its result there as a second line. Add no field for it, and enter no verdict for the deferral itself. Where the PR has no entry, both lines are comments on the merged PR instead.
+
+Creation criterion — a changed surface meets it when both hold:
+1. an application moment of that surface can be expected to arrive, observably, within an ordinary session before `expires`;
+2. no executed mechanism (test / CI) detects that surface breaking.
 
 Lifecycle:
 
 Actor = the agent holding the session the entry is surfaced due in. Firing moment = that surfacing (`rules/evolution/cold-start-synthesis.md` Self-Evolution Observation Surface). A due entry is re-surfaced every session until it resolves, so a session that takes no check loses no trigger, and a check whose evidence is thin is left inconclusive rather than forced to a verdict.
 
-At that moment, take one check, write its result into `notes`, and apply exactly one outcome:
+At that moment, first test the entry against the creation criterion under Auto-entry trigger. An entry that fails it — except one against whose change a `miss` verdict stands (Short-window miss escalation) — takes no check: comment on the merged PR (the entry's `pr:` field) one line naming the condition that failed, then delete the entry. That deletion is not an outcome and records no verdict.
+
+Otherwise, take one check, write its result into `notes`, and apply exactly one outcome:
 - regression observed -> `revert`: use the GitHub revert path, mark verdict, delete entry
 - decision structure supersede edge issued -> `supersede`: delete entry
 - no regression observed -> `settle`: write the judgment record, delete entry
@@ -180,7 +186,7 @@ Choose the destination by whether a future reader would retrieve the record as g
 
 Where a wiki write cannot be completed in the same session, post the same content as a comment on the merged PR instead. Either way the entry is deleted: holding it at `pending` because the write surface was unreachable is not one of the outcomes above.
 
-`expires` past without resolution -> escalate to human judgment (entry retained).
+`expires` past without resolution -> the creation-criterion test above runs first at that surfacing too; an entry it does not delete escalates to human judgment (entry retained).
 
 Scope = detection axis only.
 Recovery (GitHub revert / `gh pr revert`) is on a separate axis.

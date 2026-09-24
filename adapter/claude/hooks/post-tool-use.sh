@@ -4,6 +4,7 @@
 # rules/* are always-loaded and skills/* auto-invoke by description match,
 # so section-extraction injection is no longer needed.
 # Retained: gh pr create → sub-issue refs auto-append to PR body.
+# Added (#2047): Write / Edit / MultiEdit → stray-script scan of the written file.
 #
 # JSON read/write uses Node.js (`node -e`), not an external `jq` binary —
 # this mirrors the #1519 fix applied to on-session-start.sh.
@@ -37,8 +38,13 @@ INPUT=$(cat)
 # filter therefore rests on an assumption Li+ cannot verify from its own source:
 # that Claude Code's payload serializer does not escape printable ASCII. Sound
 # for real traffic on that assumption, not for arbitrary JSON.
+#
+# The Write / Edit / MultiEdit arms admit the file-writing tools to the
+# stray-script scan below (#2047). A Bash payload that merely carries one of
+# those quoted names spawns node and is rejected by the parsed guards.
 case "$INPUT" in
   *"gh pr create"*|*"gh.exe pr create"*) ;;
+  *'"Write"'*|*'"Edit"'*|*'"MultiEdit"'*) ;;
   *) exit 0 ;;
 esac
 
@@ -49,7 +55,14 @@ esac
 # mentions the command. The message is therefore worded conditionally; asserting
 # that refs were dropped would be false whenever the command merely named it.
 if ! command -v node >/dev/null 2>&1; then
-  printf '%s' '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"post-tool-use.sh: `node` not found on PATH, so this hook cannot run. If a PR was just created, its sub-issue `Closes #NNN` refs were not auto-appended — add them manually. See adapter/claude/hooks/post-tool-use.sh."}}'
+  case "$INPUT" in
+    *"gh pr create"*|*"gh.exe pr create"*)
+      printf '%s' '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"post-tool-use.sh: `node` not found on PATH, so this hook cannot run. If a PR was just created, its sub-issue `Closes #NNN` refs were not auto-appended — add them manually. See adapter/claude/hooks/post-tool-use.sh."}}'
+      ;;
+    *)
+      printf '%s' '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"post-tool-use.sh: `node` not found on PATH, so this hook cannot run. If a file was just written by Write / Edit / MultiEdit, it was not scanned for stray-script characters. See adapter/claude/hooks/post-tool-use.sh."}}'
+      ;;
+  esac
   exit 0
 fi
 
@@ -94,17 +107,6 @@ json_field() {
   ' "$1" "$2" 2>/dev/null
 }
 
-TOOL_NAME=$(json_field 'tool_name')
-COMMAND=$(json_field 'tool_input.command')
-
-[[ "$TOOL_NAME" == "Bash" ]] || exit 0
-[ -n "$COMMAND" ] || exit 0
-
-CMD_LINE=$(printf '%s' "$COMMAND" | head -1 | sed 's/<<.*$//')
-
-PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
-LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
-
 emit_context() {
   local context="$1"
   [ -n "$context" ] || exit 0
@@ -120,6 +122,96 @@ emit_context() {
     }, null, 2) + "\n");
   ' "$context"
 }
+
+# Stray-script scan (#2047). Prints the report text for one written file, or
+# nothing. Reports every run of Cyrillic, Hangul, Arabic, Hebrew, Thai,
+# Devanagari, Armenian or Georgian letters whose preceding or following
+# character is a Latin letter, kana, kanji or the prolonged sound mark (U+30FC,
+# U+FF70), with file, line number and the run bracketed in its surrounding text.
+# A run bounded on both sides by whitespace, punctuation or line ends is not
+# reported. Skips a path that is not a regular file, a file over 1 MiB, and a
+# file holding a NUL byte. Reads only: never rewrites the file.
+scan_stray_script() {
+  node -e '
+    const fs = require("fs");
+    const file = process.argv[1];
+    const SIZE_LIMIT = 1024 * 1024;
+    const MAX_REPORTED = 20;
+    const CONTEXT = 8;
+    const SCRIPTS = [
+      ["Cyrillic", /\p{sc=Cyrillic}/u],
+      ["Hangul", /\p{sc=Hangul}/u],
+      ["Arabic", /\p{sc=Arabic}/u],
+      ["Hebrew", /\p{sc=Hebrew}/u],
+      ["Thai", /\p{sc=Thai}/u],
+      ["Devanagari", /\p{sc=Devanagari}/u],
+      ["Armenian", /\p{sc=Armenian}/u],
+      ["Georgian", /\p{sc=Georgian}/u],
+    ];
+    const STRAY = /[\p{sc=Cyrillic}\p{sc=Hangul}\p{sc=Arabic}\p{sc=Hebrew}\p{sc=Thai}\p{sc=Devanagari}\p{sc=Armenian}\p{sc=Georgian}]+/gu;
+    const NEIGHBOUR = /^[\p{sc=Latin}\p{sc=Hiragana}\p{sc=Katakana}\p{sc=Han}ーｰ]$/u;
+    function main() {
+      let buf;
+      try {
+        const st = fs.statSync(file);
+        if (!st.isFile() || st.size > SIZE_LIMIT) return "";
+        buf = fs.readFileSync(file);
+      } catch (e) {
+        return "";
+      }
+      if (buf.includes(0)) return "";
+      const reported = [];
+      let total = 0;
+      buf.toString("utf8").split("\n").forEach((raw, i) => {
+        const line = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
+        for (const m of line.matchAll(STRAY)) {
+          const end = m.index + m[0].length;
+          const before = Array.from(line.slice(Math.max(0, m.index - 4 * CONTEXT), m.index));
+          const after = Array.from(line.slice(end, end + 4 * CONTEXT));
+          const prev = before.length ? before[before.length - 1] : "";
+          const next = after.length ? after[0] : "";
+          if (!NEIGHBOUR.test(prev) && !NEIGHBOUR.test(next)) continue;
+          total += 1;
+          if (reported.length >= MAX_REPORTED) continue;
+          const found = SCRIPTS.find(([, re]) => re.test(m[0]));
+          const script = found ? found[0] : "non-Latin";
+          reported.push(`  line ${i + 1} (${script}): ${before.slice(-CONTEXT).join("")}[${m[0]}]${after.slice(0, CONTEXT).join("")}`);
+        }
+      });
+      if (total === 0) return "";
+      const lines = [
+        `post-tool-use: stray-script check: ${total} run(s) of non-Latin, non-Japanese letters touch a Latin letter, kana or kanji with no whitespace between, in ${file}. The file was not changed; fix any run that was not meant to be there.`,
+        ...reported,
+      ];
+      if (total > reported.length) lines.push(`  ... and ${total - reported.length} more`);
+      return lines.join("\n");
+    }
+    process.stdout.write(main());
+  ' "$1" 2>/dev/null
+}
+
+TOOL_NAME=$(json_field 'tool_name')
+
+# Write / Edit / MultiEdit: scan the written file, then stop. Case-sensitive,
+# like the Bash guard below.
+case "$TOOL_NAME" in
+  Write|Edit|MultiEdit)
+    FILE_PATH=$(json_field 'tool_input.file_path' string)
+    [ -n "$FILE_PATH" ] || exit 0
+    emit_context "$(scan_stray_script "$FILE_PATH")"
+    exit 0
+    ;;
+esac
+
+COMMAND=$(json_field 'tool_input.command')
+
+[[ "$TOOL_NAME" == "Bash" ]] || exit 0
+[ -n "$COMMAND" ] || exit 0
+
+CMD_LINE=$(printf '%s' "$COMMAND" | head -1 | sed 's/<<.*$//')
+
+PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
+LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
 
 repo_from_origin() {
   git -C "$LIPLUS_DIR" remote get-url origin 2>/dev/null \

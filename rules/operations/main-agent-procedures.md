@@ -454,7 +454,8 @@ source priority:
   3 = none
 
 delivery mode interaction (LI_PLUS_WEBHOOK_DELIVERY):
-  poll (default) = each user turn, the AI calls mcp__github-webhook-mcp__get_pending_status.
+  poll (default) = each user turn, the on-user-prompt UserPromptSubmit hook injects the instruction
+    to call mcp__github-webhook-mcp__get_pending_status, and the AI issues the call itself.
   channel        = MCP channel pushes events; AI does not poll, intake reads the channel surface.
   mcp_hook       = the type=mcp_tool UserPromptSubmit hook entry in the default
     settings.json template calls mcp__github-webhook-mcp__get_pending_status at hook time and

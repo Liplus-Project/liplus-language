@@ -122,12 +122,10 @@ repo_from_origin() {
 }
 
 # Firing trace (#1710). Once the command has matched `gh pr create`, every exit
-# below emits one line naming how the run ended, so a run that appends nothing
-# is told apart from a run that never happened. Channel =
-# `hookSpecificOutput.additionalContext` on exit 0, the PostToolUse output both
-# hosts deliver to the model (plain stdout and exit-0 stderr do not reach it;
-# exit 2 turns the line into tool feedback). Calls that never matched stay
-# silent. docs/6.-Adapter.md post-tool-use.sh holds the per-line table.
+# below emits exactly one line naming how the run ended; calls that never
+# matched stay silent. Emit it only as `hookSpecificOutput.additionalContext`
+# on exit 0, not on plain stdout, stderr or exit 2. docs/6.-Adapter.md
+# post-tool-use.sh holds the per-line table and the channel evidence.
 emit_trace() {
   emit_context "post-tool-use: $1"
   exit 0

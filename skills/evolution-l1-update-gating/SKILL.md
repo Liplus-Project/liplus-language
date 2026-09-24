@@ -42,7 +42,7 @@ When a human directs the L1 change (human-initiated, AI-implemented), human judg
 
 Read the carve-out on the initiation axis and nowhere else. What discharges it is the human's own direction, so no downstream gate is load-bearing for it and none may be read as a co-condition — a downstream gate judges the change, and the axis here is who initiated it.
 
-This is not a relaxation of the gate. AI-alone initiation keeps the observation threshold as a hard requirement, unchanged, and the carve-out is scoped to the initiation axis only. The observation gate's subject stays the implementing AI in both cases.
+This is not a relaxation of the gate. AI-alone initiation of an observation-driven L1 change keeps the observation threshold as a hard requirement, unchanged (a refactor-driven change: Change-origin scope below), and the carve-out is scoped to the initiation axis only. The observation gate's subject stays the implementing AI in both cases.
 
 ### Change-origin scope of the observation threshold
 
@@ -57,7 +57,7 @@ The origin is fixed at issue creation. The implementing AI reads it off the issu
 - The issue carries no `promotion` label and its body records a measurement of the artifact itself as the origin -> refactor-driven.
 - Neither row settles it -> observation-driven.
 
-The two scopes are read independently, and the threshold applies only where both place it: AI-alone initiation (Initiation-axis scope above) and an observation-driven origin (this section). The Initiation-axis scope's hard-requirement line holds for an observation-driven change; an AI-alone refactor-driven change is outside the threshold by this section. Neither scope replaces the other.
+The two scopes are read independently, and the threshold applies only where both place it: AI-alone initiation (Initiation-axis scope above) and an observation-driven origin (this section).
 
 A refactor-driven L1 change still runs brake 1 (`skills/evolution-parallel-agent-eval`) and the post-merge observation (`rules/operations/operations.md` Post-L1-Merge Runtime Observation, `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format) unchanged. This section scopes the pre-change threshold only.
 

@@ -183,7 +183,7 @@ What the harness enforces structurally, so it is not left to care at run time:
 - exactly two arms differing in exactly one place, checked both against the plan and against the arms as built
 - an edit anchor matching exactly once — zero matches would compare two identical arms and report a false negative
 - the arm's model named in the plan, with no default
-- the plan's `scope` object — `probes_measured` of `probes_total`, the `selection` criterion, and what is left `unmeasured` — required and carried into the run record. A run puts one probe, so these describe the round it belongs to. The values are self-declared and unchecked
+- the plan's `scope` object — `probes_measured` of `probes_total`, the `selection` criterion, and what is left `unmeasured` — required and carried into the run record. Fill it for the measurement round, identically in every plan of that round. The values are self-declared and unchecked
 - hooks removed from each arm, so nothing injects material into one side
 - no `.git` in the arm, so no remote by construction
 - the run record written only to the file `--out` names, and `--out` required: the record carries every edit body in full, so there is no stdout path for it to reach whoever runs the harness

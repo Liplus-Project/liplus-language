@@ -74,6 +74,12 @@ Rewrite issue body whenever accepted understanding changes.
 Issue completion is managed through issue state plus PR/CI/release flow, not a dedicated issue-body field.
 Exception: a completion condition the PR alone cannot satisfy (post-deploy production state, real-device behavior, observation after N cron cycles, human confirmation) is written in the issue body. A condition the PR alone can satisfy is not written. Test = can the PR alone satisfy it.
 
+Assertion grounds:
+A body line asserting a defect or a state ("X remains" / "X happens" / "X does not exist") names beside it where that was seen: the query, the execution result, or the literal `path:line`. A line that cannot name one is written as a hypothesis, not as an assertion.
+A premise carried over from another issue, another session, or a prior self is restated under the same rule.
+Control flow is described only as far as the position of each try / catch / return / break it relies on has been confirmed on the literal.
+A wrong assertion found in an issue body is corrected in the body, a closed issue included.
+
 Checklist = human judgment required (real device test, operational verification).
 Use checklist only when AI cannot judge.
 

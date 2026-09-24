@@ -264,7 +264,7 @@ class FiringTraceTestCase(unittest.TestCase):
         for adapter in ADAPTERS:
             with self.subTest(adapter=adapter):
                 fixture = self.fixture()
-                fixture.answer(body="Implements #100.", subs="101\n102\n", patch_exit=0)
+                fixture.answer(body="Closes #100.", subs="101\n102\n", patch_exit=0)
                 line = trace_line(self, adapter, fixture.run(adapter))
                 self.assertIn("PR #4242: sub-issue refs auto-appended", line)
                 self.assertIn("parent #100", line)
@@ -278,7 +278,7 @@ class FiringTraceTestCase(unittest.TestCase):
         for adapter in ADAPTERS:
             with self.subTest(adapter=adapter):
                 fixture = self.fixture()
-                fixture.answer(body="Implements #100.", subs="101\n", patch_exit=1)
+                fixture.answer(body="Closes #100.", subs="101\n", patch_exit=1)
                 line = trace_line(self, adapter, fixture.run(adapter))
                 self.assertIn("PATCH of the body failed", line)
                 self.assertIn("Closes #101", line)
@@ -300,7 +300,7 @@ class FiringTraceTestCase(unittest.TestCase):
                 old_read = response.get("output") if isinstance(response, dict) else None
                 self.assertIsNone(old_read, f"{adapter}: host shape carries `output`")
                 fixture = self.fixture()
-                fixture.answer(body="Implements #100.", subs="101\n", patch_exit=0)
+                fixture.answer(body="Closes #100.", subs="101\n", patch_exit=0)
                 line = trace_line(
                     self, adapter, fixture.run(adapter, tool_response=response)
                 )
@@ -312,23 +312,23 @@ class FiringTraceTestCase(unittest.TestCase):
         # field that port reads (OUTPUT_FIELD).
         missing = "{field} is absent, empty or not a string"
         cases = (
-            ("already referenced", dict(body="Implements #100. Closes #101", subs="101\n"),
+            ("already referenced", dict(body="Closes #100. Closes #101", subs="101\n"),
              None, "every sub-issue of parent #100 is already referenced"),
-            ("no sub-issues", dict(body="Implements #100.", subs=""),
+            ("no sub-issues", dict(body="Closes #100.", subs=""),
              None, "parent #100 has no sub-issues"),
             ("no parent ref", dict(body="No issue reference here.", subs="101\n"),
-             None, "body carries no #<issue> reference"),
+             None, "body carries no closing #<issue> reference"),
             ("empty body", dict(body="", subs="101\n"),
              None, "body could not be read or is empty"),
-            ("output empty", dict(body="Implements #100.", subs="101\n"),
+            ("output empty", dict(body="Closes #100.", subs="101\n"),
              lambda adapter: bash_tool_response(adapter, ""), missing),
-            ("pre-#2060 `output` field only", dict(body="Implements #100.", subs="101\n"),
+            ("pre-#2060 `output` field only", dict(body="Closes #100.", subs="101\n"),
              lambda adapter: {"output": PR_URL}, missing),
-            ("other host's shape", dict(body="Implements #100.", subs="101\n"),
+            ("other host's shape", dict(body="Closes #100.", subs="101\n"),
              lambda adapter: bash_tool_response(
                  "codex_sh" if adapter == "claude_sh" else "claude_sh", PR_URL
              ), missing),
-            ("output without URL", dict(body="Implements #100.", subs="101\n"),
+            ("output without URL", dict(body="Closes #100.", subs="101\n"),
              lambda adapter: bash_tool_response(
                  adapter, "aborted: you must first push the current branch"
              ), "{field} carries no /pull/<number> URL"),
@@ -347,6 +347,74 @@ class FiringTraceTestCase(unittest.TestCase):
                     self.assertNotIn("auto-appended", line)
                     self.assertNotIn("--method PATCH", fixture.gh_calls(), adapter)
 
+    def test_parent_is_first_closing_reference_not_first_mention(self) -> None:
+        """#2071: an issue mentioned before the closing reference is not the parent.
+
+        Observed per port with the stubbed `gh`: for a body that mentions #2002
+        before `Closes #100` — directly, or inside a word ending in a keyword
+        (`Prefixes #2002`) — the sub-issue query goes to #100, never to #2002,
+        and the trace names parent #100. Where the keyword list is fixed:
+        `docs/6.-Adapter.md` post-tool-use.sh.
+        """
+        bodies = (
+            ("bare mention", "Follows up #2002.\n\nCloses #100."),
+            ("keyword inside a word", "Prefixes #2002. Closes #100."),
+        )
+        for adapter in ADAPTERS:
+            for name, body in bodies:
+                with self.subTest(adapter=adapter, case=name):
+                    fixture = self.fixture()
+                    fixture.answer(body=body, subs="101\n", patch_exit=0)
+                    line = trace_line(self, adapter, fixture.run(adapter))
+                    self.assertIn("auto-appended (parent #100): Closes #101.", line)
+                    calls = fixture.gh_calls()
+                    self.assertIn("issues/100/sub_issues", calls, adapter)
+                    self.assertNotIn("issues/2002/", calls, adapter)
+
+    def test_body_without_closing_keyword_appends_nothing(self) -> None:
+        """#2071: `#<n>` references with no closing keyword yield no parent.
+
+        Observed per port with the stubbed `gh`: a body whose only references
+        are bare `#<n>` mentions ends at the no-closing-reference trace, with no
+        sub-issue query and no PATCH.
+        """
+        for adapter in ADAPTERS:
+            with self.subTest(adapter=adapter):
+                fixture = self.fixture()
+                fixture.answer(body="Implements #100. See #2002.", subs="101\n", patch_exit=0)
+                line = trace_line(self, adapter, fixture.run(adapter))
+                self.assertIn("PR #4242: body carries no closing #<issue> reference", line)
+                calls = fixture.gh_calls()
+                self.assertNotIn("sub_issues", calls, adapter)
+                self.assertNotIn("--method PATCH", calls, adapter)
+
+    def test_closing_keyword_matches_in_any_case(self) -> None:
+        """#2071: a closing keyword is matched regardless of letter case.
+
+        Observed per port with the stubbed `gh`, on each keyword form below
+        written in upper, lower or mixed case, with and without a colon: the
+        sub-issue query goes to #100 and the trace names parent #100.
+        """
+        bodies = (
+            "CLOSES #100",
+            "cLoSe #100",
+            "Closed: #100",
+            "fixes #100",
+            "FIX #100",
+            "Fixed #100",
+            "RESOLVES: #100",
+            "resolve #100",
+            "Resolved #100",
+        )
+        for adapter in ADAPTERS:
+            for body in bodies:
+                with self.subTest(adapter=adapter, body=body):
+                    fixture = self.fixture()
+                    fixture.answer(body=body, subs="101\n", patch_exit=0)
+                    line = trace_line(self, adapter, fixture.run(adapter))
+                    self.assertIn("auto-appended (parent #100): Closes #101.", line)
+                    self.assertIn("issues/100/sub_issues", fixture.gh_calls(), adapter)
+
     def test_unrelated_tool_calls_emit_nothing(self) -> None:
         cases = (
             ("other command", dict(command="git status",
@@ -360,7 +428,7 @@ class FiringTraceTestCase(unittest.TestCase):
             for name, kwargs in cases:
                 with self.subTest(adapter=adapter, case=name):
                     fixture = self.fixture()
-                    fixture.answer(body="Implements #100.", subs="101\n", patch_exit=0)
+                    fixture.answer(body="Closes #100.", subs="101\n", patch_exit=0)
                     if isinstance(kwargs.get("tool_response"), str):
                         kwargs = dict(kwargs, tool_response=bash_tool_response(
                             adapter, kwargs["tool_response"]))
@@ -376,7 +444,7 @@ class FiringTraceTestCase(unittest.TestCase):
         original body, blank line included, with `\\nCloses #<n>` appended.
         """
         adapter = "codex_ps1"
-        body = "Implements #100.\n\nSome detail.\nMore detail."
+        body = "Closes #100.\n\nSome detail.\nMore detail."
         fixture = self.fixture()
         fixture.answer(body=body + "\n", subs="101\n", patch_exit=0)
         line = trace_line(self, adapter, fixture.run(adapter))
@@ -393,12 +461,12 @@ class FiringTraceTestCase(unittest.TestCase):
         adapter = "codex_ps1"
         with self.subTest(case="all referenced"):
             fixture = self.fixture()
-            fixture.answer(body="Implements #100.\nCloses #101\n", subs="101\n", patch_exit=0)
+            fixture.answer(body="Closes #100.\nCloses #101\n", subs="101\n", patch_exit=0)
             line = trace_line(self, adapter, fixture.run(adapter))
             self.assertIn("every sub-issue of parent #100 is already referenced", line)
             self.assertNotIn("--method PATCH", fixture.gh_calls())
         with self.subTest(case="some referenced"):
-            body = "Implements #100.\nCloses #101"
+            body = "Closes #100.\nCloses #101"
             fixture = self.fixture()
             fixture.answer(body=body + "\n", subs="101\n102\n", patch_exit=0)
             line = trace_line(self, adapter, fixture.run(adapter))

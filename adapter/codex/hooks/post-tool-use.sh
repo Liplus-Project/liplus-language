@@ -152,8 +152,14 @@ if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? pr create'; then
   PR_BODY=$(gh api "repos/$REPO/pulls/$PR_NUMBER" --jq '.body' 2>/dev/null || echo "")
   [ -n "$PR_BODY" ] || emit_trace "PR #${PR_NUMBER}: body could not be read or is empty; no sub-issue refs appended."
 
-  PARENT_ISSUE=$(echo "$PR_BODY" | grep -oE '#[0-9]+' | head -1 | tr -d '#')
-  [ -n "$PARENT_ISSUE" ] || emit_trace "PR #${PR_NUMBER}: body carries no #<issue> reference; no sub-issue refs appended."
+  # Parent = the first `#<n>` that directly follows a GitHub closing keyword
+  # (close / closes / closed / fix / fixes / fixed / resolve / resolves /
+  # resolved, any case, optionally followed by a colon). A bare `#<n>` with no
+  # keyword before it is never taken as the parent.
+  PARENT_ISSUE=$(echo "$PR_BODY" \
+    | grep -oiE '(^|[^A-Za-z0-9_])(close[sd]?|fix(e[sd])?|resolve[sd]?):?[[:blank:]]+#[0-9]+' \
+    | head -1 | grep -oE '[0-9]+$')
+  [ -n "$PARENT_ISSUE" ] || emit_trace "PR #${PR_NUMBER}: body carries no closing #<issue> reference; no sub-issue refs appended."
 
   SUB_ISSUE_NUMBERS=$(gh api "repos/$REPO/issues/$PARENT_ISSUE/sub_issues" \
     --jq '.[].number' 2>/dev/null || echo "")

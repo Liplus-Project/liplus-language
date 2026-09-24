@@ -100,8 +100,12 @@ if (-not $repo) { Emit-Trace "PR #${prNumber}: repository could not be resolved;
 $prBody = (gh api "repos/$repo/pulls/$prNumber" --jq '.body' 2>$null) -join "`n"
 if (-not $prBody) { Emit-Trace "PR #${prNumber}: body could not be read or is empty; no sub-issue refs appended." }
 
-$parentMatch = [regex]::Match($prBody, '#(\d+)')
-if (-not $parentMatch.Success) { Emit-Trace "PR #${prNumber}: body carries no #<issue> reference; no sub-issue refs appended." }
+# Parent = the first `#<n>` that directly follows a GitHub closing keyword
+# (close / closes / closed / fix / fixes / fixed / resolve / resolves /
+# resolved, any case, optionally followed by a colon). A bare `#<n>` with no
+# keyword before it is never taken as the parent.
+$parentMatch = [regex]::Match($prBody, '(?i)(?<![A-Za-z0-9_])(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?):?[ \t]+#([0-9]+)')
+if (-not $parentMatch.Success) { Emit-Trace "PR #${prNumber}: body carries no closing #<issue> reference; no sub-issue refs appended." }
 $parentIssue = $parentMatch.Groups[1].Value
 
 $subRaw = gh api "repos/$repo/issues/$parentIssue/sub_issues" --jq '.[].number' 2>$null

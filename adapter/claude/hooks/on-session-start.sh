@@ -732,6 +732,28 @@ fi
 
 PROMOTION_BODY=""
 
+# ASCII-only lowercase, spliced ahead of every awk program below that folds case
+# (#1654). A-Z map to a-z; every other character, multibyte ones included,
+# passes through unchanged. awk tolower() follows the host locale — under a
+# Turkish locale gawk maps `I` to dotless `ı`, and under a UTF-8 locale it folds
+# `Ä` where a C-locale awk does not — so it split the ports on identical input.
+# The PowerShell port applies the same A-Z-only mapping. The letters are spelled
+# out rather than written as the range A-Z, because what a bracket-expression
+# range covers is locale-dependent on some awks. Only case changes here: the
+# character-wise length() / substr() the scans below rely on are untouched,
+# which is why LC_ALL=C is not put on the awk invocation instead.
+ASCII_LOWER_AWK='
+    function ascii_lower(s,   out, p, c) {
+      out = ""
+      while ((p = match(s, /[ABCDEFGHIJKLMNOPQRSTUVWXYZ]/)) > 0) {
+        c = index("ABCDEFGHIJKLMNOPQRSTUVWXYZ", substr(s, p, 1))
+        out = out substr(s, 1, p - 1) substr("abcdefghijklmnopqrstuvwxyz", c, 1)
+        s = substr(s, p + 1)
+      }
+      return out s
+    }
+'
+
 # Detector 1: the same observational axis tagged `miss` across several
 # self-evaluation entries. That repetition is the one the spec names:
 # `skills/evolution-self-eval/SKILL.md` Recording — "Repeated miss on the same
@@ -747,7 +769,7 @@ PROMOTION_BODY=""
 #   **Axis tags (10-axis)**:                                     (header, then)
 #   - <axis>: <verdict>                                          (bullets)
 if [ -n "$SELFEVAL_FOUND" ] && [ -f "$SELFEVAL_FOUND" ]; then
-  AXIS_MISSES=$(awk -v n="$THRESHOLD_N" '
+  AXIS_MISSES=$(awk -v n="$THRESHOLD_N" "$ASCII_LOWER_AWK"'
     BEGIN {
       # The 10 axes, verbatim and lowercased. Canonical vocabulary for the
       # normal form: a shorthand that is a word-boundary prefix of exactly one
@@ -854,7 +876,7 @@ if [ -n "$SELFEVAL_FOUND" ] && [ -f "$SELFEVAL_FOUND" ]; then
       gsub(/[[:space:]]+/, " ", axis)
       sub(/^ /, "", axis)
       sub(/ $/, "", axis)
-      axis = tolower(axis)
+      axis = ascii_lower(axis)
       if (axis == "") return ""
       hits = 0
       for (k = 1; k <= canon_n; k++) {
@@ -875,7 +897,7 @@ if [ -n "$SELFEVAL_FOUND" ] && [ -f "$SELFEVAL_FOUND" ]; then
       if (axis == "") return
       # A verdict counts as a miss when the word appears anywhere in it, so
       # `**miss (primary)**` and `miss→hit` both register.
-      if (index(tolower(verdict), "miss") == 0) return
+      if (index(ascii_lower(verdict), "miss") == 0) return
       count[axis]++
     }
     /^[[:space:]]*\*\*Axis tags/ {
@@ -1005,7 +1027,7 @@ if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
   find "$SOURCE_ROOT/rules" -type f -name '*.md' 2>/dev/null > "$TMP_SRCLIST"
   find "$SOURCE_ROOT/skills" -maxdepth 2 -type f -name 'SKILL.md' 2>/dev/null >> "$TMP_SRCLIST"
   if [ -s "$TMP_TOKENS" ] && [ -s "$TMP_SRCLIST" ]; then
-    OVERLAP_ALL=$(awk -v n="$THRESHOLD_N" -v root="$SOURCE_ROOT/" '
+    OVERLAP_ALL=$(awk -v n="$THRESHOLD_N" -v root="$SOURCE_ROOT/" "$ASCII_LOWER_AWK"'
       # pass 1: "<entry label>\t<token>" lines
       NR == FNR {
         sep = index($0, "\t")
@@ -1024,7 +1046,7 @@ if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
         if (substr(src, 1, length(root)) == root) src = substr(src, length(root) + 1)
         gsub(/\\/, "/", src)
         while ((getline srcline < path) > 0) {
-          words = tolower(srcline)
+          words = ascii_lower(srcline)
           gsub(/[^a-z0-9]+/, " ", words)
           wc = split(words, w, " ")
           for (i = 1; i <= wc; i++) {

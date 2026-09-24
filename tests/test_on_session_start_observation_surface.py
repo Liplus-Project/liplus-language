@@ -471,6 +471,11 @@ class Workspace:
     def _env_for(self, adapter: str, extra_env: dict[str, str] | None = None) -> dict[str, str]:
         env = dict(os.environ)
         env.pop("CODEX_PROJECT_DIR", None)
+        # The partition key is dropped from the inherited environment so a run
+        # resolves to the "default" partition whatever session launched the
+        # suite (#2062). A test that needs another partition passes the key
+        # through `extra_env`, which is applied below and wins.
+        env.pop("LI_PLUS_AGENT_KEY", None)
         if adapter == "claude_sh":
             env["HOME"] = posix_path(self.home)
             env["CLAUDE_PROJECT_DIR"] = posix_path(self.workspace)

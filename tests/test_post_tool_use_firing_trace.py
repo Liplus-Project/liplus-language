@@ -93,6 +93,7 @@ class Fixture:
         self.answers = self.root / "answers"
         self.answers.mkdir()
         self.gh_log = self.root / "gh-calls.log"
+        self.patch_body_file = self.root / "patch_body"
         self.answer(body="", subs="", patch_exit=0)
         self._write_stubs()
         self._init_clone()
@@ -126,9 +127,12 @@ class Fixture:
         os.chmod(sh_stub, 0o755)
 
         # PowerShell stub. Emits one pipeline object per line, which is the shape
-        # a native `gh` produces when its output is captured in PowerShell.
+        # a native `gh` produces when its output is captured in PowerShell. On
+        # PATCH it also writes the `body=` argument verbatim to `patch_body`, so
+        # the newlines the port sends are read back unjoined (#2061).
         ps_log = slash_path(self.gh_log)
         ps_answers = slash_path(self.answers)
+        ps_patch_body = slash_path(self.patch_body_file)
         (self.stub_bin / "gh.ps1").write_text(
             "$joined = $args -join ' '\n"
             f"Add-Content -LiteralPath '{ps_log}' -Value ('CALL ' + $joined) -Encoding utf8\n"
@@ -137,6 +141,10 @@ class Fixture:
             "  if ($t) { $t.TrimEnd(\"`n\").Split(\"`n\") }\n"
             "}\n"
             "if ($joined -like '*--method PATCH*') {\n"
+            "  $bodyArg = $args | Where-Object { \"$_\".StartsWith('body=') } | Select-Object -First 1\n"
+            "  if ($null -ne $bodyArg) {\n"
+            f"    [System.IO.File]::WriteAllText('{ps_patch_body}', \"$bodyArg\".Substring(5))\n"
+            "  }\n"
             f"  exit ([int]((Get-Content -LiteralPath '{ps_answers}/patch_exit' -Raw).Trim()))\n"
             "}\n"
             "if ($joined -like '*/sub_issues*') { Lines 'subs'; exit 0 }\n"
@@ -163,6 +171,12 @@ class Fixture:
         if not self.gh_log.is_file():
             return ""
         return self.gh_log.read_text(encoding="utf-8-sig", errors="replace")
+
+    def patch_body(self) -> str | None:
+        """The PATCH `body=` value as sent. Recorded by the PowerShell stub only."""
+        if not self.patch_body_file.is_file():
+            return None
+        return self.patch_body_file.read_text(encoding="utf-8-sig")
 
     def cleanup(self) -> None:
         shutil.rmtree(self.root, ignore_errors=True)
@@ -346,6 +360,43 @@ class FiringTraceTestCase(unittest.TestCase):
                     stdout = fixture.run(adapter, **kwargs)
                     self.assertEqual("", stdout.strip(), f"{adapter} emitted on {name}")
                     self.assertEqual("", fixture.gh_calls(), f"{adapter} called gh on {name}")
+
+    def test_ps1_multi_line_body_keeps_newlines_on_patch(self) -> None:
+        """#2061: the ps1 port PATCHes a multi-line body with its lines intact.
+
+        Observed on the codex PowerShell port with the stub emitting one
+        pipeline object per body line: the `body=` value sent on PATCH is the
+        original body, blank line included, with `\\nCloses #<n>` appended.
+        """
+        adapter = "codex_ps1"
+        body = "Implements #100.\n\nSome detail.\nMore detail."
+        fixture = self.fixture()
+        fixture.answer(body=body + "\n", subs="101\n", patch_exit=0)
+        line = trace_line(self, adapter, fixture.run(adapter))
+        self.assertIn("PR #4242: sub-issue refs auto-appended (parent #100): Closes #101.", line)
+        self.assertEqual(body + "\nCloses #101", fixture.patch_body())
+
+    def test_ps1_already_referenced_sub_issue_in_multi_line_body(self) -> None:
+        """#2061: a sub-issue referenced on another line of the body counts as referenced.
+
+        Observed on the codex PowerShell port with a multi-line body: when every
+        sub-issue is referenced, no PATCH is sent; when only some are, the PATCH
+        appends the unreferenced ones and not the referenced one again.
+        """
+        adapter = "codex_ps1"
+        with self.subTest(case="all referenced"):
+            fixture = self.fixture()
+            fixture.answer(body="Implements #100.\nCloses #101\n", subs="101\n", patch_exit=0)
+            line = trace_line(self, adapter, fixture.run(adapter))
+            self.assertIn("every sub-issue of parent #100 is already referenced", line)
+            self.assertNotIn("--method PATCH", fixture.gh_calls())
+        with self.subTest(case="some referenced"):
+            body = "Implements #100.\nCloses #101"
+            fixture = self.fixture()
+            fixture.answer(body=body + "\n", subs="101\n102\n", patch_exit=0)
+            line = trace_line(self, adapter, fixture.run(adapter))
+            self.assertIn("auto-appended (parent #100): Closes #102.", line)
+            self.assertEqual(body + "\nCloses #102", fixture.patch_body())
 
 
 if __name__ == "__main__":

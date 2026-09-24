@@ -95,7 +95,11 @@ if (-not $repo) {
 }
 if (-not $repo) { Emit-Trace "PR #${prNumber}: repository could not be resolved; no sub-issue refs appended." }
 
-$prBody = gh api "repos/$repo/pulls/$prNumber" --jq '.body' 2>$null
+# Native output arrives as one string per line. Join it back into a single
+# string with its newlines (#2061): left as an array, `"$prBody..."` joins the
+# lines with spaces and flattens the body on PATCH, and `-notmatch` filters the
+# lines instead of returning a boolean.
+$prBody = (gh api "repos/$repo/pulls/$prNumber" --jq '.body' 2>$null) -join "`n"
 if (-not $prBody) { Emit-Trace "PR #${prNumber}: body could not be read or is empty; no sub-issue refs appended." }
 
 $parentMatch = [regex]::Match($prBody, '#(\d+)')
@@ -110,7 +114,7 @@ $missing = @()
 foreach ($num in $subIssueNumbers) {
   $num = $num.Trim()
   if (-not $num) { continue }
-  if ($prBody -notmatch "#$num(\D|$)") { $missing += $num }
+  if (-not [regex]::IsMatch($prBody, "#$num(\D|$)")) { $missing += $num }
 }
 if ($missing.Count -eq 0) { Emit-Trace "PR #${prNumber}: every sub-issue of parent #${parentIssue} is already referenced; nothing to append." }
 

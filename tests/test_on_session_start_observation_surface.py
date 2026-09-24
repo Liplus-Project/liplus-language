@@ -1694,6 +1694,131 @@ class AxisTagFormatTest(ObservationSurfaceTestCase):
                     f"{adapter} did not list the entries in byte order",
                 )
 
+    # -- #1654: case folding ------------------------------------------------
+
+    TURKISH_ENV = {"LC_ALL": "tr_TR.UTF-8", "LC_CTYPE": "tr_TR.UTF-8", "LANG": "tr_TR.UTF-8"}
+
+    def test_every_case_folding_site_maps_ascii_capitals_only(self) -> None:
+        """No port may fold case through the ambient locale or culture.
+
+        Asserted on the source for the reason the sort pin above is: the
+        divergence shows only on a host carrying a locale whose casing differs
+        from ASCII's, and CI does not necessarily carry one. awk `tolower()`
+        follows the locale, `ToLowerInvariant` over a whole string folds
+        non-ASCII letters that a C-locale awk leaves alone, and `-split` matches
+        its pattern case-insensitively under the current culture. Each port
+        folds through one A-Z-only helper instead, and that helper is the only
+        place a `.ToLower` call may sit in the PowerShell port.
+        """
+        def statements(text: str) -> list[str]:
+            return [line for line in text.splitlines() if not line.lstrip().startswith("#")]
+
+        for adapter in ("claude_sh", "codex_sh"):
+            with self.subTest(adapter=adapter):
+                lines = statements(HOOKS[adapter].read_text(encoding="utf-8"))
+                self.assertEqual(
+                    [line for line in lines if re.search(r"\btolower\s*\(", line)],
+                    [],
+                    f"{adapter} calls awk tolower(), which follows the host locale",
+                )
+                self.assertTrue(
+                    any("ascii_lower(" in line for line in lines),
+                    f"{adapter} must fold case through ascii_lower",
+                )
+
+        source = HOOKS["codex_ps1"].read_text(encoding="utf-8-sig")
+        helper = re.search(r"^function ConvertTo-AsciiLower \{\n.*?^\}\n", source, re.M | re.S)
+        self.assertIsNotNone(helper, "codex_ps1 must define ConvertTo-AsciiLower")
+        outside = statements(source[: helper.start()] + source[helper.end():])
+        self.assertEqual(
+            [line for line in outside if re.search(r"\.ToLower(Invariant)?\s*\(", line)],
+            [],
+            "codex_ps1 folds case outside ConvertTo-AsciiLower",
+        )
+        self.assertEqual(
+            [line for line in outside if re.search(r"-i?split\s+'\[\^a-z", line)],
+            [],
+            "codex_ps1 splits a folded string with a culture-aware case-insensitive "
+            "`-split`; `-csplit` is what matches the awk gsub",
+        )
+
+    def test_a_non_ascii_capital_passes_through_on_every_port(self) -> None:
+        """Only A-Z fold; `Ä` reaches the tally as written, on all three ports.
+
+        This case was already split before #1654: gawk under a UTF-8 locale and
+        PowerShell folded `Ä`, a C-locale awk did not. #1654 settles it on the
+        side every port can hold regardless of locale, and the ASCII part of the
+        same name still folds. The verdict is written in capitals so the `miss`
+        scan's fold is exercised as well.
+        """
+        self.seed_self_eval(
+            self.ws,
+            "## entry 1\n**Axis tags**: ÄRGER-Axis: **MISS**",
+            "## entry 2\n**Axis tags (10-axis)**:\n- ÄRGER_axis: MISS",
+        )
+        self.assert_axis_misses({"Ärger axis": 2})
+
+    def test_ports_agree_on_case_folding_under_a_turkish_locale(self) -> None:
+        """`I` folds to `i` on all three ports when the host locale is Turkish.
+
+        Under `tr_TR` a locale-following fold maps `I` to the dotless `ı`: the
+        axis name then misses its canonical form, the `MISS` verdict no longer
+        contains `miss`, and a capitalised source word no longer matches the
+        title token it spells. The case runs only where this host's awk shows
+        that fold — elsewhere the locale is absent or not honoured, and the run
+        would pass without having exercised anything; the source pin above is
+        the guard on such a host.
+        """
+        if not BASH:
+            require_runtime("bash", "claude / codex shell hooks")
+        probe = subprocess.run(
+            [BASH, "-c", "awk 'BEGIN { printf \"%s\", tolower(\"I\") }'"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env={**os.environ, **self.TURKISH_ENV},
+            timeout=HOOK_TIMEOUT,
+        )
+        folded = probe.stdout.decode("utf-8", errors="replace")
+        if probe.returncode != 0 or folded in ("", "I", "i"):
+            self.skipTest(
+                "tr_TR.UTF-8 does not change awk tolower() on this host "
+                f"(tolower(\"I\") = {folded!r})"
+            )
+
+        self.seed_self_eval(
+            self.ws,
+            "## entry 1\n**Axis tags**: GIST VS LITERAL: **MISS**",
+            "## entry 2\n**Axis tags (10-axis)**:\n- GIST-VS-LITERAL: MISS",
+        )
+        self.ws.write(
+            self.ws.shared_memory,
+            "feedback_indigo_isthmus.md",
+            "---\nname: indigo isthmus\n---\n\nbody\n",
+        )
+        self.ws.write(
+            self.ws.liplus / "rules" / "evolution",
+            "indigo.md",
+            "# indigo\n\nINDIGO ISTHMUS\n",
+        )
+
+        surfaces: dict[str, PromotionSurface] = {}
+        for adapter in ADAPTERS:
+            self.ws.clear_state()
+            surfaces[adapter] = promotion_surface(
+                promotion_section(self.run_hook(adapter, extra_env=self.TURKISH_ENV))
+            )
+        for adapter, surface in surfaces.items():
+            with self.subTest(adapter=adapter):
+                self.assertEqual(surface.axis_misses, {"gist vs literal": 2})
+                self.assertIn(
+                    (
+                        "feedback_indigo_isthmus.md",
+                        "rules/evolution/indigo.md",
+                        frozenset({"indigo", "isthmus"}),
+                    ),
+                    surface.overlap_listed,
+                )
+
     # -- item 4: the format has a spec ---------------------------------------
 
     def test_the_format_the_detectors_hardcode_is_written_down(self) -> None:

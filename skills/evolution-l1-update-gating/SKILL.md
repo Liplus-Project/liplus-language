@@ -42,7 +42,7 @@ When a human directs the L1 change (human-initiated, AI-implemented), human judg
 
 Read the carve-out on the initiation axis and nowhere else. What discharges it is the human's own direction, so no downstream gate is load-bearing for it and none may be read as a co-condition — a downstream gate judges the change, and the axis here is who initiated it.
 
-This is not a relaxation of the gate. AI-alone initiation of an observation-driven L1 change keeps the observation threshold as a hard requirement, unchanged (a refactor-driven change: Change-origin scope below), and the carve-out is scoped to the initiation axis only. The observation gate's subject stays the implementing AI in both cases.
+This is not a relaxation of the gate. AI-alone initiation of an observation-driven L1 change keeps the observation threshold as a hard requirement, unchanged, and the carve-out is scoped to the initiation axis only. The observation gate's subject stays the implementing AI in both cases.
 
 ### Change-origin scope of the observation threshold
 

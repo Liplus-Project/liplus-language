@@ -17,6 +17,8 @@ part that fails silently when it regresses:
 - the guards that turn a silently-wrong run into a refused one: an anchor that
   matches zero or several times, and inserted text that tells the arm what it is
   standing in;
+- the measurement scope (issue #2013): a plan without a complete `scope` object is
+  refused, and the object reaches the run record as the plan declared it;
 - the record's destination, the required `--out` file: omitting `--out` is refused
   before the lock or the arms directory exists, and on a `--dry-run` and on a run
   whose launch is substituted, nothing reaches stdout while the file keeps the edit
@@ -55,6 +57,12 @@ def valid_plan_data(**overrides: object) -> dict[str, object]:
         "probe": "A governance restructure with no observable behavior change. Version type?",
         "model": "opus",
         "repetitions": 3,
+        "scope": {
+            "probes_measured": 8,
+            "probes_total": 30,
+            "selection": "the probes predicting what the distillation would break",
+            "unmeasured": "the 22 probes outside that prediction",
+        },
         "arms": [
             {"name": "a", "edits": []},
             {
@@ -139,6 +147,56 @@ class PlanValidationTest(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(module.PlanError):
                     module.load_plan(valid_plan_data(repetitions=value))
+
+    def test_a_plan_without_scope_is_refused(self) -> None:
+        """Issue #2013: the scope object is required, with no default."""
+        data = valid_plan_data()
+        del data["scope"]
+        with self.assertRaises(module.PlanError):
+            module.load_plan(data)
+        for value in (None, "8 of 30", [], {}):
+            with self.subTest(scope=value):
+                with self.assertRaises(module.PlanError):
+                    module.load_plan(valid_plan_data(scope=value))
+
+    def test_every_scope_field_is_required(self) -> None:
+        for key in ("probes_measured", "probes_total", "selection", "unmeasured"):
+            with self.subTest(missing=key):
+                data = valid_plan_data()
+                del data["scope"][key]  # type: ignore[attr-defined]
+                with self.assertRaises(module.PlanError):
+                    module.load_plan(data)
+
+    def test_scope_values_are_type_checked(self) -> None:
+        cases = {
+            "probes_measured": (0, -1, "8", 1.5, True),
+            "probes_total": (0, "30", True),
+            "selection": ("", "   ", 3, None),
+            "unmeasured": ("", "   ", 3, None),
+        }
+        for key, values in cases.items():
+            for value in values:
+                with self.subTest(key=key, value=value):
+                    data = valid_plan_data()
+                    data["scope"][key] = value  # type: ignore[index]
+                    with self.assertRaises(module.PlanError):
+                        module.load_plan(data)
+
+    def test_more_probes_measured_than_exist_is_refused(self) -> None:
+        data = valid_plan_data()
+        data["scope"]["probes_measured"] = 31  # type: ignore[index]
+        with self.assertRaises(module.PlanError):
+            module.load_plan(data)
+
+    def test_a_round_that_measured_every_probe_still_names_what_it_left_out(self) -> None:
+        """Observed: measured == total loads, and `unmeasured` is still read as required."""
+        data = valid_plan_data()
+        data["scope"]["probes_measured"] = 30  # type: ignore[index]
+        plan = module.load_plan(data)
+        self.assertEqual(plan.scope.probes_measured, plan.scope.probes_total)
+        data["scope"]["unmeasured"] = ""  # type: ignore[index]
+        with self.assertRaises(module.PlanError):
+            module.load_plan(data)
 
     def test_edit_paths_stay_inside_the_arm(self) -> None:
         for path in ("../outside.md", "/etc/passwd", ".claude/../../escape.md"):
@@ -801,6 +859,7 @@ class CommandAndRecordTest(TempDirCase):
         self.assertEqual(record["repetitions"], 3)
         self.assertEqual(record["differing_paths"], [".claude/rules/model/sample.md"])
         self.assertEqual(record["started_at"], NOW.isoformat())
+        self.assertEqual(record["scope"], valid_plan_data()["scope"])
         json.dumps(record)  # the record has to survive serialization
 
 
@@ -840,6 +899,7 @@ class MainTest(PlanFileMixin):
 
         record = json.loads(out.read_text(encoding="utf-8"))
         self.assertEqual(record["differing_paths"], [".claude/rules/model/sample.md"])
+        self.assertEqual(record["scope"], self.full_plan()["scope"])
         self.assertEqual(len(record["results"]), 4)
         self.assertEqual(record["results"][0]["command"][:2], ["claude", "-p"])
 
@@ -891,6 +951,34 @@ class MainTest(PlanFileMixin):
         )
         self.assertEqual(code, 3)
         self.assertFalse((module.harness_root(base) / module.ARMS_DIRNAME).exists())
+
+    def test_a_plan_file_without_scope_exits_before_the_lock_or_arms_exist(self) -> None:
+        """Issue #2013, through `main()`: exit 2, no record file, no lock, no arms."""
+        source = self.make_source_root()
+        base = self.temp_path()
+        out = self.temp_path() / "record.json"
+        unscoped = self.full_plan()
+        del unscoped["scope"]
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = module.main(
+                [
+                    str(self.write_plan(unscoped)),
+                    "--source-root",
+                    str(source),
+                    "--base-dir",
+                    str(base),
+                    "--out",
+                    str(out),
+                    "--dry-run",
+                ]
+            )
+        self.assertEqual(code, 2)
+        self.assertIn("scope", stderr.getvalue())
+        self.assertFalse(out.exists())
+        root = module.harness_root(base)
+        self.assertFalse((root / module.LOCK_DIRNAME).exists())
+        self.assertFalse((root / module.ARMS_DIRNAME).exists())
 
     def test_an_invalid_plan_never_takes_the_lock(self) -> None:
         source = self.make_source_root()

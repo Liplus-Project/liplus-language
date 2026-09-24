@@ -136,6 +136,8 @@ Those two rules read the content axis. The conduct axis is read on its own colum
 
 Suppressing mention of the hole in the probe is not the fix. The noticing does not go away, only its outward sign — and that sign is what distinguished leak from no leak. Suppressing it breaks the detector. Separating the judge is the fix.
 
+Write the verdict inside the run record's `scope` (Running stage 2). A green round answers for the probes it put, not for the change: one whose probes were picked by predicting what the change breaks is written as "the predicted breakage did not occur", never as "nothing changed".
+
 Division of labour: the script moves the arms, the judge reads the difference.
 
 </judge-separation>
@@ -181,6 +183,7 @@ What the harness enforces structurally, so it is not left to care at run time:
 - exactly two arms differing in exactly one place, checked both against the plan and against the arms as built
 - an edit anchor matching exactly once — zero matches would compare two identical arms and report a false negative
 - the arm's model named in the plan, with no default
+- the plan's `scope` object — `probes_measured` of `probes_total`, the `selection` criterion, and what is left `unmeasured` — required and carried into the run record. Fill it for the measurement round, identically in every plan of that round. The values are self-declared and unchecked
 - hooks removed from each arm, so nothing injects material into one side
 - no `.git` in the arm, so no remote by construction
 - the run record written only to the file `--out` names, and `--out` required: the record carries every edit body in full, so there is no stdout path for it to reach whoever runs the harness

@@ -7,9 +7,11 @@
 # rules/* are always-present (AGENTS.md core + SessionStart rules injection) and
 # skills/* auto-invoke by description, so section-extraction injection is gone.
 #
-# Codex PostToolUse stdin payload mirrors Claude: tool_name, tool_input.command,
-# tool_response.output (per #1502 "events mirror Claude"). If a future Codex
-# build renames these fields, update the extraction below.
+# Codex PostToolUse stdin payload: tool_name, tool_input.command, tool_response.
+# For Bash, tool_response is a JSON string holding the command's model-facing
+# output, not an object - so it differs from Claude Code, whose Bash result is
+# an object carrying `stdout` (#2060). If a future Codex build changes this
+# shape, update the extraction below.
 $ErrorActionPreference = 'SilentlyContinue'
 
 $raw = [Console]::In.ReadToEnd()
@@ -72,12 +74,17 @@ function Emit-Trace([string]$line) {
 # on_pr: gh pr create -> sub-issue auto-append to PR body.
 if ($cmdLine -notmatch 'gh(\.exe)? pr create') { exit 0 }
 
+# Codex's Bash tool_response is itself the output string: the hook runtime
+# hands over the command's model-facing output as a JSON string value, with no
+# `output` field to read. Before #2060 this read `tool_response.output`, which a
+# string does not have, so every run ended at this step. Any other type reads
+# as absent, as in the shell ports, rather than being coerced to text.
 $output = $null
-if ($payload.tool_response) { $output = $payload.tool_response.output }
-if (-not $output) { Emit-Trace 'gh pr create matched, but tool_response.output is absent or empty; no sub-issue refs appended.' }
+if ($payload.tool_response -is [string]) { $output = $payload.tool_response }
+if (-not $output) { Emit-Trace 'gh pr create matched, but tool_response is absent, empty or not a string; no sub-issue refs appended.' }
 
 $prMatch = [regex]::Match($output, '/pull/(\d+)')
-if (-not $prMatch.Success) { Emit-Trace 'gh pr create matched, but tool_response.output carries no /pull/<number> URL; no sub-issue refs appended.' }
+if (-not $prMatch.Success) { Emit-Trace 'gh pr create matched, but tool_response carries no /pull/<number> URL; no sub-issue refs appended.' }
 $prNumber = $prMatch.Groups[1].Value
 
 $repo = Repo-From-Origin

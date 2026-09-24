@@ -55,6 +55,9 @@ fi
 
 # Extract a dot-path field from the hook payload held in $INPUT.
 # Empty output means absent or unparsable; every caller treats that as "skip".
+# A second argument `string` narrows the read to a string value: any other type
+# renders as empty, so a field of the wrong shape reads as absent rather than
+# as its JSON text.
 # Absence semantics match the `// empty` of the jq expressions this replaced:
 # null, undefined and false all render as empty. Objects and arrays render as
 # compact JSON text rather than via JS string coercion (`jq -r` pretty-prints
@@ -66,7 +69,7 @@ json_field() {
     let raw = "";
     // setEncoding is load-bearing: without it each Buffer chunk is decoded on
     // its own, so a multi-byte character straddling a chunk boundary (payloads
-    // past the ~64KB stream highWaterMark, e.g. a long `tool_response.output`)
+    // past the ~64KB stream highWaterMark, e.g. a long `tool_response.stdout`)
     // decodes into U+FFFD. Reproduced at 3 replacement chars in a 192KB
     // Japanese payload before this line was added.
     process.stdin.setEncoding("utf8");
@@ -80,12 +83,15 @@ json_field() {
         if (v === null || v === undefined || v === false) {
           return;
         }
+        if (process.argv[2] === "string" && typeof v !== "string") {
+          return;
+        }
         process.stdout.write(typeof v === "object" ? JSON.stringify(v) : String(v));
       } catch (e) {
         // leave stdout empty; caller treats it as an absent field
       }
     });
-  ' "$1" 2>/dev/null
+  ' "$1" "$2" 2>/dev/null
 }
 
 TOOL_NAME=$(json_field 'tool_name')
@@ -133,10 +139,17 @@ emit_trace() {
 
 # on_pr: gh pr create → sub-issue auto-append to PR body (only remaining injection)
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? pr create'; then
-  OUTPUT=$(json_field 'tool_response.output')
-  [ -n "$OUTPUT" ] || emit_trace "gh pr create matched, but tool_response.output is absent or empty; no sub-issue refs appended."
+  # Claude Code's Bash tool_response is an object carrying `stdout`, `stderr`,
+  # `interrupted` and `isImage`, with no `output` field: the hooks reference
+  # gives that shape for a PostToolUse `updatedToolOutput` replacing a Bash
+  # result, and transcripts record the same object as `toolUseResult`.
+  # `gh pr create` prints the PR URL on stdout. Before #2060 this read
+  # `tool_response.output`, which is never present, so every run ended at this
+  # step. The Codex ports read a different shape (#2060).
+  OUTPUT=$(json_field 'tool_response.stdout' string)
+  [ -n "$OUTPUT" ] || emit_trace "gh pr create matched, but tool_response.stdout is absent, empty or not a string; no sub-issue refs appended."
   PR_NUMBER=$(echo "$OUTPUT" | grep -oE '/pull/[0-9]+' | grep -oE '[0-9]+' | head -1)
-  [ -n "$PR_NUMBER" ] || emit_trace "gh pr create matched, but tool_response.output carries no /pull/<number> URL; no sub-issue refs appended."
+  [ -n "$PR_NUMBER" ] || emit_trace "gh pr create matched, but tool_response.stdout carries no /pull/<number> URL; no sub-issue refs appended."
 
   REPO=$(repo_from_origin)
   # No clone to ask (api mode, #2031): read the repository out of the PR URL

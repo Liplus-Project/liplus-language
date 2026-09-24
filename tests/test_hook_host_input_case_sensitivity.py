@@ -74,6 +74,7 @@ from test_on_session_start_observation_surface import (
     require_runtime,
     slash_path,
 )
+from test_post_tool_use_firing_trace import bash_tool_response
 
 
 # ---------------------------------------------------------------------------
@@ -302,9 +303,11 @@ class PostToolUseFixture:
             "hook_event_name": "PostToolUse",
             "tool_name": tool_name,
             "tool_input": {"command": "gh pr create --fill"},
-            "tool_response": {
-                "output": "https://github.com/Liplus-Project/liplus-language/pull/4242"
-            },
+            # Each port gets its own host's Bash result shape (#2060); a shape
+            # the port does not read would stop the chain before `gh`.
+            "tool_response": bash_tool_response(
+                adapter, "https://github.com/Liplus-Project/liplus-language/pull/4242"
+            ),
         }
         env = dict(os.environ)
         env.pop("CODEX_PROJECT_DIR", None)

@@ -9,9 +9,11 @@
 # rules/* are always-present (AGENTS.md core + SessionStart rules injection) and
 # skills/* auto-invoke by description, so section-extraction injection is gone.
 #
-# Codex PostToolUse stdin payload mirrors Claude: tool_name, tool_input.command,
-# tool_response.output (per #1502 "events mirror Claude"). If a future Codex
-# build renames these fields, update the extraction below.
+# Codex PostToolUse stdin payload: tool_name, tool_input.command, tool_response.
+# For Bash, tool_response is a JSON string holding the command's model-facing
+# output, not an object - so it differs from Claude Code, whose Bash result is
+# an object carrying `stdout` (#2060). If a future Codex build changes this
+# shape, update the extraction below.
 #
 # JSON read/write uses Node.js (`node -e`), not an external `jq` binary. This is
 # the #1540 fix, which landed on adapter/claude/hooks/post-tool-use.sh and was
@@ -53,6 +55,9 @@ fi
 
 # Extract a dot-path field from the hook payload held in $INPUT.
 # Empty output means absent or unparsable; every caller treats that as "skip".
+# A second argument `string` narrows the read to a string value: any other type
+# renders as empty, so a field of the wrong shape reads as absent rather than
+# as its JSON text.
 # Absence semantics match the `// empty` of the jq expressions this replaced:
 # null, undefined and false all render as empty.
 json_field() {
@@ -60,7 +65,7 @@ json_field() {
     let raw = "";
     // setEncoding is load-bearing: without it each Buffer chunk is decoded on
     // its own, so a multi-byte character straddling a chunk boundary (payloads
-    // past the ~64KB stream highWaterMark, e.g. a long `tool_response.output`)
+    // past the ~64KB stream highWaterMark, e.g. a long `tool_response`)
     // decodes into U+FFFD (#1544).
     process.stdin.setEncoding("utf8");
     process.stdin.on("data", (d) => { raw += d; });
@@ -73,12 +78,15 @@ json_field() {
         if (v === null || v === undefined || v === false) {
           return;
         }
+        if (process.argv[2] === "string" && typeof v !== "string") {
+          return;
+        }
         process.stdout.write(typeof v === "object" ? JSON.stringify(v) : String(v));
       } catch (e) {
         // leave stdout empty; caller treats it as an absent field
       }
     });
-  ' "$1" 2>/dev/null
+  ' "$1" "$2" 2>/dev/null
 }
 
 TOOL_NAME=$(json_field 'tool_name')
@@ -127,10 +135,14 @@ emit_trace() {
 
 # on_pr: gh pr create → sub-issue auto-append to PR body (only remaining injection)
 if echo "$CMD_LINE" | grep -qE 'gh(\.exe)? pr create'; then
-  OUTPUT=$(json_field 'tool_response.output')
-  [ -n "$OUTPUT" ] || emit_trace "gh pr create matched, but tool_response.output is absent or empty; no sub-issue refs appended."
+  # Codex's Bash tool_response is itself the output string: the hook runtime
+  # hands over the command's model-facing output as a JSON string value, with
+  # no `output` field to read. Before #2060 this read `tool_response.output`,
+  # which a string does not have, so every run ended at this step.
+  OUTPUT=$(json_field 'tool_response' string)
+  [ -n "$OUTPUT" ] || emit_trace "gh pr create matched, but tool_response is absent, empty or not a string; no sub-issue refs appended."
   PR_NUMBER=$(echo "$OUTPUT" | grep -oE '/pull/[0-9]+' | grep -oE '[0-9]+' | head -1)
-  [ -n "$PR_NUMBER" ] || emit_trace "gh pr create matched, but tool_response.output carries no /pull/<number> URL; no sub-issue refs appended."
+  [ -n "$PR_NUMBER" ] || emit_trace "gh pr create matched, but tool_response carries no /pull/<number> URL; no sub-issue refs appended."
 
   REPO=$(repo_from_origin)
   # No clone to ask (api mode, #2031): read the repository out of the PR URL

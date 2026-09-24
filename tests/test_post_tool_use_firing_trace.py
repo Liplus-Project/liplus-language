@@ -109,14 +109,21 @@ class Fixture:
         # POSIX stub, found through `$HOME/.local/bin` by the shell ports (and by
         # pwsh on a POSIX host if it prefers it over the .ps1 below; both answer
         # alike). The PATCH arm is tested first: its URL also contains /pulls/.
+        # On PATCH it writes the `body=` argument verbatim to `patch_body`, as
+        # the PowerShell stub below does: pwsh on a POSIX host runs this one.
         log = posix_path(self.gh_log)
         answers = posix_path(self.answers)
+        patch_body = posix_path(self.patch_body_file)
         sh_stub = self.stub_bin / "gh"
         sh_stub.write_text(
             "#!/bin/sh\n"
             f'printf "CALL %s\\n" "$*" >> "{log}"\n'
             'case "$*" in\n'
-            f'  *"--method PATCH"*) exit "$(cat "{answers}/patch_exit")" ;;\n'
+            '  *"--method PATCH"*)\n'
+            '    for a in "$@"; do\n'
+            f'      case "$a" in body=*) printf "%s" "${{a#body=}}" > "{patch_body}" ;; esac\n'
+            "    done\n"
+            f'    exit "$(cat "{answers}/patch_exit")" ;;\n'
             f'  */sub_issues*) cat "{answers}/subs"; exit 0 ;;\n'
             f'  */pulls/*) cat "{answers}/body"; exit 0 ;;\n'
             "esac\n"
@@ -173,7 +180,7 @@ class Fixture:
         return self.gh_log.read_text(encoding="utf-8-sig", errors="replace")
 
     def patch_body(self) -> str | None:
-        """The PATCH `body=` value as sent. Recorded by the PowerShell stub only."""
+        """The PATCH `body=` value as sent, or None when no PATCH carried one."""
         if not self.patch_body_file.is_file():
             return None
         return self.patch_body_file.read_text(encoding="utf-8-sig")
@@ -364,8 +371,8 @@ class FiringTraceTestCase(unittest.TestCase):
     def test_ps1_multi_line_body_keeps_newlines_on_patch(self) -> None:
         """#2061: the ps1 port PATCHes a multi-line body with its lines intact.
 
-        Observed on the codex PowerShell port with the stub emitting one
-        pipeline object per body line: the `body=` value sent on PATCH is the
+        Observed on the codex PowerShell port with the stubbed `gh` body
+        captured one string per line: the `body=` value sent on PATCH is the
         original body, blank line included, with `\\nCloses #<n>` appended.
         """
         adapter = "codex_ps1"

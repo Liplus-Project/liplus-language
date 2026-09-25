@@ -42,7 +42,24 @@ When a human directs the L1 change (human-initiated, AI-implemented), human judg
 
 Read the carve-out on the initiation axis and nowhere else. What discharges it is the human's own direction, so no downstream gate is load-bearing for it and none may be read as a co-condition — a downstream gate judges the change, and the axis here is who initiated it.
 
-This is not a relaxation of the gate. AI-alone initiation keeps the observation threshold as a hard requirement, unchanged, and the carve-out is scoped to the initiation axis only. The observation gate's subject stays the implementing AI in both cases.
+This is not a relaxation of the gate. AI-alone initiation of an observation-driven L1 change keeps the observation threshold as a hard requirement, unchanged, and the carve-out is scoped to the initiation axis only. The observation gate's subject stays the implementing AI in both cases.
+
+### Change-origin scope of the observation threshold
+
+The long-horizon observation threshold applies to observation-driven L1 changes only. A refactor-driven L1 change does not take it as a precondition. The scope covers every threshold line at the head of this skill, the single-session-impression line included.
+
+- Observation-driven = the grounds for the change are a pattern of accumulated same-kind misses.
+- Refactor-driven = the grounds for the change are a measurement of the artifact itself (length, duplication, untraceable reference).
+
+The origin is fixed at issue creation. The implementing AI reads it off the issue and does not re-judge it:
+
+- The issue carries the `promotion` marker label (`rules/evolution/promotion-judgment.md` Issue Creation Metadata) -> observation-driven.
+- The issue carries no `promotion` label and its body records a measurement of the artifact itself as the origin -> refactor-driven.
+- Neither row settles it -> observation-driven.
+
+The two scopes are read independently, and the threshold applies only where both place it: AI-alone initiation (Initiation-axis scope above) and an observation-driven origin (this section).
+
+A refactor-driven L1 change still runs brake 1 (`skills/evolution-parallel-agent-eval`) and the post-merge observation (`rules/operations/operations.md` Post-L1-Merge Runtime Observation, `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format) unchanged.
 
 </boundary-clarification>
 

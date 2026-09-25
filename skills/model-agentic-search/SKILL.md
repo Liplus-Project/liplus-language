@@ -173,7 +173,7 @@ Stage 1 = same-family re-query (State B). Stage 2 = orthogonal source families (
 Stop on any of:
 1. State A reached — synthesize and answer
 2. State C unresolved after one composite round — surface to human with what was tried and what remains
-3. Budget exhausted — soft cap 9 queries (1 Tier 1 + up to 5 Tier 2 + up to 3 Stage 1/2), hard stop 12
+3. Budget exhausted — soft cap 9 queries, hard stop 12
 4. Corpus boundary — consistent "no result" across multiple angles and at least one alternate source family; surface to human
 
 Do not loop. `skills/model-loop-safety/SKILL.md` applies: same approach twice in dialogue, three times in task = stop and switch.

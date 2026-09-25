@@ -36,6 +36,22 @@ CONTEXT=""
 append() { CONTEXT="${CONTEXT}$1
 "; }
 
+# --- Li+ update status re-emit (#1987) ---
+# Mirrors the claude port, reading .codex/state/update-status.txt (written by
+# on-session-start.sh / .ps1) and the sentinel tag in AGENTS.md. Same condition,
+# same lines.
+UPDATE_STATE=$(head -n 1 "$PROJECT_ROOT/.codex/state/update-status.txt" 2>/dev/null | tr -d '\r')
+RECORDED_TARGET=$(printf '%s' "$UPDATE_STATE" | sed -n 's/^status=needed target=\([^ ]*\) adapter=\([^ ]*\)$/\1/p')
+RECORDED_ADAPTER=$(printf '%s' "$UPDATE_STATE" | sed -n 's/^status=needed target=\([^ ]*\) adapter=\([^ ]*\)$/\2/p')
+CURRENT_ADAPTER=$(sed -n 's/^# --- Li+ BEGIN (\([^)]*\)) ---.*/\1/p' "$PROJECT_ROOT/AGENTS.md" 2>/dev/null | head -n 1)
+if [ -n "$RECORDED_TARGET" ] && [ "$CURRENT_ADAPTER" != "$RECORDED_TARGET" ] && [ "$CURRENT_ADAPTER" = "$RECORDED_ADAPTER" ]; then
+  append ""
+  append "━━━ Li+ update status ━━━"
+  append "LI_PLUS_UPDATE_STATUS=needed reason=sentinel-tag(adapter=${CURRENT_ADAPTER:-unknown},target=$RECORDED_TARGET)"
+  append "AI must read Li+config.md and execute Li+update.md walkthrough this session."
+  append "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+fi
+
 # Unknown-value surfacing (#1804). Rationale is in the claude port this one
 # mirrors.
 case "$WEBHOOK_DELIVERY" in

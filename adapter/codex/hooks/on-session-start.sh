@@ -295,6 +295,18 @@ if [ "$MATCHER" = "startup" ]; then
     emit ""
   fi
 
+  # --- update status state for the per-turn re-emit (#1987) ---
+  # Mirrors the claude port: needed -> one line at $STATE_DIR/update-status.txt,
+  # unnecessary -> removed. Read by on-user-prompt.sh / .ps1 every turn.
+  # Workspace-level: not partitioned by AGENT_KEY.
+  UPDATE_STATE_FILE="$STATE_DIR/update-status.txt"
+  if [ "${#UPDATE_REASONS[@]}" -ne 0 ]; then
+    mkdir -p "$STATE_DIR" 2>/dev/null \
+      && printf 'status=needed target=%s adapter=%s\n' "$TARGET_TAG" "$ADAPTER_TAG" > "$UPDATE_STATE_FILE" 2>/dev/null
+  else
+    rm -f "$UPDATE_STATE_FILE" 2>/dev/null
+  fi
+
   # --- unrecognized config value surfacing (#1804) ---
   # Rationale is in the claude port this one mirrors.
   case "$LI_PLUS_CHANNEL_VAL" in

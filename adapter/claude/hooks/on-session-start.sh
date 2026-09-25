@@ -382,6 +382,19 @@ else
   printf '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
 fi
 
+# --- update status state for the per-turn re-emit (#1987) ---
+# needed -> one line at $STATE_DIR/update-status.txt carrying the target tag and
+# the sentinel tag read above; unnecessary -> the file is removed.
+# on-user-prompt.sh reads it every turn. Workspace-level: not partitioned by
+# AGENT_KEY.
+UPDATE_STATE_FILE="$STATE_DIR/update-status.txt"
+if [ "$UPDATE_STATUS" = "needed" ]; then
+  mkdir -p "$STATE_DIR" 2>/dev/null \
+    && printf 'status=needed target=%s adapter=%s\n' "$TARGET_TAG" "$ADAPTER_TAG" > "$UPDATE_STATE_FILE" 2>/dev/null
+else
+  rm -f "$UPDATE_STATE_FILE" 2>/dev/null
+fi
+
 # --- unrecognized config value surfacing (#1804) ---
 # A LI_PLUS_CHANNEL value outside the known set matches no branch of the `case`
 # above, so TARGET_TAG stays empty and the marker falls to "needed" without ever

@@ -354,6 +354,21 @@ if ($matcher -ceq 'startup') {
     Emit ''
   }
 
+  # --- update status state for the per-turn re-emit (#1987) ---
+  # Mirrors the claude port: needed -> one line at $stateDir/update-status.txt,
+  # unnecessary -> removed. Read by on-user-prompt.ps1 / .sh every turn.
+  # Workspace-level: not partitioned by $agentKey. Written BOM-less so the .sh
+  # reader's anchored match sees `status=` at column 0.
+  $updateStateFile = Join-Path $stateDir 'update-status.txt'
+  if ($updateReasons.Count -ne 0) {
+    try {
+      if (-not (Test-Path -LiteralPath $stateDir)) { New-Item -ItemType Directory -Path $stateDir -Force | Out-Null }
+      [System.IO.File]::WriteAllText($updateStateFile, "status=needed target=$targetTag adapter=$adapterTag`n")
+    } catch { }
+  } else {
+    Remove-Item -LiteralPath $updateStateFile -Force -ErrorAction SilentlyContinue
+  }
+
   # --- unrecognized config value surfacing (#1804) ---
   # Rationale is in the claude port this one mirrors. -cne, not -ne: see the
   # -CaseSensitive note on the switch above.

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Source: adapter/claude/hooks/on-user-prompt.sh ({LI_PLUS_TAG})
-# UserPromptSubmit hook: per-turn Trigger Check Gate re-arm + webhook check.
+# UserPromptSubmit hook: per-turn Li+ update status re-emit + Trigger Check Gate re-arm + webhook check.
 # The gate re-arm is the deterministic firing surface for
 # rules/model/trigger-check-gate.md (replaces the retired state-declaration
 # substrate; #1493 implements #1413 candidate A).
@@ -9,6 +9,25 @@
 # Source of truth is this file; keep hooks-settings.md reference consistent.
 export PATH="$HOME/.local/bin:$PATH"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
+
+# --- Li+ update status re-emit (#1987) ---
+# Reads .claude/state/update-status.txt, written by on-session-start.sh when the
+# status resolved to needed, and the sentinel tag in .claude/CLAUDE.md. Local
+# reads only. The needed marker is re-emitted while the recorded target tag is
+# non-empty, the sentinel differs from it, and the sentinel still equals the one
+# recorded beside it. Otherwise, and when the file is absent, nothing is emitted.
+# No reason string is added: the reason is the existing sentinel-tag axis.
+UPDATE_STATE=$(head -n 1 "$PROJECT_ROOT/.claude/state/update-status.txt" 2>/dev/null | tr -d '\r')
+RECORDED_TARGET=$(printf '%s' "$UPDATE_STATE" | sed -n 's/^status=needed target=\([^ ]*\) adapter=\([^ ]*\)$/\1/p')
+RECORDED_ADAPTER=$(printf '%s' "$UPDATE_STATE" | sed -n 's/^status=needed target=\([^ ]*\) adapter=\([^ ]*\)$/\2/p')
+CURRENT_ADAPTER=$(sed -n 's/^# --- Li+ BEGIN (\([^)]*\)) ---.*/\1/p' "$PROJECT_ROOT/.claude/CLAUDE.md" 2>/dev/null | head -n 1)
+if [ -n "$RECORDED_TARGET" ] && [ "$CURRENT_ADAPTER" != "$RECORDED_TARGET" ] && [ "$CURRENT_ADAPTER" = "$RECORDED_ADAPTER" ]; then
+  echo ""
+  echo "━━━ Li+ update status ━━━"
+  echo "LI_PLUS_UPDATE_STATUS=needed reason=sentinel-tag(adapter=${CURRENT_ADAPTER:-unknown},target=$RECORDED_TARGET)"
+  echo "AI must read Li+config.md and execute Li+update.md walkthrough this session."
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+fi
 
 # --- Webhook notification re-arm ---
 # The block carries two separable halves, and LI_PLUS_WEBHOOK_DELIVERY selects

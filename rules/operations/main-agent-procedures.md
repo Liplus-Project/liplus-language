@@ -302,7 +302,7 @@ if execution_mode == trigger:
 Follow-through on deferred items:
 Self-review records may legitimately defer items as "out of PR scope" (e.g. workspace memory cleanup, follow-up issue filing, doc-only follow-up). Deferred ≠ ignored:
 
-- Workspace-side deferrals (memory edits, local config) execute in the SAME session immediately after merge. Do not push them to the next session.
+- Workspace-side deferrals (memory edits, local config) execute at the post-merge moment (Merge Execution below), by the main agent in every mode. Do not push them past that moment.
 - Repo-side deferrals (follow-up issues, separate PR for unrelated cleanup) are filed BEFORE merge so they are not lost.
 - Human APPROVED comments that contain "〜したんだよね？" / "did you also do X?" / similar embedded confirmations are part of the approval condition, not optional small talk. Treat the embedded confirmation as an additional gate and respond to it in the same session.
 
@@ -322,7 +322,7 @@ After the internal self-review passes, that agent MUST post the outcome as a for
 
   gh pr review {pr} -R {owner}/{repo} --comment --body "<summary of self-review outcome>"
 
-Review body must include: acceptance-criteria check result, scope deviations (if any), next-step expectation (e.g. "awaiting human review" for trigger / minor-major semi_auto).
+Review body must include: acceptance-criteria check result, scope deviations (if any), workspace-side deferred items (if any; Merge Execution Post-merge moment reads them from here), next-step expectation (e.g. "awaiting human review" for trigger / minor-major semi_auto).
 GitHub rejects `--add-reviewer` self-assignment silently; only `gh pr review --comment` works for PR author self-review records.
 
 </self-review-formal-record>
@@ -380,14 +380,20 @@ Merge strategy:
   Handoff path (`trigger`) = the same strategy is fixed on the `--auto --squash` enable at PR creation.
   Deviation from squash = AI pauses and asks human.
 
+Post-merge moment:
+The moment the obligations placed right after a merge fire at: the reopen and the L1 observation below, and the workspace-side deferrals of PR review Follow-through on deferred items. Actor = the main agent in every mode.
+- `auto` / `semi_auto` = right after the parent's own merge, in the merging session.
+- `trigger` = no agent stands at the merge, so the moment is the first turn in which the main agent observes the merge, in whichever session that turn falls: the Review approval check, a foreground webhook intake item, or any other read showing the PR merged. Run the obligations in that turn.
+In `trigger` that session need not be the one that delegated the PR, so read each obligation from its durable surface, not from delegation context: the closed issue's body for the reopen, the PR's changed files for the L1 observation, the self-review formal record for the workspace-side deferrals.
+
 Parent close condition: closed automatically on merge via issue reference.
-When the closed issue's body carries a completion condition the PR alone cannot satisfy (Issue format above) and that condition is not yet met, reopen the issue and leave it open until the condition is met. In `auto` / `semi_auto` the parent reopens it right after the merge. In `trigger` the main agent reopens it at the first turn that observes the merge.
+When the closed issue's body carries a completion condition the PR alone cannot satisfy (Issue format above) and that condition is not yet met, reopen the issue at the post-merge moment and leave it open until the condition is met.
 
 Real device test:
 Merge first. Then test on main. Not a merge gate.
 
 Post-merge observation for L1 source changes:
-After merging any PR touching L1 Model Layer source (any file with `layer: L1-model` frontmatter, typically `rules/model/*`), apply `rules/operations/operations.md` Post-L1-Merge Runtime Observation. Separate observable axis from Real device test above.
+At the post-merge moment of any PR touching L1 Model Layer source (any file with `layer: L1-model` frontmatter, typically `rules/model/*`), apply `rules/operations/operations.md` Post-L1-Merge Runtime Observation. Separate observable axis from Real device test above.
 
 </merge-execution>
 

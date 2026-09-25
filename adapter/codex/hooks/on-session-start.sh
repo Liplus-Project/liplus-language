@@ -387,6 +387,44 @@ OPEN_ISSUES=$(gh issue list -R Liplus-Project/liplus-language --state open --lab
   --jq '.[] | "#\(.number) \(.title) [\(.labels | map(.name) | join(","))]"' 2>/dev/null)
 register_section "open_in_progress_issues" "Open in-progress issues (max 5)" "$OPEN_ISSUES"
 
+# --- open issues blocked by an open issue (dependency ordering surface) ---
+# Contract = rules/evolution/cold-start-synthesis.md Dependency Ordering Surface.
+# GraphQL through `gh api`, so no gh CLI dependency flag is needed.
+# Raw JSON is filtered here rather than with --jq so the filter is the hook's
+# own code: only blockers whose state is OPEN count, and a blocker in another
+# repository is named with its owner/repo.
+BLOCKED_BY_OPEN=""
+if command -v node >/dev/null 2>&1; then
+  BLOCKED_RAW=$(gh api graphql -f owner=Liplus-Project -f name=liplus-language \
+    -f query='query($owner:String!,$name:String!){repository(owner:$owner,name:$name){issues(states:OPEN,first:100,orderBy:{field:CREATED_AT,direction:ASC}){pageInfo{hasNextPage} nodes{number title blockedBy(first:50,orderBy:{field:CREATED_AT,direction:ASC}){nodes{number state repository{nameWithOwner}}}}}}}' 2>/dev/null)
+  if [ -n "$BLOCKED_RAW" ]; then
+    BLOCKED_BY_OPEN=$(printf '%s' "$BLOCKED_RAW" | node -e '
+      let s = "";
+      process.stdin.on("data", d => s += d).on("end", () => {
+        try {
+          const home = "Liplus-Project/liplus-language";
+          const issues = JSON.parse(s).data.repository.issues;
+          const out = [];
+          for (const n of issues.nodes || []) {
+            const open = ((n.blockedBy || {}).nodes || [])
+              .filter(b => b && b.state === "OPEN")
+              .map(b => {
+                const repo = b.repository && b.repository.nameWithOwner;
+                return (repo && repo !== home ? repo : "") + "#" + b.number;
+              });
+            if (open.length) out.push("#" + n.number + " " + n.title + " <- blocked by " + open.join(", "));
+          }
+          if (issues.pageInfo && issues.pageInfo.hasNextPage) {
+            out.push("(first 100 open issues scanned; more exist)");
+          }
+          process.stdout.write(out.join("\n"));
+        } catch (e) {}
+      });
+    ' 2>/dev/null)
+  fi
+fi
+register_section "open_blocked_by_open_issues" "Open issues blocked by an open issue" "$BLOCKED_BY_OPEN"
+
 # Self-eval head: Codex has no ~/.claude/projects memory; use workspace-local memory/.
 SELFEVAL_FOUND=""
 for candidate in "$PROJECT_ROOT/memory/self-evaluation_log.md" "$LIPLUS_DIR/memory/self-evaluation_log.md"; do

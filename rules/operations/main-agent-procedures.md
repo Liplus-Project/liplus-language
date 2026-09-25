@@ -80,6 +80,10 @@ A premise carried over from another issue, another session, or a prior self is r
 Control flow is described only as far as the position of each try / catch / return / break it relies on has been confirmed on the literal.
 A wrong assertion found in an issue body is corrected in the body, a closed issue included.
 
+Dependencies:
+An issue known to wait on another issue carries that relation as a GitHub issue dependency (`blockedBy`). Its author records it, at creation or at the moment the dependency becomes known, as far as it is known. Do not derive it from parent / sub-issue structure, and do not hold it in memory.
+Write it through GraphQL (`addBlockedBy` / `removeBlockedBy` with the two issues' node ids), not through gh CLI dependency flags. Cold-start reads it back (`rules/evolution/cold-start-synthesis.md` Dependency Ordering Surface).
+
 Checklist = human judgment required (real device test, operational verification).
 Use checklist only when AI cannot judge.
 

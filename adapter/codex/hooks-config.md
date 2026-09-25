@@ -220,8 +220,16 @@ is `.ps1` (Windows native, primary on the verified Codex Windows env) + `.sh`
   Contract and `adapter/claude/hooks-settings.md`.
   On `resume` / `clear` / `compact`: rules re-injection + language contract marker
   + cold-start anchor only.
-- `adapter/codex/hooks/on-user-prompt.{ps1,sh}` — per-turn Trigger Check Gate
-  re-arm + webhook re-arm, whose call half is `poll`-only and whose handling half
+  Update status state: at `startup`, a `needed` result writes one line
+  `status=needed target=<target tag> adapter=<sentinel tag>` to
+  `{workspace_root}/.codex/state/update-status.txt` (BOM-less from the `.ps1`
+  port), and an `unnecessary` result removes it. Workspace-level, not
+  partitioned by `LI_PLUS_AGENT_KEY`. The `resume` / `clear` / `compact`
+  matchers leave it as it is.
+- `adapter/codex/hooks/on-user-prompt.{ps1,sh}` — per-turn Li+ update status
+  re-emit (same condition and lines as the Claude port, reading
+  `.codex/state/update-status.txt` and the `AGENTS.md` sentinel tag) + Trigger
+  Check Gate re-arm + webhook re-arm, whose call half is `poll`-only and whose handling half
   is emitted in every delivery mode (Character_Instance lives in AGENTS.md, not
   re-notified per turn).
 - `adapter/codex/hooks/post-tool-use.{ps1,sh}` — sub-issue refs auto-append on

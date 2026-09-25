@@ -8,7 +8,7 @@ layer: L3-task
 
 # Role literal: implementation delegate
 
-On Claude Code, `adapter/claude/agents/` carries no per-role definition file (#1972: reorganized into `low.md` / `medium.md` / `high.md`, each fixing effort only — no role, no procedure). The implementation-delegate role that used to live in `adapter/claude/agents/implementer.md`'s body has one home now, and this is it: every delegation prompt composed under `skills/task-subagent-delegation/SKILL.md` injects the literal below verbatim, before any mode-specific or resume-phase addition. Copy it; do not re-compose it per spawn — same discipline as the no-write literal at `skills/evolution-parallel-agent-eval/SKILL.md` Constraint: Evaluator does not modify the evaluation target.
+On Claude Code this is the implementation-delegate role's only home: `adapter/claude/agents/` holds effort-named files (`low.md` / `medium.md` / `high.md`) that carry no role. Every delegation prompt composed under `skills/task-subagent-delegation/SKILL.md` injects the literal below verbatim, before any mode-specific or resume-phase addition. Copy it; do not re-compose it per spawn.
 
 > You are the Li+ implementation delegate. A parent agent hands you one issue's change; you carry it to the stop condition, report there, and exit.
 >
@@ -25,9 +25,9 @@ On Claude Code, `adapter/claude/agents/` carries no per-role definition file (#1
 >
 > Correctness is repository state, not local success: the issue's requirement met in the pushed diff, with CI green on it.
 
-Spawn call: one of `subagent_type: low` / `medium` / `high`, selected by the parent against the work that delegation carries (criteria = `skills/task-subagent-spawn/SKILL.md` Subagent Model Policy). The role is not what picks it: the literal above is injected whichever of the three the spawn names, and the same holds of the `model` axis. Do not write a role fragment into `adapter/claude/agents/{low,medium,high}.md` — those files fix effort only, per their own body.
+Spawn call: one of `subagent_type: low` / `medium` / `high`, selected by the parent against the work that delegation carries (criteria = `skills/task-subagent-spawn/SKILL.md` Subagent Model Policy). The role picks neither the effort nor the `model`; the literal above is injected whichever the spawn names. Do not write a role fragment into `adapter/claude/agents/{low,medium,high}.md`.
 
-The Codex port is unaffected: `adapter/codex/agents/implementer.toml` still carries its own role body and is out of scope for this split (Master agreement, 2026-09-14, tracked separately from #1972).
+On Codex the role body stays in `adapter/codex/agents/implementer.toml`; this section does not move it.
 
 </role-literal-implementation-delegate>
 
@@ -35,14 +35,12 @@ The Codex port is unaffected: `adapter/codex/agents/implementer.toml` still carr
 
 # Mode-specific delegation injection
 
-The minimal "issue URL only" pattern works for `auto` and `semi_auto` because the subagent's auto-loaded operations rules already cover the merge gate. `trigger` mode is the exception: the merge gate involves human approval timing, and two pieces of context need explicit injection because they are parent-side decisions, not subagent-discovered facts:
+`auto` / `semi_auto` delegations carry no merge-gate injection; the subagent's auto-loaded operations rules cover the merge gate. A `trigger` delegation injects two items. They are gate-state decisions, not procedure, so the "do not convey procedure" rule (`skills/task-subagent-delegation/SKILL.md` Rules) does not bar them:
 
-- (a) auto-merge enablement: include `gh pr merge {pr} --auto --squash` as a step the subagent runs after PR creation. Without this, the merge sits idle after human approval because trigger-mode PRs do not auto-merge by default.
-- (b) stop condition: the `trigger` form is longer than the `auto` / `semi_auto` one and ends short of merge complete. What the parent injects is the pointer, not the literal — direct the subagent to read its own stop condition for this mode at `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition, which splits by mode, and to restate it before it starts. The parent cannot inject the literal without first reading that file, which is barred to it (`rules/operations/main-agent-procedures.md` The bar and its pair); the subagent reading it is the ordinary route. Do not restate the condition here either.
+- (a) auto-merge enablement: include `gh pr merge {pr} --auto --squash` as a step the subagent runs after PR creation. Without it the PR sits idle after human approval.
+- (b) stop condition: direct the subagent to read its own stop condition for this mode at `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition, which splits by mode, and to restate it before it starts. Carry the pointer, not the literal: the parent may not read that file (`rules/operations/main-agent-procedures.md` The bar and its pair). Do not restate the condition here either.
 
-These two are out of scope for the broader "do not convey procedure" rule (`skills/task-subagent-delegation/SKILL.md` Rules) because they are not procedure — they are gate-state decisions specific to trigger-mode merge timing.
-
-Artifact body language is not on this list, and its absence is not a `trigger`-mode exemption: that item is required in every mode and lives at Delegation prompt hygiene below. What disqualifies it here is this list's own criterion — nothing about the body language turns on trigger-mode merge timing, so an entry here could only restate the universal item, and the restating copy is the one that drifts — a resolved language name settling into it is the form that drift takes.
+Artifact body language is not a `trigger`-mode item, and its absence here exempts no mode: it is required in every delegation, at Delegation prompt hygiene below. Do not add a copy of it to this list.
 
 </mode-specific-delegation-injection>
 
@@ -50,32 +48,28 @@ Artifact body language is not on this list, and its absence is not a `trigger`-m
 
 # Resume-phase authority boundary
 
-In `auto` / `semi_auto`, the parent resumes the implementation subagent after the brake reports so the author adjudicates the findings (`rules/evolution/initiator-autonomy.md` Merge brake, Adjudication actor). The resume message is a prompt like any other, and the same injection reasoning as `mode-specific-delegation-injection` applies to it: the authority boundary at the resume point is a gate-state decision, not procedure, so conveying it does not collide with "do not convey step-by-step procedure".
-
-It has to be injected rather than left to the auto-loaded rules. The subagent resumes holding a session in which it has already run the whole implementation and is one CI-green away from a mergeable PR; the pull toward "finish it" is strongest exactly there. The overrun this guards against is a delegated subagent in `semi_auto` executing both the self-review post and the merge.
+In `auto` / `semi_auto`, the parent resumes the implementation subagent after the brake reports so the author adjudicates the findings (`rules/evolution/initiator-autonomy.md` Merge brake, Adjudication actor). Inject the authority boundary into the resume message; auto-loaded rules alone do not hold it at the resume point. It is a gate-state decision, not procedure, so conveying it does not collide with "do not convey step-by-step procedure". The overrun it guards against is a resumed subagent in `semi_auto` executing both the self-review post and the merge.
 
 Inject into the resume prompt:
 
-- (a) an instruction to read its own stop condition for this mode at `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition and restate it before acting. The parent carries the pointer, not the literal: injecting the literal requires the parent to read that file first, and it may not (`rules/operations/main-agent-procedures.md` The bar and its pair). This item is the one place the bar is repaired by a pointer rather than by a move — the literal's actor is the subagent, which reads that file on its own route, so there is nothing here to relocate to a main-readable surface. Leaving the boundary to auto-load alone does not hold it at the resume point; the boundary itself is carried by (b), which stays verbatim.
+- (a) an instruction to read its own stop condition for this mode at `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition and restate it before acting. Carry the pointer, not the literal: the parent may not read that file (`rules/operations/main-agent-procedures.md` The bar and its pair). The boundary itself is carried by (b), which stays verbatim.
 - (b) the two negatives, verbatim:
 
   > Do not run or post the self-review, and do not merge. The self-review actor is the agent holding the merge decision, which is the parent in this mode. Report at your stop condition and exit.
 
-- (c) where the findings are: the PR URL, and that this round's evaluator comments on its thread carry them (`skills/evolution-parallel-agent-eval/SKILL.md` Constraint: Findings are posted to the PR by the evaluator). The parent does not paste them into the resume message, and under that routing it has not read them to paste: the thread is the durable copy, and a message that survives nowhere is the wrong place for a second one.
+- (c) where the findings are: the PR URL, and that this round's evaluator comments on its thread carry them (`skills/evolution-parallel-agent-eval/SKILL.md` Constraint: Findings are posted to the PR by the evaluator). Do not paste the findings into the resume message.
 
-- (d) the resolved language for the adjudication comment the author posts on the PR. `Workspace_Language_Contract` names PR comments among the conversational replies the base language governs, so this is not the body language item (a) of Delegation prompt hygiene below names, and the value the phase-1 prompt carried does not answer for it. It is parent-side state the subagent's session cannot see — the session-start hook emits the contract into the parent's context and not into a subagent's — which is the criterion below, not an addition to it. Name it as the value for this run, and say it is not to be written into any file the subagent edits.
+- (d) the resolved language for the adjudication comment the author posts on the PR, named as the value for this run, with the instruction that it is not to be written into any file the subagent edits. A PR comment resolves on the base-language side of `Workspace_Language_Contract`, so neither the body language of Delegation prompt hygiene (b) below nor the value the phase-1 prompt carried answers it.
 
-A resume opening a later round (`skills/evolution-parallel-agent-eval/SKILL.md` Procedure, Round boundary) takes these four unchanged. That message's subject is the entry alone — new findings are on the thread — and the parent adds no correction of its own to it, because it has not judged what it is relaying. Nothing there is a fifth injection item, and the list below stays closed.
+A resume opening a later round (`skills/evolution-parallel-agent-eval/SKILL.md` Procedure, Round boundary) takes these four unchanged. Its subject is the entry alone — new findings are on the thread — and the parent adds no correction of its own to it.
 
-Four is the whole list, and what closes it is the criterion above, not the enumeration: an item is injected when it is a gate-state decision at the resume point — the boundary of what the resumed author may do, or the parent-side state its own session cannot see. What the author does inside that boundary is procedure and stays where it is canonically held. The subagent's own state-label transitions are the case that reads as a gap: they fire at this exact moment and are not listed, because they sit inside label authority the subagent already holds, mandated at `skills/task-subagent-state-labels/SKILL.md`, which auto-loads and names the resume among its triggers. Listing them here would put a second copy of that mandate in this list, and the second copy is what drifts.
+The list is closed by criterion, not by enumeration. An item is injected when it is a gate-state decision at the resume point: the boundary of what the resumed author may do, or parent-side state its own session cannot see. What the author does inside that boundary is procedure and stays where it is canonically held. The subagent's own state-label transitions at this moment are not listed; they are mandated at `skills/task-subagent-state-labels/SKILL.md`, which auto-loads and names the resume among its triggers. An item auto-load already covers is promoted into this list on a measured overrun at this point, not on the prospect of one (`rules/model/subtractive-structural-beauty.md` required or unnecessary). If the doubt is that the auto-load surface does not fire reliably, fix that surface, not this list.
 
-An item that auto-load already covers earns promotion into this list on a measured overrun at this point, not on the prospect of one. `rules/model/subtractive-structural-beauty.md` admits required or unnecessary and nothing between, and a prospect buys a safety net rather than a requirement. (b) sits on this list because such an overrun was measured at this point; the label transition has no equivalent observation. (d) is not admitted on a prospect either: it is the second half of the criterion rather than the first — parent-side state the subagent's session cannot see — and it became load-bearing the moment the adjudication moved onto a surface the language contract reaches. If the doubt is instead that the auto-load surface does not fire reliably, it is that surface the fix belongs to; admitted here it would make this list the place every such doubt is copied into, and the list would have no end.
+Reconstruction fallback. It applies when the parent holds no resume target it can address: the host has no resume mechanism (Codex without `resume_agent`), or the parent does not hold the phase-1 agent id — the standing case whenever adjudication runs in a later session than the implementation. Both route to the same fallback; each adapter names only which of the two its host produces.
 
-Reconstruction fallback. A resume needs a target the parent can address, and there are two ways not to have one: the host has no resume mechanism (Codex without `resume_agent`), or the parent does not hold the phase-1 agent id. The second is not an accident to be avoided. It is the standing case whenever adjudication runs in a later session than the implementation — the id lives in the spawning session's context, so a parent that opens after that session never had it. Both route to the same fallback; each adapter names only which of the two its host produces.
+The fallback: the parent spawns a fresh subagent into the author role, and it reconstructs from the issue body, the PR diff, the commits on the branch, and the PR comment thread, which carries the findings of every round so far and any adjudication already made. The four items above are injected unchanged, and the parent still does not paste the findings. Exactly one item is added: the spawn enters at phase 2 — the change is already implemented and the PR is open, and its work is adjudication, not implementation (`skills/task-subagent-delegation/SKILL.md` Rules, the two phases). A true resume does not carry that item.
 
-The fallback: the parent spawns a fresh subagent into the author role, and it reconstructs from the issue body, the PR diff, the commits on the branch, and the PR comment thread, which carries the findings of every round so far and any adjudication already made. The role is unchanged, so the three items above are injected unchanged. Exactly one item is added, and only because a cold session cannot supply it — the spawn enters at phase 2: the change is already implemented and the PR is open, and its work is adjudication, not implementation (`skills/task-subagent-delegation/SKILL.md` Rules, the two phases). A true resume states nothing here because its own session is the statement. Nothing else differs: same stop condition, same two negatives, same findings location, same language naming, and the parent still does not paste the findings into the message.
-
-This is not the substrate-absence fallback of `skills/task-subagent-delegation/SKILL.md` Autonomy. That one fires on missing subagent capability and puts the work on the parent; here the capability is present and only the resume target is gone, so the work stays on a subagent. Routing a lost id to the parent would move adjudication off the author and break `rules/evolution/initiator-autonomy.md` Merge brake, Adjudication actor.
+This is not the substrate-absence fallback of `skills/task-subagent-delegation/SKILL.md` Autonomy. Subagent capability is present and only the resume target is gone, so the work stays on a subagent. Routing a lost id to the parent would move adjudication off the author and break `rules/evolution/initiator-autonomy.md` Merge brake, Adjudication actor.
 
 </resume-phase-authority-boundary>
 
@@ -83,24 +77,20 @@ This is not the substrate-absence fallback of `skills/task-subagent-delegation/S
 
 # Delegation prompt hygiene (field-scoped artifact language)
 
-Example artifact text MUST follow the destination artifact's governing language contract; being example text does not create an independent ASCII-only category. Resolve the language from (1) an explicit human language instruction for that artifact, (2) an accepted thread agreement, then (3) the destination repository / workspace project-language default (`LI_PLUS_PROJECT_LANGUAGE` when applicable), while also satisfying destination-repository governance. A host workspace language contract does not override `LI_PLUS_REPO` governance.
+Example artifact text follows the destination field's contract; being example text creates no ASCII-only category of its own.
 
-Issue / PR / commit title examples MUST be ASCII English only. Body examples (issue / PR / commit bodies and wiki entries) MUST follow the resolved governing language contract and MUST NOT be rewritten under an ASCII-only rule.
-
-That precedence resolves to a value the subagent cannot reach on its own: `CLAUDE.md` and `rules/**` reach subagent context in full while hook firing output does not, and `LI_PLUS_BASE_LANGUAGE` / `LI_PLUS_PROJECT_LANGUAGE` are exactly what the session-start hook emits into the parent's session (`skills/evolution-parallel-agent-eval/SKILL.md` Constraint: Character_Instance non-inheritance enumerates what does and does not reach a subagent). The parent therefore resolves the value before the spawn and names it in the prompt as the value for that run. No resolved language name goes into this file or any other Li+ source: the source ships to every workspace while the value is per-workspace, so a name written here arrives elsewhere wearing the contract's face (Decision Structure `distributed-source-carries-no-resolved-config-value`). The bound runs in the other direction too — a value named for one run is not a value to write into a file the subagent edits, and that is the path by which a resolved value re-enters Li+ source, this section's own literal included.
-
-Subagents mirror the prompt's literal style when emitting artifacts. Non-ASCII typographic characters (em-dash `—` / en-dash `–` / box-drawing `─` / smart quotes `' " ' "` / JA characters in example titles) can leak from a prompt into an ASCII-English-governed title field. Body fields are validated as well-formed UTF-8 that renders without mojibake, not as ASCII byte sequences.
-
-How to apply:
-- For issue / PR / commit title examples, rewrite into ASCII English before sending the prompt: em-dash -> `-` / `--`, en-dash -> `-`, box-drawing horizontal -> `-` / `=`, smart quotes -> ASCII `'` `"`, and JA example-title text -> translate / rewrite into ASCII English or omit.
-- For issue / PR / commit body and wiki-entry examples, resolve the destination artifact's governing language contract using the precedence above; validate well-formed UTF-8 and inspect rendered text for mojibake. Do not use an ASCII-only check as body validation.
-- Add an explicit instruction to the prompt: "Use ASCII English only in issue, PR, and commit titles. Resolve issue/PR/commit bodies and wiki entries from each destination artifact's governing language contract: an explicit human language instruction for that artifact, then an accepted thread agreement, then the destination repository/workspace project-language default, while satisfying destination-repository governance. The host workspace language contract does not override LI_PLUS_REPO governance. Never apply an ASCII-only rule to bodies. Apply `od -c` byte-level verification to title fields, and verify body text is well-formed UTF-8 and renders without mojibake."
-- Name the resolved body language next to that instruction. The instruction states the contract; the value it resolves to is the parent's to supply, per the paragraph above. Give it as the resolved value for this run, and say it is not to be written into any file the subagent edits.
+- (a) Issue / PR / commit title examples: ASCII English only. Subagents mirror the prompt's literal style, so rewrite each example title before sending: em-dash -> `-` / `--`, en-dash -> `-`, box-drawing horizontal -> `-` / `=`, smart quotes -> ASCII `'` `"`, and JA example-title text -> translate / rewrite into ASCII English or omit.
+- (b) Body examples (issue / PR / commit bodies and wiki entries): the destination artifact's governing language contract, resolved by the precedence in the instruction below (its project-language default is `LI_PLUS_PROJECT_LANGUAGE` when applicable), while also satisfying destination-repository governance. A host workspace language contract does not override `LI_PLUS_REPO` governance. Never rewrite a body under an ASCII-only rule; validate it as well-formed UTF-8 that renders without mojibake.
 - The prompt's surrounding prose is outside title-field ASCII checks; every example field the subagent might copy follows its own destination-field contract.
 
+Add this instruction to the prompt:
+
+> "Use ASCII English only in issue, PR, and commit titles. Resolve issue/PR/commit bodies and wiki entries from each destination artifact's governing language contract: an explicit human language instruction for that artifact, then an accepted thread agreement, then the destination repository/workspace project-language default, while satisfying destination-repository governance. The host workspace language contract does not override LI_PLUS_REPO governance. Never apply an ASCII-only rule to bodies. Apply `od -c` byte-level verification to title fields, and verify body text is well-formed UTF-8 and renders without mojibake."
+
+Name the resolved body language next to that instruction, as the value for this run, and say it is not to be written into any file the subagent edits. The subagent cannot resolve it itself: `LI_PLUS_BASE_LANGUAGE` / `LI_PLUS_PROJECT_LANGUAGE` are emitted by the session-start hook into the parent's session, and hook output does not reach a subagent (`skills/evolution-parallel-agent-eval/SKILL.md` Constraint: Character_Instance non-inheritance). Write no resolved language name into this file or any other Li+ source.
+
 Detection signs:
-- About to write `—` or `──` in an ASCII-English-governed example title inside the delegation prompt.
-- Example PR title field contains JA characters or smart quotes.
+- About to write `—` or `──`, JA characters, or smart quotes in an ASCII-English-governed example title.
 - Example body is forced to ASCII or omits the resolved governing language contract or destination-repository governance.
 - A host workspace language default is used to override `LI_PLUS_REPO` governance.
 - A resolved language name is about to be written into the quoted instruction above, or into any other Li+ source line, instead of being named per run.
@@ -114,20 +104,20 @@ Detection signs:
 
 # Bounded delegation: prohibit recursive subagent spawn
 
-A subagent with Agent tool access (`Tools: *`) defaults to the same fan-out instinct the parent has — the Li+ implementation delegate, spawned under one of the effort-named agents on Claude Code (Role literal: implementation delegate, above) or `implementer` on Codex, neither of which names `tools` and so both take the default set, and the host's built-in general-purpose agent alike: when its assigned task looks like it has multiple independent sub-checks, it may spawn its own nested Agent-tool children rather than executing directly. Absent an explicit prohibition, this can cascade at every level — each hop adds real API cost with no visible warning until the rate limit wall is hit, and the top-level report ends up as coordinator meta-commentary ("waiting for background agent") instead of actual findings.
+A subagent holding the Agent tool — the Li+ implementation delegate on either port (neither definition names `tools`, so both take the default set) and the host's built-in general-purpose agent alike — may spawn nested children when its task looks like several independent sub-checks, and the cascade repeats at every level until the rate limit is hit.
 
 How to apply:
-- When delegating a bounded read-only investigation (audit / consistency check / grep-and-report) to a subagent, explicitly state in the prompt: "Do this yourself directly using Read/Grep/Bash — do not spawn further subagents via the Agent tool for this task."
-- If a subagent's task has 2-3 independent sub-checks that seem parallelizable, prefer sequencing them directly inside one subagent's own tool calls over letting it decide to spawn children.
-- Reserve subagent-of-subagent delegation for genuinely large-scale parallel work where the fan-out is deliberate and bounded (e.g. `skills/evolution-parallel-agent-eval` evaluator pattern — a controlled, known-width fan-out is exempt from this prohibition).
+- When delegating a bounded read-only investigation (audit / consistency check / grep-and-report), state in the prompt: "Do this yourself directly using Read/Grep/Bash — do not spawn further subagents via the Agent tool for this task."
+- If the task has 2-3 independent sub-checks, have the one subagent sequence them in its own tool calls rather than leaving it to spawn children.
+- Exempt: a deliberate, known-width fan-out (e.g. the `skills/evolution-parallel-agent-eval` evaluator pattern).
 
-This is a tool-authority bound (which tools the subagent may use), not a conveyed step-by-step procedure — it does not conflict with `skills/task-subagent-delegation/SKILL.md` Rules' "do not convey: step-by-step procedure" constraint, same reconciliation as `mode-specific-delegation-injection` above.
+This is a tool-authority bound, not a conveyed step-by-step procedure; it does not conflict with `skills/task-subagent-delegation/SKILL.md` Rules' "do not convey: step-by-step procedure".
 
-Spawn depth is the axis here. Top-level concurrent width is a separate axis, in `skills/task-subagent-spawn/SKILL.md` Parallel-Width Cap; the two do not extend or narrow each other.
+This axis is spawn depth. Top-level concurrent width is `skills/task-subagent-spawn/SKILL.md` Parallel-Width Cap; neither extends or narrows the other.
 
 Detection signs:
-- About to write a delegation prompt with multiple distinct "Check A / Check B" sections without explicitly stating the subagent should perform all checks directly itself.
-- A task-notification result consisting of meta-commentary ("I'll wait for the background agent", "the audit is running in the background") rather than actual findings — that phrasing means the "agent" is a coordinator that itself spawned more agents instead of doing the work.
+- About to write a delegation prompt with multiple distinct "Check A / Check B" sections without stating that the subagent performs all checks directly itself.
+- A task-notification result that is meta-commentary ("I'll wait for the background agent", "the audit is running in the background") rather than findings — the "agent" spawned more agents instead of doing the work.
 - A burst of many task-notifications arriving in immediate succession after only 2-3 Agent calls were made.
 
 </bounded-delegation-prohibit-recursive-subagent-spawn>
@@ -136,9 +126,7 @@ Detection signs:
 
 # Worktree-safe shelving of uncommitted work
 
-Inject the shelving form below into every delegation prompt, worktree mode or not. It replaces `git stash push` / `git stash pop`, which are not to be used in delegated work.
-
-`refs/stash` is a single ref in the shared `.git`. A worktree separates the working tree and the index; it does not separate the stash stack. Two worktrees pushing to it share one stack, and either `pop` takes the top entry regardless of which worktree pushed it — succeeding with no error and no warning.
+Inject the shelving form below into every delegation prompt, worktree mode or not. It replaces `git stash push` / `git stash pop`, which are not to be used in delegated work: `refs/stash` is one ref shared by every worktree of the `.git`, and a `pop` takes the top entry whichever worktree pushed it, with no error and no warning.
 
 Injected literal:
 
@@ -153,15 +141,15 @@ git stash apply refs/worktree/wipstash
 git update-ref -d refs/worktree/wipstash
 ```
 
-`refs/worktree/*` is git's worktree-local ref namespace: the same ref name resolves to a different object in each worktree, and `git stash create` never touches `refs/stash`. Do not qualify the name with an issue number — the namespace already separates it.
+`refs/worktree/*` resolves per worktree, and `git stash create` never touches `refs/stash`. Do not qualify the ref name with an issue number.
 
-Three properties the caller holds that `git stash push` did not require:
+What the caller holds that `git stash push` did not require:
 
-- `git stash create` records only; it leaves the working tree as it was. The revert is the separate `git checkout -- .` step, and omitting it shelves nothing in practice.
-- On a clean tree `git stash create` prints nothing and exits 0. Passing that empty string to `git update-ref` fails, which is what the `-n` guard is for.
+- `git stash create` records only and leaves the working tree as it was. The `git checkout -- .` step is the revert; omitting it shelves nothing.
+- On a clean tree `git stash create` prints nothing and exits 0; the `-n` guard keeps that empty string away from `git update-ref`, which fails on it.
 - The ref is one slot, not a stack. `apply` leaves it in place and a second shelve overwrites it, so delete it after a successful restore.
 
-Untracked files sit outside the shelve on both halves: `git stash create` does not record them, and `git checkout -- .` does not remove them. A newly added test file therefore stays in the working tree across the shelve.
+Untracked files sit outside the shelve on both halves: `git stash create` does not record them, and `git checkout -- .` does not remove them. A newly added test file stays in the working tree across the shelve.
 
 This is a tool-authority bound on an operation over shared repository state, not a conveyed step-by-step procedure — same reconciliation with `skills/task-subagent-delegation/SKILL.md` Rules as `bounded-delegation-prohibit-recursive-subagent-spawn` above.
 
@@ -176,10 +164,8 @@ Detection signs:
 
 # Memory-only knowledge does not transfer to subagent
 
-Parent-side memory (the per-topic entry files `memory/feedback_<topic>.md`, `memory/project_<topic>.md` and their siblings, plus in-session corrections) is NOT auto-loaded into the subagent's context. The subagent only sees the issue body, the auto-loaded Li+ rules and skills, and the delegation prompt itself.
+Parent-side memory (the per-topic entry files `memory/feedback_<topic>.md`, `memory/project_<topic>.md` and their siblings, plus in-session corrections) is NOT auto-loaded into the subagent's context. The subagent sees only the issue body, the auto-loaded Li+ rules and skills, and the delegation prompt.
 
-If subagent behavior depends on memory content, the parent MUST inject the relevant literal into the delegation prompt. "Memory has it, so subagent will pick it up" is a failing assumption; pattern-match it and reject it at delegation-construction time.
-
-The cure is to either (i) inject the literal text into the prompt, or (ii) escalate the memory entry through promotion to Li+ rules so it auto-loads — promotion is the durable fix; injection is the per-task workaround.
+If subagent behavior depends on memory content, the parent MUST either (i) inject the relevant literal into the delegation prompt (per-task workaround), or (ii) promote the memory entry into Li+ rules so it auto-loads (durable fix). Reject "memory has it, so the subagent will pick it up" at delegation-construction time.
 
 </memory-only-knowledge-does-not-transfer-to-subagent>

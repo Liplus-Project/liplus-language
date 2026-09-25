@@ -381,10 +381,10 @@ Merge strategy:
   Deviation from squash = AI pauses and asks human.
 
 Post-merge moment:
-The moment the obligations placed right after a merge fire at: the reopen and the L1 observation below, and the workspace-side deferrals of PR review Follow-through on deferred items. Actor = the main agent in every mode.
+The moment the obligations placed right after a merge fire at: the reopen and the L1 observation below, the workspace-side deferrals of PR review Follow-through on deferred items, and the observation entry of `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format, Auto-entry trigger. Actor = the main agent in every mode.
 - `auto` / `semi_auto` = right after the parent's own merge, in the merging session.
 - `trigger` = no agent stands at the merge, so the moment is the first turn in which the main agent observes the merge, in whichever session that turn falls: the Review approval check, a foreground webhook intake item, or any other read showing the PR merged. Run the obligations in that turn.
-In `trigger` that session need not be the one that delegated the PR, so read each obligation from its durable surface, not from delegation context: the closed issue's body for the reopen, the PR's changed files for the L1 observation, the self-review formal record for the workspace-side deferrals.
+In `trigger` that session need not be the one that delegated the PR, so read each obligation from its durable surface, not from delegation context: the closed issue's body for the reopen, the PR's changed files for the L1 observation, the self-review formal record for the workspace-side deferrals, the PR's linked issue and changed files for the observation entry.
 
 Parent close condition: closed automatically on merge via issue reference.
 When the closed issue's body carries a completion condition the PR alone cannot satisfy (Issue format above) and that condition is not yet met, reopen the issue at the post-merge moment and leave it open until the condition is met.

@@ -17,8 +17,8 @@ step2 = wait for all check-runs to complete:
   Prefer webhook over polling.
   if mcp__github-webhook-mcp available:
     poll get_pending_status every 60 seconds
-    on check_run pending: list_pending_events -> get_event for check_run events -> verify sha match -> mark_processed
-    collect conclusions until no in-flight check-runs remain
+    on check_run or workflow_run pending: list_pending_events -> get_event for check_run and workflow_run events -> verify sha match (workflow_run: its head_sha) -> mark_processed
+    collect conclusions until no in-flight check-runs or workflow runs remain
   else:
     gh api repos/{owner}/{repo}/commits/{sha}/check-runs --jq '.check_runs[] | {name,status,conclusion}'
     repeat with sleep until: all status=="completed"

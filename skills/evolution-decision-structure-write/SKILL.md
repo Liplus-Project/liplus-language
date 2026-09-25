@@ -43,13 +43,19 @@ Decision Structure is a semantic graph of judgment nodes joined by supersede / d
    - Nothing found -> create the file under the kebab-case topic name directly in the wiki.
 
    In the update and supersede branches, convert the touched entry to state-form and draw its edges within that same edit. A write is already happening at that moment; deferring the conversion to a later migration pass makes it depend on recall, and recall is the part that fails.
-4. **Write the body in state-form:**
+4. **Route what is about to be written, then write the body in state-form.** Two questions, answered before the body:
+   - **Whose judgment is it?** The entry goes into this wiki whichever repository the judgment is about; do not open a Decision Structure in another repository's wiki. When the judgment is about a repository other than the one whose wiki holds the entry, name that repository in one line at the head of the body: `Target repository: <owner>/<repo>`.
+   - **Judgment record or requirements spec?** A condition the implementation must satisfy — a contract, an ordering, a data shape, a success oracle — is requirements spec. It does not go into the entry: it belongs in the `docs/` of the repository the judgment is about (`rules/operations/operations.md` Operations Rules, docs/ is source of truth), and the entry links there. When that `docs/` does not yet hold it, file an issue in that repository to add it, and link the issue from the entry instead.
+
+   The routing applies to what this write adds. Existing entries are not swept or migrated for it.
+
+   The body, in state-form:
    - **Title (H1)** = the judgment's topic in one line
    - **Question** = which question this judgment answers, one sentence
    - **Current resolution** = the current answer, in the present tense
    - **Edges** = the declared supersede / depend / conflict edges, with forward links to the target entries / issues / PRs
    - **Background** = why the judgment became necessary
-   - **Constraints** = the premises and constraints that drove it
+   - **Constraints** = the premises and constraints that drove it (grounds for the choice, not conditions on the implementation; those were routed out above)
    - **Conclusion** = the adopted option against the rejected ones
    - **Related** = links to related issues / PRs / other entries
 5. **Push directly to the wiki repo.** The wiki is an independent git surface, so no PR ceremony applies. Add the `_Sidebar.md` slug in the same commit, or the next release's sidebar integrity assertion stops the sync.

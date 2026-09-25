@@ -55,6 +55,17 @@ state 形は時間順 implicit ordering ではなく現在 state を主語にす
 
 ---
 
+## 書く前の振り分け（対象リポジトリと要件仕様）
+
+本文を書く前に、二つの問いで書く内容を振り分ける。
+
+- **誰の判断か**：判断記録（Question / Current resolution / 根拠 / Edges）は、どのリポジトリについての判断であっても本 wiki の Decision Structure に置く。判断グラフは単一に保ち、リポジトリごとに分けない。entry を持つ wiki のリポジトリ以外が対象の判断では、本文冒頭に `Target repository: <owner>/<repo>` を 1 行で明記する
+- **判断記録か要件仕様か**：実装が満たすべき条件（契約・順序・データ形・success oracle など）は要件仕様である。entry には書かず、対象リポジトリの `docs/` に置き（docs/ が正本、`rules/operations/operations.md`）、entry からそこへリンクする。対象リポジトリの `docs/` にまだ無いときは、そのリポジトリに追加の issue を立て、entry からはその issue にリンクする
+
+振り分けは今回の書き込みが加える内容に適用する。既存 entry を掃き出して一括移動することはしない。手順は `skills/evolution-decision-structure-write/SKILL.md` の Procedure を参照。
+
+---
+
 ## Edge taxonomy (primary edge vocabulary)
 
 state 形エントリは適用可能な edge を declare することが推奨される。primary edge は 3 種:

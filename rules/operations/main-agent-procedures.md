@@ -302,7 +302,7 @@ if execution_mode == trigger:
 Follow-through on deferred items:
 Self-review records may legitimately defer items as "out of PR scope" (e.g. workspace memory cleanup, follow-up issue filing, doc-only follow-up). Deferred ≠ ignored:
 
-- Workspace-side deferrals (memory edits, local config) execute in the SAME session immediately after merge. Do not push them to the next session.
+- Workspace-side deferrals (memory edits, local config) execute at the post-merge moment (Merge Execution below), by the main agent in every mode. Do not push them past that moment.
 - Repo-side deferrals (follow-up issues, separate PR for unrelated cleanup) are filed BEFORE merge so they are not lost.
 - Human APPROVED comments that contain "〜したんだよね？" / "did you also do X?" / similar embedded confirmations are part of the approval condition, not optional small talk. Treat the embedded confirmation as an additional gate and respond to it in the same session.
 
@@ -322,7 +322,7 @@ After the internal self-review passes, that agent MUST post the outcome as a for
 
   gh pr review {pr} -R {owner}/{repo} --comment --body "<summary of self-review outcome>"
 
-Review body must include: acceptance-criteria check result, scope deviations (if any), next-step expectation (e.g. "awaiting human review" for trigger / minor-major semi_auto).
+Review body must include: acceptance-criteria check result, scope deviations (if any), workspace-side deferred items (if any; Merge Execution Post-merge moment reads them from here), next-step expectation (e.g. "awaiting human review" for trigger / minor-major semi_auto).
 GitHub rejects `--add-reviewer` self-assignment silently; only `gh pr review --comment` works for PR author self-review records.
 
 </self-review-formal-record>
@@ -380,14 +380,20 @@ Merge strategy:
   Handoff path (`trigger`) = the same strategy is fixed on the `--auto --squash` enable at PR creation.
   Deviation from squash = AI pauses and asks human.
 
+Post-merge moment:
+The moment the obligations placed right after a merge fire at: the reopen and the L1 observation below, the workspace-side deferrals of PR review Follow-through on deferred items, and the observation entry of `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format, Auto-entry trigger. Actor = the main agent in every mode.
+- `auto` / `semi_auto` = right after the parent's own merge, in the merging session.
+- `trigger` = no agent stands at the merge, so the moment is the first turn in which the main agent observes the merge, in whichever session that turn falls: the Review approval check, a foreground webhook intake item, or any other read showing the PR merged. Run the obligations in that turn.
+In `trigger` that session need not be the one that delegated the PR, so read each obligation from its durable surface, not from delegation context: the closed issue's body for the reopen, the PR's changed files for the L1 observation, the self-review formal record for the workspace-side deferrals, the PR's linked issue and changed files for the observation entry.
+
 Parent close condition: closed automatically on merge via issue reference.
-When the closed issue's body carries a completion condition the PR alone cannot satisfy (Issue format above) and that condition is not yet met, reopen the issue and leave it open until the condition is met. In `auto` / `semi_auto` the parent reopens it right after the merge. In `trigger` the main agent reopens it at the first turn that observes the merge.
+When the closed issue's body carries a completion condition the PR alone cannot satisfy (Issue format above) and that condition is not yet met, reopen the issue at the post-merge moment and leave it open until the condition is met.
 
 Real device test:
 Merge first. Then test on main. Not a merge gate.
 
 Post-merge observation for L1 source changes:
-After merging any PR touching L1 Model Layer source (any file with `layer: L1-model` frontmatter, typically `rules/model/*`), apply `rules/operations/operations.md` Post-L1-Merge Runtime Observation. Separate observable axis from Real device test above.
+At the post-merge moment of any PR touching L1 Model Layer source (any file with `layer: L1-model` frontmatter, typically `rules/model/*`), apply `rules/operations/operations.md` Post-L1-Merge Runtime Observation. Separate observable axis from Real device test above.
 
 </merge-execution>
 
@@ -492,8 +498,10 @@ local webhook store:
 
 foreground handling:
   each user turn start = inspect once before main reply
-  mention only = foreground-matched items or exceptional notable items
-  if relevance cannot be judged cheaply = preserve and stay silent
+  mention only = foreground-matched items, exceptional notable items, or an event the hold exit
+    below names
+  if relevance cannot be judged cheaply = preserve and stay silent. An event held at ownership test
+    step 4 is outside this line until the hold exit has named it.
   full payload = open only when deeper inspection is needed
   separate AI process launch = prohibited for this flow
 
@@ -506,12 +514,22 @@ own-operation arrival confirmation:
 
   ownership test - run it; own / external is not judged by feel:
     1. head_branch = this session's working branch -> own.
-    2. head_branch = main -> read `gh run view <id> --json displayTitle` and match it against what
-       this session wrote to (event=issues carries the issue title, push the commit title,
-       pull_request the PR title). `wrote to` is the whole write set, not the creation; issue
-       authorship is not the question.
+    2. match the event against what this session wrote to. `wrote to` is the whole write set, not
+       the creation; issue authorship is not the question. The write set includes what this
+       session's write commands returned: the URL or number of each issue, PR and comment created.
+       - workflow_run on any head_branch -> read `gh run view <id> --json displayTitle` and match it
+         against the write set (event=issues carries the issue title, push the commit title,
+         pull_request the PR title).
+       - issue_comment / pull_request_review / issues / pull_request, sender = the account this
+         session writes as -> own when the event's issue or PR number is in the write set.
     3. sender is another account -> external, preserve.
-    4. nothing above settles it -> hold, and leave the event unprocessed.
+    4. nothing above settles it -> hold, and leave the event unprocessed. A sender that is the
+       account this session writes as reaches here when 1 and 2 do not match it; step 3 does not
+       take it.
+
+    Hold exit: at the next foreground check, run the test again on every held event. An event still
+    unsettled is named once, in that turn's reply, as held with its owner unknown. From then on it
+    is preserved as step 3 preserves, and is not named again.
 
     Residual limit at step 2, left in place deliberately: the title names the issue, not the writer.
     Two sessions writing to one issue raise two runs carrying the same title, and each reads both as

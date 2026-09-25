@@ -41,7 +41,9 @@ if execution_mode == trigger:
   External review judgment:
     APPROVED → the merge fires on this approval from the auto-merge handoff enabled at PR
                creation (`rules/operations/main-agent-procedures.md` Merge Execution). There is
-               no merge command left to run, and therefore none to delegate.
+               no merge command left to run, and therefore none to delegate. What the main agent
+               still runs is the post-merge obligations, at the first turn that observes the
+               merge (same section, Post-merge moment).
     CHANGES_REQUESTED → read review comments, judge against issue requirements, delegate fix to subagent.
 
 </responsibilities>

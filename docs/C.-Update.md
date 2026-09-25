@@ -9,7 +9,7 @@ Li+config.md の設定値を前提とし、アダプター sentinel tag・Li+con
 
 更新同期手続きは **`Li+update.md`** に定義されている。Li+config.md はユーザー設定のみを保持し、同期ロジックは分離されている。
 
-`on-session-start.sh` hook が 3 軸（adapter sentinel tag / Li+config schema / 言語契約）を verify し、いずれかが drift していれば `LI_PLUS_UPDATE_STATUS=needed` を emit する。AI はこの marker を見て本手続きを実行するか判定する。大半のセッションでは `LI_PLUS_UPDATE_STATUS=unnecessary` となり、本手続きは走らない（旧称「セッション起動フロー」が現運用とずれていたため、v1.17.10 で「更新同期手続き」へ rename した）。
+`on-session-start.sh` hook が 3 軸（adapter sentinel tag / Li+config schema / 言語契約）を verify し、いずれかが drift していれば `LI_PLUS_UPDATE_STATUS=needed` を emit する。AI はこの marker を見て本手続きを実行するか判定する。`needed` の間、`on-user-prompt.sh` hook は adapter sentinel tag がセッション開始時に記録された対象タグに追いつくまで、同じ marker を毎ターン再掲する（#1987。条件の詳細は [6. Adapter](6.-Adapter) の on-user-prompt.sh）。大半のセッションでは `LI_PLUS_UPDATE_STATUS=unnecessary` となり、本手続きは走らない（旧称「セッション起動フロー」が現運用とずれていたため、v1.17.10 で「更新同期手続き」へ rename した）。
 
 AI は Li+config.md を読み込んだ後、`Li+update.md` の Phase 1 から Phase 6 を順に実行する。各 Phase は直前までの Phase を依存前提として宣言する。認証情報をチャットに出力してはいけない。
 

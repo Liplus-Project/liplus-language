@@ -59,7 +59,7 @@ The origin is fixed at issue creation. The implementing AI reads it off the issu
 
 The two scopes are read independently, and the threshold applies only where both place it: AI-alone initiation (Initiation-axis scope above) and an observation-driven origin (this section).
 
-A refactor-driven L1 change still runs brake 1 (`skills/evolution-parallel-agent-eval`) and the post-merge observation (`rules/operations/operations.md` Post-L1-Merge Runtime Observation, `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format) unchanged. This section scopes the pre-change threshold only.
+A refactor-driven L1 change still runs brake 1 (`skills/evolution-parallel-agent-eval`) and the post-merge observation (`rules/operations/operations.md` Post-L1-Merge Runtime Observation, `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format) unchanged.
 
 </boundary-clarification>
 

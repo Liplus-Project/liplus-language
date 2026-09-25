@@ -8,37 +8,29 @@ layer: L2-evolution
 
 # Rule Effect Measurement
 
-Gate that settles whether a candidate line changes conduct, by running two contrasting workspaces and reading the difference between their outputs.
+Gate that settles whether a candidate line changes conduct by observation rather than by argument: two contrasting workspaces are run and the difference between their outputs is read.
 
-The problem it answers is asymmetric cost. Adding a line takes one writer. Removing one takes showing an evaluator that the line is not load-bearing, which is proof of a negative and cannot be given. `rules/model/subtractive-structural-beauty.md` Core principle (C) names preserve-by-default as a reflex rather than a judgment, and that reflex is built into any gate whose removal path needs an argument. Measurement replaces the argument with an observation.
-
-Relation to brake 1 (`skills/evolution-parallel-agent-eval/SKILL.md`): brake 1 reads a diff statically before merge; this runs the body and reads behavior. Measured in both directions — a dropped conduct line escaped the measurement net and brake 1 caught it, and a re-stated line escaped brake 1's net and the measurement caught it. Separate surfaces, not a replacement.
-
-Justification for the design decisions below is held as Decision Structure entries in the wiki, indexed at `docs/Decision-Structure.md`.
+Relation to brake 1 (`skills/evolution-parallel-agent-eval/SKILL.md`): brake 1 reads a diff statically before merge; this runs the body and reads behavior. Each has caught what the other missed, so neither replaces the other.
 
 <application-point>
 
 ## Application point
 
-The gate stands at the entrance for new material, not over a sweep of the existing body.
+The gate stands at the entrance for new material. Sweeping existing sections is spare-capacity follow-up, not the primary path.
 
-The comparison target is the tree carrying everything already there, never an empty one. A line is asked for its marginal effect on top of the current body, which makes this a duplicate detector. A one-line-at-a-time entrance exam against nothing passes almost everything: few lines are meaningless alone, and what produces the bloat is duplication.
-
-Sweeping existing sections is spare-capacity follow-up, not the primary path.
+The comparison target is the tree carrying everything already there, never an empty one: a line is asked for its marginal effect on top of the current body, which makes this a duplicate detector.
 
 ### Position on the self-evolution PR pipeline
 
-Canonical for where this gate fires on that pipeline. The order is implementation -> CI -> measurement -> brake 1: the run is raised after the CI run goes green and before the brake 1 evaluators are spawned, against the same baseline they are given (`rules/evolution/initiator-autonomy.md` Merge brake fixes that baseline). A run raised before CI measures a body other than the one the evaluators read.
+Canonical for where this gate fires on that pipeline. The order is implementation -> CI -> measurement -> brake 1: the run is raised after the CI run goes green and before the brake 1 evaluators are spawned, against the same baseline they are given (`rules/evolution/initiator-autonomy.md` Merge brake fixes that baseline).
 
-Actor = the parent. At this position it is already holding that material and scheduling the evaluator spawn, so no other actor rebuilds the same material. The arms are separate `claude -p` processes (Running stage 2), and putting a subagent between the parent and an arm changes nothing about how the arm is raised. Judge separation below is untouched by this: what the parent raises is the run, not the verdict.
+Actor = the parent. The arms stay separate `claude -p` processes (Running stage 2), and what the parent raises is the run, not the verdict (Judge separation).
 
-Firing condition = a PR whose diff over the governed body (`rules/**` / `skills/**` / `adapter/**`) deletes more than it adds on **either** of two arms: deleted lines exceed added lines, or deleted bytes exceed added bytes. Either arm alone fires the condition. A PR that exceeds on neither is not measured here: the result would be that the added material is working, which is not the claim in dispute. Self-report is not accepted in place of the diff, and no threshold is set on either margin — both arms compare at zero, as the line arm already did.
+Firing condition = a PR whose diff over the governed body (`rules/**` / `skills/**` / `adapter/**`) deletes more than it adds on **either** of two arms: deleted lines exceed added lines, or deleted bytes exceed added bytes. Either arm alone fires the condition. A PR that exceeds on neither is not measured here. Self-report is not accepted in place of the diff, and no threshold is set on either margin — both arms compare at zero.
 
-The byte arm is not a refinement of the line arm; it reaches a strip the line arm cannot. Replacing a long sentence with a short one stands on both sides of the diff as one addition and one deletion, so the line counts balance while content leaves. That shape is the typical one for a strip under `rules/model/liplus-coding-rule.md` Body States Behavior, which keeps the conduct sentence in place and takes the derivation off it — the section keeps its lines.
+Both arms are counted over the paths the firing condition names (`docs/**` is not among them), and each inside that one diff: this PR's added material against this PR's own deleted material, never across files, PRs or languages.
 
-Both arms are counted over the governed body only (the paths the firing condition names; `docs/**` is not among them), and each is counted inside that one diff: added material against this PR's own deleted material, never across files, PRs or languages. Neither arm therefore rests on the governed body being uniformly one language, and measured it is not — the adapter hook scripts emit non-ASCII strings. What `rules/model/liplus-coding-rule.md` Source Language carries for the byte arm is narrower than that: it keeps a prose replacement in one language on both sides of its own comparison, so the byte delta reads as content removed rather than as an encoding change.
-
-The run is not mandatory. Measurement consumes external budget (Running stage 2), so a run that cannot be taken does not hold the merge gate — proceed to brake 1 without it. What holds instead is the record: write `unmeasured` with its reason — spend limit, outside the firing condition, nothing in the diff to raise a probe over, or `window open` (Running stage 2) — into the parent's self-review record (`rules/operations/main-agent-procedures.md` Self-review formal record). Never leave it blank and never record it as a negative result. A blank is read as no problem, which makes the absence of a verdict work as a verdict. That record is written after brake 1 has exited, so nothing in it reaches an evaluator.
+The run is not mandatory: it consumes external budget, and a run that cannot be taken does not hold the merge gate — proceed to brake 1 without it. What holds instead is the record: write `unmeasured` with its reason — spend limit, outside the firing condition, nothing in the diff to raise a probe over, or `window open` (Running stage 2) — into the parent's self-review record (`rules/operations/main-agent-procedures.md` Self-review formal record), which is written after brake 1 has exited, so nothing in it reaches an evaluator. Never leave it blank and never record it as a negative result.
 
 </application-point>
 
@@ -53,9 +45,9 @@ Stage 1 sifts cheaply. Stage 2 adjudicates what stage 1 could not.
 | 1 | the passage under test is injected into the parent prompt | cheap | a difference settles load-bearing. Zero difference routes to stage 2 — a routing, not a verdict |
 | 2 | two workspaces are materialized, one place changed, `claude -p` raised in each | high | zero difference drops the line as duplicate. A difference keeps it as the reminder type |
 
-A stage 1 zero difference MUST NOT be used as grounds for dropping a line. What forbids it is Zero difference conflates two states below.
+A stage 1 zero difference MUST NOT be used as grounds for dropping a line (Zero difference conflates two states below).
 
-Measured, stage 1 only: reading the passage from a file and pasting it into the prompt produce the same result (three arms each, verdicts and reasoning wording near-identical). Pasting is the default, since it never writes a rule file that does not belong to the tree. The containment conditions below apply only when a file is placed after all.
+In stage 1, paste the passage into the prompt by default rather than having the arm read it from a file; the two measured the same, and pasting writes no rule file that does not belong to the tree. The containment conditions below apply only when a file is placed after all.
 
 </two-stages>
 
@@ -63,15 +55,15 @@ Measured, stage 1 only: reading the passage from a file and pasting it into the 
 
 ## Probe specification
 
-- The section's own author fixes one sentence beforehand — "what does this line change at the moment it applies" — and the probe is raised from that sentence. Fix the sentence first, then run. Rewriting it is allowed, and the rewrite is handled as a new claim from the start. Without this order, an arm re-drawn until a difference appears is searching for a phrasing that passes rather than measuring the line's work, and a zero-difference rejection stops being legitimate.
+- Raise the probe from the application-moment sentence its author fixed before the run (`rules/model/liplus-coding-rule.md` Application-moment sentence). Fix the sentence first, then run. A rewritten sentence is a new claim from the start, and the measurement taken against the previous one does not carry over.
 - The dropped line must be the only road to the answer. A probe that can be reached by elimination is not measuring that line.
 - Do not name the section or its location in the probe.
-- Run content matching and conduct matching together. Content matching asks what the body says; conduct matching asks what to do in a situation, with no reference to the body. They split on a line that re-states a rule held on the always-loaded surface: it disappears from the body, so content matching reports a difference, while conduct is unchanged. Verbatim-omission detection is only available to content matching, so this is a pairing, not a replacement.
-- The two are written in different forms. A conduct probe is not a content probe with its wording softened, and writing one from the other's form is what collapses the pairing back into a single axis.
+- Run content matching and conduct matching together. Content matching asks what the body says; conduct matching asks what to do in a situation, with no reference to the body. Verbatim-omission detection is only available to content matching, so this is a pairing, not a replacement.
+- The two are written in different forms. A conduct probe is not a content probe with its wording softened.
   - **Content form**: name the skill to invoke, instruct the arm to answer from the body, require the answer verbatim, and require it to say that the body carries no provision when it carries none.
   - **Conduct form**: present the situation and nothing else. Do not name the skill, do not name or imply any body, do not ask what is written anywhere. Ask what the arm does, and take the action as the answer. Every instruction the content form carries about consulting a body is absent here, not weakened.
 - Prefer a conduct probe whose answer lands on a discrete choice of action. Prose answers cannot be read against a band that has not been measured for them (Significance band below).
-- Only the conduct form can be raised over a line already dropped from arm B. Asking what the body says about an absent line has no question to raise, which is why a dropped conduct line passes a content-only round untouched.
+- Only the conduct form can be raised over a line already dropped from arm B: asking what the body says about an absent line has no question to raise.
 - A probe set measures blind for one round. Once that round's arm outputs have been scored, raising the same set on a changed body — a distillation fixed on brake 1 findings included — is a replay of that round, not a blind round. The round after a change raises a fresh set from the application-moment sentence, written by an author who has read no arm output of the earlier rounds. A round that re-raises a spent set, or whose set has no such author, is written as a replay in its plan's `scope` (`selection`, Running stage 2), and its verdict is read as a replay, never as a blind result.
 - Until the measurement closes — its verdict written into the run record's `scope` (Judge separation) — place probe text on no surface the side writing or directing the change under test can read: shared rooms, issue and PR threads, delegation prompts. That side includes whoever instructs the implementation from the distillation. Refer to a probe there by an uninformative id, not by its wording.
 
@@ -87,17 +79,13 @@ The two stages permit opposite sources, so the constraint text is never shared b
 
 > 重要な制約（絶対）: この親プロンプトに書かれている内容だけを情報源として答えること。それ以外は一切、情報源にしないこと。ファイル、RAG、外部インデックス、Web、あなたのコンテキストに載っているスキル一覧やその説明文——経路や形式を問わず、この親プロンプトの外にあるものは存在しないものとして扱うこと。取得も参照もしないこと。
 
-Measured: Opus 3/3 compliant (`tool_uses` = 0, no path named, no guessed completion).
+Do not enumerate the routes instead (a blacklist): at least four reach the body — the workspace `.claude/`, the same text under `liplus-language/`, the `description` field of the skill list already in context, and an external RAG index — and each new one breaks the list. "Answer from what you already hold" is not usable either: the `description` is part of what the arm already holds.
 
-Enumerating the routes instead — a blacklist — breaks each time a new one appears. At least four reach the body: the workspace `.claude/`, the same text under `liplus-language/`, the `description` field of the skill list already in context (measured: the arm named the correct destination without reading anything), and an external RAG index (measured: a complete answer with no file opened, returning a snapshot of some past moment, so two arms can silently be reading different vintages of the body).
+This is an instruction, not a wall: the `description` does not leave the context. Confirm compliance by reading the output. `tool_uses` = 0 is evidence against three of the four routes and none at all against the `description` route.
 
-"Answer from what you already hold" is not usable either: the `description` is part of what the arm already holds, so that phrasing opens the hole it is trying to close.
+**Stage 2** — no whitelist is possible, because using the always-loaded body is the whole point. The constraint is: do not retrieve anything from outside; answer from what is loaded here. RAG is why: a line deleted from arm B still stands in the index.
 
-Limit, stated as part of the specification: this is an instruction, not a wall. The `description` does not leave the context; the arm is only asked not to use it. Compliance is confirmed by reading the output. `tool_uses` = 0 is evidence against three of the four routes and none at all against the `description` route.
-
-**Stage 2** — no whitelist is possible, because using the always-loaded body is the whole point. The constraint is: do not retrieve anything from outside; answer from what is loaded here. The reason external retrieval is barred is RAG — a line deleted from arm B still stands in the index, and an arm that recovers it from there collapses the contrast.
-
-Isolation does not substitute for either. Putting the working tree outside the project or denying a disk path is inert against the RAG route; the body exists across the network and is not a thing that can be fenced.
+Isolation does not substitute for either. Putting the working tree outside the project or denying a disk path is inert against the RAG route.
 
 </contamination-constraint-reverses-by-stage>
 
@@ -110,9 +98,9 @@ A stage 1 zero difference has two readings, and stage 1's own material cannot se
 - **(a)** the injection broke the reading conditions the line answers to, so the effect is under-detected
 - **(b)** the line is a duplicate and genuinely not load-bearing
 
-Injection structurally under-detects the class of line placed to correct gist recall. The arm reads a short passage sitting in front of it, and the condition under which such a line earns its place is precisely not reading the body verbatim. Li+ carries many lines of this type (the `rules/model/trigger-check-gate.md` family), and running the gate without the distinction drops all of them at once.
+Reading (a) is structural for a line placed to correct gist recall (the `rules/model/trigger-check-gate.md` family): such a line earns its place when the body is not being read verbatim, and an injected passage is read verbatim.
 
-Separating the two is what stage 2 is for: put the section back into context of production density and volume, and raise the same probe. Zero difference with the gist condition intact reads as (b); a difference reads as (a).
+Stage 2 separates them: put the section back into context of production density and volume, and raise the same probe. Zero difference with the gist condition intact reads as (b); a difference reads as (a).
 
 </zero-difference-conflates-two-states>
 
@@ -120,12 +108,10 @@ Separating the two is what stage 2 is for: put the section back into context of 
 
 ## Judge separation
 
-A third reader takes the two arms' outputs and reads the difference. Not either arm. Holding Li+ is fine.
+A third reader takes the two arms' outputs and reads the difference. Not either arm. Holding Li+ is fine. The script moves the arms; the judge reads the difference.
 
 - Do not count conclusions alone. Read which wording each arm cited.
-- Count "reported a hole" and "the judgment itself" in separate columns, and take only the second as effect.
-
-That second rule exists because an arm detects an absence and restrains itself. Measured under a deliberate omission: 3/3 no leak, all three volunteering that the rule carries no such definition, one stating that the always-loaded body does carry it but that reference was barred. Such an arm is not ignorant; its output becomes a report about the hole. Whether A and B differ by one line's worth of judgment, or by the fact that a hole was noticed, are different things, and counting the second as effect makes every line look load-bearing.
+- Count "reported a hole" and "the judgment itself" in separate columns, and take only the second as effect. An arm that notices an absence reports the hole and restrains itself; counting that report as effect makes every line look load-bearing.
 
 Those two rules read the content axis. The conduct axis is read on its own column, and the content result does not settle it:
 
@@ -136,11 +122,9 @@ Those two rules read the content axis. The conduct axis is read on its own colum
 - Different actions = the effect. What arm B lost is conduct, and the line is load-bearing.
 - An arm that answers a conduct probe by reporting that no provision exists has answered the content question. The probe named or implied a body; the round is void, not a difference. Re-raise it in the conduct form (Probe specification above) rather than scoring it.
 
-Suppressing mention of the hole in the probe is not the fix. The noticing does not go away, only its outward sign — and that sign is what distinguished leak from no leak. Suppressing it breaks the detector. Separating the judge is the fix.
+Do not suppress mention of the hole in the probe: the noticing stays and only its outward sign goes, and that sign is what distinguishes leak from no leak.
 
 Write the verdict inside the run record's `scope` (Running stage 2). A green round answers for the probes it put, not for the change: one whose probes were picked by predicting what the change breaks is written as "the predicted breakage did not occur", never as "nothing changed".
-
-Division of labour: the script moves the arms, the judge reads the difference.
 
 </judge-separation>
 
@@ -148,13 +132,11 @@ Division of labour: the script moves the arms, the judge reads the difference.
 
 ## Significance band
 
-Read the band off the control run's own intra-arm repetitions. `repetitions` runs each arm that many times under a condition that has not moved between them, so the spread across one arm's runs is the band, and it comes out of the same run record as the contrast. Only a difference outside the band counts. Measure the band per model.
+Read the band off the control run's own intra-arm repetitions: `repetitions` runs each arm that many times under an unmoved condition, so the spread across one arm's runs is the band. Only a difference outside the band counts. Measure the band per model and per axis.
 
-Do not idle-run two identical arms to get it: no such plan is expressible. `EDIT_BUDGET` requires the two arms' edits to total exactly one, and `assert_single_contrast` re-checks the built arms by digest for exactly one differing file, so a zero-difference plan is refused at both points — including one whose `drop` and `replace_with` are the same string. Those two are what keep a zero-difference pair from being scored as a contrast; the band is read from the repetitions instead of by removing them.
+Do not idle-run two identical arms to get it: the harness refuses any plan whose arms do not differ in exactly one place (Running stage 2).
 
-Measured, once: on a probe whose verdict is a discrete value (patch / minor / major), the band was 0 under those conditions — 12 arms, all agreeing. Reasoning wording differed every time, so a band of 0 belongs to the discrete-verdict axis and does not carry to prose.
-
-That measurement was taken on a content probe, and the conduct axis was not among its conditions. The band on the conduct axis is unmeasured. A conduct probe landing on a discrete action choice is expected to hold the same band, and an expectation is not a measurement — carrying the 0 across on the strength of the shared discreteness is the move this states against. Measure the band per axis as well as per model, and until the conduct band is measured, do not read a conduct difference as an effect on the strength of the content-axis figure.
+Measured once: a band of 0 on a content probe whose verdict is a discrete value (patch / minor / major). It does not carry to prose answers, and it does not carry to the conduct axis on the strength of a shared discreteness: the conduct band is unmeasured, and until it is, do not read a conduct difference as an effect on the strength of the content-axis figure.
 
 </significance-band>
 
@@ -162,7 +144,7 @@ That measurement was taken on a content probe, and the conduct axis was not amon
 
 ## Arm model is an experimental condition
 
-Fix the arm's model and record it. Measured: with the same probe and the same workspace, the result inverted with the model (haiku 0/3 leaks, zero tool use; Opus 1/1 leak, answered in full from RAG).
+Fix the arm's model and record it: with the same probe and the same workspace, the result has inverted with the model.
 
 Do not use a weak model for the arm. It retrieves nothing, and it also fails to apply the section, so every difference comes out understated. Match the level actually in production.
 
@@ -172,9 +154,9 @@ Do not use a weak model for the arm. It retrieves nothing, and it also fails to 
 
 ## Running stage 2
 
-`scripts/measure_rule_effect.py` takes a JSON run plan and produces a run record. Nothing else survives the run: the lock and the fixed working path under temp are removed on the way out, and the head of the next run wipes what a kill or a power loss left behind.
+`scripts/measure_rule_effect.py` takes a JSON run plan and produces a run record, and leaves nothing else behind: what a kill or a power loss leaves, the head of the next run wipes.
 
-The arm is a separate process, and that is fixed by measurement rather than by preference. A subagent reads the rule text as it stood when its parent session started, and an on-disk change during the run reaches it in neither direction (measured both ways, zero tool use across every trial). Stage 2 compares on-disk states, so a subagent implementation cannot express it. A consequence to hold: an arm whose context and disk disagree adopts the context without hesitating and does not detect the disagreement, so a third party touching `.claude/` mid-run corrupts the verdict undetectably.
+The arm is a separate process. A subagent reads the rule text as it stood when its parent session started, and an on-disk change during the run reaches it in neither direction, so a subagent implementation cannot express stage 2. An arm whose context and disk disagree adopts the context without detecting the disagreement: nothing may touch `.claude/` while a run is live.
 
 The brake 1 operational copy is one such third party, and it leaves a mark (`skills/evolution-parallel-agent-eval/SKILL.md` Procedure step 2). Before raising a run, read `scripts/window_marker.py status` on the live `.claude/` the arms are copied from. `open` gates the clone: do not build the arms while the mark stands. Poll `status` again and wait for `closed` or `never_opened` before proceeding, or give up and record the run as `unmeasured`, reason `window open` (Application point) — not as a run that took place. Ending an abandoned mark is that step's own procedure, not this gate's: this gate only reads `status`, and never calls `close`.
 
@@ -190,10 +172,6 @@ What the harness enforces structurally, so it is not left to care at run time:
 - no `.git` in the arm, so no remote by construction
 - the run record written only to the file `--out` names, and `--out` required: the record carries every edit body in full, so there is no stdout path for it to reach whoever runs the harness
 - a non-zero exit (4) when no arm returned zero, so a run that measured nothing cannot be read as a run that did. The run record is written first either way; a single failed arm can be the behavior under measurement and leaves the exit at 0
-
-Cost floor: one minimal arm charged 95,069 cache-creation input tokens, which is the always-loaded surface being read and is near-independent of probe length. One round of 5 probes x 3 repetitions x 2 arms is 30 launches. Measurement consumes external budget, so it is not made mandatory.
-
-Where the run sits on the self-evolution PR pipeline is Application point, Position on the self-evolution PR pipeline; the budget is why the run there is not mandatory.
 
 </running-stage-2>
 
@@ -219,13 +197,9 @@ Measured: an arm read a note inside its own source saying the file was a copy ma
 
 ## Self-application
 
-Each time a hole in this design is found, a condition is added — which is the same shape as the bloat this gate exists to measure. So the conditions of this gate go through this gate.
+A condition added to this gate goes through this gate. The criterion is the probe's own: what does this condition change at the moment it applies. A condition that cannot be said in one sentence does not enter.
 
-The criterion is the probe's own: what does this condition change at the moment it applies. A condition that cannot be said in one sentence does not enter.
-
-Applied once already: "place both variants in both arms' workspaces" was rejected. With the naming and placement conditions held, putting only one in place leaves identical loaded text and an uninformative name, so nothing differs at the application moment.
-
-Structural limit, and the reason this cannot close into an AI-only loop. The party stacking the conditions is poorly placed to run the gate over them. Observed during the design: at every leak found, the AI side moved only toward adding one more condition; the move that stopped the counting — "stop enumerating routes, name the one permission" — came from outside the design. Separating the judge from the writer is not enough on its own; the decision to add a condition needs an outside position too. `rules/model/role-separation.md` human = final judge is read here as that structural position, not only as an approval step.
+This cannot close into an AI-only loop. The party stacking the conditions is poorly placed to run the gate over them, so the decision to add a condition needs a position outside the design as well as a judge separate from the writer. Read `rules/model/role-separation.md` human = final judge here as that structural position, not only as an approval step.
 
 </self-application>
 

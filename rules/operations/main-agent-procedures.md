@@ -222,6 +222,14 @@ Atmosphere reading scope:
 Applies to timing tier judgment (NOW / SOON / SOMEDAY) only.
 Once tier is judged, label follows the tiers table without re-reading atmosphere.
 
+Assignee read (before taking an issue — ahead of branch creation and of delegation):
+read:   gh issue view {issue_number} -R {owner}/{repo} --json assignees,body,comments
+An account other than the authenticated `gh` actor in Assignees, and no handoff record (issue body naming the current owner / takeover comment) passing the issue on from it
+  = taken. Do not start. To proceed, confirm with that actor or the human first.
+  `in-progress` absent does not change this: assigned without `in-progress` reads as taken.
+Your own account in Assignees = no evidence that you are the current owner; one account can serve several sessions.
+  Read the current owner from the handoff record and from the surface sessions coordinate on, then decide.
+
 Branch existence check (before creation):
 local:  git branch --list {branch-name}
 remote: gh api repos/{owner}/{repo}/branches/{branch-name} (404=not_exists)
@@ -446,7 +454,8 @@ source priority:
   3 = none
 
 delivery mode interaction (LI_PLUS_WEBHOOK_DELIVERY):
-  poll (default) = each user turn, the AI calls mcp__github-webhook-mcp__get_pending_status.
+  poll (default) = each user turn, the on-user-prompt UserPromptSubmit hook injects the instruction
+    to call mcp__github-webhook-mcp__get_pending_status, and the AI issues the call itself.
   channel        = MCP channel pushes events; AI does not poll, intake reads the channel surface.
   mcp_hook       = the type=mcp_tool UserPromptSubmit hook entry in the default
     settings.json template calls mcp__github-webhook-mcp__get_pending_status at hook time and

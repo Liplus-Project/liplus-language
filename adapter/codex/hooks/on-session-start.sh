@@ -389,7 +389,7 @@ register_section "open_in_progress_issues" "Open in-progress issues (max 5)" "$O
 
 # --- open issues blocked by an open issue (dependency ordering surface) ---
 # Contract = rules/evolution/cold-start-synthesis.md Dependency Ordering Surface.
-# GraphQL through `gh api`, so no gh CLI dependency flag (gh >= 2.94) is needed.
+# GraphQL through `gh api`, so no gh CLI dependency flag is needed.
 # Raw JSON is filtered here rather than with --jq so the filter is the hook's
 # own code: only blockers whose state is OPEN count, and a blocker in another
 # repository is named with its owner/repo.

@@ -487,7 +487,7 @@ Register-Section 'open_in_progress_issues' 'Open in-progress issues (max 5)' $op
 
 # open issues blocked by an open issue (dependency ordering surface)
 # Contract = rules/evolution/cold-start-synthesis.md Dependency Ordering Surface.
-# GraphQL through `gh api`, so no gh CLI dependency flag (gh >= 2.94) is needed.
+# GraphQL through `gh api`, so no gh CLI dependency flag is needed.
 # The query carries no double quote, so it survives native argument passing on
 # every PowerShell edition. JSON is parsed natively; the filter matches the bash
 # ports: only OPEN blockers count, another repository's blocker keeps owner/repo.

@@ -223,7 +223,9 @@ Applies to timing tier judgment (NOW / SOON / SOMEDAY) only.
 Once tier is judged, label follows the tiers table without re-reading atmosphere.
 
 Assignee read (before taking an issue — ahead of branch creation and of delegation):
-read:   gh issue view {issue_number} -R {owner}/{repo} --json assignees,body,comments
+read:   gh issue view {issue_number} -R {owner}/{repo} --json author,assignees,body,comments
+Author login `github-actions[bot]` or `app/github-actions` (the Discussions bot)
+  = do not start without the human's explicit go-sign.
 An account other than the authenticated `gh` actor in Assignees, and no handoff record (issue body naming the current owner / takeover comment) passing the issue on from it
   = taken. Do not start. To proceed, confirm with that actor or the human first.
   `in-progress` absent does not change this: assigned without `in-progress` reads as taken.

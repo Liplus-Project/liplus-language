@@ -37,7 +37,7 @@ The hook's own behavior. Read on demand; not applied at the step 3 moment.
 Anchor cut: the hook re-anchors the preamble above (H1 body up to the first H2 section), not the whole file. This file is always-on loaded, so a full re-emit would put the same text in one session's context twice; the preamble is the part the AI applies at the step 3 moment, and the H2 sections below are not. A file with no H2 section is emitted whole — the cut is an economy, and losing the anchor is the worse failure.
 
 Hook coordination:
-`on-session-start.sh` persists and surfaces at session open: decision structure index head, rules/ tree (fetch address table for cold-start-loaded rules cache), recent release tags, open in-progress issues, self-evaluation log head, promotion candidates, promotion tally clusters whose window has closed, a Li+ clone that cannot fetch branches, cold-start rule anchor. The hook emits material in diff-only mode (matcher = startup): only sections whose body changed since the previous startup invocation *recorded under this run's own partition* are re-emitted (partition, below). The cold-start rule anchor is always re-emitted regardless of diff state.
+`on-session-start.sh` persists and surfaces at session open: decision structure index head, rules/ tree (fetch address table for cold-start-loaded rules cache), recent release tags, open in-progress issues, open issues blocked by an open issue (see Dependency Ordering Surface below), self-evaluation log head, promotion candidates, promotion tally clusters whose window has closed, a Li+ clone that cannot fetch branches, cold-start rule anchor. The hook emits material in diff-only mode (matcher = startup): only sections whose body changed since the previous startup invocation *recorded under this run's own partition* are re-emitted (partition, below). The cold-start rule anchor is always re-emitted regardless of diff state.
 
 Multi-session partition (#1811): the persisted state is keyed by `LI_PLUS_AGENT_KEY` (env var, default `"default"`), one independent `{sections, last_emit_at}` entry per key. Unset (the common, single-session-per-workspace case) reproduces the pre-#1811 single-partition behavior exactly, file shape included once a legacy-shape state file has migrated (fail-safe reasons, below). Set distinctly per person's own launch profile only in a workspace where multiple sessions share this directory concurrently.
 
@@ -123,5 +123,32 @@ Material gathering and concrete surfacing logic belong to the adapter cold-start
 Silent skip when the workspace holds no clone (api mode) or `git` is unavailable. Neither state is evidence about a refspec, and reporting one as though it were would put a finding on a workspace that has nothing to repair.
 
 </clone-branch-fetch-surface>
+
+<dependency-ordering-surface>
+
+## Dependency Ordering Surface
+
+Open issues of the Li+ repository that wait on another open issue are surfaced at cold-start.
+
+Surface target:
+- an open issue with at least one `blockedBy` issue whose state is open -> surface it, naming each open blocker: `#<n>`, or `<owner>/<repo>#<n>` when the blocker sits in another repository
+
+A closed blocker does not count. An issue whose blockers are all closed is not surfaced.
+
+Read the relation through GraphQL (`Issue.blockedBy`), not through gh CLI dependency flags, so the surface holds on any gh version. It is a repository-level relation and requires no Projects.
+
+Content-driven, unlike the three surfaces above: the section carries a section key (`open_blocked_by_open_issues`) and sits in the diff-only set beside open in-progress issues.
+
+Scan limit = one page of open issues. When more open issues exist than the page reaches, the emission says so.
+
+The surface reads the relation as its author wrote it (`rules/operations/main-agent-procedures.md` Issue format). It derives no edge from parent / sub-issue structure and repairs no missing one.
+
+Surfacing is observation, not auto-action. Which issue to start stays the judgment of the agent holding the session.
+
+Material gathering and concrete surfacing logic belong to the adapter cold-start path, as with the three surfaces above. This section defines only the behavior contract.
+
+Silent skip when the query fails or no open issue waits on an open issue.
+
+</dependency-ordering-surface>
 
 </cold-start-synthesis>

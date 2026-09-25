@@ -485,6 +485,36 @@ $oi = gh issue list -R Liplus-Project/liplus-language --state open --label in-pr
 if ($oi) { $openIssues = ($oi -split "`n" | Where-Object { $_ }) -join "`n" }
 Register-Section 'open_in_progress_issues' 'Open in-progress issues (max 5)' $openIssues
 
+# open issues blocked by an open issue (dependency ordering surface)
+# Contract = rules/evolution/cold-start-synthesis.md Dependency Ordering Surface.
+# GraphQL through `gh api`, so no gh CLI dependency flag (gh >= 2.94) is needed.
+# The query carries no double quote, so it survives native argument passing on
+# every PowerShell edition. JSON is parsed natively; the filter matches the bash
+# ports: only OPEN blockers count, another repository's blocker keeps owner/repo.
+$blockedByOpen = ''
+$blockedQuery = 'query($owner:String!,$name:String!){repository(owner:$owner,name:$name){issues(states:OPEN,first:100,orderBy:{field:CREATED_AT,direction:ASC}){pageInfo{hasNextPage} nodes{number title blockedBy(first:50,orderBy:{field:CREATED_AT,direction:ASC}){nodes{number state repository{nameWithOwner}}}}}}}'
+$blockedRaw = gh api graphql -f owner=Liplus-Project -f name=liplus-language -f "query=$blockedQuery" 2>$null
+if ($blockedRaw) {
+  try {
+    $blockedIssues = (($blockedRaw -join "`n") | ConvertFrom-Json).data.repository.issues
+    $blockedLines = @()
+    foreach ($n in @($blockedIssues.nodes)) {
+      if ($null -eq $n) { continue }
+      $open = @()
+      foreach ($b in @($n.blockedBy.nodes)) {
+        if ($null -eq $b -or $b.state -cne 'OPEN') { continue }
+        $repo = $b.repository.nameWithOwner
+        $prefix = if ($repo -and $repo -cne 'Liplus-Project/liplus-language') { $repo } else { '' }
+        $open += "$prefix#$($b.number)"
+      }
+      if ($open.Count -gt 0) { $blockedLines += "#$($n.number) $($n.title) <- blocked by $($open -join ', ')" }
+    }
+    if ($blockedIssues.pageInfo.hasNextPage -eq $true) { $blockedLines += '(first 100 open issues scanned; more exist)' }
+    $blockedByOpen = $blockedLines -join "`n"
+  } catch { $blockedByOpen = '' }
+}
+Register-Section 'open_blocked_by_open_issues' 'Open issues blocked by an open issue' $blockedByOpen
+
 # self-evaluation log head (workspace-local memory under Codex)
 # Codex has no ~/.claude/projects/<slug>/memory; the workspace-local memory/
 # directory is the available surface. Best-effort.

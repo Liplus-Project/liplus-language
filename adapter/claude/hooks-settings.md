@@ -147,7 +147,7 @@ Target: `{workspace_root}/.claude/settings.json`
 Real files, copied verbatim into `{workspace_root}/.claude/hooks/` on bootstrap
 (with `{LI_PLUS_TAG}` placeholder replaced by the resolved target tag):
 
-- `adapter/claude/hooks/on-user-prompt.sh` — per-turn Trigger Check Gate re-arm + webhook re-arm (the call half is `poll`-only; the handling half is emitted in every delivery mode — see the mcp_tool entry behavior section below). Character_Instance is loaded via output-styles, not per-turn re-notify
+- `adapter/claude/hooks/on-user-prompt.sh` — per-turn Li+ update status re-emit (re-emits the `LI_PLUS_UPDATE_STATUS=needed` marker with its `sentinel-tag(...)` reason while `{workspace_root}/.claude/state/update-status.txt` records a non-empty target tag, the `.claude/CLAUDE.md` sentinel tag differs from it, and the sentinel still equals the one recorded beside it; local reads only, silent otherwise and when the file is absent) + Trigger Check Gate re-arm + webhook re-arm (the call half is `poll`-only; the handling half is emitted in every delivery mode — see the mcp_tool entry behavior section below). Character_Instance is loaded via output-styles, not per-turn re-notify
 - `adapter/claude/hooks/on-session-start.sh` — Cold-start Synthesis material emitter (matcher-aware: `startup` runs diff-only against `{workspace_root}/.claude/state/last-cold-start-emit.json`; `resume` / `clear` / `compact` / `fork` re-anchor only the cold-start rule anchor — see `rules/evolution/cold-start-synthesis.md` for the emission-state table)
 
   `LI_PLUS_AGENT_KEY` (env var, default `default`, #1811): partitions the
@@ -157,6 +157,13 @@ Real files, copied verbatim into `{workspace_root}/.claude/hooks/` on bootstrap
   directory concurrently — see `rules/evolution/cold-start-synthesis.md`
   Hook Emission Contract for the full rationale, including why a
   session-scoped identifier does not work for this instead.
+
+  Update status state: on every matcher that reaches the update-status
+  verification, a `needed` result writes one line
+  `status=needed target=<target tag> adapter=<sentinel tag>` to
+  `{workspace_root}/.claude/state/update-status.txt`, and an `unnecessary`
+  result removes the file. `on-user-prompt.sh` reads it every turn. The file is
+  workspace-level and not partitioned by `LI_PLUS_AGENT_KEY`.
 
   All five documented SessionStart matchers are registered. An unregistered
   matcher does not fall through to another entry — the hook simply does not run

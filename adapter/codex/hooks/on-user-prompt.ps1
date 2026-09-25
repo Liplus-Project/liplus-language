@@ -42,6 +42,33 @@ if (Test-Path -LiteralPath $configFile) {
 
 $sb = [System.Text.StringBuilder]::new()
 
+# --- Li+ update status re-emit (#1987) ---
+# Mirrors the claude port, reading .codex/state/update-status.txt (written by
+# on-session-start.ps1 / .sh) and the sentinel tag in AGENTS.md. Same condition,
+# same lines. -cmatch / -ceq / -cne: parity with the .sh ports' byte comparison.
+$updateStateFile = Join-Path $projectRoot '.codex/state/update-status.txt'
+if (Test-Path -LiteralPath $updateStateFile) {
+  $stateLine = Get-Content -LiteralPath $updateStateFile -TotalCount 1 -ErrorAction SilentlyContinue
+  if ($stateLine -and ([string]$stateLine).TrimEnd("`r") -cmatch '^status=needed target=([^ ]*) adapter=([^ ]*)$') {
+    $recordedTarget = $matches[1]
+    $recordedAdapter = $matches[2]
+    $currentAdapter = ''
+    $agentsFile = Join-Path $projectRoot 'AGENTS.md'
+    if (Test-Path -LiteralPath $agentsFile) {
+      $al = Select-String -LiteralPath $agentsFile -CaseSensitive -Pattern '^# --- Li\+ BEGIN \(([^)]*)\) ---' -ErrorAction SilentlyContinue | Select-Object -First 1
+      if ($al) { $currentAdapter = $al.Matches[0].Groups[1].Value }
+    }
+    if ($recordedTarget -and ($currentAdapter -cne $recordedTarget) -and ($currentAdapter -ceq $recordedAdapter)) {
+      $shownAdapter = if ($currentAdapter) { $currentAdapter } else { 'unknown' }
+      [void]$sb.AppendLine('')
+      [void]$sb.AppendLine('━━━ Li+ update status ━━━')
+      [void]$sb.AppendLine("LI_PLUS_UPDATE_STATUS=needed reason=sentinel-tag(adapter=$shownAdapter,target=$recordedTarget)")
+      [void]$sb.AppendLine('AI must read Li+config.md and execute Li+update.md walkthrough this session.')
+      [void]$sb.AppendLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    }
+  }
+}
+
 # Unknown-value surfacing (#1804). Rationale is in the claude port this one
 # mirrors. -cne throughout: see the comparison note below.
 if ($webhookDelivery -and

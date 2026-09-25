@@ -498,8 +498,10 @@ local webhook store:
 
 foreground handling:
   each user turn start = inspect once before main reply
-  mention only = foreground-matched items or exceptional notable items
-  if relevance cannot be judged cheaply = preserve and stay silent
+  mention only = foreground-matched items, exceptional notable items, or an event the hold exit
+    below names
+  if relevance cannot be judged cheaply = preserve and stay silent. An event held at ownership test
+    step 4 is outside this line until the hold exit has named it.
   full payload = open only when deeper inspection is needed
   separate AI process launch = prohibited for this flow
 
@@ -512,12 +514,22 @@ own-operation arrival confirmation:
 
   ownership test - run it; own / external is not judged by feel:
     1. head_branch = this session's working branch -> own.
-    2. head_branch = main -> read `gh run view <id> --json displayTitle` and match it against what
-       this session wrote to (event=issues carries the issue title, push the commit title,
-       pull_request the PR title). `wrote to` is the whole write set, not the creation; issue
-       authorship is not the question.
+    2. match the event against what this session wrote to. `wrote to` is the whole write set, not
+       the creation; issue authorship is not the question. The write set includes what this
+       session's write commands returned: the URL or number of each issue, PR and comment created.
+       - workflow_run on any head_branch -> read `gh run view <id> --json displayTitle` and match it
+         against the write set (event=issues carries the issue title, push the commit title,
+         pull_request the PR title).
+       - issue_comment / pull_request_review / issues / pull_request, sender = the account this
+         session writes as -> own when the event's issue or PR number is in the write set.
     3. sender is another account -> external, preserve.
-    4. nothing above settles it -> hold, and leave the event unprocessed.
+    4. nothing above settles it -> hold, and leave the event unprocessed. A sender that is the
+       account this session writes as reaches here when 1 and 2 do not match it; step 3 does not
+       take it.
+
+    Hold exit: at the next foreground check, run the test again on every held event. An event still
+    unsettled is named once, in that turn's reply, as held with its owner unknown. From then on it
+    is preserved as step 3 preserves, and is not named again.
 
     Residual limit at step 2, left in place deliberately: the title names the issue, not the writer.
     Two sessions writing to one issue raise two runs carrying the same title, and each reads both as

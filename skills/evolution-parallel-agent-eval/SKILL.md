@@ -1,6 +1,6 @@
 ---
 name: evolution-parallel-agent-eval
-description: Invoke when a self-evolution PR reaches CI green and the merge gate is next (mandatory brake 1) / a Li+ rules/skills/adapter edit draft has converged outside a PR flow and needs verification / an evolution-loop observe/evaluate stage needs an empirical verdict / an unaided self-check feels positive and needs measuring / a spec revision needs orthogonal verification on rule semantic consistency / a brake 1 evaluator findings comment or an author's adjudication is being written / a brake 1 round trip has come back at CI green and the next round or the exit must be chosen. Provides the subagent eval design, its bounded convergence loop, and its report shape.
+description: Invoke when a self-evolution PR reaches CI green and the merge gate is next (mandatory brake 1) / a Li+ rules/skills/adapter edit draft has converged outside a PR flow and needs verification / an evolution-loop observe/evaluate stage needs an empirical verdict / an unaided self-check feels positive and needs measuring / a spec revision needs orthogonal verification on rule semantic consistency / a brake 1 evaluator findings comment or an author's adjudication is being written / a brake 1 round trip has come back at CI green and the next round or the exit must be chosen. Provides the subagent eval design, its convergence loop, and its report shape.
 layer: L2-evolution
 ---
 
@@ -38,7 +38,7 @@ The moments are the description's. **Self-evolution PR brake (mandatory)**: ever
 
 ## Procedure
 
-**Precondition**: source on a branch other than the merge target (brake 1: the PR branch at the SHA CI went green on), `.claude/` in tag-match state. On the brake 1 path the steps loop, capped at three round trips (step 7), steps 2 to 5 once per round against its SHA. A rule effect measurement may run before a round's step 3 (`skills/evolution-rule-effect-measurement/SKILL.md` Application point); it gates no step here.
+**Precondition**: source on a branch other than the merge target (brake 1: the PR branch at the SHA CI went green on), `.claude/` in tag-match state. On the brake 1 path the steps loop until step 8 ends them, steps 2 to 5 once per round against its SHA. A rule effect measurement may run before a round's step 3 (`skills/evolution-rule-effect-measurement/SKILL.md` Application point); it gates no step here.
 
 1. **Prepare draft**
 2. **Apply operational copy (target-conditional)** - Apply where the draft reaches the evaluator as injected context: `rules/**/*.md`; a file whose installed copy is on the injection enumeration of Constraint: Character_Instance non-inheritance (`adapter/claude/CLAUDE.md` installs as `CLAUDE.md`); `adapter/claude/agents/<name>.md` when a step 3 spawn names that agent; `skills/<name>/SKILL.md` for a probe-type evaluator, whose eval depends on invoking the skill. Everything else (`skills/*` for a judge-type evaluator, `docs/*`, `hooks-settings.md`, hook scripts) is not applied; the evaluator Reads it at the named SHA.
@@ -62,10 +62,10 @@ The moments are the description's. **Self-evolution PR brake (mandatory)**: ever
 
    **Adjudication branch.** Accepted -> apply, commit, push, post, stop at CI green. None accepted -> post, stop at CI green. Or abort.
 
-   **Round trips: three.** One round trip = an evaluator round posts, the author responds by fix commit, rejection, or both, CI goes green; the first evaluation is round trip 1.
+   **Round trips: no cap.** One round trip = an evaluator round posts, the author responds by fix commit, rejection, or both, CI goes green; the first evaluation is round trip 1. What ends the loop is step 8.
 
-   **Re-run: same round, or the next one.** Same round when (a) the round's verdicts fall short of the floor (Constraint: Evaluator floor = N=1) and (b) the PR commit SHA is unchanged; otherwise the next round. Returned verdicts carry in only under the same axes and prompt; a prompt repair, required for a malformed one, retires them. The cause of the shortfall is not a term. Ceiling: a third attempt against one baseline still short stops and escalates to **human** (`skills/model-loop-safety`'s number; stop, not switch). It counts attempts within one round trip, apart from the round-trip cap, which exits to the **parent**.
-8. **Round boundary** - Actor = the parent, scheduler only: when the author reports at CI green below the cap, open the next round (steps 2 to 5 against the SHA the response went green on). The parent does not judge rejections, name a correction, or re-open an axis. Exit when a round returns no finding or three round trips are done; the cap is the bound, and no `skills/model-loop-safety` judgment runs here
+   **Re-run: same round, or the next one.** Same round when (a) the round's verdicts fall short of the floor (Constraint: Evaluator floor = N=1) and (b) the PR commit SHA is unchanged; otherwise the next round. Returned verdicts carry in only under the same axes and prompt; a prompt repair, required for a malformed one, retires them. The cause of the shortfall is not a term. Ceiling: a third attempt against one baseline still short stops and escalates to **human** (`skills/model-loop-safety`'s number; stop, not switch). It counts attempts within one round trip and does not carry across round trips.
+8. **Round boundary** - Actor = the parent, scheduler only: when the author reports at CI green, read this round's findings against the findings earlier rounds' adjudications settled - accepted and fixed, or rejected. A finding substantially the same as one of those = recurrence: do not open the next round; stop and escalate to **human**, naming the recurring finding and the earlier adjudication it repeats. No recurrence -> open the next round (steps 2 to 5 against the SHA the response went green on). That read is the recurrence test and nothing else: the parent does not judge rejections, name a correction, or re-open an axis. Exit when a round returns no finding. No round cap applies, and no `skills/model-loop-safety` judgment runs here
 9. **Externalize** - Record the verdict and adoption judgment in the parent issue body / PR self-review. On the brake 1 path the parent reads the thread whole and records, without transcribing it, the merge judgment over the eval - whether a standing rejection looks right included - with each round's N and the round-trip count, neither as a reason for adopting a finding. A settled judgment also goes to decision structure (`skills/evolution-decision-structure-write`)
 
 </procedure>
@@ -158,8 +158,8 @@ A comment on the same thread, with or without a commit; a commit applying an acc
   > Do not modify the evaluation target. Do not edit, write, commit, or push anything in the repository under evaluation, and do not run its build, tests, formatter, or any other command that mutates it. Read the PR diff and the file bodies at the named commit SHA. The one thing you write is your own findings comment on that PR: post it once, post nothing else there, and never a review, an approval, a merge, or a reply to anyone else's comment. If an axis looks like it needs a change applied before it can be answered, report that as a finding instead of applying it.
 
 - **An evaluator receives the measurement's scope, never its verdict**: the probes, or the positions of the lines exercised - never whether the arms differed, matched, or returned nothing, on any surface the evaluator is pointed at; the run's record stays off the PR thread until the loop exits
-- **Findings are posted to the PR by the evaluator**: the author answers on the same thread; nothing consolidates between them, and the parent neither composes nor reads what passes
-- **A rejection is final inside the loop**: no later round raises it and the author does not re-adjudicate it; the parent examines it at Procedure step 9
+- **Findings are posted to the PR by the evaluator**: the author answers on the same thread; nothing consolidates between them, and the parent composes nothing and reads what passes only for the recurrence test at Procedure step 8
+- **A rejection is final inside the loop**: the author does not re-adjudicate it, and a later round raising it again is a recurrence (Procedure step 8); the parent examines it at Procedure step 9
 - **Adjudication actor = the resumed implementation subagent**: canonical at `rules/evolution/initiator-autonomy.md` Merge brake, Adjudication actor; what the resume carries is `skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary
 - **Character_Instance non-inheritance**: subagent context receives `CLAUDE.md`, `.claude/rules/**/*.md` (full body), `.claude/skills/*/SKILL.md` (description only), MEMORY.md, and harness system-reminders - not `.claude/output-styles/`, hook output, or `.claude/settings.json`. When character behavior is under verification, inject the Character_Instance body into the step 3 prompt, or the axis yields a hollow name prefix with no persona
 
@@ -172,10 +172,6 @@ A comment on the same thread, with or without a commit; a commit applying an acc
 - PR review, semi_auto minor/major human review included, is a separate axis
 - Facts that change over time (API spec, library or host behavior) are checked only on lines the diff adds or modifies (Procedure step 3); backing = a cited source or an observation. Adjudicating such a finding, the author checks the fact against the current source and leaves the grounds on the line or thread, or drops the line or marks it unverified
 - Evaluator tools are not restricted and the custom-agent `tools:` route is rejected, so no-write rests on the prompt literal
-
-### What the three-round cap gives up
-
-Everything after round trip 3, a wrong rejection included, is dropped, not missed - accepted while changes stay inside git revert range and release stays human-gated. Re-evaluate when a capped merge produces observable production harm.
 
 </non-scope>
 

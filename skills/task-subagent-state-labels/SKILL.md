@@ -17,7 +17,7 @@ Subagent MUST fire state-machine labels at role boundaries:
 - Pause on human input requirement → switch to `blocked` + write issue comment with reason. Comment is mandatory. Human review of the finished implementation is not this state; it stays `review-pending` per `rules/task/task.md` Boundary.
 - CI fail → fix recovery → before retry, revert `review-pending` → `in-progress` (same subagent in-session is allowed; the label reflects the actual work state).
 
-These are transitions, not one-shot events: an item fires every time its own trigger occurs. Under the two-phase stop condition (`skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition) role completion is reached at the end of phase 1 and again at the end of each brake round the parent opens, which is capped (`skills/evolution-parallel-agent-eval/SKILL.md` Procedure, Round trips). The cycle a resumed delegation traces is `in-progress` → `review-pending` repeating, which holds the one-at-a-time invariant at every point along it.
+These are transitions, not one-shot events: an item fires every time its own trigger occurs. Under the two-phase stop condition (`skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition) role completion is reached at the end of phase 1 and again at the end of each brake round the parent opens (`skills/evolution-parallel-agent-eval/SKILL.md` Procedure step 8, Round boundary). The cycle a resumed delegation traces is `in-progress` → `review-pending` repeating, which holds the one-at-a-time invariant at every point along it.
 
 Label authority canonical spec is in `rules/task/task.md` Task Label Definitions section (`Lifecycle:` field); this skill defines the application-moment behavior.
 

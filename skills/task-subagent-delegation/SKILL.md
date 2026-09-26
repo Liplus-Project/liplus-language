@@ -26,8 +26,8 @@ if execution_mode == auto or execution_mode == semi_auto:
       round's evaluator comments on the PR, adjudicate each finding, post the accept or
       reject and its reason as a comment on the same thread; if anything was accepted,
       apply it, commit, push, CI loop. A resume opening a later round re-enters this
-      same phase; the cap on how many is `skills/evolution-parallel-agent-eval/SKILL.md`
-      Procedure, Round trips.
+      same phase; what ends the rounds is `skills/evolution-parallel-agent-eval/SKILL.md`
+      Procedure step 8 (Round boundary).
   Stop condition = `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition.
     It is reached at the end of each phase, and again at the end of each brake round;
     the literal is the same at all of them.

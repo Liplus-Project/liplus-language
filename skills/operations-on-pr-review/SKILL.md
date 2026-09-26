@@ -18,9 +18,9 @@ Delegated-subagent stop condition (canonical, split by mode):
                     it has adjudicated them, posted each accept or reject and its reason as a comment on that
                     thread, and pushed what it accepted. Reaching CI green again ends this pass. If nothing was
                     accepted, the same point is reached with no new commit, the adjudication comment posted all
-                    the same. The parent may then open a further round, which ends at this same point; the
-                    number of them is capped
-                    (`skills/evolution-parallel-agent-eval/SKILL.md` Procedure, Round trips).
+                    the same. The parent may then open a further round, which ends at this same point; what
+                    ends the rounds is `skills/evolution-parallel-agent-eval/SKILL.md` Procedure step 8
+                    (Round boundary).
     Adjudication belongs to the resumed subagent, not to the parent
     (`rules/evolution/initiator-autonomy.md` Merge brake, Adjudication actor). The parent self-reviews and
     merges after the last pass.

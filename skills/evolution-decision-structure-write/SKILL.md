@@ -58,7 +58,7 @@ Decision Structure is a semantic graph of judgment nodes joined by supersede / d
    - **Constraints** = the premises and constraints that drove it (grounds for the choice, not conditions on the implementation; those were routed out above)
    - **Conclusion** = the adopted option against the rejected ones
    - **Related** = links to related issues / PRs / other entries
-5. **Push directly to the wiki repo.** The wiki is an independent git surface, so no PR ceremony applies. Add the `_Sidebar.md` slug in the same commit, or the next release's sidebar integrity assertion stops the sync.
+5. **Push directly to the wiki repo.** The wiki is an independent git surface, so no PR ceremony applies. Add the `_Sidebar.md` slug in the same commit, under its `**判断構造**` line, or the next release's sidebar integrity assertion stops the sync. Above that line the sync overwrites from `docs/wiki/_Sidebar-head.md` (`skills/operations-on-wiki-sync/SKILL.md` Ownership Boundary).
 6. **Update the `docs/Decision-Structure.md` index through the normal main-repo PR flow whenever an entry is added, renamed, or deleted.** Minor body edits do not need it.
 
 </procedure>

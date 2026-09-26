@@ -172,7 +172,7 @@ class GuardSpecTextTest(unittest.TestCase):
         """Dead after the guard: step 5 is only reached with the set empty."""
         no_drift = re.search(r"^.*no drift.*$", self.steps, re.MULTILINE)
         assert no_drift is not None
-        self.assertIn("Empty `to_copy` = no drift", no_drift.group(0))
+        self.assertIn("Empty `to_copy` and empty `sidebar_new` = no drift", no_drift.group(0))
         self.assertNotIn("empty `unclassified`", no_drift.group(0))
 
     def test_the_guard_reads_docs_history_from_the_source_ref(self) -> None:
@@ -183,7 +183,7 @@ class GuardSpecTextTest(unittest.TestCase):
     def test_the_mirror_carries_the_guard_and_the_shrunk_condition(self) -> None:
         self.assertIn("非ゼロ終了", self.mirror)
         self.assertIn("--diff-filter=AD", self.mirror)
-        self.assertIn("to_copy が空 = drift なし", self.mirror)
+        self.assertIn("to_copy と sidebar_new がともに空 = drift なし", self.mirror)
 
 
 if __name__ == "__main__":

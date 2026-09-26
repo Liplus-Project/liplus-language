@@ -133,8 +133,7 @@ Subagent_Delegation:
   - Retain that id from the phase-1 spawn. Losing it costs the implementation context the resume exists to keep.
   - `ListAgents` does not recover a lost id. Measured on 2026-09-26/27: it listed peer local sessions, and
     it listed neither the subagents another session spawned nor this session's own completed subagents.
-    The implementation subagent has completed by the time the brake reports, so no session lists it. The
-    held id does reach it: `SendMessage` to a completed subagent by its id resumed it.
+    The held id does reach a completed subagent: `SendMessage` addressed by its id resumed it.
   - A parent that has lost the id therefore has no resume target, in the same session or a later one. That
     is the state the spawning-session bullet below names.
   - There is no path through the child. A subagent does not hold its own agent id, so asking it for one

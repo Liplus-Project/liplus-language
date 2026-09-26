@@ -131,12 +131,11 @@ Subagent_Delegation:
   - The implementation subagent is resumed via the Agent tool's `SendMessage`, addressed by the
     agent id or name returned at spawn. A fresh `Agent` call starts cold and is not a resume.
   - Retain that id from the phase-1 spawn. Losing it costs the implementation context the resume exists to keep.
-  - Losing it inside the same session is recoverable: `ListAgents` enumerates the in-process subagents this
-    session spawned, and a name it returns is itself an address (`SendMessage({to: "<name>"})`). Take the
-    address from there and resume; this branch does not fall to the reconstruction fallback.
-  - Across sessions there is no such recovery: `ListAgents` reaches only what the current session spawned,
-    so nothing enumerates a subagent another session spawned. That is the state the spawning-session bullet
-    below names.
+  - `ListAgents` does not recover a lost id. Measured on 2026-09-26/27: it listed peer local sessions, and
+    it listed neither the subagents another session spawned nor this session's own completed subagents.
+    The held id does reach a completed subagent: `SendMessage` addressed by its id resumed it.
+  - A parent that has lost the id therefore has no resume target, in the same session or a later one. That
+    is the state the spawning-session bullet below names.
   - There is no path through the child. A subagent does not hold its own agent id, so asking it for one
     yields no address; the spawning side is the only holder.
   - The id lives in the spawning session's context. A parent that does not hold it has no resume target, which

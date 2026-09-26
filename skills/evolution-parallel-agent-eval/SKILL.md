@@ -8,27 +8,15 @@ layer: L2-evolution
 
 # Parallel Subagent Eval
 
-Verification method that measures the AI's introspection gap (no empirical basis for predicting its own future invoke behavior or rule semantic effect) from the outside via the current behavior of subagents.
-
-Justification for the design decisions below is held as Decision Structure entries in the wiki, indexed at `docs/Decision-Structure.md` and retrieved via `skills/evolution-judgment-learning`.
+Measures through subagents' behavior what introspection cannot predict: invoke behavior and a rule's semantic effect.
 
 <trigger>
 
 ## Trigger
 
-Fires at any of the following moments:
+The moments are the description's. **Self-evolution PR brake (mandatory)**: every self-evolution PR (`rules/evolution/initiator-autonomy.md` Self-evolution PR definition, both conditions) runs this method as brake 1, positioned by `rules/evolution/initiator-autonomy.md` Merge brake. An L1 Model Layer change runs it unchanged; semi_auto patch-auto-merge does not bypass it.
 
-- Li+ rules/* or skills/* edit draft has converged outside a PR flow and verification is needed before it is carried into one
-- evolution-loop observe / evaluate stage needs an empirical verdict
-- Right after AI alone feels "this edit satisfies the spec" (catch overconfidence from an unaided self-check)
-- Spec revision proposal needs orthogonal verification on the rule semantic consistency axis
-- **Self-evolution PR brake (mandatory)**: any self-evolution PR runs this method. Which PRs those are is canonical in `rules/evolution/initiator-autonomy.md` Self-evolution PR definition — both of its conditions, neither alone — and is not restated here. This is brake 1, the only brake at the merge gate. Its firing moment is fixed rather than draft-driven — the delegated subagent's report at its stop condition (`skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition) — and the position rule is canonical in `rules/evolution/initiator-autonomy.md` Merge brake, not restated here. An L1 Model Layer source change adds no brake of its own and runs this one unchanged. semi_auto patch-auto-merge does not bypass brake 1.
-
-Axis selection on the brake 1 path: three axes, and the set does not vary by draft. Two are the per-draft axes — A (does the diff do what its own issue asked for?) and B (does the diff break a rule?) — held as copy-verbatim literals at Axis statement form, Held per-draft axes, where only their `Unit` and `Scope` lines are filled per run. The third is the fixed axis (impression-literal detection, spec in `skills/evolution-impression-literal-detection/SKILL.md`), always included for Li+ source drafts regardless of spec nature and likewise copied from a held literal, its Prompt literal.
-
-A draft that looks unlike the last one is not a reason to compose a set of axes per draft. Do not add a third per-draft axis, and do not split either of the two.
-
-The fixation reaches the brake 1 path and stops there. At the other Trigger moments above the fixed axis is included as always, and any further axis is composed per draft nature and written under Axis statement form.
+**Axis selection.** On the brake 1 path every draft gets three axes: per-draft A (issue requirement) and B (rule violation) from Axis statement form, Held per-draft axes, and the fixed impression-literal axis from `skills/evolution-impression-literal-detection/SKILL.md` Prompt literal. Do not compose axes per draft, add a third per-draft axis, or split either. Elsewhere the fixed axis is included for Li+ source drafts, and further axes are composed under Axis statement form.
 
 </trigger>
 
@@ -36,29 +24,13 @@ The fixation reaches the brake 1 path and stops there. At the other Trigger mome
 
 ## Design Dimensions
 
-Three axes that move verification cost and detection power independently. Total subagent invocation count = `N x P`; M is absorbed inside each subagent prompt.
+`subagent_count (N)` = independent evaluations per axis; `axes_per_subagent (M)` = axes one subagent answers; `premise_variations (P)` = ablation premises compared. Total invocation = `N x P`, exempt from `skills/task-subagent-spawn/SKILL.md` Parallel-Width Cap.
 
-- **`subagent_count (N)`** - Independent sample count. Obtain N independent evaluations per observation axis. Robustness against probabilistic variance.
-- **`axes_per_subagent (M)`** - Number of observation axes each subagent answers within its prompt. Blind-spot coverage.
-- **`premise_variations (P)`** - Number of ablation premises (e.g. full rule exclusion / partial exclusion). Robustness against premise variation.
+- **Default pattern**: `N=1, M=all axes, P=1`.
+- **Exception pattern**: `M=1`, one axis per subagent, only when per-axis prompt complexity is too high to suppress cross-axis echo bias in one context.
+- **P > 1**: only to compare premises directly, typically P=2 before/after (draft unapplied vs applied, same prompt).
 
-### Default pattern (delete/keep judgment, etc.)
-
-`N=1, M=all axes, P=1` - one subagent answers all M axis questions against the same ablation output. Total invocation = 1.
-
-### Exception pattern: M=1 axis-separated
-
-`N=1, M=1, P=1`, one axis per subagent. Total invocation = `N x axis_count`. Adopt only when per-axis prompt complexity is high enough that cross-axis echo bias cannot be suppressed inside a single subagent context.
-
-### Premise variations (P > 1)
-
-Use only when comparing multiple ablation premises directly. Total invocation = `N x P`; within each premise, M is absorbed into the prompt as in the default pattern.
-
-The representative case is P=2 before/after: premise A = pre-change (operational copy unapplied = baseline), premise B = post-change (draft applied = candidate) are placed as separate premises and the subagent's behavior under the same prompt is compared directly. Trigger = a revision where "did the subagent verdict shift before vs after draft application on the same question?" needs to be pinned down empirically. Cost is `N=1, P=2 -> 2 invocation`.
-
-### Every finding is adjudicated on its literal
-
-No count, ratio, or majority enters a verdict anywhere in this method. A finding is adopted or dropped by checking its literal against the source at the revision its `path:line` names, and that check is the author's at Procedure step 7 — on the fixed axis as on the two per-draft axes. Where more than one evaluator ran and both raised the same finding, that changes nothing about how it is adjudicated.
+**Every finding is adjudicated on its literal**, against the source at the revision its `path:line` names, on every axis (Procedure step 7): no count, ratio, or majority enters any verdict.
 
 </design-dimensions>
 
@@ -66,64 +38,35 @@ No count, ratio, or majority enters a verdict anywhere in this method. A finding
 
 ## Procedure
 
-**Precondition**: source lives on a branch other than the merge target, and `.claude/` is in tag-match state (draft unapplied). On the brake 1 path that branch is the PR branch at the SHA the CI run went green on; on the other Trigger entries it is an experimental branch.
+**Precondition**: source on a branch other than the merge target (brake 1: the PR branch at the SHA CI went green on), `.claude/` in tag-match state. On the brake 1 path the steps loop, capped at three round trips (step 7), steps 2 to 5 once per round against its SHA. A rule effect measurement may run before a round's step 3 (`skills/evolution-rule-effect-measurement/SKILL.md` Application point); it gates no step here.
 
-On the brake 1 path the steps below are a loop, bounded at three round trips (step 7, Round trips). Steps 2 to 5 run once per round, against that round's own SHA.
+1. **Prepare draft**
+2. **Apply operational copy (target-conditional)** - Apply where the draft reaches the evaluator as injected context: `rules/**/*.md`; a file whose installed copy is on the injection enumeration of Constraint: Character_Instance non-inheritance (`adapter/claude/CLAUDE.md` installs as `CLAUDE.md`); `adapter/claude/agents/<name>.md` when a step 3 spawn names that agent; `skills/<name>/SKILL.md` for a probe-type evaluator, whose eval depends on invoking the skill. Everything else (`skills/*` for a judge-type evaluator, `docs/*`, `hooks-settings.md`, hook scripts) is not applied; the evaluator Reads it at the named SHA.
 
-On that same path a measurement may be raised between the CI green a round rests on and the spawn at step 3 (`skills/evolution-rule-effect-measurement/SKILL.md` Application point, Position on the self-evolution PR pipeline, canonical for whether it fires, who raises it, and how a run that could not be taken is recorded). It is not a step of this procedure and does not gate one: the round proceeds whichever way that gate went. What it leaves behind for a round it ran before is scope, and only scope (step 3, and Constraint: An evaluator receives the measurement's scope, never its verdict).
+   The parent writes the apply to `.claude/` from `gh api repos/<owner>/<repo>/contents/<path>?ref=<SHA>` at one SHA (brake 1: the round's SHA named at step 3), never from a working tree.
+   - **Host permission-gate fallback**: when the host self-modification gate refuses the apply, `skills/*` falls back to direct Read, a deviation recorded in the PR self-review; any other file is re-run from a session that can apply, or its deviation is recorded with reduced confidence flagged in the PR's Self-Evolution Observation Format entry (`rules/evolution/memory-entry-format.md`) where it has one.
+   - **Window mark**: any apply runs inside `scripts/window_marker.py --claude-dir <.claude written>`: `open --procedure evolution-parallel-agent-eval` (`--wait-seconds` set per run and recorded), wait until `ready` exits 0, apply, `applied`. `open` refusing = a mark stands: do not apply. No age ends a mark: its opener ends it at step 5, or, the opener gone, whoever finds it, by the `recovery` `status` names (`close_without_restore` said so in `--closed-by`), then `close --closed-by <self>`.
+3. **Subagent spawn** - Select N, M, P and spawn, in parallel within a round as multiple Agent tool calls in one message, each naming `subagent_type` (Claude Code) or `agent_type` (Codex), setting `model` (Constraint: Model floor), and following the kind split of Constraint: Effort floor. A Claude Code probe-type evaluator inherits the parent session's effort: raise the parent session's effort to the floor before spawning one and keep it for the round. On the brake 1 path each round spawns fresh evaluators; the prompt names the PR URL, the pushed commit SHA, and the green CI run URL, never a path in the parent's clone, and carries the three axes as held literals (`Unit` / `Scope` of A and B the only fill), plus:
+   - the no-write literal (Constraint: Evaluator does not modify the evaluation target); one findings comment holding every axis; a repository-wide sweep clones into the evaluator's own working directory
+   - `gh pr diff <n> --repo <owner>/<repo>`, `gh api repos/<owner>/<repo>/contents/<path>?ref=<SHA>`, `gh pr view <n> --repo <owner>/<repo> --json comments`
+   - later rounds report only what is not on the thread, never a rejected finding
+   - the comment's language: this run's value on the base-language side of `Workspace_Language_Contract` (not the PR-body precedence of `skills/task-subagent-prompt/SKILL.md` Delegation prompt hygiene), written into no Li+ source file
+   - an added or modified line stating a fact that changes over time, with no backing, is a full-length finding; the fact is not verified
+   - each line removed without replacement is asked once whether it is still true and still needed at the named SHA; both = a finding, and "all removed correctly" is a valid outcome
+   - after a measurement, its scope only (Constraint: An evaluator receives the measurement's scope, never its verdict)
+   - one sentence composed from Report shape: the asymmetry as it lands on the evaluator's comment, and no echo of the criteria the prompt supplies
+4. **Relay to the author** - Actor = the parent, relay only: resume the author (`skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary) with the entry alone - this round's findings are on the thread, to be adjudicated. The parent does not read, consolidate, select, rank, or answer them. When every axis of every comment is clean, the author is not resumed and the loop exits at step 8.
+5. **Runtime restore** - Parent-side, once every evaluator has posted, before the author is resumed: end the step 2 mark by the `recovery` `status` names now, then `close --closed-by <self>`. No mark, nothing to run
+6. **Read the findings** - Actor = the resumed implementation subagent (Constraint: Adjudication actor): this round's comments whole, each finding its own unit into step 7; no axis is weighed against another, and a clean axis is its own verdict only
+7. **Judgment** - Actor = the resumed implementation subagent: adjudicate each finding against the source; post each accept / reject with its reason as a **comment on the PR** thread (Report shape, Author's adjudication).
 
-1. **Prepare draft** - Draft the edit content
-2. **Apply operational copy (target-conditional)** - Apply only when the draft reaches the subagent's observation surface as injected context, which splits by target:
-   - `rules/**/*.md` body IS injected: the apply is mandatory
-   - `skills/<name>/SKILL.md` body is NOT injected (description only, body lazy-loaded at invoke): for a judge-type evaluator the apply is not required, and the evaluator is pointed at the draft for direct Read instead. Exception: when the eval depends on the subagent *invoking* the skill (probe-type, body auto-loads at invoke), the apply IS required
-   - any other file (`docs/*`, `adapter/*`, and every path not named above): the split is read off where the file's installed copy lands, not off its repository path. An installed copy on the injection enumeration in Constraint: Character_Instance non-inheritance takes the `rules/**/*.md` branch — `adapter/claude/CLAUDE.md` is installed as `CLAUDE.md`. `adapter/claude/agents/<name>.md` is not on that enumeration: it is installed as `.claude/agents/<name>.md` and reaches an evaluator by a separate route, as the system prompt of a step 3 spawn naming that agent. It takes the `rules/**/*.md` branch when a step 3 spawn names that agent, and the branch below otherwise. Every other file — none installed (`docs/*`, `hooks-settings.md`), or installed where neither route reaches the evaluator (hook scripts) — takes the `skills/<name>/SKILL.md` judge-type branch: no apply, direct Read
+   **Adjudication branch.** Accepted -> apply, commit, push, post, stop at CI green. None accepted -> post, stop at CI green. Or abort.
 
-   The apply is a parent-side write to `.claude/`; the source stays on its own branch and the evaluators spawned at step 3 read it there. The parent reads what it applies from the source pinned at one commit SHA, through a ref-pinned read such as `gh api repos/<owner>/<repo>/contents/<path>?ref=<SHA>`: on the brake 1 path the round's SHA, the same one step 3 names to the evaluators; on the other Trigger entries a commit of the branch the draft sits on. No working tree is a read source, the implementer's clone or worktree included.
-   - **Host permission-gate fallback**: an autonomous run without explicit user authorization can have the apply refused by the host self-modification gate. `skills/*` falls back to evaluator direct Read at the named SHA; record the deviation in the PR self-review. `rules/*`, and any other file on the `rules/**/*.md` branch above, cannot be substituted that way: re-run from a session that can apply, or record the deviation and flag reduced confidence for post-merge observation on a PR that has an entry under `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format. On a PR that gets no entry under that format's creation criterion, record the deviation only; nothing tracks the PR after merge
-   - **Window mark**: whenever this step applies anything, the span until step 5 is marked on disk with `scripts/window_marker.py`, `--claude-dir` naming the `.claude/` being written and `--procedure evolution-parallel-agent-eval`. Order: `open` before the apply, then wait until `ready` exits 0, then apply, then `applied`. The record `open` writes is the disclosure: it carries where the backup sits and a discriminator — a line present in the draft, the two versions it separates named, and its count on each side. `--wait-seconds` is set per run and recorded. A peer that has checked the pre-apply tree runs `respond`, which ends the wait early
-   - `open` refusing means a mark already stands: do not apply. No age ends a mark on its own. `status` names what the standing mark applied, when, what the tree carries now, where its backup sits, and the `recovery` the tree permits. Ending it is its opener's at step 5, or, when the opener is gone, that of the agent that finds it; either ends it by that `recovery`, then `close --closed-by` naming itself: `restore_then_close` — restore from the recorded backup first; `close` — nothing to restore; `close_without_restore` — do not write the backup back, and say so in `--closed-by`
-3. **Subagent spawn** - Select N, M, P per draft nature and spawn; where the selection puts more than one subagent in the round, spawn them in parallel. Default `N=1, M=all axes, P=1`, total invocation = 1; switch to the M=1 exception pattern when the echo-bias condition in Constraint: Subagent prompt must be self-contained holds, or to P>1 when premise variation is needed (see Design Dimensions). Every spawn explicitly sets the Agent tool `model` parameter at or above the sonnet-class floor (see Constraint: Model floor).
+   **Round trips: three.** One round trip = an evaluator round posts, the author responds by fix commit, rejection, or both, CI goes green; the first evaluation is round trip 1.
 
-   The spawn splits on host and evaluator kind, the same split step 2 above reads. On Claude Code a judge-type evaluator — one that reads the draft — spawns as `subagent_type: medium` (or a higher effort-named agent), with the brake 1 evaluator role literal (Constraint: Effort floor) injected into the prompt verbatim; `adapter/claude/agents/` was reorganized by effort, not by role, at #1972. A Claude Code probe-type evaluator — one whose own bare behavior under the applied draft is what the round reads — spawns as the built-in general-purpose agent and inherits the parent session's effort, so raise the parent session's effort to the floor before spawning one and leave it there for that round. Nothing enforces that raise because Claude Code exposes no effort spawn parameter. On Codex, both kinds spawn with no agent definition file and explicitly pass `reasoning_effort="medium"`; the self-contained prompt carries the judge role when needed, while the probe keeps its bare behavior as the observation target. The Codex value resolves independently from the model floor and must be supported by the selected model (see Constraint: Effort floor).
-
-   On the brake 1 path every round spawns its evaluators fresh; an evaluator is never resumed across rounds.
-
-   On the brake 1 path the material named in the prompt is the PR URL, the pushed commit SHA, and the green CI run URL — never a path inside the parent's clone. The reason that set is fixed is canonical in `rules/evolution/initiator-autonomy.md` Merge brake. The rule governs what the prompt *names*; step 2's operational copy is unaffected.
-
-   On that same path all three axes enter the prompt as held literals, copied verbatim with nothing added to them: the two per-draft axes from Axis statement form, Held per-draft axes, whose `Unit` and `Scope` lines are the only per-run authoring left in the prompt, and the fixed axis from `skills/evolution-impression-literal-detection/SKILL.md` Prompt literal, which carries no such blank. Off it, only the fixed axis arrives held; the rest is composed (Trigger, Axis selection). Ten more things go in alongside the axes and the material:
-   - the no-write literal verbatim (see Constraint: Evaluator does not modify the evaluation target)
-   - the retrieval commands: `gh pr diff <n> --repo <owner>/<repo>` returns the diff, `gh api repos/<owner>/<repo>/contents/<path>?ref=<SHA>` returns any file body at that SHA, and `gh pr view <n> --repo <owner>/<repo> --json comments` returns the comments already on the thread
-   - the allowance that an axis needing a repository-wide sweep clones into the evaluator's own working directory, which is off the shared surface
-   - on the brake 1 path, the reporting destination: the evaluator posts its findings as one comment on the PR, all axes inside it, and writes nothing else there (Constraint: Findings are posted to the PR by the evaluator)
-   - on the brake 1 path in a round after the first, the standing-rejection bound: read the comments already on the thread and report only what is not already there. A finding the author has rejected is settled and is not raised again (Constraint: A rejection is final inside the loop)
-   - on the brake 1 path, the resolved language for that comment, named as the value for this run. A PR comment resolves on the base-language side of `Workspace_Language_Contract` (`adapter/claude/CLAUDE.md` / `adapter/codex/AGENTS.md` Definitions), not on the project-language side a PR *body* takes; the body-language precedence at `skills/task-subagent-prompt/SKILL.md` Delegation prompt hygiene does not resolve it. The bound that no resolved value is written into a Li+ source file holds here as it does there
-   - on the brake 1 path, the external-fact bound: report each line the diff adds or modifies that states a fact changing over time and shows no backing, as a finding of its own at full length, and do not verify the fact itself (Non-scope)
-   - on the brake 1 path when the diff removes lines without replacement, the removed-line check: ask of each such line once whether it is still true and still needed, answered against the file bodies at the named SHA. A line that is both is a finding; "all removed correctly" is a valid outcome
-   - on the brake 1 path in a round a measurement ran before, that run's scope: the probes it put, or the positions of the lines it exercised. Its outcome stays out — whether the arms differed, matched, or returned nothing at all (Constraint: An evaluator receives the measurement's scope, never its verdict)
-   - the shape that comment is written in, as one sentence the parent composes from Report shape: the asymmetry as it lands on the evaluator's comment, plus the prohibition on echoing the criteria this prompt supplies. That sentence is what the prompt carries; the Report shape section behind it is the parent's reference, not prompt payload
-4. **Relay to the author** - Actor = the parent, as relay and nothing else. Resume the author (`skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary) pointed at the PR thread, and stop there. What the parent supplies is the entry — that this round's findings are on the thread and are to be read and adjudicated — and not their content.
-
-   **The parent does not supervise the exchange it relays between.** It does not read the findings before relaying, does not consolidate them, does not select among them, does not rank them, and does not answer one. Accept / reject is the author's authority (Constraint: Adjudication actor).
-
-   Relay nothing when every axis of every evaluator comment in this round is clean: the author is not resumed, the loop exits at step 8, and the eval's record rests on the thread and on the self-review at step 9.
-5. **Runtime restore** - Read `status` on the step 2 mark and end it by the `recovery` it names at this moment, through the same three branches as a standing mark at step 2: `restore_then_close` restores `.claude/` to tag-match state from the recorded backup (reverts the operational copy to pre-draft); the other two write no backup back. Then `close --closed-by` naming itself; the close is written into the record, which moves under `history/` and is not deleted. Parent-side, as the apply at step 2 was. It runs as soon as every evaluator has posted its findings, and before the author is resumed; it does not wait on step 6. When step 2 opened no mark it applied nothing, and this step runs neither a restore nor a close
-6. **Read the findings** - Actor = the resumed implementation subagent, not the parent (see Constraint: Adjudication actor). It reads this round's evaluator comments on the PR whole, every axis of them, and carries each finding into step 7 as its own unit. Axes are not weighed against each other and no axis's outcome settles another's; a clean axis is read as its own verdict and nothing more
-7. **Judgment** - Actor = the resumed implementation subagent, which adjudicates each finding against the source and records every accept / reject and its reason as its own **comment on the PR**, on the thread the findings arrived on (shape = Report shape, Author's adjudication). Three application moments sit under this number, one per label below.
-
-   **Adjudication branch.** Anything accepted -> apply it, commit, push, post the adjudication, and stop again at CI green. Nothing accepted -> post the adjudication and stop at CI green all the same, the tree unchanged. Or abort. The destination does not split with the branch: it is the PR comment whether or not a commit exists.
-
-   **Round trips: three.** One round trip = an evaluator round posts its findings, the author responds to them by fix commit or by rejection or by both, and CI goes green. The first evaluation is round trip 1: at most three evaluator rounds and three author responses. Exit is at step 8 — earlier when a round returns no finding, otherwise at the cap. What the cap drops is at Non-scope, What the three-round cap gives up.
-
-   **A rejection is final inside the loop** (Constraint: A rejection is final inside the loop). The author does not re-adjudicate a finding it has already rejected, and no later round puts one back in front of it.
-
-   **Re-run: same round, or the next one.** Whether a re-run is permitted is settled by what the round audited, never by why it stopped. A re-run continues the same round when both hold, and neither alone: (a) the verdicts that round returned have not reached the floor (Constraint: Evaluator floor = N=1 — a round that returned no verdict at all is the case this reaches), and (b) the baseline it ran against — the PR commit SHA — is unchanged from the first attempt. Verdicts already returned are carried into it rather than discarded, and they must share the instrument: a verdict counts toward the floor only where the axes and prompt that produced it are the ones the re-run spawns under. Repairing a prompt between attempts is permitted, and a malformed one has to be repaired before it can return anything — but the repair retires the verdicts taken under the old wording instead of adding to them. Cause is not a term here: a spend limit, an evaluator crash, a malformed prompt and a timeout are alike one round that returned fewer than the floor. Ceiling: a third attempt against the same baseline that still has not reached the floor stops there and escalates to human. The number and its task / debug category are `skills/model-loop-safety`'s; the action here is stop, not the stop-and-switch it prescribes. This ceiling and the round-trip cap above share a number and nothing else: this one counts attempts at one round that returned no verdict at all and escalates to **human**, while that one counts completed round trips and exits to the **parent**. A run sitting at its second attempt under this ceiling is still inside round trip 1.
-
-8. **Round boundary** - Actor = the parent, as scheduler and nothing else. When the author reports back at CI green and the cap is not yet reached, open the next round: steps 2 to 5 run again against the SHA the author's response went green on, and step 3 spawns fresh evaluators.
-
-   **The parent does not stand between the two ends of the exchange.** It does not judge the author's rejections, does not name a correction, and does not re-open an axis. A rejection is examined by nobody inside the loop (step 7), and past the loop by the parent's own reading of the thread at step 9.
-
-   Exit when either holds: this round returned no finding, or three round trips are done. Either way the loop ends here and step 9 follows. The cap is the bound: no `skills/model-loop-safety` judgment is run here, and no actor inside the loop counts toward convergence
-9. **Externalize** - Record the verdict and the adoption judgment in the parent issue body / PR self-review. On the brake 1 path the self-review transcribes neither side of the exchange: the findings are the evaluator comments at step 3 and the adjudication the author's comments at step 7, both on the PR thread already. The parent reads that thread whole here, and records what it does not carry: the merge judgment over the eval, including whether a rejection left standing looks right. Record N alongside the verdict as the width each round ran at, and the number of round trips the loop took; neither is ever written as the reason a finding was adopted or dropped (see Design Dimensions, Every finding is adjudicated on its literal). If the judgment has settled, also append to decision structure per `skills/evolution-decision-structure-write`
+   **Re-run: same round, or the next one.** Same round when (a) the round's verdicts fall short of the floor (Constraint: Evaluator floor = N=1) and (b) the PR commit SHA is unchanged; otherwise the next round. Returned verdicts carry in only under the same axes and prompt; a prompt repair, required for a malformed one, retires them. The cause of the shortfall is not a term. Ceiling: a third attempt against one baseline still short stops and escalates to **human** (`skills/model-loop-safety`'s number; stop, not switch). It counts attempts within one round trip, apart from the round-trip cap, which exits to the **parent**.
+8. **Round boundary** - Actor = the parent, scheduler only: when the author reports at CI green below the cap, open the next round (steps 2 to 5 against the SHA the response went green on). The parent does not judge rejections, name a correction, or re-open an axis. Exit when a round returns no finding or three round trips are done; the cap is the bound, and no `skills/model-loop-safety` judgment runs here
+9. **Externalize** - Record the verdict and adoption judgment in the parent issue body / PR self-review. On the brake 1 path the parent reads the thread whole and records, without transcribing it, the merge judgment over the eval - whether a standing rejection looks right included - with each round's N and the round-trip count, neither as a reason for adopting a finding. A settled judgment also goes to decision structure (`skills/evolution-decision-structure-write`)
 
 </procedure>
 
@@ -131,19 +74,17 @@ On that same path a measurement may be raised between the CI green a round rests
 
 ## Axis statement form
 
-Fixes the form every per-draft axis is written in — on the brake 1 path that is the pair Trigger, Axis selection names, held below at Held per-draft axes; at the Trigger moments outside brake 1 it is whatever axis the parent composes there, and the parts below are the requirement on that composition entire. The parts read on two surfaces now that the pair is held: they are the shape those literals are written in, and, for the two parts left open on them (`Unit` and `Scope`), they are the requirement on the parent's per-run fill. The section applies at Procedure step 3, where the axes enter the prompt. The fixed axis is outside it: that axis's wording is held whole at `skills/evolution-impression-literal-detection/SKILL.md` Prompt literal with no part left open, so nothing of it is filled per run.
+The form of every per-draft axis (not the fixed axis): the held pair below with its `Unit` / `Scope` fill, and each axis composed off the brake 1 path. Five labeled parts, each a phrase, all prompt payload; an unwritten part is a missing label.
 
-Each axis ships as five labeled parts, all of them payload: they enter the evaluator's prompt as written, and a part left unwritten is a missing label in the text the evaluator reads. Each part is a phrase, not a paragraph; the form fixes what an axis names, not how much of it there is.
-
-- **Question** — one interrogative, and one only; it names the operation that produces its verdict, and it is answerable in the order its material arrives — an axis cannot ask for a judgment formed before reading what the prompt itself carries. Naming the operation means saying what the evaluator does to the material, and which result of doing it is the finding. Two clauses joined by "and" or by a comma are two operations and so two axes: split them, or drop one. What is counted is operations, not clauses: a predicate that names an evaluation instead of an operation — `forced`, `consistent`, `resolves wrongly` — hides its count inside the one word. An interrogative that names no operation is unfilled, not answerable.
-- **Unit** — what a single verdict covers: a sentence, a paragraph, a file, a claim, an occurrence.
-- **Scope** — the surface the axis ranges over, stated on both of its dimensions — extent (this PR's diff, one named file, the repository, the repository and the wiki) and the language the axis's patterns are written in — and, where the axis's verdict is an absence claim, what it swept. Extent alone does not carry the second dimension: this repository holds most normative text twice — English in `rules/` and `skills/`, Japanese in `docs/` — so a scope reading `the repository` is not satisfied by an English-pattern sweep.
-- **Verdict terms** — what a yes and a no mean here, in this axis's own words, its polarity named: on an axis asking "did anything drop?" a finding answers yes while being negative for the draft.
-- **Basis** — every statement the axis makes about the target or about the criteria carries a pointer that resolves at the named SHA, is written inside every axis that needs it rather than once for the set, and, where the answer turns on how many of something there are, hands over the body to count from instead of a number. An axis that names no basis is unfilled, not clean. What resolving means: the criterion at its `path`, or quoted with `path:line`; an illustrative example quoted from where it actually occurs rather than composed to look like one. What this excludes is assertion from the parent's memory of a body the parent itself authored. What the per-axis requirement above ranges over is whatever the verdict has to be formed against — an existing Li+ criterion the axis is judging by, or an argument the parent is relying on.
+- **Question** — one interrogative naming the operation that produces its verdict (what the evaluator does to the material, which result is the finding), answerable in the order its material arrives. Operations are counted, not clauses: two joined by "and" or a comma, or one hidden in an evaluative predicate (`forced`, `consistent`, `resolves wrongly`), are two axes; split or drop one. No operation named = unfilled.
+- **Unit** — what one verdict covers: a sentence, a paragraph, a file, a claim, an occurrence.
+- **Scope** — extent (this PR's diff, one named file, the repository, the repository and the wiki), the patterns' language, and, for an absence claim, what was swept. Normative text is held twice - English in `rules/` / `skills/`, Japanese in `docs/` - so `the repository` is not met by an English-pattern sweep.
+- **Verdict terms** — what yes and no mean here, polarity named: on "did anything drop?" a finding answers yes and is negative for the draft.
+- **Basis** — each statement about the target or the criteria, and each argument the parent relies on, carries inside the axis a pointer resolving at the named SHA: the criterion at its `path` or quoted with `path:line`, an example quoted from where it occurs, for a count the body to count from. The parent's memory of a body it authored is not a basis. None named = unfilled, not clean.
 
 ### Held per-draft axes
 
-Two axes, copied into every brake 1 evaluator prompt verbatim. Fill `Unit` and `Scope`; leave every other line as written. Those two are the only blanks; text authored anywhere else in these blocks is a re-composition, not a fill. What `Unit` and `Scope` have to say is the parts spec above, and is not restated here.
+Copied into every brake 1 evaluator prompt verbatim. `Unit` and `Scope` are the only blanks; text authored elsewhere in the blocks is a re-composition.
 
 **Axis A — issue requirement**
 
@@ -161,11 +102,9 @@ Two axes, copied into every brake 1 evaluator prompt verbatim. Fill `Unit` and `
 > - **Verdict terms** — A finding is one line breaking one rule, and it is negative for the draft. No finding means every line you checked was permitted by every rule you checked it against; say that in those terms and name those rules.
 > - **Basis** — Quote the rule literal with its `path:line` at the named SHA. A rule the diff itself adds is quoted from the diff at that same SHA. A rule recalled from memory, or restated in this prompt, is not a basis: open the file. Where the rule turns on how many of something there are, count them in the body rather than taking a number stated about it.
 
-Splitting B by target is prohibited at Trigger, Axis selection, where the axes are picked.
-
 ### Where a loosely filled part lands
 
-An axis whose parts were filled but filled loosely surfaces at adjudication, when the author reads a finding it cannot resolve against the source. Where that traces to the axis rather than to the finding, name the part of this form that did not hold: a No on `Question`, `Verdict terms`, or `Basis` lands on the held literal and is repaired there for every run after it, while a No on `Unit` or `Scope` lands on the fill and persists no further than the run it was written for.
+A finding the author cannot resolve against the source that traces to the axis names the failed part: `Question`, `Verdict terms`, or `Basis` is repaired in the held literal for later runs; `Unit` or `Scope` in that run's fill only.
 
 </axis-statement-form>
 
@@ -173,39 +112,30 @@ An axis whose parts were filled but filled loosely surfaces at adjudication, whe
 
 ## Report shape
 
-Fixes the form of the two artifacts brake 1 produces — the evaluator's findings comment at Procedure step 3, and the author's adjudication at Procedure step 7. Both land on the same PR thread, one answering the other. What this section fixes is delivery: it does not change which axes are asked (Trigger, Axis selection), how many evaluators answer them (Constraint: Evaluator floor), or what a finding is adjudicated on (Design Dimensions).
-
-Scope = the brake 1 path. On the other Trigger entries the evaluator returns its findings to the parent that spawned it and the held preamble below is not used; the asymmetry still governs what it writes.
+The two brake 1 artifacts on one PR thread: the evaluator's findings comment (Procedure step 3) and the author's adjudication (step 7). Off the brake 1 path findings return to the spawner, without the preamble, under the same asymmetry.
 
 ### The asymmetry
 
-Both artifacts are asymmetric on the same seam: **the side carrying a finding is written at full length, the side nobody contests at one line.**
-
-Full length = the verbatim quote of the literal at issue, its `path:line` at the named SHA, and why it is a defect. It is not a compression target.
-
-One line = that same pointer without the quote, plus what the line is about and its verdict in the terms of whatever the verdict is on. Give the pointer at the SHA it opens at, and pick it before the verdict rather than to fit one.
+**A finding is written at full length, what nobody contests at one line.** Full length = the verbatim quote of the literal at issue, its `path:line` at the named SHA, and why it is a defect; not compressed. One line = that pointer without the quote, what it is about, and its verdict; the pointer is picked at the SHA it opens at, before the verdict.
 
 ### Evaluator's findings comment
 
-One comment per evaluator per round, posted to the PR by the evaluator itself (`gh pr comment <n> --repo <owner>/<repo> --body ...`). There is no consolidation step: where N>1 put the round in, N comments land, duplicates across them are not merged, and the author reads each on its own literal.
+One per evaluator per round, posted by the evaluator (`gh pr comment <n> --repo <owner>/<repo> --body ...`); N>1 gives N comments, duplicates unmerged.
 
-- **Preamble**: the comment opens with one held literal, copied rather than composed:
+- **Preamble**: opens with this held literal, copied in its source language:
 
   > Adjudicate each finding below by checking its literal against the source at the revision its `path:line` is given at, and adopt or drop it on that. No count enters that judgment, and no axis is exempt from it: the fixed impression-literal axis is adjudicated the same way, on the flagged phrase against the removal test its own spec fixes (`skills/evolution-impression-literal-detection/SKILL.md`), and it fixes no threshold.
 
-  Both clauses are payload; the evaluator does not restate them in its own words. The preamble is copied in the language the source has it in and is not rendered into the comment's resolved language.
-- **Axis with a finding**: full length, per the asymmetry above.
-- **Axis with no finding**: name it and give its verdict in that axis's own terms. One answered by a repository-wide sweep has no line to point at, so the sweep substitutes for the pointer: give it re-runnably (the pattern, and the paths it ran over) and its hit count. Clean axes are carried in the comment all the same.
-- **Prohibited**: restating the criteria, thresholds, or axis wording the prompt supplied; and, in a round after the first, raising a finding already on the thread or one the author has rejected (Constraint: A rejection is final inside the loop).
-- **Language**: the comment lands on a surface `Workspace_Language_Contract` (`adapter/claude/CLAUDE.md` / `adapter/codex/AGENTS.md`) reaches as a PR comment, and the evaluator writes it in the value its prompt names for this run (Procedure step 3, which fixes which side of that contract a PR comment resolves on) — a subagent cannot resolve that value from its own context. What resolution does not settle: a verbatim quote and its `path:line` stay as the source has them, and so does the held preamble above.
+- **Axis with a finding**: full length. **Axis with no finding**: named, with its verdict in its own terms; a repository-wide sweep gives its pattern, paths, and hit count as the pointer.
+- **Prohibited**: restating the criteria, thresholds, or axis wording the prompt supplied; in later rounds, a finding already on the thread or rejected.
+- **Language**: the value the prompt names; quotes, `path:line`, and the preamble stay as the source has them.
 
 ### Author's adjudication
 
-Destination = a comment on the same PR thread, posted whether or not the round produced a commit. The commit that applies what was accepted still carries the body `rules/operations/operations.md` requires of it; what that body no longer carries is the adjudication.
+A comment on the same thread, with or without a commit; a commit applying an accept still carries the body `rules/operations/operations.md` requires.
 
-- **Reject**: full length, and it is final inside the loop (Constraint: A rejection is final inside the loop).
-- **Accept**: name the finding and what changed, and no more than that; what changed is externalized in the diff of the commit that carries it.
-- **Language** resolves to the same value as the evaluator comment's, by the same seams — verbatim quotes stay as the source has them. The parent names it at the resume (`skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary, item (d)); the body language that delegation prompt carried (`skills/task-subagent-prompt/SKILL.md` Delegation prompt hygiene) is a different axis and does not resolve this.
+- **Reject**: full length. **Accept**: the finding and what changed, no more.
+- **Language**: the evaluator comment's value, named by the parent at the resume (`skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary, item (d)), not the delegation prompt's body language.
 
 </report-shape>
 
@@ -213,26 +143,25 @@ Destination = a comment on the same PR thread, posted whether or not the round p
 
 ## Constraint
 
-- **Evaluator floor = N=1**: The floor holds unchanged across M configurations. Reference Design Dimensions' `subagent_count` for N and run at minimum 1; N=1 is also the default (Design Dimensions, Default pattern). A round that returns no verdict has not met the floor and is re-run under Procedure step 7, Re-run
-- **Model floor = sonnet-class, explicit per spawn**: Every subagent spawned under this skill, on the mandatory brake 1 path or any other Trigger entry, explicitly sets the Agent tool `model` parameter. Implicit parent-model inheritance is prohibited. Floor = `sonnet`; which id at or above it a given spawn takes is the parent's selection for that spawn (`skills/task-subagent-spawn/SKILL.md` Selection criteria), not a value this floor fixes. `haiku` is prohibited as below floor. An id that cannot be positively classified as sonnet-class or above (unlisted, future, or versioned id of uncertain class) must not be passed; on doubt, fall back to the literal `sonnet`. Fix the floor per call, not via custom-agent frontmatter `model:` pinning. The evaluator floor is a separate axis and is unaffected by the model tier. `skills/task-subagent-spawn/SKILL.md` Subagent Model Policy carries the purpose split that scopes this requirement to brake evaluators only
-- **Effort floor = `medium`, resolved independently from the model floor**: Claude Code judge-type evaluators reach it by naming `subagent_type: medium` (or a higher effort-named agent) from `adapter/claude/agents/`, which #1972 reorganized by effort rather than role; which of those the spawn names is the parent's selection for that spawn (`skills/task-subagent-spawn/SKILL.md` Selection criteria), and the floor fixes only its lower end. Claude probe-type evaluators take no definition and reach the floor by raising the parent session instead (Procedure step 3). Codex judge-type and probe-type evaluators take no agent definition and explicitly pass `reasoning_effort="medium"` on every spawn; `adapter/codex/agents/*.toml` must not set `model_reasoning_effort`, whose precedence would override that resolved per-launch value. The Codex value must be one the selected model exposes; do not guess a fallback for an unsupported value. On each host a judge-type evaluator receives the role below in its prompt, copied verbatim and not re-composed per spawn:
+- **Evaluator floor = N=1**: across every M configuration; a round short of it is re-run (Procedure step 7, Re-run)
+- **Model floor = sonnet-class, explicit per spawn**: every spawn under this skill sets the Agent tool `model` parameter per call - never inherited from the parent, never pinned in custom-agent frontmatter `model:`. Floor = `sonnet`; the id at or above it is the parent's per-spawn selection (`skills/task-subagent-spawn/SKILL.md` Selection criteria). `haiku` is prohibited; an id not positively classifiable as sonnet-class or above is not passed (on doubt, `sonnet`). A host without a per-call `model` parameter runs the eval from a session whose model is so classified. Scope = `skills/task-subagent-spawn/SKILL.md` Subagent Model Policy
+- **Effort floor = `medium`, resolved independently from the model floor**: a judge-type evaluator reads the draft; a probe-type evaluator's bare behavior under the applied draft is what its round reads. A probe-type evaluator spawns as the host's built-in general-purpose agent, with no Li+ agent definition file. On Claude Code a judge-type evaluator spawns as `subagent_type: medium` or a higher effort-named agent (the parent's per-spawn selection); a probe-type one reaches the floor through the parent session (Procedure step 3). On Codex, both kinds spawn with no agent definition file and explicitly pass `reasoning_effort="medium"` (value support: `skills/task-subagent-spawn/SKILL.md`). No evaluator receives the implementation delegate's role (`skills/task-subagent-prompt/SKILL.md` Role literal: implementation delegate). A judge-type evaluator receives this role in its prompt, verbatim:
 
   > You are a Li+ brake 1 evaluator. A parent agent spawns you against one change; you answer what its prompt asks, from the sources that prompt names.
   >
   > What the run is made of — the axes, what counts as a finding, what you write and where it goes — arrives in that prompt. Take it from there, not from here.
 
-  The Claude effort definition and the Codex spawn call name no `model` or `tools` restriction: the model floor above stays at the spawn call, and the no-write requirement stays on the prompt literal below. Do not write a role fragment into `adapter/claude/agents/{low,medium,high}.md` — those files fix effort only, per their own body; this is the one place the judge-type role lives
-- **Subagent prompt must be self-contained**: Do not let parent context leak in. In the default M=all axes pattern, the prompt explicitly instructs each axis to "answer independently without referencing other axes' answers" to suppress cross-axis echo bias. If prompt complexity is high enough that the mitigation is uncertain, fall back to the M=1 axis-separated pattern (see Design Dimensions)
-- **Evaluator does not modify the evaluation target**: the requirement is carried by the prompt, not by the tool set (the rejected alternative is named in Non-scope). Copy this literal into every brake 1 evaluator prompt verbatim; do not re-compose it per spawn:
+  This is the one place the judge-type role lives. Do not write a role fragment into `adapter/claude/agents/{low,medium,high}.md`
+- **Subagent prompt must be self-contained**: no parent context leaks in. With M=all axes, instruct each axis to "answer independently without referencing other axes' answers"
+- **Evaluator does not modify the evaluation target**: carried by the prompt, not the tool set (Non-scope). Copy into every brake 1 evaluator prompt verbatim:
 
   > Do not modify the evaluation target. Do not edit, write, commit, or push anything in the repository under evaluation, and do not run its build, tests, formatter, or any other command that mutates it. Read the PR diff and the file bodies at the named commit SHA. The one thing you write is your own findings comment on that PR: post it once, post nothing else there, and never a review, an approval, a merge, or a reply to anyone else's comment. If an axis looks like it needs a change applied before it can be answered, report that as a finding instead of applying it.
 
-  This literal and the material rule at Procedure step 3 are applied together. The literal carries no carve-out: the findings comment is the one exception, written inside it rather than left to the evaluator's discretion.
-- **An evaluator receives the measurement's scope, never its verdict**: where a measurement ran before a round (`skills/evolution-rule-effect-measurement/SKILL.md` Application point), the prompt names what was put to it — the probes, or the positions of the lines exercised — and nothing of what came back. A difference, a zero difference, and a run that returned nothing are alike withheld, from the prompt, from the axes, and from every surface the evaluator is pointed at; the record of the run stays off the PR thread until the loop exits, because the evaluator reads that thread (Procedure step 3)
-- **Findings are posted to the PR by the evaluator**: on the brake 1 path the evaluator posts its own findings comment and the author answers on the same thread. No consolidation step stands between them, and the parent neither composes nor reads what passes (Procedure steps 3, 4, 7, 8).
-- **A rejection is final inside the loop**: once the author has rejected a finding with its reason on the thread, that finding is settled for the loop. No later round raises it again and the author does not re-adjudicate it. A rejection is examined at the exit instead, by the parent's reading at Procedure step 9.
-- **Adjudication actor = the resumed implementation subagent**: the author of the change adjudicates the findings, resumed with its implementation context intact, and the parent retains self-review and the merge decision. Canonical statement, including why the always-delegate rule loses a branch rather than gaining an exception, is `rules/evolution/initiator-autonomy.md` Merge brake, Adjudication actor. Do not restate the reasoning here. Two boundaries carry into the resume prompt: the resumed author neither runs nor posts the self-review, and it does not merge (`skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary)
-- **Character_Instance non-inheritance**: What gets injected into subagent context = `CLAUDE.md` + `.claude/rules/**/*.md` (full body) + `.claude/skills/*/SKILL.md` (description only, body lazy-loaded at invoke) + MEMORY.md + harness-level system-reminders. `.claude/output-styles/`, hook firing output (SessionStart / UserPromptSubmit, etc.), and `.claude/settings.json` itself do not reach the subagent. `.claude/hooks/*.sh` script bodies are readable via the Read tool but not auto-loaded. When character behavior is part of the verification target, explicitly inject the Character_Instance body into the step 3 prompt. Running the character axis without injection produces the hollow prefix sleeping bug: persona absent, only the Character Instance name string generated
+- **An evaluator receives the measurement's scope, never its verdict**: the probes, or the positions of the lines exercised - never whether the arms differed, matched, or returned nothing, on any surface the evaluator is pointed at; the run's record stays off the PR thread until the loop exits
+- **Findings are posted to the PR by the evaluator**: the author answers on the same thread; nothing consolidates between them, and the parent neither composes nor reads what passes
+- **A rejection is final inside the loop**: no later round raises it and the author does not re-adjudicate it; the parent examines it at Procedure step 9
+- **Adjudication actor = the resumed implementation subagent**: canonical at `rules/evolution/initiator-autonomy.md` Merge brake, Adjudication actor; what the resume carries is `skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary
+- **Character_Instance non-inheritance**: subagent context receives `CLAUDE.md`, `.claude/rules/**/*.md` (full body), `.claude/skills/*/SKILL.md` (description only), MEMORY.md, and harness system-reminders - not `.claude/output-styles/`, hook output, or `.claude/settings.json`. When character behavior is under verification, inject the Character_Instance body into the step 3 prompt, or the axis yields a hollow name prefix with no persona
 
 </constraint>
 
@@ -240,44 +169,14 @@ Destination = a comment on the same PR thread, posted whether or not the round p
 
 ## Non-scope
 
-- This method is a pre-spec-reflection verification surface; it does not replace PR review (semi_auto mode minor/major human review is a separate axis)
-- Facts that change over time (API spec, library behavior, host behavior) are checked per occurrence and nowhere else. On the brake 1 path an occurrence = the diff adds or modifies a line stating such a fact. The evaluator reports that line as a finding when it shows no backing — a cited source or an observation — and does not verify the fact itself. The author, adjudicating that finding at Procedure step 7, checks the fact against the current external source and leaves the grounds on the line or on the PR thread; where it cannot check, it drops the line or marks it unverified. Drift in a line the diff does not touch is outside this method's range
-- Evaluator tool permissions are not restricted, and the custom-agent `tools:` route is rejected. The no-write requirement therefore rests on a prompt literal the parent has to remember to include. Accepted; recurrence is tracked on the post-merge axis per `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format on a PR that has an entry there. On a PR that gets no entry under that format's creation criterion, nothing tracks recurrence after merge
+- PR review, semi_auto minor/major human review included, is a separate axis
+- Facts that change over time (API spec, library or host behavior) are checked only on lines the diff adds or modifies (Procedure step 3); backing = a cited source or an observation. Adjudicating such a finding, the author checks the fact against the current source and leaves the grounds on the line or thread, or drops the line or marks it unverified
+- Evaluator tools are not restricted and the custom-agent `tools:` route is rejected, so no-write rests on the prompt literal
 
 ### What the three-round cap gives up
 
-Procedure step 7 caps the eval at three round trips. Three defect classes sat outside the earlier single-round cap; two of them are now inside the loop's reach and the third is only partly:
-
-- Defects introduced by the adjudicator's own fix. A later round evaluates the SHA that fix went green on, so this class is reached by the instrument itself rather than by a reader — where the fix lands in a round before the last one. Test coverage stays the receptacle for the behavior-defect subset.
-- Prose-layer findings that surface only in later rounds, such as a still-live description deleted during a rewrite. Reached, on the same condition.
-- Behavior defects present in the initial implementation that no round reached. Not reached: a class no axis touches in three rounds is not touched by a fourth either, and this one is dropped as it was before.
-
-What the cap itself drops is everything after the third round trip — a defect a fourth round would have found, and, by Constraint: A rejection is final inside the loop, a rejection that was wrong. Read those as dropped, not missed.
-
-Accepted on the Li+ correctness criterion (`rules/model/foundational-invariant.md`: correctness is real-world behavior), while none of them reaches production; changes stay inside git revert range and release remains a human gate. Re-evaluation trigger = a capped merge that produces observable production harm.
+Everything after round trip 3, a wrong rejection included, is dropped, not missed - accepted while changes stay inside git revert range and release stays human-gated. Re-evaluate when a capped merge produces observable production harm.
 
 </non-scope>
-
-<boundary>
-
-## Boundary
-
-- **`skills/evolution-loop/SKILL.md`**: This skill is referenced inside the loop's observe / evaluate stage. The loop side "calls this method"; the method body lives here
-- **`skills/evolution-l1-update-gating/SKILL.md`**: Authorization axis for L1 source changes (long-horizon observation requirement), orthogonal to this empirical verification axis and expected to be used alongside it. In the `Evolution_Initiator_Autonomy` framing, this method is brake 1, the only brake at the merge gate and always-on for self-evolution PRs; the L1 gate it runs alongside is the observation threshold at issue formation, not a second brake
-- **`rules/evolution/promotion-judgment.md`**: Noise floor observation judgment (cluster tally) is observation accumulation; this method is spec verification immediately before implementation. Orthogonal
-- **`skills/task-subagent-delegation/SKILL.md`**: This method's subagent spawn is a special case of delegation (purpose: gather evaluation data, not delegate implementation). This skill's N / M / P width (Design Dimensions) is exempt from the 5-in-flight cap in `skills/task-subagent-spawn/SKILL.md` Parallel-Width Cap — a selection whose total invocation exceeds 5 is still within spec
-- **`skills/evolution-decision-structure-write/SKILL.md`**: Judgment record surface for Procedure step 9
-
-</boundary>
-
-<implementation-note>
-
-## Implementation Note
-
-Subagent spawn goes through the host's Agent tool (Claude Code: `Agent` tool; Codex: equivalent mechanism). Parallel execution = multiple Agent tool calls in a single message, and every call explicitly names the host's agent-selection argument (`subagent_type` on Claude Code, `agent_type` on Codex). A probe-type evaluator spawns as the host's built-in general-purpose agent, with no Li+ agent definition file: its bare behavior is what such a round reads, and a definition body would replace the system prompt it reads (`skills/task-subagent-spawn/SKILL.md`). A judge-type evaluator reads the draft rather than being read. On Claude Code it spawns under an effort-named agent (`subagent_type: medium` or above), with the role literal in Constraint: Effort floor carried by the prompt. On Codex it also uses the built-in agent; the same role literal travels in the self-contained prompt and the spawn call carries `reasoning_effort`. The implementation delegate's role reaches neither: on Claude Code it is carried by `skills/task-subagent-prompt/SKILL.md` Role literal: implementation delegate, injected only into delegation prompts under `skills/task-subagent-delegation/SKILL.md`.
-
-On hosts without a per-call `model` parameter, verify the session model satisfies the sonnet-class floor before spawning; a session model that cannot be positively classified as sonnet-class or above counts as sub-floor and cannot satisfy brake 1. Run the eval from a floor-satisfying session instead.
-
-</implementation-note>
 
 </parallel-subagent-eval>

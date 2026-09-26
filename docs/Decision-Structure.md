@@ -242,7 +242,7 @@ wiki 内の閲覧は wiki sidebar の「判断構造」セクション、また�
 
 ## wiki sync との所有境界
 
-`skills/operations-on-wiki-sync/SKILL.md` の Post-release wiki sync は、docs/ → wiki の方向で同期する。所有は配置場所で決まり、`docs/` 直下のすべての `*.md` が docs/ 所有である。判断構造 entry（wiki 専属の kebab-case `<topic>.md` ファイル群）と `_Sidebar.md` は docs/ に counterpart を持たないため、Wiki 専属の明示リストとして sync の copy 対象からも delete 対象からも外れる。
+`skills/operations-on-wiki-sync/SKILL.md` の Post-release wiki sync は、docs/ → wiki の方向で同期する。所有は配置場所で決まり、`docs/` 直下のすべての `*.md` が docs/ 所有である。判断構造 entry（wiki 専属の kebab-case `<topic>.md` ファイル群）と `_Sidebar.md` は同名の counterpart を docs/ に持たないため、Wiki 専属の明示リストとして sync の delete 対象から外れ、copy 対象からも外れる。例外は `_Sidebar.md` の先頭部（`**判断構造**` 行より上）で、source は `docs/wiki/_Sidebar-head.md` であり sync がそこから copy する。wiki sidebar の「判断構造」セクション（同行からファイル末尾まで）は Wiki オーサリングのままで、sync は書かない。
 
 **本 index は、その明示リストの source でもある。** sync は本ファイルが持つ wiki link target から entry の slug を抽出して Wiki 専属集合を組む。ゆえに `docs/` にも本 index にも無い Wiki ページは unclassified となり、削除されずに人間へエスカレートされる。`skills/evolution-decision-structure-write/SKILL.md` は entry を Wiki へ先に push し、本 index の更新を後続の main repo PR に載せるため、その間の entry は unclassified として上がる。これは異常ではなく、削除ではなく確認へ倒す設計上の既定動作である。
 

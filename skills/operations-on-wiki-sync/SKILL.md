@@ -16,9 +16,9 @@ After a release is published, mirror `docs/` into the GitHub Wiki. The sync gate
 
 ## Ownership Boundary
 
-- **docs/-owned = every `*.md` at the top level of `docs/`.** Location decides; the filename is not consulted. docs/ is source of truth and the wiki copy matches it byte-for-byte after sync. `docs/D.-Installation.md` is docs/-owned exactly as `docs/4.-Operations.md` is. `docs/Decision-Structure.md` is docs/-owned even though every entry it indexes is wiki-only: `adapter/claude/hooks/on-session-start.sh` reads the docs/ copy as cold-start material, so the docs/ side cannot be retired in favour of the wiki side. Top level only — the wiki namespace is flat, so a nested `docs/**/x.md` has no wiki counterpart and is out of scope for sync.
-- **Wiki-only = an explicit list, closed here.** These have no docs/ counterpart. Sync never copies them and never deletes them.
-  - `_Sidebar.md`. No sync step creates it from docs/. It is the only navigation page on the list: `Home.md` and `_Footer.md` live in `docs/`, so location already makes them docs/-owned. A wiki navigation page that is on neither side reaches the human as unclassified, and that escalation is how this list grows — by a change to this file, not by a per-repository convention.
+- **docs/-owned = every `*.md` at the top level of `docs/`.** Location decides; the filename is not consulted. docs/ is source of truth and the wiki copy matches it byte-for-byte after sync. `docs/D.-Installation.md` is docs/-owned exactly as `docs/4.-Operations.md` is. `docs/Decision-Structure.md` is docs/-owned even though every entry it indexes is wiki-only: `adapter/claude/hooks/on-session-start.sh` reads the docs/ copy as cold-start material, so the docs/ side cannot be retired in favour of the wiki side. Top level only — the wiki namespace is flat, so a nested `docs/**/x.md` has no wiki counterpart and is never mirrored as a page. The one nested file sync reads is the sidebar head source below, and it is read as part of `_Sidebar.md`, not as a page.
+- **Wiki-only = an explicit list, closed here.** These have no docs/ counterpart of their own name. Sync never deletes them and copies none of them, save the `_Sidebar.md` head below.
+  - `_Sidebar.md`, split at its `**判断構造**` line. That line to end of file is the Decision Structure section: wiki-authored, never written by sync, and where `skills/evolution-decision-structure-write/SKILL.md` adds an entry's slug. Above that line is the navigation head, whose source is `docs/wiki/_Sidebar-head.md` on the source ref. Step 4 rebuilds the head from it and step 5 writes the result — a copy from source, as a docs/-owned page gets, not a repair. A PR that adds, renames or removes a top-level `docs/` page updates that file in the same PR, and `tests/test_wiki_sidebar_head.py` fails the PR that does not. The head source sits one level down because location would otherwise decide for it: a top-level `docs/_Sidebar.md` is docs/-owned and would be mirrored whole over the wiki-authored section. A source ref without that file leaves the whole of `_Sidebar.md` wiki-authored. It is the only navigation page on the list: `Home.md` and `_Footer.md` live in `docs/`, so location already makes them docs/-owned. A wiki navigation page that is on neither side reaches the human as unclassified, and that escalation is how this list grows — by a change to this file, not by a per-repository convention.
   - Every Decision Structure entry indexed by `docs/Decision-Structure.md`. Their bodies are authored directly in the wiki under `Decision_Structure_Write_Autonomy`, so for these the wiki is source (`rules/operations/operations.md` states that exception to docs-is-source-of-truth). Entries carry no ordering prefix, so order is explicit in that index and in `_Sidebar.md` rather than in the filenames.
 - **Anything else on the wiki is unclassified: present in the wiki, absent from `docs/`, absent from the list above.** It is not a deletion candidate. STOP and escalate, naming the page (step 4). Ownership is not observable from the wiki side — an unclassified page is either a leftover from a docs/ rename, where deleting is correct, or a wiki-source page the list has not caught up with, where deleting destroys the source. The recurring instance of the second is a Decision Structure entry pushed to the wiki before the index row for it has merged: `skills/evolution-decision-structure-write/SKILL.md` pushes the entry straight to the wiki at its step 5 and updates `docs/Decision-Structure.md` through the main-repo PR flow at its step 6, so that window is normal operation, not an error state. One of the two mistakes is unrecoverable from this side, so the widening of ownership above does not get to decide deletion; the human names which.
 
@@ -32,10 +32,12 @@ The two axes are separate and this section moves only the first: **which side is
 
 The four assertions below run after step 5 and before the step 6 / step 7 commit. Each one is STOP-and-escalate on failure: name the offending file to the human and do not push. Do not repair the wiki from this layer either — sidebar drift, an index row with no entry behind it, and broken cross-references all mean an earlier PR did not maintain what it changed, and release sync is a recurring checkpoint, not the repair layer.
 
-- **Confirm `git -C {tmpdir} status --short` shows `D` and `M` on names present in `docs/` only.** A `D` or `M` on any other name means the step-5 file set diverged from the ownership boundary, which is this procedure's recurring failure mode. One exception: a page the human confirmed for deletion at step 4 shows a `D` and is expected.
+- **Confirm `git -C {tmpdir} status --short` shows `D` and `M` on names present in `docs/` only.** A `D` or `M` on any other name means the step-5 file set diverged from the ownership boundary, which is this procedure's recurring failure mode. Two exceptions: a page the human confirmed for deletion at step 4 shows a `D` and is expected, and `_Sidebar.md` shows an `M` when step 4 rebuilt its head — confirm then with `git -C {tmpdir} diff -- _Sidebar.md` that no line from its `**判断構造**` line onward changed.
 - **Sidebar integrity: verify `{tmpdir}/_Sidebar.md` references every navigable entry.** Build the expected slug set from the `{tmpdir}` filesystem, not from docs/ or from an index file, so both ownership systems are counted as they will exist on the wiki: every `{tmpdir}/*.md` (slug = filename without `.md`), which reaches docs/-owned files and wiki-only entries alike without asking which is which.
 
   Excluded from the expected set: `_Sidebar.md`, `_Footer.md` — navigation infrastructure, not target entries. Strip code notation from `{tmpdir}/_Sidebar.md` with the algorithm below. From the code-stripped body, build the referenced slug set as the union of Markdown inline link targets parsed from `](<slug>)` and GitHub Wiki native link targets parsed from `[[target]]` or `[[label|target]]`; for the labeled native form, the text to the right of `|` is the target. Strip any `#section` fragment from each extracted target before resolution. STOP if `expected - referenced` is non-empty.
+
+  The head step 4 rebuilt is the source's own content, so a source head missing a page still fails here; the step-4 rebuild does not answer this assertion. What keeps that from reaching release is `tests/test_wiki_sidebar_head.py` on the PR that added the page.
 - **Index integrity: verify every Decision Structure entry `docs/Decision-Structure.md` names exists on the wiki.** Read the index from the source ref (`git show origin/main:docs/Decision-Structure.md`), strip code notation from it with the algorithm below, and build the expected slug set from its wiki link targets, the same extraction step 4 uses to build `wiki_only`. STOP if any expected slug has no `{tmpdir}/<slug>.md`.
 
   Cross-reference integrity below does not reach these. The index writes its targets as absolute `https://{host}/{owner}/{repo}/wiki/<slug>` URLs, and that assertion skips every target containing `://`, so an index row naming a slug that was never pushed — or one a wiki-side rename left behind — resolves nowhere and nothing reads it.
@@ -68,7 +70,7 @@ The order is load-bearing on two axes. HTML comments come before the indentation
 One-shot, before the first sync.
 
 - Seed `docs/` with `Home.md`, `_Footer.md`, and the repository's requirements and reference docs including `docs/Decision-Structure.md`. Filename shape is free; sitting at the top level of `docs/` is what makes a file docs/-owned.
-- Push `_Sidebar.md` directly to the wiki repo. It is wiki-only, so no sync step will ever create it from docs/.
+- Push `_Sidebar.md` directly to the wiki repo; no sync step creates it. Give it a `**判断構造**` line heading the Decision Structure section, and put its navigation head in `docs/wiki/_Sidebar-head.md` so later syncs copy the head from source. Without that file the whole sidebar stays wiki-authored.
 - Create Decision Structure entries (`<topic>.md`, lowercase kebab-case, no ordering prefix) in the wiki from the start; placing one under docs/ makes it a mirrored docs/-owned file instead.
 
 </new-repo-setup>
@@ -89,6 +91,7 @@ The source side is named by ref, not by the caller's working tree: every read of
   4. Compute the drift set — enumerate the exact files that differ between the `origin/main` docs/ tree and the wiki working tree, and operate only on that set. An unbounded destructive glob over the wiki working tree is not an acceptable substitute: its blast radius is the whole wiki, which `rules/evolution/memory-entry-format.md` Artifact deletion calibration puts on the wrong side of the axis, and the auto-mode classifier rejects it by construction rather than transiently.
      - **to_copy** = docs/-owned filenames whose `origin/main` content differs from the `{tmpdir}/` counterpart (covers both new and content-changed files; resolve via `git ls-tree origin/main docs/`).
      - **unclassified** = names present in `{tmpdir}/` that are neither docs/-owned nor on the wiki-only list. Non-empty = STOP and escalate, naming each: the reference algorithm below exits non-zero at that point. What the guard blocks is the silent pass-through, not a deletion — step 5 copies and never removes, so an unobserved STOP takes nothing off the wiki and instead leaves the page standing while the mirror is reported as synced. Do not delete and do not proceed to step 5; a docs/-side rename or removal surfaces here, and so does a wiki-source page the list has not caught up with. The escalation classifies each name by whether it has history under `docs/` on the source ref (`git log --diff-filter=AD -- docs/<name>`): history present = likely a leftover from a docs/-side rename or removal; history absent = likely a wiki-source page, where deleting destroys the source, and for a Decision Structure entry — which is what a page with no docs/ history normally is — the missing piece is its row in `docs/Decision-Structure.md`, so name that row as the repair rather than leaving the page as a deletion question. That classification is a reading, not a decision — neither branch deletes, and which of the two a page is stays the human's to name (`rules/operations/operations.md` published-wiki deletion gate). On an explicit human go-sign for a named page, `rm -f` that page and continue; without one, the page stays.
+     - **sidebar_new** = `_Sidebar.md` rebuilt as `docs/wiki/_Sidebar-head.md` from the source ref, one empty line, then the wiki's own `_Sidebar.md` from its first `**判断構造**` line to end of file, byte-for-byte; empty when that equals the current `_Sidebar.md` or when the ref carries no head file. A wiki `_Sidebar.md` with no `**判断構造**` line = STOP and escalate: the wiki-authored part has no located start, so no rebuild can preserve it. Do not add the line from this layer; the human places it.
      Reference algorithm:
      ```
      shopt -s nullglob
@@ -145,13 +148,34 @@ The source side is named by ref, not by the caller's working tree: every read of
        done
        exit 1
      fi
+     # sidebar_new = _Sidebar.md with its head copied from the ref. From the first `**判断構造**`
+     # line to end of file is wiki-authored and carried over as the wiki holds it.
+     sidebar_new=""
+     if git cat-file -e "$SRC_REF:docs/wiki/_Sidebar-head.md" 2>/dev/null; then
+       tail_at="$(tr -d '\r' < "{tmpdir}/_Sidebar.md" | grep -nxF '**判断構造**' | head -n 1 | cut -d: -f1)"
+       if [ -z "$tail_at" ]; then
+         echo "sidebar: _Sidebar.md has no '**判断構造**' line; its wiki-authored part cannot be located"
+         exit 1
+       fi
+       sidebar_new="$(mktemp)"
+       {
+         git show "$SRC_REF:docs/wiki/_Sidebar-head.md" | tr -d '\r'
+         echo
+         tail -n +"$tail_at" "{tmpdir}/_Sidebar.md"
+       } > "$sidebar_new"
+       if cmp -s <(tr -d '\r' < "$sidebar_new") <(tr -d '\r' < "{tmpdir}/_Sidebar.md"); then
+         rm -f "$sidebar_new"
+         sidebar_new=""
+       fi
+     fi
      ```
      If drift computation itself fails (`cmp` / `tr` unavailable, process substitution unsupported — it requires a bash-class shell, filesystem encoding mismatch), STOP and escalate. Do not fall back to a wipe pattern.
   5. Apply the drift set with explicit per-file operations, reading each blob from the same ref:
      ```
      for name in "${to_copy[@]}"; do git show "$SRC_REF:docs/$name" > "{tmpdir}/$name"; done
+     if [ -n "$sidebar_new" ]; then mv "$sidebar_new" "{tmpdir}/_Sidebar.md"; fi
      ```
-     Empty `to_copy` = no drift; skip the commit and push steps, go straight to cleanup (step 9), and report the no-op outcome. The condition carries no `unclassified` term: a non-empty set exits at step 4, so this line is only ever read with it empty.
+     Empty `to_copy` and empty `sidebar_new` = no drift; skip the commit and push steps, go straight to cleanup (step 9), and report the no-op outcome. The condition carries no `unclassified` term: a non-empty set exits at step 4, so this line is only ever read with it empty.
   6. Stage both copies and deletes: git -C {tmpdir} add -A
   7. Commit: git -C {tmpdir} commit -m "sync: docs -> wiki ({release_tag})"
   8. Push: git -C {tmpdir} push

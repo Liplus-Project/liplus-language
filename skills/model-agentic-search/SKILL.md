@@ -1,6 +1,6 @@
 ---
 name: model-agentic-search
-description: Invoke when an answer is about to be emitted and internal confidence calibration on the claim is low or fuzzy or mixed with speculation (primary gate, never suppressed by domain) / the input carries time-variant keywords such as "latest" or "recent" or "current" or "now" in a comparison-informative domain, and not in language or math or logic or pure internal judgment where retrieval spins without adding information (supporting gate) / a Web search result is about to be consumed / a research task is about to be launched from the parent-AI side / a retrieval result has just returned to the parent-AI side. Provides the trigger axis with its question-mode and work-mode gate, the two-tier retrieval protocol with its cross-check and escalation, the query budget, and the Web-side and parent-AI-side consumption discipline.
+description: Invoke when an answer is about to be emitted and internal confidence calibration on the claim is low or fuzzy or mixed with speculation (primary gate, never suppressed by domain) / the input carries time-variant keywords such as "latest" or "recent" or "current" or "now" in a comparison-informative domain, and not in language or math or logic or pure internal judgment where retrieval spins without adding information (supporting gate) / a Web search result is about to be consumed / a research task is about to be launched from the parent-AI side / a retrieval result has just returned to the parent-AI side. Provides the trigger axis with its question-mode and work-mode gate, the two-tier retrieval protocol with its cross-check and escalation, and the Web-side and parent-AI-side consumption discipline.
 layer: L1-model
 ---
 
@@ -137,7 +137,7 @@ Judged by the acting Character_Instance, not an external scorer.
 
 **State A — sufficient.** Tier 1 probe agrees with the hypothesis, or Tier 2 angles converge with scope coverage and no internal contradiction. Action = synthesize and answer.
 
-**State B — insufficient.** Partial coverage, no contradiction. Action = re-query the same source family with new angles (Stage 1). Do not switch surface. Stay within the query cap.
+**State B — insufficient.** Partial coverage, no contradiction. Action = re-query the same source family with new angles (Stage 1). Do not switch surface.
 
 **State C — suspicious.** Conflicting answers, or convergence with bias signs. Action = composite escalation (Stage 2). Switch source family; do not retry within the suspicious one.
 
@@ -173,8 +173,7 @@ Stage 1 = same-family re-query (State B). Stage 2 = orthogonal source families (
 Stop on any of:
 1. State A reached — synthesize and answer
 2. State C unresolved after one composite round — surface to human with what was tried and what remains
-3. Budget exhausted — soft cap 9 queries (1 Tier 1 + up to 5 Tier 2 + up to 3 Stage 1/2), hard stop 12
-4. Corpus boundary — consistent "no result" across multiple angles and at least one alternate source family; surface to human
+3. Corpus boundary — consistent "no result" across multiple angles and at least one alternate source family; surface to human
 
 Do not loop. `skills/model-loop-safety/SKILL.md` applies: same approach twice in dialogue, three times in task = stop and switch.
 
@@ -198,7 +197,7 @@ On top of Block 3, when the surface is Web:
 
 **Pre-retrieval.** Verify externally before proceeding when uncertain; correctness outweighs speed. Choose the retrieval path that preserves main working context — launch parallel subagents when available, run the core in parent context when not. Before forming judgment on an issue, launch parallel retrieval of related issues / PRs / diffs without waiting to be asked. Initiative is mandatory regardless of environment; only execution means vary.
 
-**Post-retrieval.** Budget as in Block 5 (soft 9 / hard 12); per-task budget inherited from task scope. On hard cap, stop and surface what was tried and what remains uncertain.
+**Post-retrieval.** Per-task budget inherited from task scope; when it is exhausted, stop and surface what was tried and what remains uncertain.
 
 The parent retains judgment of: when to surface partial findings vs continue; whether to decompose into a follow-up retrieval task instead of more queries; whether to file a follow-up issue for what remains uncertain.
 

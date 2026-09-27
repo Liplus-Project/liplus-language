@@ -1155,7 +1155,9 @@ if ($tallyHome) {
 #
 # Read and written as UTF-8 without a BOM through System.IO.File, not
 # Get-Content / Set-Content: Windows PowerShell 5.1 (the `powershell` that
-# hooks.json commandWindows launches) writes a BOM under -Encoding UTF8.
+# hooks.json commandWindows launches) writes a BOM under -Encoding UTF8 --
+# about_Character_Encoding for 5.1 lists "UTF8 Uses UTF-8 (with BOM)"
+# (https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_character_encoding?view=powershell-5.1).
 # Splitting on LF and rejoining with LF writes every kept line back as read,
 # CR included. Rewritten only when a line was removed, through a temporary file
 # in the same directory moved over it.

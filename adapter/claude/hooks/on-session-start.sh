@@ -1289,9 +1289,15 @@ fi
 # `date -d` is needed. The file is rewritten only when a line was removed, via a
 # temporary file in the same directory renamed over it; each line is written
 # back as read, CR included, and awk ends the last line with a newline.
-# BINMODE=3 is what keeps the CR on Windows: gawk built for Git Bash / MSYS
-# reads and writes in text mode by default and drops it. Other awks ignore the
-# variable.
+# BINMODE=3 keeps the CR on Windows. The gawk manual (node "PC Using",
+# https://www.gnu.org/software/gawk/manual/html_node/PC-Using.html) states that
+# gawk on MS-Windows translates CRLF to LF on input and LF to CRLF on output,
+# that BINMODE 3 sets binary mode for both, and that on POSIX systems the
+# variable has no effect. The manual names the MinGW port; the Git Bash gawk
+# was measured directly (GNU Awk 5.3.2, 2026-09-28, #2107): without BINMODE the
+# CRLF case of tests/test_on_session_start_tally_retention.py lost its CRs,
+# with it the case passed. To an awk that has no BINMODE handling it is a user
+# variable this program never reads.
 TALLY_RETENTION_DAYS=14
 if [ -n "$TALLY_FILE" ]; then
   TRIM_TODAY=$(date +%Y-%m-%d 2>/dev/null || echo "")

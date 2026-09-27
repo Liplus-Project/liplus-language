@@ -1015,6 +1015,81 @@ TALLY_FILE=""
 if [ -n "$HOME" ] && [ -f "$HOME/.liplus/tally/promotion_tally.md" ]; then
   TALLY_FILE="$HOME/.liplus/tally/promotion_tally.md"
 fi
+
+# --- disposition log retention (#2107) ---
+# Implements rules/evolution/promotion-judgment.md Tally, Disposition log
+# retention: a line whose deletion date is more than TALLY_RETENTION_DAYS before
+# today is removed here, so the writer only appends. Trimming was a second
+# operation beside the append and depended on the writer recalling it; on
+# 2026-09-21 an append landed without it.
+#
+# Why session start and not the write: the tally is one file for every adapter
+# on a host, and a post-write hook sees only the tool calls its host routes
+# through it -- on Claude Code the Write / Edit / MultiEdit calls and not a Bash
+# redirect into the file, on Codex a PostToolUse wiring that matches Bash only.
+# Every port runs this block, so the bound holds whichever adapter and whichever
+# tool wrote the line.
+#
+# Scope: only bullets after the `<!-- disposition log -->` marker, and only up
+# to a following `##` heading, are candidates. Cluster occurrences above the
+# marker carry dates too and are never touched. A bullet whose leading date does
+# not parse as a calendar date is kept -- what cannot be read is not judged old.
+# The date difference is taken on day numbers computed in awk, so no GNU-only
+# `date -d` is needed. The file is rewritten only when a line was removed, via a
+# temporary file in the same directory renamed over it; each line is written
+# back as read, CR included, and awk ends the last line with a newline.
+# BINMODE=3 keeps the CR on Windows. The gawk manual (node "PC Using",
+# https://www.gnu.org/software/gawk/manual/html_node/PC-Using.html) states that
+# gawk on MS-Windows translates CRLF to LF on input and LF to CRLF on output,
+# that BINMODE 3 sets binary mode for both, and that on POSIX systems the
+# variable has no effect. The manual names the MinGW port; the Git Bash gawk
+# was measured directly (GNU Awk 5.3.2, 2026-09-28, #2107): without BINMODE the
+# CRLF case of tests/test_on_session_start_tally_retention.py lost its CRs,
+# with it the case passed. To an awk that has no BINMODE handling it is a user
+# variable this program never reads.
+TALLY_RETENTION_DAYS=14
+if [ -n "$TALLY_FILE" ]; then
+  TRIM_TODAY=$(date +%Y-%m-%d 2>/dev/null || echo "")
+  TRIM_TMP="${TALLY_FILE}.trim.$$"
+  if [ -n "$TRIM_TODAY" ]; then
+    awk -v BINMODE=3 -v today="$TRIM_TODAY" -v keep="$TALLY_RETENTION_DAYS" '
+      function day_number(s,   y, m, d, dim) {
+        if (s !~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/) return -1
+        y = substr(s, 1, 4) + 0; m = substr(s, 6, 2) + 0; d = substr(s, 9, 2) + 0
+        if (m < 1 || m > 12 || d < 1) return -1
+        dim = substr("312831303130313130313031", 2 * m - 1, 2) + 0
+        if (m == 2 && (y % 4 == 0 && (y % 100 != 0 || y % 400 == 0))) dim = 29
+        if (d > dim) return -1
+        if (m <= 2) { y -= 1; m += 12 }
+        return 365 * y + int(y / 4) - int(y / 100) + int(y / 400) + int((153 * (m - 3) + 2) / 5) + d
+      }
+      BEGIN { now = day_number(today); in_log = 0; removed = 0 }
+      {
+        line = $0
+        sub(/\r$/, "", line)
+        if (line ~ /^[[:space:]]*<!--[[:space:]]*disposition log[[:space:]]*-->[[:space:]]*$/) {
+          in_log = 1; print; next
+        }
+        if (line ~ /^##[[:space:]]/) in_log = 0
+        if (in_log && now >= 0 && line ~ /^[[:space:]]*-[[:space:]]+[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]([^0-9]|$)/) {
+          v = line
+          sub(/^[[:space:]]*-[[:space:]]+/, "", v)
+          n = day_number(substr(v, 1, 10))
+          if (n >= 0 && now - n > keep) { removed++; next }
+        }
+        print
+      }
+      END { exit (removed > 0 ? 0 : 3) }
+    ' "$TALLY_FILE" > "$TRIM_TMP" 2>/dev/null
+    TRIM_RC=$?
+    if [ "$TRIM_RC" -eq 0 ]; then
+      mv -f "$TRIM_TMP" "$TALLY_FILE" 2>/dev/null || rm -f "$TRIM_TMP"
+    else
+      rm -f "$TRIM_TMP"
+    fi
+  fi
+fi
+
 if [ -n "$TALLY_FILE" ]; then
   TODAY=$(date +%Y-%m-%d 2>/dev/null || echo "")
   if [ -n "$TODAY" ]; then

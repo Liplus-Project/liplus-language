@@ -78,7 +78,7 @@ Placement: the log is the file's last section, after every cluster. Cluster pars
 
 Fields: deletion date, cluster descriptor, `first_observation`, occurrence count, disposition. The disposition names which Threshold Rules exit was taken, and for the creation and fold exits carries the issue number (created, or folded into). Occurrence bodies are not carried over.
 
-Cap = 10 lines, oldest-first deletion once exceeded. Every cluster the log records has already left the tally, and expired clusters are deleted in full (above). Same shape as the self-evaluation log's cap (`skills/evolution-self-eval/SKILL.md`).
+Retention = 14 days from the deletion date. The writer appends and does not trim: the adapter's session-start hook removes every log line whose deletion date is more than 14 days before today. Every cluster the log records has already left the tally, and expired clusters are deleted in full (above).
 
 </tally>
 

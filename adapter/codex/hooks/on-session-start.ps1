@@ -1140,6 +1140,56 @@ if ($tallyHome) {
   $tallyCand = Join-Path (Join-Path (Join-Path $tallyHome '.liplus') 'tally') 'promotion_tally.md'
   if (Test-Path -LiteralPath $tallyCand -PathType Leaf) { $tallyFile = $tallyCand }
 }
+
+# --- disposition log retention (#2107) ---
+# Port of the bash block of the same name; the contract and the reasons for
+# placing the trim at session start rather than at the write are stated there
+# and are not repeated here.
+#
+# Same scope as the awk ports: bullets after the `<!-- disposition log -->`
+# marker up to a following `##` heading; a bullet whose leading date does not
+# parse as a calendar date is kept. ParseExact with the invariant culture
+# rejects the same impossible dates the awk day_number() rejects (month 13,
+# February 30). -cmatch keeps the marker and heading matches case-sensitive,
+# as in the awk ports.
+#
+# Read and written as UTF-8 without a BOM through System.IO.File, not
+# Get-Content / Set-Content: Windows PowerShell 5.1 (the `powershell` that
+# hooks.json commandWindows launches) writes a BOM under -Encoding UTF8.
+# Splitting on LF and rejoining with LF writes every kept line back as read,
+# CR included. Rewritten only when a line was removed, through a temporary file
+# in the same directory moved over it.
+$tallyRetentionDays = 14
+if ($tallyFile) {
+  $trimTmp = ''
+  try {
+    $trimEnc = New-Object System.Text.UTF8Encoding($false)
+    $trimNow = (Get-Date).Date
+    $trimLines = [System.IO.File]::ReadAllText($tallyFile, $trimEnc) -split "`n"
+    $trimKept = New-Object System.Collections.Generic.List[string]
+    $trimInLog = $false
+    $trimRemoved = 0
+    foreach ($raw in $trimLines) {
+      $line = $raw.TrimEnd("`r")
+      if ($line -cmatch '^\s*<!--\s*disposition log\s*-->\s*$') { $trimInLog = $true; $trimKept.Add($raw); continue }
+      if ($line -cmatch '^##\s') { $trimInLog = $false }
+      if ($trimInLog -and $line -cmatch '^\s*-\s+([0-9]{4}-[0-9]{2}-[0-9]{2})([^0-9]|$)') {
+        $lineDate = [datetime]::MinValue
+        if ([datetime]::TryParseExact($matches[1], 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::None, [ref]$lineDate)) {
+          if (($trimNow - $lineDate).Days -gt $tallyRetentionDays) { $trimRemoved++; continue }
+        }
+      }
+      $trimKept.Add($raw)
+    }
+    if ($trimRemoved -gt 0) {
+      $trimTmp = "$tallyFile.trim.$PID"
+      [System.IO.File]::WriteAllText($trimTmp, ($trimKept -join "`n"), $trimEnc)
+      Move-Item -LiteralPath $trimTmp -Destination $tallyFile -Force -ErrorAction Stop
+    }
+  } catch {
+    if ($trimTmp -and (Test-Path -LiteralPath $trimTmp)) { Remove-Item -LiteralPath $trimTmp -Force -ErrorAction SilentlyContinue }
+  }
+}
 if ($tallyFile) {
   $today = (Get-Date).ToString('yyyy-MM-dd')
   $clusters = @()

@@ -23,14 +23,9 @@ verbatim into `{workspace_root}/.codex/hooks/` at bootstrap time.
 | always-on rules | `.claude/rules/**/*.md` (folder auto-load) | injected by SessionStart hook (no folder equivalent) |
 | diff-only state | `.claude/state/last-cold-start-emit.json` | `.codex/state/last-cold-start-emit.json` |
 
-The placements (`.agents/skills`, `.codex/`, AGENTS.md) are real-device verified in
-#1502: skills auto-fire by description with no trust gate; hooks run on Windows
-native via PowerShell; SessionStart `additionalContext` reaches the model.
-
 ## One-time GUI trust requirement (Codex-specific friction)
 
-Unlike Claude hooks, **Codex hooks require a one-time GUI trust before they run**
-(verified in #1502):
+Unlike Claude hooks, **Codex hooks require a one-time GUI trust before they run**:
 
 1. After bootstrap writes `.codex/hooks.json` + `.codex/hooks/*`, open the Codex
    App and go to **Settings → Hooks → (this project row) → trust**.
@@ -43,11 +38,9 @@ Unlike Claude hooks, **Codex hooks require a one-time GUI trust before they run*
    trust gate stopping execution, not a discovery failure. Skills are unaffected
    (no trust gate).
 
-This friction has no Claude equivalent. The bootstrap walkthrough and
-`docs/D.-Installation.md` must surface it (handled in the bootstrap follow-up,
-not here). Without trust, the SessionStart rules injection and the per-turn gate
-re-arm silently do nothing — so trust is a hard precondition for Li+ "always-on"
-behavior on Codex.
+`docs/D.-Installation.md` surfaces it to the human. Without trust,
+the SessionStart rules injection and the per-turn gate re-arm silently do nothing —
+trust is a hard precondition for Li+ "always-on" behavior on Codex.
 
 ## File ownership boundary
 
@@ -88,7 +81,7 @@ the Li+ default; the TOML snippet is the documented alternate.
 Both the `command` (POSIX) and `commandWindows` paths use absolute paths under
 `{workspace_root}/.codex/hooks/`. The bootstrap substitutes `{WORKSPACE_ROOT}`
 with the resolved absolute workspace path at install time. Quote any path that
-may contain spaces. The proven Windows invocation form (verified in #1502) is:
+may contain spaces. The Windows invocation form is:
 
 ```
 powershell -NoProfile -ExecutionPolicy Bypass -File "<abs path>.ps1"
@@ -153,9 +146,8 @@ Target: `{workspace_root}/.codex/hooks.json`
 
 ### Matcher notes
 
-- Codex matchers are regex (verified against the official hooks schema):
-  `"startup|resume|clear|compact"` matches all four SessionStart sources in one
-  group — no need for four separate Claude-style entries.
+- Codex matchers are regex: `"startup|resume|clear|compact"` matches all four
+  SessionStart sources in one group.
 - `PostToolUse` matcher `"Bash"` filters to Bash tool calls (the hook body also
   re-checks `tool_name == "Bash"` as a defensive guard).
 - `UserPromptSubmit` has no matcher (fires every turn).
@@ -214,10 +206,8 @@ is `.ps1` (Windows native, primary on the verified Codex Windows env) + `.sh`
   marker (`LI_PLUS_BASE_LANGUAGE` / `LI_PLUS_PROJECT_LANGUAGE`, every matcher) +
   diff-only Cold-start Synthesis
   material. State at `{workspace_root}/.codex/state/last-cold-start-emit.json`,
-  partitioned by `LI_PLUS_AGENT_KEY` (env var, default `default`, #1811) so two
-  sessions sharing one working directory each keep their own diff-only
-  baseline — see `rules/evolution/cold-start-synthesis.md` Hook Emission
-  Contract and `adapter/claude/hooks-settings.md`.
+  partitioned by `LI_PLUS_AGENT_KEY` (env var, default `default`) — see
+  `rules/evolution/cold-start-synthesis.md` Hook Emission Contract.
   On `resume` / `clear` / `compact`: rules re-injection + language contract marker
   + cold-start anchor only.
   Update status state: at `startup`, a `needed` result writes one line
@@ -234,7 +224,7 @@ is `.ps1` (Windows native, primary on the verified Codex Windows env) + `.sh`
   re-notified per turn).
 - `adapter/codex/hooks/post-tool-use.{ps1,sh}` — sub-issue refs auto-append on
   `gh pr create`, with a one-line `additionalContext` firing trace on every run
-  that matched the command (#1710; per-line table in `docs/6.-Adapter.md`).
+  that matched the command (per-line table in `docs/6.-Adapter.md`).
 
 Each script carries a `# Source: ... ({LI_PLUS_TAG})` comment near the top as the
 tag-tracking anchor. Bootstrap's tag-mismatch check reads this line.
@@ -247,10 +237,8 @@ tag-tracking anchor. Bootstrap's tag-mismatch check reads this line.
    emit the JSON envelope.
 2. **No always-on rules folder.** Claude auto-loads `.claude/rules/**` (survives
    compaction). Codex has no equivalent, so SessionStart injects the rule bodies.
-   The injection runs on every matcher (startup + resume/clear/compact) because
-   re-injection per session boundary is the only always-on substrate Codex offers.
-   `compact` survival of `additionalContext` is **unverified** in #1502 (Codex App
-   has no manual `/compact`); re-injecting on `compact` is the safer-side default.
+   The injection runs on every matcher (startup + resume/clear/compact), `compact`
+   included.
 3. **GUI trust gate.** See the One-time GUI trust section above. No Claude analog.
 4. **32 KiB AGENTS.md cap** (`project_doc_max_bytes`). The root AGENTS.md holds
    only the minimal always-present core (identity / character / startup contract);
@@ -264,7 +252,5 @@ only `type: "command"` handlers. Therefore the Codex webhook intake stays on the
 **poll** path: the `on-user-prompt` hook emits the call line and the AI calls the
 MCP tool itself. `LI_PLUS_WEBHOOK_DELIVERY=channel` / `mcp_hook` suppress that call
 half only — the handling half (report filter + `mark_processed`) is emitted in every
-mode, because nothing in either mode replaces it and its firing moment is `each user
-turn start`, which only a per-turn hook can fire (#1798). A Codex host without an
-mcp_tool hook substrate falls back to `poll`
+mode. A Codex host without an mcp_tool hook substrate falls back to `poll`
 (see `adapter/codex/AGENTS.md` Optional Webhook Notification Flow).

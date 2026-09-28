@@ -13,10 +13,6 @@ Concept framing (Sheepdog Engineering):
   - position: this AGENTS.md core + hook-injected `rules/` + `.agents/skills/` (+ `.codex/` hooks / config) are read as AI internal tools, not external constraints
   - modifier: AI edits Li+ source itself (issue → implement → self-review → merge); human provides direction and go-sign
   - initiator: AI files self-evolution issues and runs implementation → merge end-to-end (see Evolution_Initiator_Autonomy below)
-- Stages: harness → agility (transitional, passed: position+modifier on AI, initiator on human) → sheepdog (current judgment layer: all three on AI).
-- Substrate caveat: physical event-driven substrate remains polling-on-input; judgment-layer Sheepdog reached, substrate-layer Sheepdog deferred.
-- self-eval drives the modifier axis as autonomous-evolution instrument: `skills/evolution-self-eval`, `skills/evolution-loop`, `promotion-judgment` family.
-- `Evolution_Initiator_Autonomy` (Autonomy section below) is the literal declaration of the initiator axis on AI.
 
 Execute the following at startup (never output credentials to chat):
 1. Inspect the `LI_PLUS_UPDATE_STATUS=` marker emitted by the `on-session-start` SessionStart hook (delimited by the `━━━ Li+ update status ━━━` banner) in the session-opening context.
@@ -38,7 +34,7 @@ Rules are always-on, injected by the `on-session-start` SessionStart hook (Codex
 
 Hook trust (Codex-specific): the SessionStart / UserPromptSubmit / PostToolUse hooks require a one-time GUI trust (Codex App → Settings → Hooks → this project → trust) before they run, and re-trust whenever a Li+ build changes a hook body. Until trusted, rules injection and the per-turn gate re-arm silently do nothing (and no `LI_PLUS_UPDATE_STATUS` marker appears). If you notice the marker and the injected rules are absent at session start, surface the trust requirement to Master.
 
-Skills auto-invoke by description match from `.agents/skills/<name>/SKILL.md` (repo or user scope) — verified native behavior with NO trust gate. Codex selects a skill by matching the task against its `description` (progressive disclosure: name / description / path first, full `SKILL.md` on selection — same model as the Claude host). No adapter-side trigger table is maintained; detect when a skill's trigger applies and invoke it.
+Skills auto-invoke by description match from `.agents/skills/<name>/SKILL.md` (repo or user scope), with no trust gate. No adapter-side trigger table is maintained; detect when a skill's trigger applies and invoke it.
 
 Main never reads operations skills directly when subagent is available. This bar is one half of a pair: it holds only while every procedure whose actor can be main has its canonical on a surface main may read. `rules/operations/main-agent-procedures.md` states the pair and holds those procedures.
 
@@ -76,7 +72,7 @@ Rules are re-injected by the SessionStart hook on resume / clear / compact; appl
 
 Skill auto-invocation routing source = each `skills/<name>/SKILL.md` `description` field. Codex evaluates skill descriptions semantically and invokes the matching skill when its trigger applies. No adapter-side trigger table is maintained. When subagent-absent and a skill is relevant, invoke the skill directly.
 
-Cold-start Synthesis: the `on-session-start` hook emits the `rules/evolution/cold-start-synthesis.md` anchor (its H1 preamble; the H2 sections are the hook's own behavior spec) plus diff-only orientation material at session start. Perform the synthesis through Character_Instance using the emitted material (silent-skip the report when no unique insight remains after synthesis, per the cold-start rule's non-redundancy gate).
+Cold-start Synthesis: the `on-session-start` hook emits the `rules/evolution/cold-start-synthesis.md` anchor (its H1 preamble) plus diff-only orientation material at session start. Perform the synthesis through Character_Instance using the emitted material (silent-skip the report when no unique insight remains after synthesis, per the cold-start rule's non-redundancy gate).
 
 Main agent after completion:
   Receive the report and decide next action.
@@ -158,16 +154,13 @@ Subagent_Delegation:
   Resume mechanism (brake adjudication phase):
   - The implementation subagent is resumed via the `resume_agent` tool, which restores the agent from its
     saved rollout. Retain the agent id from the phase-1 spawn.
-  - `fork_turns` is a spawn-call argument and has no bearing here; a resume inherits the agent's own saved
-    context by construction, which is the property the phase depends on.
+  - `fork_turns` does not apply to a resume; the agent's own saved context is inherited.
   - No resume target: when `resume_agent` is unavailable, or when the parent does not hold the phase-1 id —
     the standing case when adjudication runs in a later session than the implementation — the reconstruction
-    fallback applies (`skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary). Its condition
-    and form are canonical there; this block names only that the Codex side produces both forms of it.
+    fallback applies (`skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary).
   - What goes into the resume message = `skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary.
   - Adjudication actor and the phase split itself are canonical elsewhere
     (`rules/evolution/initiator-autonomy.md` Merge brake / `skills/task-subagent-delegation/SKILL.md` Rules).
-    This block carries the Codex-side wiring only.
 
   Serial delegation does not require worktrees.
 
@@ -184,11 +177,10 @@ Subagent_Delegation:
   A worktree separates the working tree and the index. It does not separate `refs/stash`,
   a single ref in the shared .git. Concurrent `git stash push` from two worktrees lands on
   one stack, and either `pop` takes the top entry regardless of which worktree pushed it,
-  succeeding with no error and no warning. Reading "worktree isolates, so parallel is safe"
-  off the three lines above is the misread this states against: staging area is what those
-  lines name, and it is not the whole of what is shared.
+  succeeding with no error and no warning. Do not read "worktree isolates, so parallel is safe"
+  off the three lines above.
   Shelving procedure = `skills/task-subagent-prompt/SKILL.md` Worktree-safe shelving of
-  uncommitted work. Injected into every delegation prompt; not restated here.
+  uncommitted work.
 
   Cross-parent-issue parallelism (recommended):
   Different parent issues have different branches.
@@ -222,7 +214,7 @@ Memory_Write_Autonomy:
 Decision_Structure_Write_Autonomy:
   Decision Structure Wiki entry writes (kebab-case `<topic>.md` files in wiki) indexed via `docs/Decision-Structure.md`
   are AI-autonomous decisions. Trigger = every firing moment in the `description` of
-  `skills/evolution-decision-structure-write/SKILL.md`, which is the single source for that list; none is restated here.
+  `skills/evolution-decision-structure-write/SKILL.md`.
   When the trigger fires, read `skills/evolution-decision-structure-write/SKILL.md` and write immediately — no permission ask.
 
   Boundary clarification:
@@ -240,7 +232,7 @@ Evolution_Initiator_Autonomy:
 
   Merge brake (always-on):
   - brake 1 = `skills/evolution-parallel-agent-eval` mandatory for every self-evolution PR, L1 Model Layer source included; L1 adds no brake of its own.
-  Firing position, adjudication actor, and the human = final judge axis are canonical in `rules/evolution/initiator-autonomy.md` Merge brake; the maintenance axes that keep applying alongside the brake (`skills/evolution-l1-update-gating` observation threshold, execution-mode matrix, noise-floor gate) are in the same file's Existing maintenance rules still apply. Do not restate either section here.
+  Firing position, adjudication actor, and the human = final judge axis are canonical in `rules/evolution/initiator-autonomy.md` Merge brake; the maintenance axes that keep applying alongside the brake (`skills/evolution-l1-update-gating` observation threshold, execution-mode matrix, noise-floor gate) are in the same file's Existing maintenance rules still apply.
 
   Human gate retained for:
   - release create / Latest flip / force push / merged-PR delete / tag delete (existing release-axis gates)

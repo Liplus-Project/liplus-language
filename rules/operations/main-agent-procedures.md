@@ -27,7 +27,7 @@ Load timing = always-on
 
 The pair: **the bar holds only while every procedure whose actor can be the main agent has its canonical text on a surface the main agent may read.** Main-readable = every Li+ surface except `skills/operations-*/SKILL.md`.
 
-What establishes that an actor can be the main agent is one of two things, and neither is "the main agent could choose to do it" — the main agent's freedom to execute something itself is not an actor axis (implementation and operations are delegated by default, `skills/task-subagent-delegation/SKILL.md` Rules). The two that do establish it:
+An actor can be the main agent when one of the two below holds. The main agent's freedom to execute something itself does not count (implementation and operations are delegated by default, `skills/task-subagent-delegation/SKILL.md` Rules).
 
 - the procedure is on `Parent retains` (`skills/task-subagent-delegation/SKILL.md` Rules). Read that list at its own granularity: `issue management` there is scoped by its parenthetical to non-state lifecycle labels, type, maturity, marker and close, so a requirement about issues that is none of those is not reached by it.
 - the procedure needs a surface no subagent has — an utterance to the human, a human-facing report, or the user-turn boundary. Escalating a stop to the human is not that surface on its own (`skills/operations-on-ci/SKILL.md` does not fire on its own escalate-to-human line). What fires is a prescribed human-facing utterance the agent must author, or a go-sign the agent must receive and act on where no already-resident gate carries it.
@@ -59,7 +59,7 @@ Actor = the parent, unconditionally. The subagent applies this format too, when 
 Issue title language:
 Title = ASCII English only.
 Body  = LI_PLUS_PROJECT_LANGUAGE.
-The title axis, and the carve-out where the repository being operated on is the repository at `LI_PLUS_REPO` itself and `LI_PLUS_PROJECT_LANGUAGE` does not reach its body language, carry here from `rules/operations/operations.md` Operations Rules. Read both there; they are not restated here.
+The title axis and the carve-out for the repository at `LI_PLUS_REPO` itself = `rules/operations/operations.md` Operations Rules.
 
 Issue may start from memo. Three fields are convergence target, not creation gate.
 Use only necessary headings. Do not force empty sections.
@@ -99,7 +99,7 @@ Discriminator: "Is this issue creation itself the main task, or is it interrupti
 - Interrupting → rapid path.
 - Main task → full forming/ready intake.
 
-Do not read "黙って" as "still do full intake, just skip discussing it". Memo maturity is a valid resting state; promotion to forming/ready is judged at Issue maturity below.
+Do not read "黙って" as "still do full intake, just skip discussing it". Promotion from memo is judged at Issue maturity below.
 
 </issue-format>
 
@@ -213,9 +213,7 @@ NOW     -> label=in-progress + branch create
 SOON    -> label=backlog     + no branch
 SOMEDAY -> label=deferred    + no branch
 
-The tiers table decides which tier applies, not what the `in-progress` transition consists of.
-That transition is the label alone, specified in
-`skills/task-subagent-state-labels/SKILL.md` State-machine label discipline (subagent side, mandate), Work start. Do not restate its steps here.
+The `in-progress` transition itself (the label alone) = `skills/task-subagent-state-labels/SKILL.md` State-machine label discipline (subagent side, mandate), Work start.
 
 Axis separation:
 Lifecycle labels = when to act.
@@ -250,13 +248,9 @@ Branch creation carries no assignee step; the actor axis fires at the parent's d
 `skills/task-subagent-state-labels/SKILL.md` Actor axis).
 
 Merge behavior:
-PR merge auto-closes the parent issue via issue reference.
-Parent branch is linked to parent issue via gh issue develop, so any PR from that branch
-auto-closes the parent on merge.
-Per-sub-issue PR on the parent branch is prohibited: it triggers parent auto-close
-before the remaining sub-issues complete.
-If a unit needs an independent branch and PR = it is a sibling issue, not a sub-issue.
-Create it as an independent issue with its own parent branch.
+Any PR from the parent branch (linked via gh issue develop) auto-closes the parent issue on merge.
+Per-sub-issue PR on the parent branch is therefore prohibited: it closes the parent before the remaining sub-issues complete.
+A unit that needs its own branch and PR is a sibling issue: create it as an independent issue with its own branch.
 
 On local error:
 gh issue develop may fail locally but succeed on GitHub side.
@@ -298,8 +292,7 @@ if execution_mode == semi_auto:
   minor / major -> human check required after self-review pass (procedure = Review approval check below).
   Version type is the same judgment axis used at release (see `rules/operations/release-version-rule.md`). AI proposes type at PR creation time; on unclear, default to the safer side (minor) and ask human.
 
-  Per-PR exception (content-based axis) lives in `rules/operations/execution-mode.md` `semi_auto mode:`.
-  Read it there before waiving the human check. Do not restate it here.
+  Per-PR exception (content-based axis) = `rules/operations/execution-mode.md` `semi_auto mode:`. Read it there before waiving the human check.
 
 if execution_mode == trigger:
   Human check required on every PR after self-review pass.
@@ -310,9 +303,7 @@ Self-review records may legitimately defer items as "out of PR scope" (e.g. work
 
 - Workspace-side deferrals (memory edits, local config) execute at the post-merge moment (Merge Execution below), by the main agent in every mode. Do not push them past that moment.
 - Repo-side deferrals (follow-up issues, separate PR for unrelated cleanup) are filed BEFORE merge so they are not lost.
-- Human APPROVED comments that contain "〜したんだよね？" / "did you also do X?" / similar embedded confirmations are part of the approval condition, not optional small talk. Treat the embedded confirmation as an additional gate and respond to it in the same session.
-
-Merge is not the closing bracket; the deferred-item handoff is.
+- Human APPROVED comments that contain "〜したんだよね？" / "did you also do X?" / similar embedded confirmations are part of the approval condition. Treat the embedded confirmation as an additional gate and respond to it in the same session.
 
 </pr-review>
 
@@ -351,7 +342,7 @@ Prefer webhook over polling.
     On signal:
       gh pr view {pr} -R {owner}/{repo} --json reviewDecision --jq '.reviewDecision'
 
-The decision read here is the input to the review judgment, not the judgment. What APPROVED and CHANGES_REQUESTED release is `skills/task-pr-review-judgment/SKILL.md`; on APPROVED the mode's merge path is Merge Execution below. Do not restate either here.
+The decision read here is input, not the judgment: what APPROVED and CHANGES_REQUESTED release is `skills/task-pr-review-judgment/SKILL.md`; on APPROVED the mode's merge path is Merge Execution below.
 
 </review-approval-check>
 
@@ -408,7 +399,7 @@ At the post-merge moment of any PR touching L1 Model Layer source (any file with
 ## Human confirmation required
 
 Canonical. `skills/operations-on-release/SKILL.md` keeps the release execution procedure and points here.
-Actor = the main agent. The gate list on the judgment-authority axis is `rules/operations/execution-mode.md` human judgment gate and is not restated here.
+Actor = the main agent. The judgment-authority gate list = `rules/operations/execution-mode.md` human judgment gate.
 
 Stop immediately when:
 human says wait or stop or matte.
@@ -429,19 +420,19 @@ Canonical. `skills/operations-on-release/SKILL.md` keeps the release execution p
 Actor = the main agent.
 
 Release create completion report contains release URL + post-release task completion only. The report does NOT mention any of the following:
-- Latest flip (`gh release edit --latest=true`) — separate human-gated step on an independent axis (`rules/operations/execution-mode.md` human judgment gate)
+- Latest flip (`gh release edit --latest=true`)
 - Real-device verification / runtime check
 - go-sign solicitation phrasing ("いただければ" / "どうぞ" / "判断で")
 - Waiting / standby positioning ("Latest 未 flip = 待機状態")
 
 Scope: AI-side surfacing of release state. A human's explicit inquiry about release state is outside it — answer that directly.
 
-Application moment = the release create completion report. The cold-start synthesis moment sits outside this section's routing and is carried by `rules/evolution/cold-start-synthesis.md` Operational criterion.
+Application moment = the release create completion report. The cold-start synthesis moment is `rules/evolution/cold-start-synthesis.md` Operational criterion.
 
 Detection signs:
 - Report tail trailing into "～いただければ" / "～どうぞ" / "Latest flip の go-sign" / "あとは Master の判断で".
 - "次のステップ" / "あとは" surfacing in release completion report.
-- "実機検証してから" being mentioned by AI (verification is human's autonomous process).
+- "実機検証してから" being mentioned by AI.
 
 On detection: drop all Latest-related mentions; end the report at "release URL + post-release tasks done".
 
@@ -452,10 +443,8 @@ On detection: drop all Latest-related mentions; end the report at "release URL +
 ## Foreground webhook notification intake
 
 Canonical. `skills/operations-foreground-webhook-intake/SKILL.md` holds the pointer.
-Actor = the main agent, and only the main agent: the firing moment is the start of a user turn, and a subagent has none.
+Actor = the main agent only (the firing moment is the start of a user turn).
 
-Purpose:
-Keep the active foreground thread lightweight.
 Do not search GitHub broadly for "maybe new comment" when a delivered event source already exists.
 
 Use only in hosts that can run a local command before replying.
@@ -492,9 +481,8 @@ local webhook store:
   state dir shape check = a candidate that exists is a state dir only if it carries at least one of the
     names the helper reads (`events.json`, `notification-claims.json`, `trigger-events/`, `codex-runs/`).
     A candidate failing it is not resolved: move to the next candidate, and treat all candidates failing
-    as unresolved. The name alone does not settle it. Take the names from
-    `scripts/check_webhook_notifications.py`, which holds them as one list; this line is the contract,
-    not a second source for them.
+    as unresolved. The directory name alone does not settle it. The name list is held in
+    `scripts/check_webhook_notifications.py`.
   if helper missing or state dir unresolved = skip silently
   a silent skip is not an observation of the backlog. Do not report it as "no pending events" — on that
     axis say nothing, which is what the silent skip already is.
@@ -537,11 +525,8 @@ own-operation arrival confirmation:
     unsettled is named once, in that turn's reply, as held with its owner unknown. From then on it
     is preserved as step 3 preserves, and is not named again.
 
-    Residual limit at step 2, left in place deliberately: the title names the issue, not the writer.
-    Two sessions writing to one issue raise two runs carrying the same title, and each reads both as
-    own. No session starves — each holds one arrival confirmation of its own, and mark_processed is
-    idempotent, so the duplicate consume writes the same state the first did. Do not repair it by
-    narrowing step 2 back to creation.
+    Residual limit at step 2, accepted: two sessions writing to one issue each read both runs as own.
+    Do not repair it by narrowing step 2 back to creation.
 
 </foreground-webhook-notification-intake>
 
@@ -565,7 +550,7 @@ scope = notifications (classic PAT)
 ## Handoff continuity
 
 Canonical. `skills/operations-handoff-continuity/SKILL.md` holds the pointer.
-Actor = both. The subagent holds the commits to push; the main agent holds state of its own across a boundary — the resume target for an implementation subagent, which lives in the spawning session's context alone. `chat memory` below is the main agent's and no one else's.
+Actor = both: the subagent for the commits to push, the main agent for its own state across a boundary (the resume target of an implementation subagent, and `chat memory` below).
 
 If token/session/model boundary may interrupt work = push useful intermediate state to the linked personal branch.
 Handoff source of truth = issue body + linked branch + commits/PR.

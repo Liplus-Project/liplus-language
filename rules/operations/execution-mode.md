@@ -19,7 +19,6 @@ Ask human at session start with options:
   option B = "semi_auto: AI decides when to start; AI self-reviews; human reviews minor/major only"
   option C = "auto: AI decides when to start; AI self-reviews only"
 Write selection to Li+config.md.
-No manual editing required.
 
 Mode matrix:
 
@@ -31,8 +30,7 @@ Mode matrix:
 | Merge executor       | AI (`--auto` handoff) | AI (direct merge)       | AI (direct merge) |
 | Release confirm      | human            | human                        | human       |
 
-AI self-review is required in every mode. See [PR Review] for the self-review procedure and the type-gated human check in semi_auto.
-Merge is executed by AI in every mode. See [Merge Execution] (`rules/operations/main-agent-procedures.md`). The `Merge executor` row reads on the actor axis: what the AI act is differs by mode. In trigger the act is enabling GitHub auto-merge (`--auto`) at PR creation and GitHub fires the merge on human approval — no agent runs a merge command at that moment; semi_auto / auto use AI direct merge (see `rules/operations/operations.md` PR auto-merge policy).
+Self-review procedure = `rules/operations/main-agent-procedures.md` PR review. The merge act per mode = `rules/operations/main-agent-procedures.md` Merge Execution.
 
 Common to all modes:
 Issue create/close/modify = assignee responsibility (AI in most cases).
@@ -51,10 +49,6 @@ Execution timing = AI decides.
 PR review = AI self-review on every PR; human check layered on top for minor / major only.
   patch = AI self-review pass -> AI merges (no human review).
   minor / major = AI self-review pass -> human check required -> AI merges on approval.
-Rationale: self-evolution loop rotation is the design goal; patch-level auto-merge removes the human bottleneck for low-risk changes while minor/major retain human oversight.
-Defense-in-depth (intentionally two layers):
-  Layer 1 = AI self-review + Li+ spec discipline (absorbs everyday mistakes).
-  Layer 2 = Release human gate (latest flip on real-device verification, prevents catastrophic user exposure).
 
 Per-PR exception (content-based axis):
   If the PR's own modification qualifies as patch under
@@ -66,17 +60,14 @@ Per-PR exception (content-based axis):
   literal only, exception applied as patch-equivalent").
   If uncertain, default to the parent's release type axis (safer-side fallback).
   L1 Model Layer source carries no override of this exception: an L1 change that
-  qualifies as patch is waived like any other. What an L1 change does carry sits
-  on axes this matrix does not hold — the observation threshold at issue formation
+  qualifies as patch is waived like any other. The L1 observation threshold
   (`skills/evolution-l1-update-gating/SKILL.md`) and the post-merge runtime
-  observation (`rules/operations/operations.md` Post-L1-Merge Runtime Observation).
-  Neither is a merge gate, and neither is restated here.
+  observation (`rules/operations/operations.md` Post-L1-Merge Runtime Observation)
+  are not merge gates.
 
 auto mode:
 Execution timing = AI decides.
 PR review = AI self-review only (no human check).
-
-Release always requires human confirmation regardless of mode.
 
 human judgment gate (judgment ↔ execution axis split):
 

@@ -21,12 +21,9 @@ hooks for other MCP servers — goes here.
 Claude Code reads both files at runtime and merges them, so user keys in
 `settings.local.json` remain effective without entering Li+'s template surface.
 
-**Migration note for workspaces upgraded from earlier Li+ versions:** any
-user-added keys currently sitting in `settings.json` (permissions / env / theme /
-custom hooks / additional `mcp_tool` entries) should be moved to
-`settings.local.json` before the first bootstrap under this rule. Otherwise the
-compare-and-overwrite step (see below) detects content drift and overwrites
-`settings.json` with the Li+ template, dropping the user keys.
+Move user-added keys found in `settings.json` (permissions / env / theme / custom
+hooks / additional `mcp_tool` entries) to `settings.local.json` before bootstrap;
+the compare-and-overwrite step below drops them from `settings.json`.
 
 ## Bootstrap behavior
 
@@ -49,12 +46,6 @@ compare-and-overwrite step (see below) detects content drift and overwrites
   `settings.local.json`.
 - Hook script bodies (`hooks/*.sh`) are regenerated on tag mismatch (per the
   `# Source: ... ({LI_PLUS_TAG})` comment line).
-
-This compare-and-overwrite rule replaces the previous "do not modify if exists"
-rule. The previous rule prevented Li+ from rolling out hook structure updates
-automatically; the new rule keeps `settings.json` aligned with the template
-release-by-release while sparing the user from sensitive-file permission prompts
-on every bootstrap (only fires when content actually differs).
 
 ## settings.json
 
@@ -150,13 +141,9 @@ Real files, copied verbatim into `{workspace_root}/.claude/hooks/` on bootstrap
 - `adapter/claude/hooks/on-user-prompt.sh` — per-turn Li+ update status re-emit (re-emits the `LI_PLUS_UPDATE_STATUS=needed` marker with its `sentinel-tag(...)` reason while `{workspace_root}/.claude/state/update-status.txt` records a non-empty target tag, the `.claude/CLAUDE.md` sentinel tag differs from it, and the sentinel still equals the one recorded beside it; local reads only, silent otherwise and when the file is absent) + Trigger Check Gate re-arm + webhook re-arm (the call half is `poll`-only; the handling half is emitted in every delivery mode — see the mcp_tool entry behavior section below). Character_Instance is loaded via output-styles, not per-turn re-notify
 - `adapter/claude/hooks/on-session-start.sh` — Cold-start Synthesis material emitter (matcher-aware: `startup` runs diff-only against `{workspace_root}/.claude/state/last-cold-start-emit.json`; `resume` / `clear` / `compact` / `fork` re-anchor only the cold-start rule anchor — see `rules/evolution/cold-start-synthesis.md` for the emission-state table)
 
-  `LI_PLUS_AGENT_KEY` (env var, default `default`, #1811): partitions the
-  diff-only state file per key. Unset reproduces prior single-partition
-  behavior exactly. Set it distinctly per person's own launch profile
-  (shell env) only in a workspace where multiple sessions share this
-  directory concurrently — see `rules/evolution/cold-start-synthesis.md`
-  Hook Emission Contract for the full rationale, including why a
-  session-scoped identifier does not work for this instead.
+  `LI_PLUS_AGENT_KEY` (env var, default `default`): partitions the diff-only
+  state file per key — see `rules/evolution/cold-start-synthesis.md` Hook
+  Emission Contract.
 
   Update status state: on every matcher that reaches the update-status
   verification, a `needed` result writes one line
@@ -165,19 +152,17 @@ Real files, copied verbatim into `{workspace_root}/.claude/hooks/` on bootstrap
   result removes the file. `on-user-prompt.sh` reads it every turn. The file is
   workspace-level and not partitioned by `LI_PLUS_AGENT_KEY`.
 
-  All five documented SessionStart matchers are registered. An unregistered
-  matcher does not fall through to another entry — the hook simply does not run
-  for that entry point, so a `fork` session would start with no
-  `LI_PLUS_UPDATE_STATUS` marker (adapter CLAUDE.md then runs the full
-  Li+update walkthrough) and no language-contract banner (ask-human). `fork`
-  covers `--fork-session` with `--resume` / `--continue`, the `/fork`
-  background copy, and `/branch`; before Claude Code v2.1.214 those sessions
-  reported `resume` instead, which is why the earlier four-matcher set held.
+  All five documented SessionStart matchers are registered; keep all five. An
+  unregistered matcher does not fall through to another entry — the hook does
+  not run for that entry point, and that session starts with no
+  `LI_PLUS_UPDATE_STATUS` marker and no language-contract banner. `fork` covers
+  `--fork-session` with `--resume` / `--continue`, the `/fork` background copy,
+  and `/branch`.
 - `adapter/claude/hooks/post-tool-use.sh` — sub-issue refs auto-append on PR create,
   with a one-line `additionalContext` firing trace on every run that matched the
-  command (#1710; per-line table in `docs/6.-Adapter.md`), and a stray-script scan
+  command (per-line table in `docs/6.-Adapter.md`), and a stray-script scan
   of the file a `Write` / `Edit` / `MultiEdit` call just wrote, reported through
-  `additionalContext` without rewriting the file (#2047). The PostToolUse matcher
+  `additionalContext` without rewriting the file. The PostToolUse matcher
   `Bash|Write|Edit|MultiEdit` is what lets the file-writing tools reach it.
 
 Each script carries a `# Source: ... ({LI_PLUS_TAG})` comment line near the top as
@@ -194,13 +179,9 @@ https://code.claude.com/docs/en/hooks).
 Preconditions for the entry to actually deliver webhook context to the AI:
 
 1. `mcp__github-webhook-mcp` is connected as an MCP server in the workspace.
-2. `github-webhook-mcp >= v0.11.3`. Earlier versions return generic JSON
-   (`{pending_count, types, latest_received_at}`) which Claude Code parses
-   successfully but discards because it does not match any UserPromptSubmit
-   decision schema. v0.11.3 wraps `get_pending_status` results into the
-   canonical decision shape (`hookSpecificOutput.hookEventName="UserPromptSubmit"`
-   plus a natural language summary in `additionalContext`) on the local bridge
-   side, so the wrapped output reaches the AI prompt context.
+2. `github-webhook-mcp >= v0.11.3`, whose bridge wraps `get_pending_status` into the
+   UserPromptSubmit decision shape. Output from earlier versions is discarded by
+   Claude Code.
 
 `Li+config.md`'s `LI_PLUS_WEBHOOK_DELIVERY` setting controls the *bash hook's*
 call half (poll / channel / mcp_hook) independently. The `mcp_tool` entry itself
@@ -208,16 +189,11 @@ fires unconditionally; setting `LI_PLUS_WEBHOOK_DELIVERY=mcp_hook` suppresses th
 bash hook's "call the tool yourself" line, so the wrap delivery is the single
 source of webhook context.
 
-It does not suppress the handling half. The webhook block carries two separable
-things — who calls the tool, and what to do with what arrives — and the delivery
-mode selects only the first. `channel` and `mcp_hook` both replace the call and
-neither replaces the handling, so the report filter and the `mark_processed`
-re-arm are emitted in every mode. They have to be emitted by the hook rather than
-left to the always-on canonical
+It does not suppress the handling half: the delivery mode selects only who calls
+the tool. The report filter and the `mark_processed` re-arm are emitted by the
+hook in every mode; do not leave them to the always-on canonical alone
 (`rules/operations/main-agent-procedures.md` Foreground webhook notification
-intake): its firing moment is `each user turn start`, and residency is a load
-guarantee, not a firing one. Dropping both halves together is #1798 — events were
-delivered into context and no surface said what to do with them.
+intake), whose firing moment is `each user turn start`.
 
 If `github-webhook-mcp` is **not connected**: Claude Code's mcp_tool resolver
 returns a `not connected` error per turn. The error is surfaced as plain text

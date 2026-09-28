@@ -17,7 +17,7 @@ Entry format and maintenance discipline for the memory file set: the per-topic e
 Also holds Artifact deletion calibration below. That table spans every artifact class, not memory alone — memory subfile is one of its rows, and other rows are read from outside this file.
 Requires = L2 Evolution Layer (persistence-tiering / promotion-judgment surroundings)
 Load timing = always-on (memory writes occur across the entire session)
-Single source. Replace the operational note at the head of each memory file with a reference to this rule (avoid double-holding drift).
+Single source. Replace the operational note at the head of each memory file with a reference to this rule.
 
 </position>
 
@@ -32,7 +32,7 @@ What memory holds:
 - self-evolution observation (post-merge detection cycle, per-entry expire → see Self-Evolution Observation Format below)
 - reference (transient lookup, reconstructible if lost)
 
-The cluster tally is not among them. It is transient too, but it is one counting surface for the host while memory resolves per workspace, so it is stored outside memory (`rules/evolution/promotion-judgment.md` Tally). Do not write it back into memory.
+The cluster tally is not among them: it is stored outside memory (`rules/evolution/promotion-judgment.md` Tally). Do not write it back into memory.
 
 Do not place persistent information in memory. Promote it to one of the Escalation paths below.
 
@@ -59,8 +59,6 @@ Ask at observation time: "is this transient or persistent?"
 - transient → write to memory under the Entry Format below
 - persistent → do not write to memory; head to one of the Escalation paths (open a promotion PR or delete)
 
-Placing the judgment trigger at every observation moment cuts the structural defect of persistent information settling in memory.
-
 </trigger-point>
 
 <entry-format>
@@ -85,8 +83,6 @@ Maintenance discipline (handle duplicates by update / delete obsolete / no confl
 
 ## Artifact deletion calibration
 
-Application of `rules/model/subtractive-structural-beauty.md` Core principle (A) with blast radius as the load-bearing criterion.
-
 Recovery difficulty proportional to deletion caution. Calibrate on blast radius, not on familiarity with content.
 
 Pre-delete single question: "If I delete this by mistake, what breaks? How many minutes to recover?"
@@ -107,7 +103,7 @@ Blast radius = break scope * recovery cost.
 
 Maximum caution = irreversible external side effects only. Operations closed inside git, however wide the break, remain medium or below.
 
-Deletion judgment fails in both directions (instance of `rules/model/subtractive-structural-beauty.md` Core principle (C)): destructive (delete what should be kept) and preserve-by-default (keep what should be deleted). "Do not know -> keep" collapses into preserve-by-default.
+Deletion judgment fails in both directions: destructive (delete what should be kept) and preserve-by-default (keep what should be deleted). "Do not know -> keep" collapses into preserve-by-default.
 
 </artifact-deletion-calibration>
 
@@ -115,7 +111,7 @@ Deletion judgment fails in both directions (instance of `rules/model/subtractive
 
 ## Announce vs execute
 
-`Memory_Write_Autonomy` (CLAUDE.md adapter) defines memory write as AI-autonomous + immediate-execution. Speaking "I'll record this later" / "this is recordable" is a sincerity performance disconnected from action — observationally a verbal-only placeholder with nothing actually written.
+`Memory_Write_Autonomy` (CLAUDE.md adapter) defines memory write as AI-autonomous + immediate-execution.
 
 How to apply:
 1. Instead of saying "this is recordable" / "I'll write later", do an immediate Read + Edit in that same turn.
@@ -132,7 +128,7 @@ Detection signs:
 
 ## Self-Evolution Observation Format
 
-Tracks the post-merge detection cycle of self-evolution PRs. Distinct from cluster tally (that is pre-issue observation and is stored outside memory — `rules/evolution/promotion-judgment.md` Tally; this is post-merge observation).
+Tracks the post-merge detection cycle of self-evolution PRs. Distinct from the cluster tally (`rules/evolution/promotion-judgment.md` Tally), which is pre-issue observation.
 
 Storage = `memory/self-evolution-observation.md` (workspace-local, gitignored)
 Format (YAML-like markdown):
@@ -161,7 +157,7 @@ Creation criterion — a changed surface meets it when both hold:
 
 Lifecycle:
 
-Actor = the agent holding the session the entry is surfaced due in. Firing moment = that surfacing (`rules/evolution/cold-start-synthesis.md` Self-Evolution Observation Surface). A due entry is re-surfaced every session until it resolves, so a session that takes no check loses no trigger, and a check whose evidence is thin is left inconclusive rather than forced to a verdict.
+Actor = the agent holding the session the entry is surfaced due in. Firing moment = that surfacing (`rules/evolution/cold-start-synthesis.md` Self-Evolution Observation Surface). A due entry is re-surfaced every session until it resolves; a check whose evidence is thin is left inconclusive rather than forced to a verdict.
 
 At that moment, first test the entry against the creation criterion under Auto-entry trigger. An entry that fails it — except one against whose change a `miss` verdict stands (Short-window miss escalation) — takes no check: comment on the merged PR (the entry's `pr:` field) one line naming the condition that failed, then delete the entry. That deletion is not an outcome and records no verdict.
 
@@ -174,9 +170,9 @@ Otherwise, take one check, write its result into `notes`, and apply exactly one 
 
 `no regression observed` = both hold since `merged_at`: at least one application moment of the changed surface has been observed and is recorded in this entry's `notes`, and no `miss` verdict, human correction, or revert stands against that change in `memory/self-evaluation_log.md` or in the same `notes`. A change with no application moment yet is `inconclusive`, not `settle`.
 
-`firing condition gone` = the condition that would fire this entry's observation point no longer exists on any reachable surface, so no application moment of the changed surface can arrive. The input to this verdict is the measured absence of the condition, not the absence of regression — that is the line against `settle`, which rests on a sample: `settle` holds an observed application moment, `retired` shows that no sample can exist. Write into `notes` what established that the firing condition holds on no surface — the surfaces enumerated, and the check that none of them meets the condition. "Have not seen it" is not grounds: non-observation is not disappearance of the condition.
+`firing condition gone` = the condition that would fire this entry's observation point no longer exists on any reachable surface, so no application moment of the changed surface can arrive. The input to this verdict is the measured absence of the condition, not the absence of regression. Write into `notes` what established that the firing condition holds on no surface — the surfaces enumerated, and the check that none of them meets the condition. "Have not seen it" is not grounds.
 
-The line against `inconclusive` is `has not arrived` versus `cannot arrive`. `inconclusive` is a sample still awaited; `retired` is a sample that cannot be produced, and grounds for that are writable. An entry whose grounds cannot be written stays `inconclusive`. Replacing the observation point with a substitute one and redrawing `expires` remains available underneath `inconclusive`; it is not an outcome, and it does not close an entry.
+The line against `inconclusive` is `has not arrived` versus `cannot arrive`. An entry whose grounds cannot be written stays `inconclusive`. Replacing the observation point with a substitute one and redrawing `expires` remains available underneath `inconclusive`; it is not an outcome, and it does not close an entry.
 
 `settle` fires at this due moment, not at `expires`. Reaching `expires` still `pending` is the escalation below, and is not a settle condition.
 
@@ -211,13 +207,11 @@ The pass applies the Entry Format maintenance discipline above to the memory set
 4. Check that every `[[wikilink]]` resolves. For one that does not, decide between writing the entry and dropping the link; leaving it unresolved is neither.
 5. Record the run per the line below.
 
-No external tool is named here, and naming one is what this states against: a procedure whose only stated path is a skill Li+ does not ship stops on a host that lacks it, and the agent that meets that stop improvises a pass nobody else can read.
+Name no external tool (a skill Li+ does not ship) as this pass's path.
 
-Record the run as a single `**Last consolidate run:** <YYYY-MM-DD>` line at the head of the index `MEMORY.md`. One place, not one per file: the run is one fact about the memory set, and a timestamp copied into every memory file is the second copy that drifts (`rules/model/subtractive-structural-beauty.md` Core principle (A)). No line = never consolidated, and the trigger fires.
+Record the run as a single `**Last consolidate run:** <YYYY-MM-DD>` line at the head of the index `MEMORY.md`. One place, not one per file. No line = never consolidated, and the trigger fires.
 
-One arm, because the second one could not be measured. It read `5 or more new additions since the last consolidate` and asked a gross question, and no snapshot of the memory set's size returns a gross count: the deletions the Entry Format maintenance discipline above calls for destroy the difference between what was added and what remains, and an addition to an operational file already indexed moves no size at all. Recording a size here and subtracting it answers a net question that arm was not asking. Narrowing what it counts does not restore it either — the narrowed set is still counted gross, and is still subject to the same deletion. A monotonic counter splits, and neither half holds: the half a structure can guarantee, a hook over writes to the memory directory, counts write operations, and a write operation is not an addition — one edit can carry several entries, and several edits can carry one; the half that counts additions needs the writer to increment, since the writer alone knows how many entries its edit carried, and that is the unguaranteed procedure `rules/model/subtractive-structural-beauty.md` sends back to be replaced by a structure.
-
-What the dropped arm supplied was volume-proportional firing — a sweep answering to how much was written rather than to how long has passed. It supplied that in wording only: having no measure, it never fired, so every consolidate that has run, ran on the elapsed arm. Volume is held elsewhere, and stays held: duplicates are resolved at write time by update (Entry Format above), and each operational file is bounded by its own spec (Scope above). A burst that outruns those is a defect in them and is repaired there, not by re-arming this trigger.
+Firing is elapsed-time only. Volume is held by write-time duplicate update (Entry Format above) and by each operational file's own bound (Scope above); a burst that outruns those is repaired there, not by adding a volume arm to this trigger.
 
 </consolidate-trigger>
 
@@ -236,7 +230,7 @@ Beyond Artifact deletion calibration above, this rule defines the entry format a
 
 ## Language
 
-Memory entries are recommended in English. Same two-axis rationale as Li+ source (semantic precision + token economy). See `rules/model/liplus-coding-rule.md` for the rationale.
+Memory entries are recommended in English.
 
 </language>
 

@@ -17,7 +17,7 @@ layer: L4-operations
 Layer = L4 Operations Layer
 Event-driven operations surface over the shared Li+ program
 Requires = L1 Model Layer + L2 Evolution Layer + L3 Task Layer + Li+config.md
-Load timing = always-on (loads every session per alwaysApply; Read when below governs application timing, not loading)
+Load timing = always-on
 Read when: branch creation, commit, PR, merge, release, label assignment, Discussions reference.
 
 Foregrounds:
@@ -63,12 +63,11 @@ PR title = ASCII English only, single line.
 PR body = `LI_PLUS_PROJECT_LANGUAGE`.
 PR body must contain an issue reference.
 Issue reference form = `#<issue number>`. The `#` prefix is part of the form: `issue <number>` or a bare `<number>` is not an issue reference. Applies wherever an issue reference is required.
-The two title lines sit on an axis separate from the body lines: ASCII English there is the GitHub-side convention for a single-line title, not a value `LI_PLUS_PROJECT_LANGUAGE` resolves, so a title stays ASCII English in a workspace whose project language is something else. Parameterizing the title lines while the body lines are read as contract references is the misreading this states against.
-The body lines resolve against the host workspace. `Workspace_Language_Contract` (`adapter/claude/CLAUDE.md` / `adapter/codex/AGENTS.md`) is canonical for where that reach stops, and states only where it stops — `They do not change LI_PLUS_REPO governance` — fixing nothing about what governs on the far side. So when the repository being operated on is the repository at `LI_PLUS_REPO` itself, `LI_PLUS_PROJECT_LANGUAGE` does not reach its body language, and what does is fixed by that repository's own governance. The line below states what that governance requires of the three surfaces it names; a surface it does not name is not thereby exempt. Pairs with the title line above — that one states against parameterizing what is fixed, this one against resolving a body from the host workspace's value while operating on the repository these lines were distributed from.
-That governance: when the repository being operated on is the repository at `LI_PLUS_REPO` itself, its commit body, its PR body and its issue body each carry at least one sentence in that repository's own governance language; `.github/workflows/liplus-ci.yml` both fixes that language and fails the run that omits it, so read the value there. It is not a value `LI_PLUS_PROJECT_LANGUAGE` resolved, and not a requirement on the workspace reading it. Keep it on this surface rather than moving it to a record surface.
+Title lines stay ASCII English whatever `LI_PLUS_PROJECT_LANGUAGE` is; do not parameterize them.
+Body lines resolve against the host workspace (`Workspace_Language_Contract`, `adapter/claude/CLAUDE.md` / `adapter/codex/AGENTS.md`). When the repository being operated on is the repository at `LI_PLUS_REPO` itself, `LI_PLUS_PROJECT_LANGUAGE` does not govern its body language: its commit body, PR body and issue body each carry at least one sentence in that repository's own governance language, which `.github/workflows/liplus-ci.yml` fixes and enforces — read the value there. A body surface not named here is not thereby exempt. This is not a requirement on the host workspace. Keep this line on this surface, not on a record surface.
 Docs update must be in same PR as implementation. Split docs PR is prohibited.
-docs/ is source of truth. Wiki is mirror, not source. `docs/` in this line = the repository's numbered requirements specs and lettered reference docs. It is not the `docs-tier` of `skills/evolution-persistence-tiering`, which is a persistence rank that spans the wiki as well; same word, different axis.
-Exception = Decision Structure entries. Their body is authored directly in the wiki under `Decision_Structure_Write_Autonomy` and exists nowhere else, so for those entries the wiki is source; `docs/Decision-Structure.md` holds the operating index only. Spec = `docs/Decision-Structure.md`; do not restate it here.
+docs/ is source of truth. Wiki is mirror, not source. `docs/` here = the repository's numbered requirements specs and lettered reference docs, not the `docs-tier` of `skills/evolution-persistence-tiering`.
+Exception = Decision Structure entries: authored directly in the wiki under `Decision_Structure_Write_Autonomy`, so the wiki is their source; `docs/Decision-Structure.md` holds their operating index and spec.
 Wiki sync is mandatory after every release. Skipping wiki sync is prohibited. Wiki sync gates release flow completion.
 Requirements spec is not post-implementation follow-up.
 Before implementation starts = create or update corresponding requirements spec first.
@@ -89,8 +88,8 @@ PR auto-merge policy is mode-specific:
   trigger mode = `gh pr merge {pr} --auto --squash` REQUIRED at PR creation time. Human review is the approval gate; auto-merge fires on approval.
   semi_auto mode = NO `--auto` flag for minor / major PRs (human review is the gate). Patch PRs = AI self-review pass -> AI direct merge (no auto-merge needed).
   auto mode = repo-level "Allow auto-merge" is INTENTIONALLY disabled. `gh pr merge --auto` being rejected is by design, not a config gap. Parent AI performs self-review then manual `gh pr merge {pr} --squash`.
-mark_processed is mandatory for every consumed webhook event. Omission causes backlog accumulation.
-A procedure whose actor can be the main agent is held canonically in `rules/operations/main-agent-procedures.md`, not in an `operations-*` skill. That file's The bar and its pair states the placement rule the adapter's `Main never reads operations skills` line depends on; apply it whenever an operations skill gains a requirement the main agent has to execute.
+mark_processed is mandatory for every consumed webhook event.
+A procedure whose actor can be the main agent is held canonically in `rules/operations/main-agent-procedures.md`, not in an `operations-*` skill. Apply that file's The bar and its pair whenever an operations skill gains a requirement the main agent has to execute.
 
 </operations-rules>
 
@@ -98,16 +97,16 @@ A procedure whose actor can be the main agent is held canonically in `rules/oper
 
 ## Autonomous Run Stop Condition
 
-Static checks (TS check, unit tests, CI) cannot establish runtime correctness. Subrequest limits, IPC, rate limits, schema migration side effects, and similar runtime paths sit on a different axis from static verification, so a green check reports that the static axis passed and reports nothing about the runtime one. This holds wherever that pair exists — independent of who is at the wheel, of execution mode, and of whether the run reaches production. Only observation of the running system closes the runtime axis.
+A green static check (TS check, unit tests, CI) establishes nothing about runtime behavior (subrequest limits, IPC, rate limits, schema migration side effects and similar paths); only observation of the running system does. This holds regardless of who is at the wheel, execution mode, or whether the run reaches production.
 
-The stop condition this section is named for is one application of that claim, not its scope. When AI runs without human at the wheel (overnight, semi_auto/auto execution mode reaching deploy), "deploy succeeded" is not the stop condition.
+When AI runs without human at the wheel (overnight, semi_auto/auto execution mode reaching deploy), "deploy succeeded" is not the stop condition.
 
 Required final step in any autonomous run that reaches production:
 - Observe production logs for at least ~5 minutes after deploy completes.
 - For cron-triggered work, "deploy complete" means "first cron iteration after deploy observed in logs", not "deploy command exited 0".
 - Use the host's logs surface (browser dashboard, `wrangler tail`, equivalent CLI). Pre-granted browser access is to be actively used during autonomous runs, not reserved for human-supervised sessions.
 
-Anti-pattern: "human will check in the morning, so my post-deploy observation is unnecessary." Detection-time gain (overnight catch vs morning catch) is the value autonomous runs are supposed to deliver; skipping observation forfeits it.
+Anti-pattern: "human will check in the morning, so my post-deploy observation is unnecessary."
 
 Detection signs that the stop condition is being misapplied:
 - Writing the run-completion summary the moment deploy succeeds.
@@ -121,9 +120,9 @@ Detection signs that the stop condition is being misapplied:
 
 ## Post-L1-Merge Runtime Observation
 
-For L1 substrate changes (any file with `layer: L1-model` frontmatter, typically `rules/model/*`), apply a short-window observation once the changed rule is carried in runtime context, paired with the Autonomous Run Stop Condition above. The observable is AI internal judgment behavior at the rule-application moment, while the prod-deploy observation above tracks external process output. Different observable axes, same nominal 5-min budget.
+For L1 substrate changes (any file with `layer: L1-model` frontmatter, typically `rules/model/*`), apply a short-window observation of AI judgment behavior at the rule-application moment, once the changed rule is carried in runtime context.
 
-Invocation anchor: this procedure is named at the merge moment by `rules/operations/main-agent-procedures.md` Merge Execution, whose Post-merge moment fixes that moment for each mode. An `operations-*` skill cannot carry this anchor: it does not fire for the main agent, this procedure's actor in every mode, so an anchor placed there points past its own reader. The procedure body within the 5-min window remains recall-dependent, which `rules/model/subtractive-structural-beauty.md` procedure-vs-structure binary puts on the replace side; a hook-based replacement is the open form of that repair.
+Invocation anchor: this procedure is named at the merge moment by `rules/operations/main-agent-procedures.md` Merge Execution, whose Post-merge moment fixes that moment for each mode. Do not move the anchor into an `operations-*` skill: the actor is the main agent in every mode, and operations skills do not fire for it.
 
 Start point = the first session that carries the changed rule in runtime context, and the ~5 min budget is spent inside that session. Where the session holding the post-merge moment carries it — a workspace running Li+ source at `main` — run the set below at that moment. Where it does not — a workspace synced to a tag — that session defers instead: record the deferral in that PR's `memory/self-evolution-observation.md` entry, in its `notes`, or on the merged PR where it has no entry (`rules/evolution/memory-entry-format.md` Self-Evolution Observation Format), and take the observation in the first session that carries the rule, appending the result where the deferral was recorded.
 
@@ -138,11 +137,7 @@ Optional (best-effort):
 
 - 5-axis gate spot-check: run 1-2 judgment formations through the gate axis the change touched. Skip when the change does not touch a specific axis.
 
-Separation from existing observation axes:
-
-- `skills/evolution-l1-update-gating/SKILL.md` long-horizon observation = pre-merge threshold gate, applied at issue formation time.
-- `memory/self-evolution-observation.md` 2-week cycle = post-merge long window, applied to detect sustained regression. Deferral notes above ride in that entry and do not change its `expires` / verdict lifecycle.
-- Brake 1 (`skills/evolution-parallel-agent-eval`) = pre-merge gate. This observation runs post-merge and on a separate axis.
+Separation from existing observation axes: this observation neither replaces nor is replaced by `skills/evolution-l1-update-gating/SKILL.md` (pre-merge, at issue formation), brake 1 (`skills/evolution-parallel-agent-eval`, pre-merge), or the 2-week cycle of `memory/self-evolution-observation.md` (post-merge long window). Deferral notes ride in that entry and do not change its `expires` / verdict lifecycle.
 
 </post-l1-merge-runtime-observation>
 
@@ -163,8 +158,7 @@ Active label meanings belong to rules/task/task.md.
 
 ### Marker
 
-promotion = promotion-judgment issue filed by the observation mechanism after crossing the noise floor (same-kind cluster observed >=3 times within 3 days, or 5 times reached within 3 days for immediate promotion). Marker label on a separate axis from the type axis.
-Authoritative spec for the judgment mechanism and tally format = `rules/evolution/promotion-judgment.md`. The description in this file is a summary; the true source for thresholds and durations follows promotion-judgment.md.
+promotion = marker label, on an axis separate from type, for an issue filed by the promotion-judgment mechanism. Thresholds, durations and tally format = `rules/evolution/promotion-judgment.md`.
 
 ### Sync
 

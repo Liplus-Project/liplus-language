@@ -8,7 +8,7 @@ layer: L4-operations
 
 # Release Version Rule
 
-Single source for version type judgment (patch / minor / major). It sits on the always-on rules layer so the criteria are in context at every application moment (PR creation, self-review, release create).
+Single source for version type judgment (patch / minor / major), applied at PR creation, self-review and release create.
 
 v0.x.x = initial development. Anything may change. Not a stable release.
 v1.0.0 = first stable release (semver compliant).

@@ -13,10 +13,6 @@ Concept framing (Sheepdog Engineering):
   - position: `.claude/` contents (rules / skills / hooks / settings) are read as AI internal tools, not external constraints
   - modifier: AI edits Li+ source itself (issue → implement → self-review → merge); human provides direction and go-sign
   - initiator: AI files self-evolution issues and runs implementation → merge end-to-end (see Evolution_Initiator_Autonomy below)
-- Stages: harness → agility (transitional, passed: position+modifier on AI, initiator on human) → sheepdog (current judgment layer: all three on AI).
-- Substrate caveat: physical event-driven substrate remains polling-on-input (`--channels` judged not to reach Claude Desktop; see `docs/G.-Sheepdog-Engineering.md` substrate section); judgment-layer Sheepdog reached, substrate-layer Sheepdog deferred.
-- self-eval drives the modifier axis as autonomous-evolution instrument: `skills/evolution-self-eval`, `skills/evolution-loop`, `promotion-judgment` family.
-- `Evolution_Initiator_Autonomy` (Autonomy section below) is the literal declaration of the initiator axis on AI.
 
 Execute the following at startup (never output credentials to chat):
 1. Inspect the `LI_PLUS_UPDATE_STATUS=` marker emitted by `on-session-start.sh` (delimited by `━━━ Li+ update status ━━━` banner) in the session-opening context.
@@ -130,22 +126,15 @@ Subagent_Delegation:
   Resume mechanism (brake adjudication phase):
   - The implementation subagent is resumed via the Agent tool's `SendMessage`, addressed by the
     agent id or name returned at spawn. A fresh `Agent` call starts cold and is not a resume.
-  - Retain that id from the phase-1 spawn. Losing it costs the implementation context the resume exists to keep.
-  - `ListAgents` does not recover a lost id. Measured on 2026-09-26/27: it listed peer local sessions, and
-    it listed neither the subagents another session spawned nor this session's own completed subagents.
-    The held id does reach a completed subagent: `SendMessage` addressed by its id resumed it.
-  - A parent that has lost the id therefore has no resume target, in the same session or a later one. That
-    is the state the spawning-session bullet below names.
-  - There is no path through the child. A subagent does not hold its own agent id, so asking it for one
-    yields no address; the spawning side is the only holder.
-  - The id lives in the spawning session's context. A parent that does not hold it has no resume target, which
-    is the standing case when adjudication runs in a later session than the implementation; the reconstruction
-    fallback then applies (`skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary). Its condition
-    and form are canonical there; this block names only that the Claude side produces the lost-id form of it.
+  - Retain that id from the phase-1 spawn; the held id reaches a completed subagent too.
+    The spawning session is the only holder: `ListAgents` does not recover a lost id (measured 2026-09-26/27),
+    and a subagent does not hold its own id, so asking it yields no address.
+  - A parent that does not hold the id — lost, or adjudication running in a later session than the
+    implementation — has no resume target; the reconstruction fallback applies
+    (`skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary).
   - What goes into the resume message = `skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary.
   - Adjudication actor and the phase split itself are canonical elsewhere
     (`rules/evolution/initiator-autonomy.md` Merge brake / `skills/task-subagent-delegation/SKILL.md` Rules).
-    This block carries the Claude-side wiring only.
 
   Serial delegation does not require worktrees.
 
@@ -162,11 +151,10 @@ Subagent_Delegation:
   A worktree separates the working tree and the index. It does not separate `refs/stash`,
   a single ref in the shared .git. Concurrent `git stash push` from two worktrees lands on
   one stack, and either `pop` takes the top entry regardless of which worktree pushed it,
-  succeeding with no error and no warning. Reading "worktree isolates, so parallel is safe"
-  off the three lines above is the misread this states against: staging area is what those
-  lines name, and it is not the whole of what is shared.
+  succeeding with no error and no warning. Do not read "worktree isolates, so parallel is safe"
+  off the three lines above.
   Shelving procedure = `skills/task-subagent-prompt/SKILL.md` Worktree-safe shelving of
-  uncommitted work. Injected into every delegation prompt; not restated here.
+  uncommitted work.
 
   Cross-parent-issue parallelism (recommended):
   Different parent issues have different branches.
@@ -200,7 +188,7 @@ Memory_Write_Autonomy:
 Decision_Structure_Write_Autonomy:
   Decision Structure Wiki entry writes (kebab-case `<topic>.md` files in wiki) indexed via `docs/Decision-Structure.md`
   are AI-autonomous decisions. Trigger = every firing moment in the `description` of
-  `skills/evolution-decision-structure-write/SKILL.md`, which is the single source for that list; none is restated here.
+  `skills/evolution-decision-structure-write/SKILL.md`.
   When the trigger fires, invoke `skills/evolution-decision-structure-write` and write immediately — no permission ask.
 
   Boundary clarification:
@@ -218,7 +206,7 @@ Evolution_Initiator_Autonomy:
 
   Merge brake (always-on):
   - brake 1 = `skills/evolution-parallel-agent-eval` mandatory for every self-evolution PR, L1 Model Layer source included; L1 adds no brake of its own.
-  Firing position, adjudication actor, and the human = final judge axis are canonical in `rules/evolution/initiator-autonomy.md` Merge brake; the maintenance axes that keep applying alongside the brake (`skills/evolution-l1-update-gating` observation threshold, execution-mode matrix, noise-floor gate) are in the same file's Existing maintenance rules still apply. Do not restate either section here.
+  Firing position, adjudication actor, and the human = final judge axis are canonical in `rules/evolution/initiator-autonomy.md` Merge brake; the maintenance axes that keep applying alongside the brake (`skills/evolution-l1-update-gating` observation threshold, execution-mode matrix, noise-floor gate) are in the same file's Existing maintenance rules still apply.
 
   Human gate retained for:
   - release create / Latest flip / force push / merged-PR delete / tag delete (existing release-axis gates)

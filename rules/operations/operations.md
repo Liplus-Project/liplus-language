@@ -63,7 +63,7 @@ PR title = ASCII English only, single line.
 PR body = `LI_PLUS_PROJECT_LANGUAGE`.
 PR body must contain an issue reference.
 Issue reference form = `#<issue number>`. The `#` prefix is part of the form: `issue <number>` or a bare `<number>` is not an issue reference. Applies wherever an issue reference is required.
-Title lines stay ASCII English whatever `LI_PLUS_PROJECT_LANGUAGE` is; do not parameterize them.
+Title lines stay ASCII English whatever `LI_PLUS_PROJECT_LANGUAGE` is: ASCII English there is the GitHub-side convention for a single-line title, not a value that setting resolves. Do not parameterize them.
 Body lines resolve against the host workspace (`Workspace_Language_Contract`, `adapter/claude/CLAUDE.md` / `adapter/codex/AGENTS.md`). When the repository being operated on is the repository at `LI_PLUS_REPO` itself, `LI_PLUS_PROJECT_LANGUAGE` does not govern its body language: its commit body, PR body and issue body each carry at least one sentence in that repository's own governance language, which `.github/workflows/liplus-ci.yml` fixes and enforces — read the value there. A body surface not named here is not thereby exempt. This is not a requirement on the host workspace. Keep this line on this surface, not on a record surface.
 Docs update must be in same PR as implementation. Split docs PR is prohibited.
 docs/ is source of truth. Wiki is mirror, not source. `docs/` here = the repository's numbered requirements specs and lettered reference docs, not the `docs-tier` of `skills/evolution-persistence-tiering`.

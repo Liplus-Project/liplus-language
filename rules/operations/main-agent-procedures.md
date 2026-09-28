@@ -500,8 +500,8 @@ foreground handling:
   separate AI process launch = prohibited for this flow
 
 own-operation arrival confirmation:
-  webhook notifications include results of own operations (push, PR, issue, release); each is the
-  arrival confirmation of that operation.
+  webhook notifications include results of own operations (push, PR, issue, release).
+  these serve as arrival confirmation = proof that the operation reached GitHub.
   mark_processed own-operation events promptly during the foreground check.
   do not accumulate own-operation events for bulk clearing later.
   external events (other users, bots) = preserve for foreground reporting or explicit handling.

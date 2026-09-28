@@ -37,7 +37,7 @@ Both layers follow intra-layer order. Their responsibilities differ by surface.
 
 Primary axis = AI-led evolution loop.
 Goal: observation → evaluation → distillation → Li+ source update → behavior improvement → next observation, runnable by AI alone.
-Current state: judgment-layer Sheepdog reached. Initiator authority sits on AI per `Evolution_Initiator_Autonomy` (`adapter/claude/CLAUDE.md`); the merge brake (brake 1 = `skills/evolution-parallel-agent-eval` mandatory for every self-evolution PR, uniform across the gate) preserves safer-side discipline. Substrate layer is polling-on-input (`--channels` judged not to reach Claude Desktop; see `docs/G.-Sheepdog-Engineering.md` substrate section); substrate-layer Sheepdog is deferred (out of scope for the judgment-layer completion).
+Current state: judgment-layer Sheepdog reached. Initiator authority sits on AI per `Evolution_Initiator_Autonomy` (`adapter/claude/CLAUDE.md`); the merge brake is brake 1 = `skills/evolution-parallel-agent-eval`, mandatory for every self-evolution PR, uniform across the gate. Substrate layer is polling-on-input (`docs/G.-Sheepdog-Engineering.md` substrate section); substrate-layer Sheepdog is deferred.
 
 </evolution-layer>
 
@@ -47,7 +47,6 @@ Current state: judgment-layer Sheepdog reached. Initiator authority sits on AI p
 
 Relation to L1 Model Layer:
 Loop Safety, Accepted Tradeoff Handling, Review Output Partition stay in core.
-These are runtime invariants, not self-update mechanisms.
 Evolution uses observations surfaced by those runtime rules but does not redefine them.
 
 Relation to L3 Task Layer:
@@ -57,7 +56,6 @@ Evolution proposes Li+ spec improvements through issues, not through direct edit
 Reader/writer pairing within Evolution layer:
 Judgment learning is the reader side (query the past-judgment graph before forming a new one).
 Decision structure write is the writer side (record settled judgment as a state-form entry in the docs-tier Wiki surface, with supersede/depend/conflict edges declared where applicable).
-Together they close the cross-session judgment-knowledge loop without leaving the layer.
 The artifact is a semantic graph (state-form entries + edges), not a time-ordered log; maintenance is refactor (normal operation), not history erasure.
 Wiki write does not bypass Persistence Tiering; it operates inside the docs tier only.
 

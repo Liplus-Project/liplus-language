@@ -8,43 +8,6 @@ layer: L4-operations
 
 # Operations
 
-<operations-layer>
-
-## Operations Layer
-
-### Layer Position
-
-Layer = L4 Operations Layer
-Event-driven operations surface over the shared Li+ program
-Requires = L1 Model Layer + L2 Evolution Layer + L3 Task Layer + Li+config.md
-Load timing = always-on
-Read when: branch creation, commit, PR, merge, release, label assignment, Discussions reference.
-
-Foregrounds:
-  branch / commit / PR / merge / release procedures
-  notifications / webhook intake procedures
-
-Reads through:
-  issue semantics and label vocabulary from rules/task/task.md (and skills/*/SKILL.md)
-  execution mode from Li+config.md
-
-### Event-Driven Operations
-
-  [TRIGGER_INDEX]
-  act_now      -> Branch and label flow (`rules/operations/main-agent-procedures.md`)
-  on_issue_create -> Issue format (`rules/operations/main-agent-procedures.md`)
-  on_issue_edit   -> Issue format (`rules/operations/main-agent-procedures.md`)
-  on_issue_view   -> Issue maturity (`rules/operations/main-agent-procedures.md`)
-  on_issue_sub    -> Sub-issue rules (`rules/operations/main-agent-procedures.md`)
-  on_commit    -> Commit And Push
-  on_pr        -> PR Creation
-  on_ci        -> CI Loop
-  on_review    -> PR Review (approval wait = Review approval check, `rules/operations/main-agent-procedures.md`)
-  on_merge     -> Merge Execution (`rules/operations/main-agent-procedures.md`)
-  on_release   -> Human Confirmation Required
-
-</operations-layer>
-
 <operations-rules>
 
 ## Operations Rules
@@ -122,11 +85,11 @@ Detection signs that the stop condition is being misapplied:
 
 For L1 substrate changes (any file with `layer: L1-model` frontmatter, typically `rules/model/*`), apply a short-window observation of AI judgment behavior at the rule-application moment, once the changed rule is carried in runtime context.
 
-Invocation anchor: this procedure is named at the merge moment by `rules/operations/main-agent-procedures.md` Merge Execution, whose Post-merge moment fixes that moment for each mode. Do not move the anchor into an `operations-*` skill: the actor is the main agent in every mode, and operations skills do not fire for it.
+Invocation anchor: this procedure is named at the merge moment by `rules/operations/main-agent-procedures.md` Merge Execution, whose Post-merge moment fixes that moment for each mode. Do not move the anchor into an `operations-*` skill.
 
 Start point = the first session that carries the changed rule in runtime context, and the ~5 min budget is spent inside that session. Where the session holding the post-merge moment carries it — a workspace running Li+ source at `main` — run the set below at that moment. Where it does not — a workspace synced to a tag — that session defers instead: record the deferral in that PR's `memory/self-evolution-observation.md` entry, in its `notes`, or on the merged PR where it has no entry (`rules/evolution/memory-entry-format.md` Self-Evolution Observation Format), and take the observation in the first session that carries the rule, appending the result where the deferral was recorded.
 
-Required observation set, within ~5 min inside that session:
+Required observation set:
 
 1. **Trigger sample**: read the changed rule, then feed one representative prompt that should fire it at its application moment. Verify the rule fires. A rule not carried in runtime context stops here — defer per Start point above.
 2. **Self-eval entry**: write a 3-5 line verdict (fire / partial / miss) to `memory/self-evaluation_log.md`. Miss verdict escalates immediately to the 2-week post-merge cycle of `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format.
@@ -137,7 +100,7 @@ Optional (best-effort):
 
 - 5-axis gate spot-check: run 1-2 judgment formations through the gate axis the change touched. Skip when the change does not touch a specific axis.
 
-Separation from existing observation axes: this observation neither replaces nor is replaced by `skills/evolution-l1-update-gating/SKILL.md` (pre-merge, at issue formation), brake 1 (`skills/evolution-parallel-agent-eval`, pre-merge), or the 2-week cycle of `memory/self-evolution-observation.md` (post-merge long window). Deferral notes ride in that entry and do not change its `expires` / verdict lifecycle.
+Separation from existing observation axes: this observation neither replaces nor is replaced by `skills/evolution-l1-update-gating/SKILL.md`, brake 1 (`skills/evolution-parallel-agent-eval`), or the 2-week cycle of `memory/self-evolution-observation.md`. Deferral notes ride in that entry and do not change its `expires` / verdict lifecycle.
 
 </post-l1-merge-runtime-observation>
 
@@ -153,17 +116,7 @@ Every issue must have one maturity label at creation time.
 ### Responsibilities
 
 Lifecycle labels are applied when state changes.
-Labels are for AI readability and filtering.
 Active label meanings belong to rules/task/task.md.
-
-### Marker
-
-promotion = marker label, on an axis separate from type, for an issue filed by the promotion-judgment mechanism. Thresholds, durations and tally format = `rules/evolution/promotion-judgment.md`.
-
-### Sync
-
-rules/task/task.md references this document.
-If label set changes here, update rules/task/task.md to match.
 
 </operations-label>
 

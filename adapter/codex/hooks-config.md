@@ -207,7 +207,7 @@ is `.ps1` (Windows native, primary on the verified Codex Windows env) + `.sh`
   diff-only Cold-start Synthesis
   material. State at `{workspace_root}/.codex/state/last-cold-start-emit.json`,
   partitioned by `LI_PLUS_AGENT_KEY` (env var, default `default`) — see
-  `rules/evolution/cold-start-synthesis.md` Hook Emission Contract.
+  `docs/2.-Evolution.md` Cold-start Synthesis (hook output contract).
   On `resume` / `clear` / `compact`: rules re-injection + language contract marker
   + cold-start anchor only.
   Update status state: at `startup`, a `needed` result writes one line

@@ -13,9 +13,8 @@ What is pinned and what is not
 ------------------------------
 The contract fixes the date conditions (`expires <= today` surfaces,
 `expires < today` is overdue, overdue wins) and that the occurrence count is
-carried. Presentation is delegated to the adapter by the same section
-("Material gathering and concrete surfacing logic belong to the adapter
-cold-start path"), so the assertions below read the judgment out of the
+carried. Presentation is left to the adapter by the hook output contract
+(`docs/2.-Evolution.md` Cold-start Synthesis), so the assertions below read the judgment out of the
 emission -- which descriptor surfaced, under which label, with which count --
 and do not match the banner text, the bullet prefix, or the order of the lines.
 The `DUE` / `OVERDUE` label words are matched because `docs/6.-Adapter.md`
@@ -368,7 +367,7 @@ class AdapterParityTest(TallySurfaceTestCase):
         """Each port names the path it resolved, in its own emission.
 
         The claim is fixed at `rules/evolution/cold-start-synthesis.md` Promotion
-        Tally Expiry Surface ("The emission names the resolved path"). The three
+        Tally Expiry Surface ("The emission names the resolved tally path"). The three
         ports spell one path three ways, so what is observed here is that each
         emission carries a `promotion_tally.md` under a `.liplus` directory, not
         that the three strings agree.

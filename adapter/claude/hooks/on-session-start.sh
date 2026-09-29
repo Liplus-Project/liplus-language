@@ -37,8 +37,8 @@
 #   Multi-session partition (#1811): the state file's "agents" map holds one
 #   independent {sections, last_emit_at} entry per AGENT_KEY value (env var
 #   LI_PLUS_AGENT_KEY, default "default"). See the AGENT_KEY declaration
-#   below and rules/evolution/cold-start-synthesis.md Hook Emission
-#   Contract.
+#   below and docs/2.-Evolution.md Cold-start Synthesis (hook output
+#   contract).
 export PATH="$HOME/.local/bin:$PATH"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-.}"
 LIPLUS_DIR="$PROJECT_ROOT/liplus-language"
@@ -55,7 +55,7 @@ CONFIG_FILE="$PROJECT_ROOT/Li+config.md"
 # distinctly per person's own launch profile (shell env) only in a
 # workspace where multiple sessions share this directory concurrently, so
 # each person's diff-only baseline stays independent of the other's reads.
-# See rules/evolution/cold-start-synthesis.md Hook Emission Contract.
+# See docs/2.-Evolution.md Cold-start Synthesis (hook output contract).
 AGENT_KEY="${LI_PLUS_AGENT_KEY:-default}"
 
 # ===================================================================
@@ -483,10 +483,11 @@ register_section() {
 # Anchor = the H1 preamble only, cut at the first H2 semantic tag. The rule file
 # is always-on loaded, so emitting it whole put the same text in one session's
 # context twice; the preamble is the part the AI applies at the step 3 moment,
-# and the H2 sections below it (hook emission contract, observation surface) are
-# the hook's own behavior spec. A file with no H2 section emits whole: the cut is
-# an economy and losing the anchor is the worse failure. Contract source =
-# rules/evolution/cold-start-synthesis.md Hook Emission Contract (Anchor cut).
+# and the H2 sections below it (the surface sections) are what the AI does once a
+# surface appears, not applied at the step 3 moment. A file with no H2 section
+# emits whole: the cut is an economy and losing the anchor is the worse failure.
+# Contract source = docs/2.-Evolution.md Cold-start Synthesis (hook output
+# contract, anchor cut).
 COLDSTART_LITERAL=""
 if [ -f "$COLDSTART_MD" ]; then
   # Strip frontmatter (lines between first two `---` markers) and H1 line, then
@@ -541,7 +542,9 @@ OPEN_ISSUES=$(gh issue list -R Liplus-Project/liplus-language \
 register_section "open_in_progress_issues" "Open in-progress issues (max 5)" "$OPEN_ISSUES"
 
 # --- open issues blocked by an open issue (dependency ordering surface) ---
-# Contract = rules/evolution/cold-start-synthesis.md Dependency Ordering Surface.
+# Contract = rules/evolution/cold-start-synthesis.md Dependency Ordering Surface
+# (which issues surface); the query, scan cap and silent-skip conditions =
+# docs/2.-Evolution.md Cold-start Synthesis (hook output contract).
 # GraphQL through `gh api`, so no gh CLI dependency flag is needed.
 # Raw JSON is filtered here rather than with --jq so the filter is the hook's
 # own code: only blockers whose state is OPEN count, and a blocker in another

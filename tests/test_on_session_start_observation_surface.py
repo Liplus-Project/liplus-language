@@ -23,8 +23,8 @@ What is pinned and what is not
 ------------------------------
 The contract (`rules/evolution/cold-start-synthesis.md` Self-Evolution
 Observation Surface) fixes the date conditions, the pending filter and the
-overdue-wins fold; the presentation is explicitly delegated to the adapter
-(same section, "Material gathering ... belong to the adapter"). So the
+overdue-wins fold; the presentation is left to the adapter (`docs/2.-Evolution.md` Cold-start Synthesis,
+hook output contract). So the
 assertions here read the *judgment* out of the emission — which descriptor surfaces, under which
 state, against which date, with which PR reference — and deliberately do not
 match the banner text, the bullet prefix, the field names restated inside the
@@ -68,9 +68,9 @@ NODE = shutil.which("node")
 # other branch, so tests that need diff-only assert this string is absent.
 FAIL_SAFE_MARK = "Fail-safe full emit"
 
-# `rules/evolution/cold-start-synthesis.md` Hook Emission Contract — "A single
-# 'No new orientation material since last session' line is emitted". The line is
-# the contract; the banner it sits under is not.
+# `docs/2.-Evolution.md` Cold-start Synthesis (`startup` emission-state table, no-new-material
+# marker) — a single "No new orientation material since last session" line is
+# emitted. The line is the contract; the banner it sits under is not.
 NO_NEW_MATERIAL = "No new orientation material"
 
 
@@ -423,8 +423,8 @@ class Workspace:
         h2 = ""
         if h2_token is not None:
             h2 = (
-                "\n<hook-emission-contract>\n\n## Hook Emission Contract\n\n"
-                f"{h2_token} contract body.\n\n</hook-emission-contract>\n"
+                "\n<fixture-h2-section>\n\n## Fixture H2 Section\n\n"
+                f"{h2_token} section body.\n\n</fixture-h2-section>\n"
             )
         return self.write(
             self.liplus / "rules" / "evolution",
@@ -975,7 +975,7 @@ class MemoryDirResolutionTest(ObservationSurfaceTestCase):
 class NoNewMaterialMarkerTest(ObservationSurfaceTestCase):
     """Coverage area 4: the marker's interaction with the observation surface.
 
-    `rules/evolution/cold-start-synthesis.md` Hook Emission Contract — the
+    `docs/2.-Evolution.md` Cold-start Synthesis (no-new-material marker) — the
     marker fires when no section changed AND no observation entry was surfaced.
     Both halves live in the diff-only branch, which is entered only when a prior run left a state
     file behind, so each test here runs one hook twice against one workspace.
@@ -1062,7 +1062,7 @@ class NoNewMaterialMarkerTest(ObservationSurfaceTestCase):
 class ColdstartAnchorCutTest(ObservationSurfaceTestCase):
     """The anchor cut: preamble in, H2 sections out, on all three ports (#1765).
 
-    `rules/evolution/cold-start-synthesis.md` Hook Emission Contract (Anchor
+    `docs/2.-Evolution.md` Cold-start Synthesis (hook output contract, anchor
     cut) — the rule file is always-on loaded, so re-emitting it whole put the
     same text in one session's context twice. The hook re-anchors the H1
     preamble and stops at the first H2 semantic tag.
@@ -1140,10 +1140,9 @@ class ColdstartAnchorCutTest(ObservationSurfaceTestCase):
 class MatcherResolutionTest(ObservationSurfaceTestCase):
     """Coverage area 5: SessionStart matcher resolution (#1632 F1 / F6).
 
-    `rules/evolution/cold-start-synthesis.md` Hook Emission Contract — on a
-    non-startup matcher "Only the cold-start rule anchor is re-emitted. The work
-    context is continuous; the diff-only set is not re-evaluated"; the same line
-    adds that the state file is not updated.
+    `docs/2.-Evolution.md` Cold-start Synthesis (hook output contract) — on a
+    non-startup matcher only the cold-start rule anchor is re-emitted and the
+    diff-only set is not re-evaluated; the state file is not updated.
 
     Both halves are read out of behaviour rather than out of banner text. A
     token planted in the cold-start rule stands for the anchor, a token planted

@@ -4,8 +4,8 @@ Target = the three `adapter/*/hooks/on-session-start.*` implementations
 (claude bash / codex bash / codex PowerShell). Issue #1910.
 
 `last_emit_at` was written by every port and read by none. The contract that
-gives it a reader is `rules/evolution/cold-start-synthesis.md` Hook Emission
-Contract, diff-only bullet, and this file asserts the three ports implement it
+gives it a reader is `docs/2.-Evolution.md` Cold-start Synthesis,
+diff-only row of the `startup` emission-state table, and this file asserts the three ports implement it
 identically.
 
 What is pinned and what is not

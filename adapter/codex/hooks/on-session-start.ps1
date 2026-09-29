@@ -87,7 +87,7 @@ $configFile      = Join-Path $projectRoot 'Li+config.md'
 # "default" and reproduces the pre-#1811 single-partition behavior exactly.
 # See adapter/claude/hooks/on-session-start.sh for the full rationale
 # (including why Claude Code's session_id was rejected for this) and
-# rules/evolution/cold-start-synthesis.md Hook Emission Contract.
+# docs/2.-Evolution.md Cold-start Synthesis (hook output contract).
 $agentKey = if ($env:LI_PLUS_AGENT_KEY) { $env:LI_PLUS_AGENT_KEY } else { 'default' }
 
 # ---------- matcher resolution ----------
@@ -408,7 +408,7 @@ Emit ''
 # Anchor = the H1 preamble only, cut at the first H2 semantic tag. The rule file
 # is always-on loaded, so emitting it whole put the same text in one session's
 # context twice. A file with no H2 section emits whole. Contract source =
-# rules/evolution/cold-start-synthesis.md Hook Emission Contract (Anchor cut).
+# docs/2.-Evolution.md Cold-start Synthesis (hook output contract, anchor cut).
 $coldstartLiteral = ''
 if (Test-Path -LiteralPath $coldstartMd) {
   $lines = Get-Content -LiteralPath $coldstartMd -ErrorAction SilentlyContinue
@@ -486,7 +486,9 @@ if ($oi) { $openIssues = ($oi -split "`n" | Where-Object { $_ }) -join "`n" }
 Register-Section 'open_in_progress_issues' 'Open in-progress issues (max 5)' $openIssues
 
 # open issues blocked by an open issue (dependency ordering surface)
-# Contract = rules/evolution/cold-start-synthesis.md Dependency Ordering Surface.
+# Contract = rules/evolution/cold-start-synthesis.md Dependency Ordering Surface
+# (which issues surface); the query, scan cap and silent-skip conditions =
+# docs/2.-Evolution.md Cold-start Synthesis (hook output contract).
 # GraphQL through `gh api`, so no gh CLI dependency flag is needed.
 # The query carries no double quote, so it survives native argument passing on
 # every PowerShell edition. JSON is parsed natively; the filter matches the bash

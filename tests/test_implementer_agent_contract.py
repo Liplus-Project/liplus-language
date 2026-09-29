@@ -6,15 +6,15 @@ literal that routes delegations to both.
 
 Reorganized at #1972: `adapter/claude/agents/` was split by role
 (`implementer.md` / `brake-evaluator.md` / `dialogue-evaluator.md`) up to that
-issue; from it on the Claude Code source is three files named by effort
-(`low.md` / `medium.md` / `high.md`), none of which carries a role. The
-implementation delegate spawns under one of those three, with its role literal
+issue; from it on the Claude Code source is files named by effort, none of
+which carries a role: `low.md` / `medium.md` / `high.md`, joined by `xhigh.md`
+at #2121. The implementation delegate spawns under one of those four, with its role literal
 injected into the prompt by `skills/task-subagent-prompt/SKILL.md` instead of
 arriving through a role-named definition file's body. The Codex port is out of
 scope for that split (Master agreement, 2026-09-14): its role definition
 remains, while #1973 moves its effort resolution to the spawn call.
 
-Which of the three a given delegation names is no longer fixed by the role:
+Which of the four a given delegation names is no longer fixed by the role:
 #1967 put both axes on the parent, chosen per spawn against the work that
 delegation carries (`skills/task-subagent-spawn/SKILL.md` Selection criteria).
 What each definition file still fixes is the effort its own name states.
@@ -43,6 +43,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+EFFORT_NAMES = ("low", "medium", "high", "xhigh")
 CLAUDE_AGENT = ROOT / "adapter" / "claude" / "agents" / "high.md"
 CODEX_AGENT = ROOT / "adapter" / "codex" / "agents" / "implementer.toml"
 SPAWN_SKILL = ROOT / "skills" / "task-subagent-spawn" / "SKILL.md"
@@ -101,6 +102,23 @@ class ImplementerAgentContractTest(unittest.TestCase):
         self.assertNotIn("model", frontmatter(self.claude))
         self.assertIsNone(re.search(r"^\s*model\s*=", self.codex, re.MULTILINE))
 
+    def test_every_effort_named_file_pins_only_its_own_effort(self) -> None:
+        # Observed on the four sources under `adapter/claude/agents/` named by
+        # EFFORT_NAMES: each frontmatter names the file's own effort as both
+        # `name` and `effort`, carries no `model` or `tools`, and the owned
+        # region states that no role arrives through the file. Claim held at
+        # `skills/task-subagent-spawn/SKILL.md` Subagent Model Policy.
+        for name in EFFORT_NAMES:
+            with self.subTest(agent=name):
+                text = (CLAUDE_AGENT.parent / f"{name}.md").read_text(encoding="utf-8")
+                fields = frontmatter(text)
+                self.assertEqual(fields["name"], name)
+                self.assertEqual(fields["effort"], name)
+                self.assertNotIn("model", fields)
+                self.assertNotIn("tools", fields)
+                self.assertIn(f"spawned at `{name}` effort", body(text))
+                self.assertIn("no role, no procedure", body(text))
+
     def test_codex_port_can_write_to_the_repository(self) -> None:
         # This role commits and pushes; the evaluator's read-only sandbox would
         # fail it at the first write with no other detector.
@@ -125,12 +143,13 @@ class ImplementerAgentContractTest(unittest.TestCase):
         self.assertIn("Role literal: implementation delegate", prompt)
         self.assertIn("You are the Li+ implementation delegate.", prompt)
         self.assertIn("Do not create, move, or remove worktrees or per-session clones.", prompt)
-        self.assertIn("`subagent_type: low` / `medium` / `high`", prompt)
+        self.assertIn("`subagent_type: low` / `medium` / `high` / `xhigh`", prompt)
+        self.assertIn("`adapter/claude/agents/{low,medium,high,xhigh}.md`", prompt)
 
     def test_spawn_policy_names_the_agents_a_delegation_selects_among(self) -> None:
         spawn = SPAWN_SKILL.read_text(encoding="utf-8")
-        self.assertIn("`subagent_type: low` / `medium` / `high`", spawn)
-        for agent in ("low.md", "medium.md", "high.md"):
+        self.assertIn("`subagent_type: low` / `medium` / `high` / `xhigh`", spawn)
+        for agent in (f"{name}.md" for name in EFFORT_NAMES):
             with self.subTest(agent=agent):
                 self.assertIn(f"adapter/claude/agents/{agent}", spawn)
         self.assertIn("adapter/codex/agents/implementer.toml", spawn)
@@ -143,7 +162,7 @@ class ImplementerAgentContractTest(unittest.TestCase):
         spawn = SPAWN_SKILL.read_text(encoding="utf-8")
         self.assertIn("## Selection criteria", spawn)
         self.assertIn(
-            "No role fixes the value, and none of the three is a default to fall back on.",
+            "No role fixes the value, and none of the four is a default to fall back on.",
             spawn,
         )
 

@@ -8,7 +8,7 @@ layer: L3-task
 
 # Role literal: implementation delegate
 
-On Claude Code this is the implementation-delegate role's only home: `adapter/claude/agents/` holds effort-named files (`low.md` / `medium.md` / `high.md` / `xhigh.md`) that carry no role. Every delegation prompt composed under `skills/task-subagent-delegation/SKILL.md` injects the literal below verbatim, before any mode-specific or resume-phase addition. Copy it; do not re-compose it per spawn.
+On Claude Code this is the implementation-delegate role's only home: `adapter/claude/agents/` holds effort-named files (`low.md` / `medium.md` / `high.md`) that carry no role. Every delegation prompt composed under `skills/task-subagent-delegation/SKILL.md` injects the literal below verbatim, before any mode-specific or resume-phase addition. Copy it; do not re-compose it per spawn.
 
 > You are the Li+ implementation delegate. A parent agent hands you one issue's change; you carry it to the stop condition, report there, and exit.
 >
@@ -25,7 +25,7 @@ On Claude Code this is the implementation-delegate role's only home: `adapter/cl
 >
 > Correctness is repository state, not local success: the issue's requirement met in the pushed diff, with CI green on it.
 
-Spawn call: one of `subagent_type: low` / `medium` / `high` / `xhigh`, selected by the parent against the work that delegation carries (criteria = `skills/task-subagent-spawn/SKILL.md` Subagent Model Policy). The role picks neither the effort nor the `model`; the literal above is injected whichever the spawn names. Do not write a role fragment into `adapter/claude/agents/{low,medium,high,xhigh}.md`.
+Spawn call: one of `subagent_type: low` / `medium` / `high`, selected by the parent against the work that delegation carries (criteria = `skills/task-subagent-spawn/SKILL.md` Subagent Model Policy). The role picks neither the effort nor the `model`; the literal above is injected whichever the spawn names. Do not write a role fragment into `adapter/claude/agents/{low,medium,high}.md`.
 
 On Codex the role body stays in `adapter/codex/agents/implementer.toml`; this section does not move it.
 

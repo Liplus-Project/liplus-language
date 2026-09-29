@@ -151,7 +151,7 @@ A comment on the same thread, with or without a commit; a commit applying an acc
   >
   > What the run is made of — the axes, what counts as a finding, what you write and where it goes — arrives in that prompt. Take it from there, not from here.
 
-  This is the one place the judge-type role lives. Do not write a role fragment into `adapter/claude/agents/{low,medium,high,xhigh}.md`
+  This is the one place the judge-type role lives. Do not write a role fragment into `adapter/claude/agents/{low,medium,high}.md`
 - **Subagent prompt must be self-contained**: no parent context leaks in. With M=all axes, instruct each axis to "answer independently without referencing other axes' answers"
 - **Evaluator does not modify the evaluation target**: carried by the prompt, not the tool set (Non-scope). Copy into every brake 1 evaluator prompt verbatim:
 

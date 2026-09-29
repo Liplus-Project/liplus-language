@@ -2,9 +2,9 @@
 # Codex port of adapter/claude/agents/brake-evaluator.md.
 #
 # Codex agents are TOML (not Markdown+frontmatter like Claude). The mapping:
-#   - `medium` is brake 1's effort floor, not a fixed value: the Claude judge
-#     type names `medium.md` or a higher effort-named agent, and Codex brake 1
-#     spawns set `reasoning_effort = "medium"` at the spawn call without
+#   - `low` is brake 1's effort floor, not a fixed value: the Claude judge
+#     type names `low.md` or a higher effort-named agent, and Codex brake 1
+#     spawns set `reasoning_effort = "low"` at the spawn call without
 #     selecting this definition. This file must not set
 #     `model_reasoning_effort`, which would override a per-launch value if
 #     selected independently.

@@ -19,7 +19,7 @@ CONTRACT_PATTERNS = {
         ),
         "brake_model_context_and_prompt": (
             r"Brake evaluator spawn: set `model` explicitly under the existing "
-            r'evaluator policy, set\s+`reasoning_effort="medium"` independently of that model floor, '
+            r'evaluator policy, set\s+`reasoning_effort="low"` independently of that model floor, '
             r'set `fork_turns="none"`,\s+use no agent definition file, and pass all evaluation material '
             r"in a self-contained prompt\."
         ),
@@ -30,7 +30,7 @@ CONTRACT_PATTERNS = {
         ),
         "bounded_read_only_selects": (
             r'A bounded read-only investigation selects `reasoning_effort="low"`, '
-            r'`"medium"`, or `"high"`\s+for its purpose\. It does not omit the argument '
+            r'`"medium"`, `"high"`, or `"xhigh"`\s+for its purpose\. It does not omit the argument '
             r"to inherit the parent value\."
         ),
         "supported_value_only": (
@@ -66,7 +66,7 @@ CONTRACT_PATTERNS = {
         ),
         "brake_model_context_and_prompt": (
             r"brake evaluator spawn は既存 evaluator policy に従って "
-            r'`model` を明示し、その床と独立して `reasoning_effort="medium"`、'
+            r'`model` を明示し、その床と独立して `reasoning_effort="low"`、'
             r'`fork_turns="none"` を指定する。定義ファイルは選ばず、'
             r"評価材料を self-contained prompt で渡す。"
         ),
@@ -77,7 +77,7 @@ CONTRACT_PATTERNS = {
         ),
         "bounded_read_only_selects": (
             r'bounded read-only investigation は目的に合わせて `reasoning_effort="low"` / '
-            r'`"medium"` / `"high"` を選び、親 effort への暗黙継承は使わない。'
+            r'`"medium"` / `"high"` / `"xhigh"` を選び、親 effort への暗黙継承は使わない。'
         ),
         "supported_value_only": (
             r"`reasoning_effort` はその spawn で選択された model が公開する列挙値だけを渡す。"
@@ -165,7 +165,7 @@ class CodexSubagentContextContractTest(unittest.TestCase):
                 "omit `model` under the existing evaluator policy",
             ),
             "brake_effort_omitted": (
-                'set\n    `reasoning_effort="medium"` independently of that model floor',
+                'set\n    `reasoning_effort="low"` independently of that model floor',
                 "omit reasoning effort and inherit the parent",
             ),
             "brake_prompt_not_self_contained": (

@@ -89,7 +89,7 @@ PR auto-merge policy is mode-specific:
   semi_auto mode = NO `--auto` flag for minor / major PRs (human review is the gate). Patch PRs = AI self-review pass -> AI direct merge (no auto-merge needed).
   auto mode = repo-level "Allow auto-merge" is INTENTIONALLY disabled. `gh pr merge --auto` being rejected is by design, not a config gap. Parent AI performs self-review then manual `gh pr merge {pr} --squash`.
 mark_processed is mandatory for every consumed webhook event.
-A procedure whose actor can be the main agent is held canonically in `rules/operations/main-agent-procedures.md`, not in an `operations-*` skill. Apply `skills/operations-on-actor-placement/SKILL.md` whenever an operations skill gains a requirement the main agent has to execute.
+A procedure whose actor can be the main agent is held canonically in `rules/operations/main-agent-procedures.md`, not in an `operations-*` skill. The agent editing Li+ source applies `skills/operations-on-actor-placement/SKILL.md` whenever an operations skill gains a requirement the main agent has to execute.
 
 </operations-rules>
 

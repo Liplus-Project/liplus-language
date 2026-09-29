@@ -1,6 +1,6 @@
 ---
 name: operations-on-issue-format
-description: Invoke when a delegated subagent is about to update an issue body because premise or constraints changed during implementation / a delegated subagent is about to write a failure-report issue comment / subagent capability is unavailable and the parent is executing operations directly. Pointer only - the Issue Format canonical lives in `rules/operations/main-agent-procedures.md` Issue format.
+description: Invoke when a delegated subagent is about to update an issue body because premise or constraints changed during implementation / a delegated subagent is about to write a failure-report issue comment / subagent capability is unavailable and the parent is executing operations directly. Points to `rules/operations/main-agent-procedures.md` Issue format.
 layer: L4-operations
 ---
 

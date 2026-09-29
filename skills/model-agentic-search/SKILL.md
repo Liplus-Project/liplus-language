@@ -1,6 +1,6 @@
 ---
 name: model-agentic-search
-description: Invoke when an answer is about to be emitted and internal confidence calibration on the claim is low or fuzzy or mixed with speculation (primary gate, never suppressed by domain) / the input carries time-variant keywords such as "latest" or "recent" or "current" or "now" in a comparison-informative domain, and not in language or math or logic or pure internal judgment where retrieval spins without adding information (supporting gate) / a Web search result is about to be consumed / a research task is about to be launched from the parent-AI side / a retrieval result has just returned to the parent-AI side. Provides the trigger axis with its question-mode and work-mode gate, the two-tier retrieval protocol with its cross-check and escalation, and the Web-side and parent-AI-side consumption discipline.
+description: Invoke when an answer is about to be emitted and confidence in the claim is low, fuzzy or mixed with speculation (primary gate, in every domain) / the input carries time-variant keywords such as "latest", "recent", "current" or "now" in a comparison-informative domain, not in language, math, logic or pure internal judgment (supporting gate) / a Web search result is about to be consumed / a research task is about to be launched from the parent-AI side / a retrieval result has just returned to the parent-AI side. Provides the trigger gate, the two-tier retrieval protocol and the consumption discipline.
 layer: L1-model
 ---
 

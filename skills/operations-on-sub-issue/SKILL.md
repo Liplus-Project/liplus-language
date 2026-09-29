@@ -1,6 +1,6 @@
 ---
 name: operations-on-sub-issue
-description: Invoke when a subagent has pushed the first commit on a parent branch carrying sub-issues and per-commit CI visibility is wanted / splitting into per-sub-issue PRs is being considered for CI visibility reasons / subagent capability is unavailable and the parent is executing operations directly. Provides the draft-PR early-open pattern; the Sub-issue Rules canonical lives in `rules/operations/main-agent-procedures.md`.
+description: Invoke when a subagent has pushed the first commit on a parent branch carrying sub-issues and per-commit CI visibility is wanted / splitting into per-sub-issue PRs is being considered for CI visibility / subagent capability is unavailable and the parent is executing operations directly. Provides the draft-PR early-open pattern.
 layer: L4-operations
 ---
 

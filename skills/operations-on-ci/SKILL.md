@@ -1,6 +1,6 @@
 ---
 name: operations-on-ci
-description: Invoke when a PR has just been created / a fix-and-recommit has just been pushed. Polls check-run conclusions via webhook or gh api until all complete.
+description: Invoke when a PR has just been created / a fix-and-recommit has just been pushed. Polls check-run conclusions until all complete.
 layer: L4-operations
 ---
 

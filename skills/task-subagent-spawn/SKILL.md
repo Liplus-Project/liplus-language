@@ -1,6 +1,6 @@
 ---
 name: task-subagent-spawn
-description: Invoke when the Agent tool model or reasoning-effort parameter is about to be set or omitted for a subagent spawn / the agent type for an implementation or operations delegation is about to be chosen / an agent definition file under `adapter/*/agents/` is about to be edited or added / a brake evaluator subagent is about to be spawned / more than one subagent is about to be launched in a single batch / a second wave of subagents is about to be launched before the prior wave has reported. Provides the model and reasoning-effort policy for subagent spawns, the agent type delegations name, and the parallel-width cap.
+description: Invoke when the Agent tool model or reasoning-effort parameter is about to be set or omitted for a subagent spawn / the agent type for an implementation or operations delegation is about to be chosen / an agent definition file under `adapter/*/agents/` is about to be edited or added / a brake evaluator subagent is about to be spawned / more than one subagent is about to be launched in a single batch / a second wave of subagents is about to be launched before the prior wave has reported. Provides the model, effort and agent-type policy and the parallel-width cap.
 layer: L3-task
 ---
 

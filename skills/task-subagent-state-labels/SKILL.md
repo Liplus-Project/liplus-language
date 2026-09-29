@@ -1,6 +1,6 @@
 ---
 name: task-subagent-state-labels
-description: Invoke when a subagent starts work on an issue / a subagent has finished its implementation phase and is about to report to the parent and exit / a subagent is entering brake adjudication (phase 2) to adjudicate brake findings, whether resumed by the parent or spawned cold to reconstruct that phase / a subagent pauses on an external dependency such as CI or a dependent issue or the environment / a subagent pauses waiting on human input / a subagent reverts from review-pending to in-progress after a CI failure. Provides the subagent-side state-machine label mandate and its authority boundary.
+description: Invoke when a subagent starts work on an issue / a subagent has finished its implementation phase and is about to report to the parent and exit / a subagent is entering brake adjudication (phase 2), resumed by the parent or spawned cold / a subagent pauses on an external dependency such as CI, a dependent issue or the environment / a subagent pauses waiting on human input / a subagent reverts from review-pending to in-progress after a CI failure. Provides the subagent-side state-machine label mandate.
 layer: L3-task
 ---
 

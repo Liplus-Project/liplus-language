@@ -1,6 +1,6 @@
 ---
 name: model-review-output-partition
-description: Invoke when review or critique or risk output is about to be produced. Provides the now, later and accepted classification partition.
+description: Invoke when review or critique or risk output is about to be produced. Provides the now, later and accepted partition.
 layer: L1-model
 ---
 

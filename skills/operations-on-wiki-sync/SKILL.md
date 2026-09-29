@@ -1,6 +1,6 @@
 ---
 name: operations-on-wiki-sync
-description: Invoke when a release has just been published and docs must be mirrored to the GitHub Wiki / a wiki sync pre-push verification or integrity assertion needs to run / a new repository wiki needs its one-shot seed setup / a case-only rename must be applied to the wiki working tree on Windows. Provides the ownership boundary, the integrity assertions, and the sync procedure. Wiki sync gates release flow completion.
+description: Invoke when a release has just been published and docs must be mirrored to the GitHub Wiki / a wiki sync pre-push verification or integrity assertion needs to run / a new repository wiki needs its one-shot seed setup / a case-only rename must be applied to the wiki working tree on Windows. Provides the wiki sync procedure and its integrity assertions.
 layer: L4-operations
 ---
 

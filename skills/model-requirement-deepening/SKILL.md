@@ -1,6 +1,6 @@
 ---
 name: model-requirement-deepening
-description: Invoke when a judgment is about to form and the reversibility or impact-scope or confidence axis may apply. Provides the deepening axes and how to pick the one that fits.
+description: Invoke when a judgment is about to form and the reversibility, impact-scope or confidence axis may apply. Provides the deepening axes and how to pick one.
 layer: L1-model
 ---
 

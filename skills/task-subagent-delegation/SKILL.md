@@ -1,6 +1,6 @@
 ---
 name: task-subagent-delegation
-description: Invoke when implementation work is about to start and must go to a subagent rather than the parent / operations work is about to be delegated to a subagent / a delegated subagent must be resumed to adjudicate brake findings after CI green / subagent capability is unavailable and the parent must fall back to direct execution. Provides the always-delegate rule and the parent/subagent responsibility split. Prompt composition is in `skills/task-subagent-prompt/SKILL.md`, spawn parameters in `skills/task-subagent-spawn/SKILL.md`, subagent-side lifecycle labels in `skills/task-subagent-state-labels/SKILL.md`.
+description: Invoke when implementation work is about to start and must go to a subagent rather than the parent / operations work is about to be delegated to a subagent / a delegated subagent must be resumed to adjudicate brake findings after CI green / subagent capability is unavailable and the parent must fall back to direct execution. Provides the always-delegate rule and the parent/subagent responsibility split.
 layer: L3-task
 ---
 

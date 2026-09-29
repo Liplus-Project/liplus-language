@@ -1,6 +1,6 @@
 ---
 name: operations-on-pr-creation
-description: Invoke when a PR is about to be created. Enforces one PR per parent issue, the Closes keyword format, bot self-assign, and early draft PR open for a parent with sub-issues.
+description: Invoke when a PR is about to be created. Enforces one PR per parent issue, the Closes keyword, bot self-assign, and early draft PR for a parent with sub-issues.
 layer: L4-operations
 ---
 

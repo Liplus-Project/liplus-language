@@ -71,7 +71,7 @@ Ask human when required information is missing.
 ### Autonomy
 
 Label evolves over time. Label is for AI readability.
-Full label policy and retired labels: see rules/operations/operations.md
+Label operation rules: `rules/operations/operations.md` Operations Label.
 
 </task-issue-rules>
 
@@ -115,7 +115,7 @@ docs        = documentation change (no behavior impact)
 tips        = operational know-how memo not tied to a release
 
 Marker:
-promotion   = path flag for an issue filed by the promotion-judgment mechanism (separate axis from type). See rules/operations/operations.md and rules/evolution/promotion-judgment.md for details.
+promotion   = path flag for an issue filed by the promotion-judgment mechanism (separate axis from type). See rules/evolution/promotion-judgment.md for details.
 
 </task-label-definitions>
 

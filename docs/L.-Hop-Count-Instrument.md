@@ -55,7 +55,7 @@
 | S8 | memory 書き込み直前の persistence 判定 | `adapter/claude/CLAUDE.md:161` | 1 | 1 |
 | S9 | 判断が settle した → Decision Structure entry を書く | `adapter/claude/CLAUDE.md:172` | 2 | 1 |
 | S10 | drift / pattern を観測 → 昇格の閾値判定 | `rules/evolution/promotion-judgment.md:15` | 0 | 0 |
-| S11 | merge 完了直後 → L1 変更の短窓観察 | `rules/operations/operations.md:120` | 1 | 1 |
+| S11 | merge 完了直後 → L1 変更の短窓観察 | `rules/operations/operations.md:88` | 1 | 1 |
 | S12 | session 開始 → cold-start synthesis | `rules/evolution/cold-start-synthesis.md:11` | 2 | 1 |
 | | **合計** | | **14** | **4** |
 
@@ -113,7 +113,7 @@ S2 のみ #1564 実測2 の記録（ツール2 / 文脈内2）と一致しない
 
 **S11** — anchor: `Invocation anchor: this procedure is named at the merge moment by rules/operations/main-agent-procedures.md Merge Execution`
 - → `rules/operations/main-agent-procedures.md` `## Merge Execution` `[ctx]`
-- → `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format（miss verdict の escalation 先）`[ctx]`
+- → `skills/evolution-observation-entry/SKILL.md`（miss verdict の escalation 先）`[tool]`
 
 `[tool]` から `[ctx]` へ変わっているのは #1708 の移設による。旧アンカーは `skills/operations-on-merge/SKILL.md` の invoke を指していたが、この手続きの実行主体は `auto` / `semi_auto` では親であり、親は operations 系 skill を読まない。跳躍先が実行主体にとって開けない `[tool]` だったものが、常駐で保持される `[ctx]` になった。
 
@@ -121,6 +121,9 @@ S2 のみ #1564 実測2 の記録（ツール2 / 文脈内2）と一致しない
 - → `docs/Decision-Structure.md`（Action step 1）`[tool]`
 - → `adapter/claude/hooks/on-session-start.sh`（Hook coordination）`[tool]`
 - → `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format `[ctx]`
+- → `skills/evolution-observation-entry/SKILL.md` `[tool]`
+
+S11 / S12 の observation 手順への跳躍は #2131 で `[ctx]` から `[tool]` になった。同 PR が observation エントリの書式・作成基準・判定の lifecycle を常時ロード面（`rules/evolution/memory-entry-format.md`）から `skills/evolution-observation-entry/SKILL.md` へ移したためで、ツール呼び出し跳躍が各 1 増える。表の数値は baseline tag 時点の実測なので動かさない（上の S12 の据え置きと同じ理由）。増分の理由: この手順が要るのはマージ後の瞬間と cold-start で due / overdue が surface されたときだけで、それ以外のすべてのセッションで約 6 KB を文脈に載せていた。どちらの瞬間にも常時ロード面または hook の出力に名指しのポインタが立ち（S11 は `rules/operations/operations.md` が skill を直接名指し、S12 は cold-start-synthesis の参照が `memory-entry-format.md` の同名節を経て skill に届き、hook の due / overdue 出力も skill を名指す）、跳躍先は `evolution-*` skill なのでメインが開ける。
 
 `Hook coordination` 段落は #1765 で同一ファイル内の H2 `## Hook Emission Contract`（冒頭に「読むのは on demand、step 3 の適用瞬間には適用しない」と明示）へ移した。跳躍数は据え置き — 同一ファイル内の節移動は跳躍ではなく（計数規則 :15）、ポインタは同じファイルから解決するため。
 

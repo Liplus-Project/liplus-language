@@ -9,8 +9,8 @@ Reorganized at #1972: `adapter/claude/agents/` no longer carries a
 file's body now lives in `skills/evolution-parallel-agent-eval/SKILL.md`
 Constraint: Effort floor, and the Claude Code spawn selects the effort-named
 `low.md` (or a higher effort-named agent) instead of a role-named
-definition. The floor is `low` from #2121 (Master judgment, 2026-09-29),
-replacing the provisional `medium` of 2026-09-13. The Codex port is out of scope for this split (Master agreement,
+definition. The floor value these tests assert is held at
+`skills/evolution-parallel-agent-eval/SKILL.md` Constraint: Effort floor. The Codex port is out of scope for this split (Master agreement,
 2026-09-14): its role definition remains as a compatibility source, while
 #1973 moves brake 1 effort and role delivery to the spawn call and prompt.
 
@@ -75,8 +75,9 @@ class BrakeEvaluatorAgentContractTest(unittest.TestCase):
         self.assertIn('name = "brake-evaluator"', self.codex)
 
     def test_thinking_effort_uses_each_hosts_supported_surface(self) -> None:
-        # The floor value is `low` (#2121); Codex carries the same value per
-        # launch.
+        # Asserted against the floor value held at
+        # `skills/evolution-parallel-agent-eval/SKILL.md` Constraint: Effort
+        # floor, which the Codex spawn passes per launch.
         self.assertEqual(frontmatter(self.claude)["effort"], "low")
         self.assertIsNone(
             re.search(r"^\s*model_reasoning_effort\s*=", self.codex, re.MULTILINE)

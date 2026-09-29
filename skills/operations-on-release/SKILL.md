@@ -1,6 +1,6 @@
 ---
 name: operations-on-release
-description: Invoke when a release is being executed after its human confirmation has already been given / a pre-create CD check is about to run / a release tag or title must be resolved against project convention / subagent capability is unavailable and the parent is executing operations directly. Provides the release create procedure; the human confirmation gates and the completion report discipline live in `rules/operations/main-agent-procedures.md`. Release state flags live in `skills/operations-on-release-state/SKILL.md`; the mandatory post-release mirror lives in `skills/operations-on-wiki-sync/SKILL.md`; version type criteria (patch, minor, major) live in `rules/operations/release-version-rule.md` (always-on).
+description: Invoke when a release is being executed after its human confirmation / a pre-create CD check is about to run / a release tag or title must be resolved against project convention / subagent capability is unavailable and the parent is executing operations directly. Provides the release create procedure.
 layer: L4-operations
 ---
 

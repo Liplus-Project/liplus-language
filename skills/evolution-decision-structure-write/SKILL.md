@@ -1,6 +1,6 @@
 ---
 name: evolution-decision-structure-write
-description: Invoke when a judgment has just settled on a human go-sign / an accepted-tradeoff close has just happened / a spec-axis decision has just been fixed in dialogue / a failure's root cause has just been identified and become reproducible learning / a premise has just been verified and the result settled, success or failure alike / repetition of the same investigation across multiple sessions has just been noticed. Writes or updates a Decision Structure Wiki entry, the writer-side counterpart to evolution-judgment-learning.
+description: Invoke when a judgment has just settled on a human go-sign / an accepted-tradeoff close has just happened / a spec-axis decision has just been fixed in dialogue / a failure's root cause has just been identified as reproducible learning / a premise has just been verified, success or failure alike / the same investigation has just been noticed repeating across sessions. Writes or updates a Decision Structure Wiki entry.
 layer: L2-evolution
 ---
 

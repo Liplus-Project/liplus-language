@@ -1,6 +1,6 @@
 ---
 name: operations-on-pr-review
-description: Invoke when a delegated subagent has reached its stop condition and needs that mode literal / a delegated subagent is about to report to the parent and must confirm where its session ends / subagent capability is unavailable and the parent is executing operations directly. Holds the canonical delegated-subagent stop condition split by mode; the surrounding PR review flow lives in `rules/operations/main-agent-procedures.md`.
+description: Invoke when a delegated subagent has reached its stop condition and needs that mode literal / a delegated subagent is about to report to the parent and must confirm where its session ends / subagent capability is unavailable and the parent is executing operations directly. Holds the delegated-subagent stop condition by mode.
 layer: L4-operations
 ---
 

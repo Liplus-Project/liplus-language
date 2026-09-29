@@ -1,6 +1,6 @@
 ---
 name: operations-foreground-webhook-intake
-description: Do not invoke. Redirect stub with no invoke condition - the canonical lives in `rules/operations/main-agent-procedures.md` Foreground webhook notification intake, which loads without invocation.
+description: Do not invoke. Redirect stub to `rules/operations/main-agent-procedures.md` Foreground webhook notification intake, which loads without invocation.
 layer: L4-operations
 ---
 

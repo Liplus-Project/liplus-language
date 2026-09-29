@@ -1,6 +1,6 @@
 ---
 name: evolution-l1-update-gating
-description: Invoke when an L1 Model layer source change is being proposed or considered. Enforces the long-horizon observation requirement before the change is authorized.
+description: Invoke when an L1 Model layer source change is being proposed or considered. Enforces the long-horizon observation requirement.
 layer: L2-evolution
 ---
 

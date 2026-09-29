@@ -1,6 +1,6 @@
 ---
 name: evolution-loop
-description: Invoke when any evolution loop stage is about to run (observe, evaluate, distill, reflect, improve, re-observe). Provides the stage definitions, the current and target execution mode of the loop, and the stage-by-stage responsibility split between AI and human.
+description: Invoke when any evolution loop stage is about to run (observe, evaluate, distill, reflect, improve, re-observe). Provides the stage definitions and the AI and human responsibility split.
 layer: L2-evolution
 ---
 

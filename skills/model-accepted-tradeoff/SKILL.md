@@ -1,6 +1,6 @@
 ---
 name: model-accepted-tradeoff
-description: Invoke when the human has just explicitly accepted or deferred or waived or bounded a concern / the same blocking argument is about to be restated with the same evidence on an already-accepted tradeoff. Provides the handling rule for accepted tradeoffs and the threshold for re-raising one.
+description: Invoke when the human has just explicitly accepted, deferred, waived or bounded a concern / the same blocking argument is about to be restated with the same evidence on an already-accepted tradeoff. Provides the handling rule and the re-raise threshold.
 layer: L1-model
 ---
 

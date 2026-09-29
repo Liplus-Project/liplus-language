@@ -1,6 +1,6 @@
 """Contract tests for the brake 1 judge-type evaluator's agent definition.
 
-Scope = `adapter/claude/agents/medium.md`, `adapter/codex/agents/brake-evaluator.toml`,
+Scope = `adapter/claude/agents/low.md`, `adapter/codex/agents/brake-evaluator.toml`,
 and the skill literals that route judge-type rounds to them, carry the
 judge-type role on the Claude side, and keep probe-type rounds off them.
 
@@ -8,8 +8,9 @@ Reorganized at #1972: `adapter/claude/agents/` no longer carries a
 `brake-evaluator.md`. The judge-type role literal that used to live in that
 file's body now lives in `skills/evolution-parallel-agent-eval/SKILL.md`
 Constraint: Effort floor, and the Claude Code spawn selects the effort-named
-`medium.md` (or a higher effort-named agent) instead of a role-named
-definition. The Codex port is out of scope for this split (Master agreement,
+`low.md` (or a higher effort-named agent) instead of a role-named
+definition. The floor is `low` from #2121 (Master judgment, 2026-09-29),
+replacing the provisional `medium` of 2026-09-13. The Codex port is out of scope for this split (Master agreement,
 2026-09-14): its role definition remains as a compatibility source, while
 #1973 moves brake 1 effort and role delivery to the spawn call and prompt.
 
@@ -20,9 +21,9 @@ different effort. The `model` and `tools` absences are the same shape in the oth
 `model` key here would take over the per-call sonnet floor, and a `tools` key
 would express the no-write requirement as a permission, which
 `skills/evolution-parallel-agent-eval/SKILL.md` Non-scope rejects. On the
-Claude side, a role fragment written into `medium.md` would silently duplicate
+Claude side, a role fragment written into `low.md` would silently duplicate
 the role literal now canonical in the eval skill, and would also steer every
-other medium-effort spawn that is not a brake evaluator at all.
+other low-effort spawn that is not a brake evaluator at all.
 
 The sentinel region's structural invariants are not re-asserted here;
 `tests/test_agent_sentinel_contract.py` already runs them over every source
@@ -37,7 +38,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CLAUDE_AGENT = ROOT / "adapter" / "claude" / "agents" / "medium.md"
+CLAUDE_AGENT = ROOT / "adapter" / "claude" / "agents" / "low.md"
 CODEX_AGENT = ROOT / "adapter" / "codex" / "agents" / "brake-evaluator.toml"
 EVAL_SKILL = ROOT / "skills" / "evolution-parallel-agent-eval" / "SKILL.md"
 SPAWN_SKILL = ROOT / "skills" / "task-subagent-spawn" / "SKILL.md"
@@ -69,19 +70,19 @@ class BrakeEvaluatorAgentContractTest(unittest.TestCase):
     def test_claude_agent_is_named_by_effort_not_role(self) -> None:
         # Deliberately not "brake-evaluator" any more: #1972 dropped per-role
         # Claude Code definitions. The Codex port keeps its own role name.
-        self.assertEqual(frontmatter(self.claude)["name"], "medium")
-        self.assertEqual(frontmatter(self.claude)["effort"], "medium")
+        self.assertEqual(frontmatter(self.claude)["name"], "low")
+        self.assertEqual(frontmatter(self.claude)["effort"], "low")
         self.assertIn('name = "brake-evaluator"', self.codex)
 
     def test_thinking_effort_uses_each_hosts_supported_surface(self) -> None:
-        # Master fixed the floor on 2026-09-13 at one step above the observed
-        # Claude `low`; Codex can carry the same value per launch.
-        self.assertEqual(frontmatter(self.claude)["effort"], "medium")
+        # The floor value is `low` (#2121); Codex carries the same value per
+        # launch.
+        self.assertEqual(frontmatter(self.claude)["effort"], "low")
         self.assertIsNone(
             re.search(r"^\s*model_reasoning_effort\s*=", self.codex, re.MULTILINE)
         )
         evaluation = EVAL_SKILL.read_text(encoding="utf-8")
-        self.assertIn('explicitly pass `reasoning_effort="medium"`', evaluation)
+        self.assertIn('explicitly pass `reasoning_effort="low"`', evaluation)
 
     def test_neither_port_pins_a_model(self) -> None:
         # The sonnet-class floor stays an explicit spawn-call parameter
@@ -99,10 +100,10 @@ class BrakeEvaluatorAgentContractTest(unittest.TestCase):
         self.assertIn('sandbox_mode = "workspace-write"', self.codex)
 
     def test_claude_definition_carries_no_role_fragment(self) -> None:
-        # medium.md is shared by every medium-effort Claude Code spawn, not
-        # just the judge-type evaluator. Evaluation content placed here would
-        # steer every round any medium-effort agent is spawned for, not only
-        # brake 1 rounds.
+        # low.md is shared by every low-effort Claude Code spawn, not just the
+        # judge-type evaluator. Evaluation content placed here would steer
+        # every round any low-effort agent is spawned for, not only brake 1
+        # rounds.
         prose = body(self.claude)
         self.assertIn("no role, no procedure", prose)
         for steering in ("axis", "Axis", "finding is one", "Verdict terms", "Basis", "evaluator"):
@@ -121,10 +122,10 @@ class BrakeEvaluatorAgentContractTest(unittest.TestCase):
 
     def test_the_eval_skill_routes_each_host_to_its_effort_surface(self) -> None:
         evaluation = EVAL_SKILL.read_text(encoding="utf-8")
-        self.assertIn("subagent_type: medium", evaluation)
+        self.assertIn("subagent_type: low", evaluation)
         self.assertNotIn("adapter/codex/agents/brake-evaluator.toml", evaluation)
         self.assertIn("On Codex, both kinds spawn with no agent definition file", evaluation)
-        self.assertIn("Effort floor = `medium`", evaluation)
+        self.assertIn("Effort floor = `low`", evaluation)
 
     def test_the_probe_type_round_reaches_the_floor_through_the_parent(self) -> None:
         # Claude has no per-call effort argument, so its probe reaches the floor
@@ -135,7 +136,7 @@ class BrakeEvaluatorAgentContractTest(unittest.TestCase):
             evaluation,
         )
         self.assertIn(
-            'On Codex, both kinds spawn with no agent definition file and explicitly pass `reasoning_effort="medium"`',
+            'On Codex, both kinds spawn with no agent definition file and explicitly pass `reasoning_effort="low"`',
             evaluation,
         )
 
@@ -148,7 +149,9 @@ class BrakeEvaluatorAgentContractTest(unittest.TestCase):
 
     def test_the_spawn_policy_names_the_effort_floor_agent(self) -> None:
         spawn = SPAWN_SKILL.read_text(encoding="utf-8")
-        self.assertIn("adapter/claude/agents/medium.md", spawn)
+        self.assertIn("adapter/claude/agents/low.md", spawn)
+        self.assertIn("A judge-type brake 1 evaluator selects at or above `low`", spawn)
+        self.assertIn("A brake evaluator's effort is at or above `low`", spawn)
 
 
 if __name__ == "__main__":

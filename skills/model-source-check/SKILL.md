@@ -1,6 +1,6 @@
 ---
 name: model-source-check
-description: Invoke when a factual claim is about to be used as judgment material (from human, AI, articles, tool output, prior self) / an "I won't be fooled" certainty is being felt / a causal claim of the shape "rule X was written to counter incident Y" is about to be asserted / a rule failed to fire and the impulse is to add another rule / a present-tense external-system capability claim is about to be written into spec / a system-injected hook output or status marker is about to be asserted as settled / the per-turn gate hook re-arms the factual-claim or external-content-read routing. Provides the two-pillar verify and a guard per moment.
+description: Invoke when a factual claim is about to be used as judgment material (from human, AI, articles, tool output, prior self) / an "I won't be fooled" certainty is being felt / a causal claim of the shape "rule X was written to counter incident Y" is about to be asserted / a rule failed to fire and the impulse is to add another rule / a present-tense external-system capability claim is about to be written into spec / a system-injected hook output or status marker is about to be asserted as settled / the per-turn gate hook re-arms the factual-claim or external-content-read routing. Provides the two-pillar verify and a guard per moment, including fixed-reference temporal separation, external-framework projection inhibitor and project-metadata temporal-claim guard.
 layer: L1-model
 ---
 

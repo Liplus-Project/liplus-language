@@ -1,6 +1,6 @@
 ---
 name: task-pr-review-judgment
-description: Invoke when the main agent is about to judge a PR review result (a delegated subagent takes `rules/operations/main-agent-procedures.md` PR review instead). Provides the mode-dependent judgment path.
+description: Invoke when the main agent is about to judge a PR review result (a delegated subagent takes `rules/operations/main-agent-procedures.md` PR review instead). Provides the self-review judgment for auto and semi_auto and the external-review judgment for trigger.
 layer: L3-task
 ---
 

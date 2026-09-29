@@ -30,7 +30,7 @@ CONTRACT_PATTERNS = {
         ),
         "bounded_read_only_selects": (
             r'A bounded read-only investigation selects `reasoning_effort="low"`, '
-            r'`"medium"`, `"high"`, or `"xhigh"`\s+for its purpose\. It does not omit the argument '
+            r'`"medium"`, or `"high"`\s+for its purpose\. It does not omit the argument '
             r"to inherit the parent value\."
         ),
         "supported_value_only": (
@@ -77,7 +77,7 @@ CONTRACT_PATTERNS = {
         ),
         "bounded_read_only_selects": (
             r'bounded read-only investigation は目的に合わせて `reasoning_effort="low"` / '
-            r'`"medium"` / `"high"` / `"xhigh"` を選び、親 effort への暗黙継承は使わない。'
+            r'`"medium"` / `"high"` を選び、親 effort への暗黙継承は使わない。'
         ),
         "supported_value_only": (
             r"`reasoning_effort` はその spawn で選択された model が公開する列挙値だけを渡す。"

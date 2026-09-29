@@ -138,7 +138,7 @@ Subagent_Delegation:
     use no agent definition file, and pass all evaluation material in a self-contained prompt.
   - Implementation-delegate and dialogue-evaluator spawns select `reasoning_effort` for the work they
     carry. No role fixes the value (`skills/task-subagent-spawn/SKILL.md` Selection criteria).
-  - A bounded read-only investigation selects `reasoning_effort="low"`, `"medium"`, `"high"`, or `"xhigh"`
+  - A bounded read-only investigation selects `reasoning_effort="low"`, `"medium"`, or `"high"`
     for its purpose. It does not omit the argument to inherit the parent value.
   - Pass only a `reasoning_effort` value supported by the model selected for that spawn. Do not
     guess a fallback when the model does not expose the requested value.

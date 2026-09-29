@@ -2,11 +2,11 @@
 and every `` `<path>.md` <Section Name> `` cross-reference resolves to a referenceable
 position inside that file.
 
-Spec source: `rules/operations/main-agent-procedures.md` The bar and its pair (path
+Spec source: `skills/operations-on-actor-placement/SKILL.md` Maintenance rule (path
 resolution) and `docs/K.-Source-File-Format.md` (referenceable position, section-name
 resolution).
 
-Why this is a CI check rather than per-edit attention. That section's maintenance rule
+Why this is a CI check rather than per-edit attention. That skill's maintenance rule
 moves a canonical off a skill surface and leaves a pointer, and its delete branch removes
 the skill outright when neither reader survives. Both halves rewrite cross-references
 across `rules/`, `skills/` and `adapter/`, and a missed one leaves a pointer resolving to

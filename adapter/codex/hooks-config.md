@@ -254,3 +254,10 @@ MCP tool itself. `LI_PLUS_WEBHOOK_DELIVERY=channel` / `mcp_hook` suppress that c
 half only — the handling half (report filter + `mark_processed`) is emitted in every
 mode. A Codex host without an mcp_tool hook substrate falls back to `poll`
 (see `adapter/codex/AGENTS.md` Optional Webhook Notification Flow).
+
+Connection requirement (the surface `adapter/codex/AGENTS.md` Optional Webhook
+Notification Flow names): `github-webhook-mcp` connected as an MCP server in the
+workspace, and `github-webhook-mcp >= v0.11.3` for the `mcp_tool` delivery the
+Claude template uses (`adapter/claude/hooks-settings.md` mcp_tool entry behavior;
+earlier versions return output the host discards). The Codex `poll` path calls the
+MCP tool itself, so it needs the server connected.

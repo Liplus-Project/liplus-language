@@ -62,6 +62,8 @@ Surfacing is observation, not auto-action. The threshold judgment itself — iss
 
 The Li+ clone's configured fetch refspecs are surfaced at cold-start when none of them can move a branch: the workspace holds a Li+ clone, and `remote.origin.fetch` carries no refspec whose source side is under `refs/heads/` -> surface as "clone cannot fetch branches".
 
+The predicate is the source side of a refspec, not the wildcard literal: a clone made with `--single-branch` (`+refs/heads/<branch>:refs/remotes/origin/<branch>`) moves that branch and is not this condition. Read the source side as the src half of `[+]<src>:<dst>`, and read it there only: `refs/heads/` reached on the dst side (`+refs/tags/v1:refs/heads/mirror`) does not satisfy the predicate. A `^<pattern>` exclusion satisfies the predicate in no namespace.
+
 This surface is state-driven, unlike the two date-driven surfaces above: the condition either holds this session or it does not, and it is re-surfaced every session while it holds. Nothing here reads a date.
 
 No lifecycle: the emission stops the moment the condition stops holding. There is no `verdict_state`, no `expires`, and no removal step. Read the absence as the design; do not fill it.

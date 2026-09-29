@@ -119,7 +119,7 @@ S2 のみ #1564 実測2 の記録（ツール2 / 文脈内2）と一致しない
 
 **S12** — anchor: `Trigger = session start, after Li+config.md execution completes.`
 - → `docs/Decision-Structure.md`（Action step 1）`[tool]`
-- → `adapter/claude/hooks/on-session-start.sh`（Hook coordination）`[tool]`
+- → `adapter/claude/hooks/on-session-start.sh`（Hook coordination。baseline 時点の経路。#2118 以降、この段落は `docs/2.-Evolution.md` Cold-start Synthesis 節「フックの出力契約」にあり、規則本文からのポインタは無い）`[tool]`
 - → `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format `[ctx]`
 
 `Hook coordination` 段落は #1765 で同一ファイル内の H2 `## Hook Emission Contract`（冒頭に「読むのは on demand、step 3 の適用瞬間には適用しない」と明示）へ移した。跳躍数は据え置き — 同一ファイル内の節移動は跳躍ではなく（計数規則 :15）、ポインタは同じファイルから解決するため。その H2 は #2118 で規則本文から外れ、`docs/2.-Evolution.md` の Cold-start Synthesis 節（フックの出力契約）へ移った。適用瞬間に要る anchor 内の Operational criterion は動いておらず（アンカー行 `cold-start-synthesis.md:11` のまま）、この移動も表を動かさない。

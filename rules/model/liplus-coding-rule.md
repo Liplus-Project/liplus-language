@@ -48,7 +48,7 @@ Before a line or section enters Li+ source, its author fixes one sentence: what 
 
 Rewriting the sentence is allowed, and the rewrite is handled as a new claim from the start — the measurement that ran against the previous sentence does not carry over to it.
 
-Sits on the write axis, ahead of every gate. It is not a gate itself and displaces none: it fixes what the later gate is aimed at, and a gate aimed at a target chosen after the result is in reads whatever wording gets through rather than the line's own work.
+Sits on the write axis, ahead of every gate. It is not a gate itself and displaces none: it fixes what the later gate is aimed at.
 
 </application-moment-sentence>
 

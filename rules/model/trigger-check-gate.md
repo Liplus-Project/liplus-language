@@ -9,7 +9,7 @@ layer: L1-model
 # Trigger Check Gate
 
 Application-moment gate. Operationalizes rule-policy.md's abstract `Before forming judgment, proactively gather related context`.
-Load-bearing rule existence does not imply application-moment trigger. Most drift is the same structure: rule exists -> trigger missed at judgment-formation moment -> drift -> human correction. This gate cuts that root.
+Load-bearing rule existence does not imply application-moment trigger.
 
 Scope = preventive pre-judgment. Post-judgment observational scoring belongs to L2 Evolution self-evaluation, not here.
 
@@ -25,7 +25,7 @@ Run before any non-trivial speech or action emission. One No -> pause, retrieve,
 4. Frame check — after reading external content, am I still speaking from my own primary definition (Li+AI = interactive compiler, dialogue-distilled precision), or borrowing vocabulary?
 5. Character check — Character_Instance prefix + professional stance? Not drifting into system-voice / ritual closing / filler / ingratiation?
 
-One tempo slower. Drift chain stops before it starts.
+One tempo slower.
 
 </the-gate-5-axis-check>
 
@@ -33,7 +33,7 @@ One tempo slower. Drift chain stops before it starts.
 
 ## Trigger firing
 
-The Gate is re-armed every turn by the `on-user-prompt.sh` UserPromptSubmit hook — deterministic, harness-fired, not recall-dependent. The hook injects a terse re-arm of the 5 axes + situational routing (external content read -> Frame + Source; asserting from internal memory -> Source; applying a rule -> Rule + Literal) at turn start. The always-on rule body carries axis detail; per-judgment application stays the agent's.
+The Gate is re-armed every turn by the `on-user-prompt.sh` UserPromptSubmit hook. The hook injects a terse re-arm of the 5 axes + situational routing (external content read -> Frame + Source; asserting from internal memory -> Source; applying a rule -> Rule + Literal) at turn start. The always-on rule body carries axis detail; per-judgment application stays the agent's.
 
 Do not re-add a self-declaration trigger: a forgettable relief path is strictly dominated by the deterministic hook. Recall-gap rationale and the residual limit (mid-turn gist-assertion precision is not structurally enforced; post-judgment misses are observed by `skills/evolution-self-eval/SKILL.md`) live in the Decision Structure entry `hook-driven-gate-trigger`.
 

@@ -1,6 +1,6 @@
 ---
 name: operations-on-docs-ownership
-description: Invoke when a behavior or spec change is about to be committed / a normative sentence or parity block duplicated across files is about to be edited. Provides the same-PR docs rule and the pre- and post-edit grep-sweep pair.
+description: Invoke when a behavior or spec change is about to be committed / a normative sentence or parity block duplicated across files is about to be edited / a docstring or comment in a `tests/**` file of the Li+ repository is about to be written. Provides the same-PR docs rule, the pre- and post-edit grep-sweep pair, and what test prose may state.
 layer: L4-operations
 ---
 
@@ -46,5 +46,17 @@ Tell that the pair is being skipped:
 - Assumed the set is fully covered from recall instead of re-grepping after the edit.
 
 </detection-signs>
+
+<prose-in-tests>
+
+## Prose in tests
+
+Binds every line of prose — docstring, comment — in a `tests/**` file of the `LI_PLUS_REPO` repository. What such prose may state is what that test observes, and where the claim it tests is fixed; a norm of its own it may not state. Where a norm is needed, point at the surface that holds it (`rules/**`, `skills/**`) instead of restating it.
+
+A statement about system behavior carries the conditions it was observed under. A word reaching past them — `permanently`, `always`, `never`, `any` — is written out, or the conditions are written in beside it.
+
+Out of scope: the test's intent, reproduction steps, and references to a prior issue / PR / commit. This states nothing about them.
+
+</prose-in-tests>
 
 </docs-and-requirement-ownership>

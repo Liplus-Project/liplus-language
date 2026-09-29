@@ -21,7 +21,7 @@ Operational criterion (AI side, step 3 gating):
 - hook-surfaced items = silent (do not re-report what the human already received from the hook, regardless of full / diff-only / marker state)
 - unique synthesized insight = speak (structural shift, unresolved thread, cross-artifact pattern not visible in the raw hook material)
 - no unique insight after synthesis = silent skip
-- diff-only state with the no-new-material marker = silent skip
+- diff-only state with the no-new-material marker (the `No new orientation material since last session` line) = silent skip
 - release Latest position = silent, even though it reads as synthesis over the hook-surfaced tag list. When the tag list shows the Latest flag on a prior version, do NOT surface "Latest behind / flip pending" as unique insight
 
 Scope = Li+ state, not workspace task state. Workspace-specific orientation follows the adapter's own startup path.

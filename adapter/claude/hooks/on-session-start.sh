@@ -1225,8 +1225,7 @@ if [ -n "$OBSERVATION_FILE" ]; then
       OBSERVATION_BODY="memory/self-evolution-observation.md - entries whose check window has opened:
 ${OBSERVATION_LIST}
 Surfacing is observation, not auto-action. Verdict transition (settle / revert /
-supersede) follows rules/evolution/memory-entry-format.md Self-Evolution
-Observation Format."
+supersede) follows skills/evolution-observation-entry/SKILL.md."
     fi
   fi
 fi

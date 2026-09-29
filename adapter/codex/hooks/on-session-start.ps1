@@ -1086,8 +1086,7 @@ if ($observationFile) {
     $observationBody = "memory/self-evolution-observation.md - entries whose check window has opened:`n" +
       $observationList +
       "Surfacing is observation, not auto-action. Verdict transition (settle / revert /`n" +
-      "supersede) follows rules/evolution/memory-entry-format.md Self-Evolution`n" +
-      "Observation Format."
+      "supersede) follows skills/evolution-observation-entry/SKILL.md."
   }
 }
 

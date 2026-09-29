@@ -87,12 +87,12 @@ For L1 substrate changes (any file with `layer: L1-model` frontmatter, typically
 
 Invocation anchor: this procedure is named at the merge moment by `rules/operations/main-agent-procedures.md` Merge Execution, whose Post-merge moment fixes that moment for each mode. Do not move the anchor into an `operations-*` skill.
 
-Start point = the first session that carries the changed rule in runtime context, and the ~5 min budget is spent inside that session. Where the session holding the post-merge moment carries it — a workspace running Li+ source at `main` — run the set below at that moment. Where it does not — a workspace synced to a tag — that session defers instead: record the deferral in that PR's `memory/self-evolution-observation.md` entry, in its `notes`, or on the merged PR where it has no entry (`rules/evolution/memory-entry-format.md` Self-Evolution Observation Format), and take the observation in the first session that carries the rule, appending the result where the deferral was recorded.
+Start point = the first session that carries the changed rule in runtime context, and the ~5 min budget is spent inside that session. Where the session holding the post-merge moment carries it — a workspace running Li+ source at `main` — run the set below at that moment. Where it does not — a workspace synced to a tag — that session defers instead: record the deferral in that PR's `memory/self-evolution-observation.md` entry, in its `notes`, or on the merged PR where it has no entry (`skills/evolution-observation-entry/SKILL.md`), and take the observation in the first session that carries the rule, appending the result where the deferral was recorded.
 
 Required observation set:
 
 1. **Trigger sample**: read the changed rule, then feed one representative prompt that should fire it at its application moment. Verify the rule fires. A rule not carried in runtime context stops here — defer per Start point above.
-2. **Self-eval entry**: write a 3-5 line verdict (fire / partial / miss) to `memory/self-evaluation_log.md`. Miss verdict escalates immediately to the 2-week post-merge cycle of `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format.
+2. **Self-eval entry**: write a 3-5 line verdict (fire / partial / miss) to `memory/self-evaluation_log.md`. Miss verdict escalates immediately to the 2-week post-merge cycle of `skills/evolution-observation-entry/SKILL.md`.
 
 A deferring session writes no verdict.
 

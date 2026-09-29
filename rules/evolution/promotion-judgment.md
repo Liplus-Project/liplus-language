@@ -38,7 +38,7 @@ Storage = one `promotion_tally.md` outside memory (host-local, gitignored). On o
 
 Do not give an adapter a tally file of its own. Name fit, ownership feel and adapter independence justify none of it.
 
-Appends are not serialized: two sessions writing at once can drop an occurrence silently. Do not add locking or a per-session split before a collision has been observed; when one is, file that observation as its own issue.
+Appends are not serialized: two sessions writing at once can drop an occurrence silently, and detection is by hand. Do not add locking or a per-session split before a collision has been observed; when one is, file that observation as its own issue.
 
 Format (YAML-like markdown):
 

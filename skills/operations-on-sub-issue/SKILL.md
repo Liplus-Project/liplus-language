@@ -17,8 +17,6 @@ This satisfies per-commit CI visibility without splitting into per-sub-issue PRs
 
 # Sub-issue Rules
 
-Pointer. Canonical = `rules/operations/main-agent-procedures.md` Sub-issue rules: the work-unit definition, the sub-issue versus sibling classification litmus, the sub-issue API, the simultaneous-task structure, the parallel conflict analysis, the scope-exceed dialogue confirm, and the recovery from accidental per-sub-issue PR runs all live there.
-
-The subagent still reaches the canonical — `rules/**` loads for it without invocation — so the scope-exceed detection it owns at its own pre-commit moment is not lost by the move.
+Pointer. The simultaneous-task structure and the scope-exceed trigger are resident in `rules/operations/main-agent-procedures.md` Sub-issue rules, so the scope-exceed detection the subagent owns at its own pre-commit moment loads without invocation. The work-unit definition, the sub-issue versus sibling classification litmus, the sub-issue API, the parallel conflict analysis, the confirm's threshold, carve-out and shape, and the recovery from accidental per-sub-issue PR runs live in `skills/task-sub-issue/SKILL.md`.
 
 </sub-issue-rules>

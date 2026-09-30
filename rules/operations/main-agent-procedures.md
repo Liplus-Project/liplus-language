@@ -110,63 +110,16 @@ Memo maturity is a valid resting state. Promotion to forming/ready is judged her
 
 ## Sub-issue rules
 
-Canonical. `skills/operations-on-sub-issue/SKILL.md` keeps the draft-PR CI visibility surface and points here.
+Canonical of the classification, linking, parallel-analysis, confirm-detail and recovery procedures = `skills/task-sub-issue/SKILL.md`. Open it when a sub-issue is about to be created, classified or linked, when several ready issues are about to run, when a scope-exceed confirm is about to fire, and when per-sub-issue PRs already exist on a parent. `skills/operations-on-sub-issue/SKILL.md` keeps the draft-PR CI visibility surface.
 Actor = the parent on every judgment below. The subagent is the actor that detects a scope exceed mid-implementation, and has no dialogue surface to fire the confirm on.
-
-Sub-issue = AI-trackable work unit.
-Split by responsibility, not granularity.
-
-Classification litmus (sub-issue vs sibling issue):
-Ask: "Can this unit ship independently without breaking the parent's atomic deliverable?"
-If yes = this is a sibling issue, not a sub-issue. Create it as an independent issue.
-If no  = this is a legitimate sub-issue.
-The feeling "I want per-sub-issue PR to ship these independently" = signal that these should have been sibling issues from the start.
-Re-classify before splitting PRs. Do not split PRs.
-
-See `rules/operations/operations.md` for parent/sub-issue authoritative rules (single parent PR flow, one branch per parent, sub-issue PR prohibition).
-
-Sub-issue API:
-gh issue develop targets parent issue only (branch creation).
-Sub-issue linking uses REST API with internal numeric ID, not issue number.
 
 Simultaneous tasks require parent-child structure:
 If multiple tasks in same session = create parent issue + sub-issues.
 Do not create multiple independent issues for simultaneous work.
 
-Parallel conflict analysis:
-When multiple ready issues exist = analyze target files for overlap before execution.
-No overlap = parallel-safe. Propose parallel sub-issue structure to human.
-Partial overlap = propose splitting shared-file changes into a separate integration sub-issue.
-Integration sub-issue executes after parallel sub-issues complete (serialized dependency).
-Analysis basis = target files field in issue body. If absent, infer from issue purpose and premise.
-
 Scope-exceed dialogue confirm:
 Issue body literal is the scope boundary. At sub-issue creation OR mid-implementation, when a planned change exceeds the parent body literal — either a negative-constraint clause ("do not X" / "X only" / "this issue handles X only") or the enumerated target-file set — fire a dialogue confirm before the commit that would carry the exceeding change.
-
-Threshold axis: issue body literal diff (primary). Parent design intent (secondary fallback for cases where the body is silent but the planned change feels intentional scope creep).
-
-Synchronized-set carve-out: a change to another member of the synchronized set an enumerated file's edit belongs to is not a scope exceed and fires no confirm, when that member was enumerated by the pre-edit grep-sweep (`skills/operations-on-docs-ownership/SKILL.md` Detection signs) as holding the same content and the change carries that same content. A change outside that set — adapter-specific wiring included — still fires.
-
-Confirm shape — 1 turn, 3 sentences max, 3 fixed options:
-
-```
-[Character prefix] Parent #<n> literal: <quoted constraint or target-file literal>.
-Planned change: <one-line summary of the literal-exceeding action>.
-Continue / rewrite scope / stop.
-```
-
-Master picks one of the three. No multi-turn escalation by default; if Master extends, follow the extension.
-
-Firing without a literal trigger hit ("just to be safe" / "out of caution") is push surplus per `rules/model/subtractive-structural-beauty.md` and prohibited.
-
-The gate fires pre-commit. Post-implementation (PR review time) is rejected as a firing moment.
-
-Recovery from accidental per-sub-issue PR runs, when per-sub-issue PRs already exist on a parent with sub-issues:
-1. Consolidate sub-issue branches into a single parent branch via cherry-pick or rebase.
-2. Manually re-open sub-issues that auto-closed via the wrong branch's merge.
-3. Close them again from the consolidated parent PR's merge once it lands.
-
-This is fix-up only — do not normalize per-sub-issue PRs as a workflow.
+Before firing, read the threshold, the synchronized-set carve-out and the confirm shape at `skills/task-sub-issue/SKILL.md` Scope-exceed dialogue confirm.
 
 </sub-issue-rules>
 
@@ -262,14 +215,14 @@ if execution_mode == auto:
 if execution_mode == semi_auto:
   Type-gated human check.
   patch -> no human gate. Self-review pass -> proceed to Merge Execution below.
-  minor / major -> human check required after self-review pass (procedure = Review approval check below).
+  minor / major -> human check required after self-review pass (procedure = `skills/task-pr-review-judgment/SKILL.md` Review approval check).
   Version type is the same judgment axis used at release (see `rules/operations/release-version-rule.md`). AI proposes type at PR creation time; on unclear, default to the safer side (minor) and ask human.
 
   Per-PR exception (content-based axis) = `rules/operations/execution-mode.md` `semi_auto mode:`. Read it there before waiving the human check.
 
 if execution_mode == trigger:
   Human check required on every PR after self-review pass.
-  Procedure = Review approval check below.
+  Procedure = `skills/task-pr-review-judgment/SKILL.md` Review approval check.
 
 Follow-through on deferred items:
 Self-review records may legitimately defer items as "out of PR scope" (e.g. workspace memory cleanup, follow-up issue filing, doc-only follow-up). Deferred ≠ ignored:
@@ -296,28 +249,6 @@ Review body must include: acceptance-criteria check result, scope deviations (if
 GitHub rejects `--add-reviewer` self-assignment silently; only `gh pr review --comment` works for PR author self-review records.
 
 </self-review-formal-record>
-
-<review-approval-check>
-
-## Review approval check
-
-Canonical. PR review above holds which modes raise a human gate; the procedure is here.
-Actor = the parent, in every mode that raises the gate. No mode puts a subagent at this wait.
-
-Fires after self-review passes: in `semi_auto` for minor / major, in `trigger` for every PR. `auto` raises no human gate and never reaches here.
-
-Prefer webhook over polling.
-  if mcp__github-webhook-mcp available:
-    poll get_pending_status every 60 seconds
-    on pull_request_review pending: list_pending_events -> get_event for this PR -> check state -> mark_processed
-  else:
-    Wait = human signals review done (do not poll).
-    On signal:
-      gh pr view {pr} -R {owner}/{repo} --json reviewDecision --jq '.reviewDecision'
-
-The decision read here is input, not the judgment: what APPROVED and CHANGES_REQUESTED release is `skills/task-pr-review-judgment/SKILL.md`; on APPROVED the mode's merge path is Merge Execution below.
-
-</review-approval-check>
 
 <merge-execution>
 
@@ -353,7 +284,7 @@ Merge strategy:
 Post-merge moment:
 The moment the obligations placed right after a merge fire at: the reopen and the L1 observation below, the workspace-side deferrals of PR review Follow-through on deferred items, and the observation entry of `skills/evolution-observation-entry/SKILL.md` Auto-entry trigger. Actor = the main agent in every mode.
 - `auto` / `semi_auto` = right after the parent's own merge, in the merging session.
-- `trigger` = no agent stands at the merge, so the moment is the first turn in which the main agent observes the merge, in whichever session that turn falls: the Review approval check, a foreground webhook intake item, or any other read showing the PR merged. Run the obligations in that turn.
+- `trigger` = no agent stands at the merge, so the moment is the first turn in which the main agent observes the merge, in whichever session that turn falls: the Review approval check (`skills/task-pr-review-judgment/SKILL.md`), a foreground webhook intake item, or any other read showing the PR merged. Run the obligations in that turn.
 In `trigger` that session need not be the one that delegated the PR, so read each obligation from its durable surface, not from delegation context: the closed issue's body for the reopen, the PR's changed files for the L1 observation, the self-review formal record for the workspace-side deferrals, the PR's linked issue and changed files for the observation entry.
 
 Parent close condition: closed automatically on merge via issue reference.

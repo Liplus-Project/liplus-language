@@ -28,16 +28,11 @@ Condition 2 holds for a changed file when both are true of it: it constrains how
 - `rules/**/*.md`, `skills/**/SKILL.md`, `adapter/**/*`, `Li+update.md` — prose the agent loads and runs as its own instruction.
 - `tests/**` and `.github/workflows/**` — the enforcement backstop: the contract tests, and the workflow that runs them and produces the check. It is executed code no check stands behind.
 
-Excluded, each by the property that excludes it:
-
-- **Record surfaces** — `docs/**`, the wiki, `README.md`, `LICENSE`, `NOTICE`. Read on demand as a record of past judgment or as description. A file carrying a line that can go stale with no change inside the repo is not covered by this exclusion, whichever of its lines a change touches; the criterion above places it.
-- **Executed code a check stands behind** — `scripts/**`, `.github/scripts/**`. A defect surfaces as a raised exception in the calling turn or as a red check. The backstop itself (`tests/**`) is on the firing side above. Executed code this exclusion does not cover is reached by the default below, not by this bullet.
+The excluded surfaces, each by the property that excludes it = `skills/evolution-parallel-agent-eval/SKILL.md` Governed surface exclusions. Open it before a PR on the initiator path is ruled out of brake 1.
 
 A changed file the criterion places on neither side is on the firing side.
 
 Prose in a `tests/**` file = `skills/operations-on-docs-ownership/SKILL.md` Prose in tests.
-
-`docs/` is in Scope below and excluded here, save a file the Record surfaces bullet hands back to the criterion. The two lists run on different axes — Scope is what the AI may initiate, condition 2 is what brake 1 gates. Do not read either membership off the other.
 
 </self-evolution-pr-definition>
 
@@ -63,9 +58,7 @@ The rule effect measurement between that CI green and this brake (`skills/evolut
 
 **Adjudication actor (canonical)**: findings are adjudicated by the implementation subagent, resumed with its context intact (`adapter/claude/CLAUDE.md` and `adapter/codex/AGENTS.md` Subagent_Delegation carry the host mechanism). The parent does not adjudicate. The parent's remaining share is spawning the evaluators, resuming the author, self-review, and the merge decision.
 
-**Channel (canonical)**: the exchange between evaluator and author runs on the PR's own comment thread. The evaluator posts its findings there itself and the author answers there, and the parent is not in the path — it does not compose either artifact, does not consolidate, and does not read what passes while it passes, save the recurrence test it runs at each round boundary (the skill's Procedure step 8). Its share of the exchange is scheduling: it wakes the author onto new findings, and it opens or closes the next round or stops the loop for the human. The parent still reads the whole thread once, at the exit, and its self-review and merge judgment are formed there (`rules/operations/execution-mode.md`, `rules/model/role-separation.md`).
-
-The routing — where an evaluator posts its findings, how the author is woken onto them, what the author writes back, and where a round ends — is `skills/evolution-parallel-agent-eval/SKILL.md` Procedure (the reporting destination at step 3, then steps 4 and 6 to 8) and its Report shape. Do not restate it here.
+**Channel (canonical)**: the exchange between evaluator and author runs on the PR's own comment thread, and the parent is not in the path. What the parent does and does not do while the exchange passes, and its one read of the whole thread at the exit, are `skills/evolution-parallel-agent-eval/SKILL.md` Constraint: Findings are posted to the PR by the evaluator. The routing — where an evaluator posts its findings, how the author is woken onto them, what the author writes back, and where a round ends — is that skill's Procedure (the reporting destination at step 3, then steps 4 and 6 to 8) and its Report shape. Do not restate either here.
 
 The round trips carry no cap. What ends the loop (the skill's Procedure step 8), what one round trip is, and what standing a rejection has inside the loop are the skill's; none of them is restated here.
 

@@ -1,6 +1,6 @@
 ---
 name: evolution-impression-literal-detection
-description: Invoke when an evaluator is answering the fixed impression-literal axis on a Li+ source draft / a brake 1 evaluator prompt is being composed and the fixed axis has to enter it / a phrase in a Li+ source draft needs testing for whether it load-bears on behavior / brake 1 findings on rhetorical drift are being adjudicated / a Li+ source sentence is about to be kept or removed on impression rather than behavior. Provides the axis prompt literal, the removal test and the adjudication of a flagged literal.
+description: Invoke when an evaluator is answering the fixed impression-literal axis on a Li+ source draft / a brake 1 evaluator prompt is being composed / a phrase in a Li+ source draft needs testing for whether it load-bears on behavior / brake 1 findings on rhetorical drift are being adjudicated / a Li+ source sentence is about to be kept or removed on impression. Provides the axis prompt literal, the removal test and the adjudication of a flagged literal.
 layer: L2-evolution
 ---
 

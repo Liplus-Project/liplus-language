@@ -1,6 +1,6 @@
 ---
 name: evolution-persistence-tiering
-description: Invoke when deciding whether information belongs in workspace memory or in docs / a memory write is about to happen and the pre-write persistence gate must run. Provides the tiering criteria and escalation routing.
+description: Invoke when deciding whether information belongs in workspace memory or in docs / a memory write is about to happen. Provides the tiering criteria and escalation routing.
 layer: L2-evolution
 ---
 

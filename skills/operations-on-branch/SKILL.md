@@ -1,6 +1,6 @@
 ---
 name: operations-on-branch
-description: Invoke when a subagent about to implement must judge whether to work on a protected shared branch such as main instead of its issue-linked branch / local validation is about to be treated as the completion condition in place of the branch. Provides the repo-first execution surface.
+description: Invoke when a subagent about to implement must judge whether to work on a protected shared branch such as main / local validation is about to be treated as the completion condition. Provides the repo-first execution surface.
 layer: L4-operations
 ---
 

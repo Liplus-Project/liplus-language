@@ -1,6 +1,6 @@
 ---
 name: evolution-parallel-agent-eval
-description: Invoke when a self-evolution PR reaches CI green and the merge gate is next (mandatory brake 1) / a Li+ rules/skills/adapter edit draft has converged outside a PR flow and needs verification / an evolution-loop observe/evaluate stage needs an empirical verdict / an unaided self-check feels positive and needs measuring / a spec revision needs orthogonal verification on rule semantic consistency / a brake 1 evaluator findings comment or an author's adjudication is being written / a brake 1 round trip has come back at CI green and the next round or the exit must be chosen. Provides the eval design, its convergence loop and its report shape.
+description: Invoke when a self-evolution PR reaches CI green and the merge gate is next (mandatory brake 1) / a Li+ rules/skills/adapter edit draft has converged outside a PR flow and needs verification / an evolution-loop observe/evaluate stage needs an empirical verdict / an unaided self-check feels positive and needs measuring / a spec revision needs orthogonal verification on rule semantic consistency / a brake 1 evaluator findings comment or an author's adjudication is being written / a brake 1 round trip has come back at CI green. Provides the eval design, its convergence loop and its report shape.
 layer: L2-evolution
 ---
 

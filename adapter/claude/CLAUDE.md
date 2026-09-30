@@ -2,21 +2,12 @@
 
 Layer = L6 Adapter Layer
 
-Adapter layer entrypoint:
-- inject Li+ into the host instruction file
-- semantic source = `rules/*.md` + `skills/*/SKILL.md` from the repository at `LI_PLUS_REPO` (URL form, defined in Li+config.md)
-- this file owns load order, re-read trigger mapping, Character_Instance wiring, and workspace language contract wiring
-- adapter load order = runtime attachment order, not cross-layer precedence
-
-Concept framing (Sheepdog Engineering):
-- Three axes (see `docs/G.-Sheepdog-Engineering.md` for the full table):
-  - position: `.claude/` contents (rules / skills / hooks / settings) are read as AI internal tools, not external constraints
-  - modifier: AI edits Li+ source itself (issue → implement → self-review → merge); human provides direction and go-sign
-  - initiator: AI files self-evolution issues and runs implementation → merge end-to-end (see Evolution_Initiator_Autonomy below)
+Concept framing (Sheepdog Engineering, `docs/G.-Sheepdog-Engineering.md`):
+- modifier: AI edits Li+ source itself (issue → implement → self-review → merge); human provides direction and go-sign
 
 Execute the following at startup (never output credentials to chat):
 1. Inspect the `LI_PLUS_UPDATE_STATUS=` marker emitted by `on-session-start.sh` (delimited by `━━━ Li+ update status ━━━` banner) in the session-opening context.
-   - `LI_PLUS_UPDATE_STATUS=unnecessary` -> skip step 2 entirely (no Li+update.md re-execution). The hook has verified adapter sentinel tag matches the target tag, Li+config schema is canonical, and language contract is resolved. On-demand spot read of Li+config.md for value lookup (e.g. repo URL, execution mode, language) is permitted: AI may Read the file to extract specific values, but must NOT execute its contents (opening the file does not re-enter step 2). Li+update.md re-execution remains prohibited.
+   - `LI_PLUS_UPDATE_STATUS=unnecessary` -> skip step 2 entirely (no Li+update.md re-execution). On-demand spot read of Li+config.md for value lookup (e.g. repo URL, execution mode, language) is permitted: AI may Read the file to extract specific values, but must NOT execute its contents (opening the file does not re-enter step 2).
    - `LI_PLUS_UPDATE_STATUS=needed` (or marker absent) -> proceed to step 2.
    - Force re-run override: if Master's user input contains the literal phrase `Li+configを実行` or `Li+config を実行` (with or without the space), bypass the `unnecessary` marker and proceed to step 2 as if the status were `needed`.
 2. Read Li+config.md from the workspace root directory only (do not search subdirectories) and execute its contents. (Ask the user for confirmation if needed during execution)
@@ -29,54 +20,38 @@ gh CLI is authenticated via keyring after bootstrap. Do not export GH_TOKEN in B
 
 EVERY output MUST be prefixed with a speaker name defined in Character_Instance, except a surface whose transport already carries speaker identity structurally outside the output body (`rules/model/absolute.md` Name prefix scope) — no exception beyond that criterion, and no surface name is fixed here. Anonymous output is a structural failure.
 
-All Li+ rules/*.md files are loaded via `.claude/rules/` (always in context, survives compaction). Rules span all layers; layer attribution lives in each file's frontmatter (`layer: L<n>-<name>`).
-
-All Li+ skills/*/SKILL.md files are loaded via `.claude/skills/` (skill auto-invocation). Skill description drives invocation timing — detect when the trigger applies and invoke the matching skill.
-
-Cold-start Synthesis is not a skill. Its content lives in `rules/evolution/cold-start-synthesis.md`, whose H1 preamble is emitted as session-opening material via `on-session-start.sh` hook (matchers: startup / resume / clear / compact / fork).
-
-character_Instance.md is loaded via `.claude/output-styles/character_Instance.md` (rendered into system prompt at session start by Claude Code's output-styles mechanism, residing for the session). Activation: `"outputStyle": "character_Instance"` in `settings.json` (Li+ template default). User-customizable. Bootstrap creates the default template only if absent; existing file is never overwritten.
-
-Main never reads operations skills directly when subagent is available. This bar is one half of a pair: it holds only while every procedure whose actor can be main has its canonical on a surface main may read. `rules/operations/main-agent-procedures.md` states the pair and holds those procedures.
+Main never reads operations skills directly when subagent is available.
 
 Subagent does not create, move, or remove worktrees or per-session clones.
 
-`EnterWorktree` (host feature) switches session-wide CWD. Not suitable for parallel subagents. Use raw `git worktree add` + absolute paths.
-
-Main / Subagent axis separation:
-Skill-driven operations apply to subagent-absent environments as well; subagents auto-load the same rules/ and skills/.
-Worktree and per-session clone operations are always main-only, independent of subagent availability.
+`EnterWorktree` (host feature) is not for parallel subagents. Use raw `git worktree add` + absolute paths.
 
 #######################################################
 
 [Character_Instance]
 
 #######################################################
-Defined in `.claude/output-styles/character_Instance.md` (rendered into system prompt at session start by Claude Code's output-styles mechanism).
-Activation: `"outputStyle": "character_Instance"` in `settings.json` (Li+ template default).
-Source template: `rules/model/character_Instance.md` (body shared with codex adapter; bootstrap rewrites frontmatter to output-style format on install).
-Bootstrap creates default if absent. User edits are preserved.
+Defined in `.claude/output-styles/character_Instance.md`, active via `"outputStyle": "character_Instance"` in `settings.json`.
 #######################################################
 
 #######################################################
 Responsibilities
 #######################################################
 
-Re-read and apply rules/ on any compression, resume, or session continuation. Skills are re-invoked by Claude as needed — no manual re-read required. Cold-start Synthesis runs at session start via on-session-start.sh hook, not via skill.
+Re-read and apply rules/ on any compression, resume, or session continuation.
 
-Skill auto-invocation routing source = each `skills/<name>/SKILL.md` description field. The Claude Code host evaluates skill descriptions semantically and invokes the matching skill when its trigger applies. No adapter-side trigger table is maintained.
+Skills auto-invoke by the `description` field of each `skills/<name>/SKILL.md`: detect when a skill's trigger applies and invoke it — the main agent directly when subagent-absent.
 
-When subagent-absent and a skill is relevant, the main agent invokes the skill directly. Rules stay always-on.
+Cold-start Synthesis is not a skill: run `rules/evolution/cold-start-synthesis.md` on the material the `on-session-start.sh` hook emits at session start.
 
 Main agent after subagent completion:
   Receive the report and decide next action.
   For CHANGES_REQUESTED: read review comments, judge against issue requirements, then delegate fix to subagent.
-  For release: confirm version type and tag with human.
 
 Worktree lifecycle — main agent owns all worktree and per-session clone operations:
   A per-session clone may stand in for the worktree: a separate clone of the repository, made for one session. Each step below applies to both unless it names one.
   The shared clone of `LI_PLUS_REPO` that clone mode places in the workspace does not switch branches. Branch work on that repository runs in a worktree or a per-session clone.
-  1. Create branch: `gh issue develop` (establishes issue link). One branch per issue. Scoped to this lifecycle: main creates the branch only when a worktree is being used. Serial delegation uses no worktree, so branch creation there stays with the subagent per `skills/task-subagent-delegation/SKILL.md`. A per-session clone starts on `main`, so branch creation there also stays with the subagent, inside the clone.
+  1. Create branch: `gh issue develop` (establishes issue link). One branch per issue. Main creates the branch only when a worktree is used. With no worktree (e.g. serial delegation) or with a per-session clone, the subagent creates it — inside the clone for the latter — per `skills/task-subagent-delegation/SKILL.md`.
   2. Create worktree: `git worktree add workspace/.worktrees/{repo}-{issue_number}/ {branch_name}`. Per-session clone: `git clone {repo_url} {workspace_root}/{repo}-{session}/` — a directory of its own, never the shared clone.
   3. Delegate: convey the worktree or per-session clone absolute path in addition to standard delegation info.
   4. Subagent works entirely within the given path.
@@ -87,14 +62,11 @@ Autonomy
 #######################################################
 
 Workspace_Language_Contract:
-  These language rules apply to the host workspace only. They do not change `LI_PLUS_REPO` governance (the repository at the URL value of `LI_PLUS_REPO`).
+  These language rules apply to the host workspace only. They do not change `LI_PLUS_REPO` governance (the repository at the URL value of `LI_PLUS_REPO`), and are not inferred from that repository's internal Japanese governance.
 
   LI_PLUS_BASE_LANGUAGE and LI_PLUS_PROJECT_LANGUAGE are emitted into the session-opening context
-  by `on-session-start.sh` under the `━━━ Li+ language contract ━━━` banner, resolved from the
-  workspace-root Li+config.md at session start. Apply those values; no file read is required.
-  Li+config.md remains the single source (the hook reads it live every session, not at bootstrap).
-  If either value is emitted as `unset`, or the banner is absent entirely (pre-bootstrap session:
-  the hook exits at the unresolved-source guard before emitting any Li+ marker):
+  by `on-session-start.sh` under the `━━━ Li+ language contract ━━━` banner. Apply those values; no file read is required.
+  If either value is emitted as `unset`, or the banner is absent entirely:
   - ask human once at session start
   - write resolved values to Li+config.md
 
@@ -110,68 +82,33 @@ Workspace_Language_Contract:
   3. LI_PLUS_PROJECT_LANGUAGE for artifacts / LI_PLUS_BASE_LANGUAGE for dialogue
   4. if still unresolved: ask human
 
-  Bootstrap vs runtime scope:
-  human explicit language instruction receipt applies to runtime globally.
-  Bootstrap ask (write resolved values to Li+config.md) applies only when config is unresolved at session start.
-  Mid-session re-ask is outside this scope. Once config is resolved, runtime relies on precedence 1-4 only; config is not re-written mid-session.
-
-  Keep scope local:
-  - do not infer host workspace language contract from liplus-language repository internal Japanese governance
-  - changing this workspace contract does not rewrite liplus-language repository rules
+  A human explicit language instruction applies to runtime globally.
+  Once config is resolved, runtime relies on precedence 1-4 only: no mid-session re-ask, and config is not re-written mid-session.
 
 Subagent_Delegation:
-  Delegation semantics (what to convey, what to retain, hook chain, issue management, failure reporting)
-  are defined in skills/task-subagent-delegation/SKILL.md. This section covers adapter-layer execution details only.
+  Delegation semantics are defined in `skills/task-subagent-delegation/SKILL.md`.
 
   Resume mechanism (brake adjudication phase):
   - The implementation subagent is resumed via the Agent tool's `SendMessage`, addressed by the
     agent id or name returned at spawn. A fresh `Agent` call starts cold and is not a resume.
   - Retain that id from the phase-1 spawn; the held id reaches a completed subagent too.
-    The spawning session is the only holder: `ListAgents` does not recover a lost id (measured 2026-09-26/27),
-    and a subagent does not hold its own id, so asking it yields no address.
+    Only the spawning session holds it: `ListAgents` does not recover a lost id, and asking the subagent yields no address.
   - A parent that does not hold the id — lost, or adjudication running in a later session than the
-    implementation — has no resume target; the reconstruction fallback applies
-    (`skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary).
-  - What goes into the resume message = `skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary.
-  - Adjudication actor and the phase split itself are canonical elsewhere
-    (`rules/evolution/initiator-autonomy.md` Merge brake / `skills/task-subagent-delegation/SKILL.md` Rules).
+    implementation — has no resume target; the reconstruction fallback applies.
+    The fallback and what goes into the resume message = `skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary.
 
-  Serial delegation does not require worktrees.
-
-  Worktree vs commit serialization axis separation:
-  Worktree requirement applies to same-branch parallel commit only.
-  Commit serialization applies to same-parent sub-issue parallel implementation (shared parent branch, no worktree needed).
-
-  Same-branch parallel constraint:
-  Multiple subagents sharing one branch share .git/index (staging area).
-  Parallel commits on the same branch cause staging area conflicts.
-  Use worktree to isolate.
+  Worktree requirement applies to same-branch parallel commit only: subagents sharing one branch share `.git/index`, so isolate each in its own worktree.
 
   What worktree does not isolate:
-  A worktree separates the working tree and the index. It does not separate `refs/stash`,
-  a single ref in the shared .git. Concurrent `git stash push` from two worktrees lands on
-  one stack, and either `pop` takes the top entry regardless of which worktree pushed it,
-  succeeding with no error and no warning. Do not read "worktree isolates, so parallel is safe"
-  off the three lines above.
-  Shelving procedure = `skills/task-subagent-prompt/SKILL.md` Worktree-safe shelving of
-  uncommitted work.
+  `refs/stash` is one ref in the shared .git: a `git stash pop` in any worktree takes the top entry, whichever worktree pushed it, with no error and no warning.
+  Do not read "worktree isolates, so parallel is safe" off the worktree requirement above.
+  Shelving procedure = `skills/task-subagent-prompt/SKILL.md` Worktree-safe shelving of uncommitted work.
 
   Cross-parent-issue parallelism (recommended):
-  Different parent issues have different branches.
-  Create one worktree per parent branch.
-  Each subagent works in its own worktree with full commit independence.
+  Create one worktree per parent branch; each subagent works in its own worktree.
 
   Same-parent sub-issue parallelism:
-  Sub-issues share a parent branch.
-  Implementation may run in parallel if files do not overlap, but commits must be serialized (no worktree needed, but commit ordering required).
-
-  Delegation info addition for worktree mode:
-  - worktree absolute path (required when worktree is used)
-  - All other delegation rules unchanged.
-
-Autonomy block shape:
-  Block structure, maintenance ref resolution, and Explicit exclusion scope shared semantic
-  for the autonomy declarations below — see `rules/evolution/autonomy-block-shape.md`.
+  Implementation may run in parallel if files do not overlap, but commits on the shared parent branch must be serialized (no worktree needed, but commit ordering required).
 
 Memory_Write_Autonomy:
   Memory file writes (feedback_*.md, project_*.md, user_*.md, reference_*.md — one memory per file) are AI-autonomous decisions.
@@ -180,8 +117,7 @@ Memory_Write_Autonomy:
   Pre-write persistence check (hard gate):
   Before each memory write, apply `skills/evolution-persistence-tiering` write-time trigger.
   Persistent / ambiguous content routes to escalation (`rules/` / `skills/` / `docs/` / wiki),
-  not to memory. The gate runs autonomously; no permission ask. Detailed signals and routing
-  spec live in the skill.
+  not to memory. The gate runs autonomously; no permission ask.
 
   Maintenance + exclusion scope: see `rules/evolution/memory-entry-format.md` and `rules/evolution/autonomy-block-shape.md`.
 
@@ -204,9 +140,7 @@ Evolution_Initiator_Autonomy:
   self-eval reflection cycle, and L2-L6 improvement issues in general.
   No human go-sign is required to start the loop.
 
-  Merge brake (always-on):
-  - brake 1 = `skills/evolution-parallel-agent-eval` mandatory for every self-evolution PR, L1 Model Layer source included; L1 adds no brake of its own.
-  Firing position, adjudication actor, and the human = final judge axis are canonical in `rules/evolution/initiator-autonomy.md` Merge brake; the maintenance axes that keep applying alongside the brake (`skills/evolution-l1-update-gating` observation threshold, execution-mode matrix, noise-floor gate) are in the same file's Existing maintenance rules still apply.
+  Merge brake (always-on) = `rules/evolution/initiator-autonomy.md` Merge brake. Maintenance rules that keep applying alongside it = `rules/evolution/initiator-autonomy.md` Existing maintenance rules still apply.
 
   Human gate retained for:
   - release create / Latest flip / force push / merged-PR delete / tag delete (existing release-axis gates)

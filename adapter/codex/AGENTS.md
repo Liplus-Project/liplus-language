@@ -52,9 +52,9 @@ HUMOR_STYLE=Natural
 Responsibilities
 #######################################################
 
-Apply the rules on any session continuation; the SessionStart hook re-injects them on resume / clear / compact. Skills need no manual re-read.
+Apply the rules on any session continuation; the SessionStart hook re-injects them on resume / clear / compact.
 
-Skills auto-invoke by the `description` field of each `skills/<name>/SKILL.md` (installed under `.agents/skills/`): detect when a skill's trigger applies and invoke it — the main agent directly when subagent-absent. No adapter-side trigger table is maintained.
+Skills auto-invoke by the `description` field of each `skills/<name>/SKILL.md` (installed under `.agents/skills/`): detect when a skill's trigger applies and invoke it — the main agent directly when subagent-absent.
 
 Cold-start Synthesis is not a skill: perform `rules/evolution/cold-start-synthesis.md` through Character_Instance on the material the `on-session-start` hook emits at session start.
 
@@ -65,7 +65,7 @@ Main agent after completion:
 Worktree lifecycle — main agent owns all worktree and per-session clone operations:
   A per-session clone may stand in for the worktree: a separate clone of the repository, made for one session. Each step below applies to both unless it names one.
   The shared clone of `LI_PLUS_REPO` that clone mode places in the workspace does not switch branches. Branch work on that repository runs in a worktree or a per-session clone.
-  1. Create branch: `gh issue develop` (establishes issue link). One branch per issue. Main creates the branch only when a worktree is used. With no worktree (serial delegation) or with a per-session clone, the subagent creates it — inside the clone for the latter — per `skills/task-subagent-delegation/SKILL.md`.
+  1. Create branch: `gh issue develop` (establishes issue link). One branch per issue. Main creates the branch only when a worktree is used. With no worktree (e.g. serial delegation) or with a per-session clone, the subagent creates it — inside the clone for the latter — per `skills/task-subagent-delegation/SKILL.md`.
   2. Create worktree: `git worktree add workspace/.worktrees/{repo}-{issue_number}/ {branch_name}`. Per-session clone: `git clone {repo_url} {workspace_root}/{repo}-{session}/` — a directory of its own, never the shared clone.
   3. Delegate: convey the worktree or per-session clone absolute path in addition to standard delegation info.
   4. Subagent works entirely within the given path.
@@ -133,15 +133,11 @@ Subagent_Delegation:
     fallback applies.
     The fallback and what goes into the resume message = `skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary.
 
-  Serial delegation does not require worktrees.
-
-  Worktree vs commit serialization axis separation:
   Worktree requirement applies to same-branch parallel commit only: subagents sharing one branch share `.git/index`, so isolate each in its own worktree.
-  Commit serialization applies to same-parent sub-issue parallel implementation (shared parent branch, no worktree needed).
 
   What worktree does not isolate:
   `refs/stash` is one ref in the shared .git: a `git stash pop` in any worktree takes the top entry, whichever worktree pushed it, with no error and no warning.
-  Do not read "worktree isolates, so parallel is safe" off the lines above.
+  Do not read "worktree isolates, so parallel is safe" off the worktree requirement above.
   Shelving procedure = `skills/task-subagent-prompt/SKILL.md` Worktree-safe shelving of uncommitted work.
 
   Cross-parent-issue parallelism (recommended):
@@ -180,7 +176,7 @@ Evolution_Initiator_Autonomy:
   self-eval reflection cycle, and L2-L6 improvement issues in general.
   No human go-sign is required to start the loop.
 
-  Merge brake (always-on) and the maintenance axes that keep applying alongside it: `rules/evolution/initiator-autonomy.md` Merge brake and Existing maintenance rules still apply.
+  Merge brake (always-on) = `rules/evolution/initiator-autonomy.md` Merge brake. Maintenance rules that keep applying alongside it = `rules/evolution/initiator-autonomy.md` Existing maintenance rules still apply.
 
   Human gate retained for:
   - release create / Latest flip / force push / merged-PR delete / tag delete (existing release-axis gates)

@@ -13,7 +13,12 @@ layer             = difference of surface / responsibility
 intra-layer order = order inside one layer
 recovery          = repair path when a surface drifts or breaks
 
-Layer relation and attachment chain = `rules/model/layer-definition.md` (Cross-layer rule).
+Layer relation:
+different layers are not winner-takes-all hierarchy
+different layers are different surfaces over the same program
+cross-layer contradiction = structure error, not "higher layer wins"
+
+See `rules/model/layer-definition.md` for the attachment chain.
 
 Intra-layer order:
 inside one program file, earlier section wins over later section

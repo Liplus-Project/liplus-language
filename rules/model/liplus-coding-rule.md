@@ -46,7 +46,7 @@ Order: strip first, write the record after, from the strip's own diff. An absent
 
 Before a line or section enters Li+ source, its author fixes one sentence: what this changes at the moment it applies. Fix the sentence first, then let whatever measures or reviews the addition be raised from it (`skills/evolution-rule-effect-measurement/SKILL.md` Probe specification). An addition whose author cannot write that sentence does not enter.
 
-A rewritten sentence is handled as a new claim from the start.
+A rewritten sentence is handled as a new claim from the start. The sentence is not a gate itself and displaces none.
 
 </application-moment-sentence>
 

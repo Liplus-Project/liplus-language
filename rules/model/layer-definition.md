@@ -29,7 +29,7 @@ L1-L6 numbering reflects attachment order, not precedence or seniority.
 Cross-layer rule:
 layers differ by role and visible surface
 later layers extend or attach; they do not redefine earlier layers
-on a cross-layer contradiction, a later layer appearing to override an earlier one included:
+if a later layer appears to override an earlier one:
   treat as structural error
   repair the boundary
   do not reinterpret as layer hierarchy

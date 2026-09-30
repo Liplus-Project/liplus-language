@@ -54,7 +54,7 @@
 | S7 | Li+update 実行要否の判定 | `adapter/claude/CLAUDE.md:22` | 0 | 0 |
 | S8 | memory 書き込み直前の persistence 判定 | `adapter/claude/CLAUDE.md:161` | 1 | 1 |
 | S9 | 判断が settle した → Decision Structure entry を書く | `adapter/claude/CLAUDE.md:172` | 2 | 1 |
-| S10 | drift / pattern を観測 → 昇格の閾値判定 | `rules/evolution/promotion-judgment.md:26` | 0 | 0 |
+| S10 | drift / pattern を観測 → 昇格の閾値判定 | `rules/evolution/promotion-judgment.md:15` | 0 | 0 |
 | S11 | merge 完了直後 → L1 変更の短窓観察 | `rules/operations/operations.md:88` | 1 | 1 |
 | S12 | session 開始 → cold-start synthesis | `rules/evolution/cold-start-synthesis.md:11` | 2 | 1 |
 | | **合計** | | **14** | **4** |
@@ -110,7 +110,7 @@ S2 のみ #1564 実測2 の記録（ツール2 / 文脈内2）と一致しない
 - → `rules/evolution/memory-entry-format.md` `[ctx]`
 
 **S10** — anchor: `A drift / pattern observation occurring at any moment`
-- 閾値表（同一ファイル `:70-75`）まで同一ファイル内。跳躍ゼロ。
+- 閾値表（同一ファイル `:78-83`）まで同一ファイル内。跳躍ゼロ。
 
 **S11** — anchor: `Invocation anchor: this procedure is named at the merge moment by rules/operations/main-agent-procedures.md Merge Execution`
 - → `rules/operations/main-agent-procedures.md` `## Merge Execution` `[ctx]`

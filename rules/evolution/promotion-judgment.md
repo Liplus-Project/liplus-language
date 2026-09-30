@@ -8,24 +8,13 @@ layer: L2-evolution
 
 # Promotion Judgment
 
-<position>
-
-## Position
-
-Layer = L2 Evolution Layer
-Operates the promotion judgment from memory observation into Li+ canonical rules (`rules/` / `skills/` / `adapter/`) as a numeric gate at cluster granularity.
-Requires = L1 Model Layer (observation surfaces) + L2 Evolution Layer (observe stage / persistence tiering)
-Load timing = always-on (observation occurs across the entire session)
-
-</position>
-
 <trigger>
 
 ## Trigger
 
 A drift / pattern observation occurring at any moment of dialogue / task / spec interaction.
 Concretely:
-- repeated same-kind misses in self-evaluation entries (`skills/evolution-self-eval/SKILL.md` root cause categories / observational axes routes here; that surface files nothing on its own)
+- repeated same-kind misses in self-evaluation entries (`skills/evolution-self-eval/SKILL.md` root cause categories / observational axes routes here)
 - duplicate detection against existing entries when appending to feedback memory
 - the felt sense during task execution that "I have seen this same kind of judgment miss / spec gap before"
 - the moment the application-moment gate in `rules/model/trigger-check-gate.md` detects drift
@@ -36,7 +25,7 @@ Concretely:
 
 ## Cluster
 
-Whether observations are "the same kind" is judged by the AI via semantic similarity. Judge = AI.
+Whether observations are "the same kind" is judged by the AI via semantic similarity.
 Do not criteria-ize the judgment.
 
 </cluster>
@@ -49,7 +38,7 @@ Storage = one `promotion_tally.md` outside memory (host-local, gitignored). On o
 
 Do not give an adapter a tally file of its own. Name fit, ownership feel and adapter independence justify none of it.
 
-Appends are not serialized. Two sessions writing at once can drop an occurrence, and nothing raises when one is dropped — detection is by hand. Do not add locking or a per-session split before a collision has been observed; when one is, file that observation as its own issue.
+Appends are not serialized: two sessions writing at once can drop an occurrence silently, and detection is by hand. Do not add locking or a per-session split before a collision has been observed; when one is, file that observation as its own issue.
 
 Format (YAML-like markdown):
 
@@ -64,7 +53,7 @@ occurrences:
 ```
 
 Each cluster runs a per-cluster timer with first_observation = t=0. expires = first_observation + 3d.
-No past-occurrence carryover. Expired clusters are deleted in full.
+Expired clusters are deleted in full.
 
 Disposition log:
 The same file carries a `<!-- disposition log -->` section. One line per cluster that has left the tally, appended as the cluster is deleted:
@@ -93,7 +82,7 @@ Retention = 14 days from the deletion date. The writer appends and does not trim
 | tally 1 or 2 at t=3d | full deletion (noise floor not reached) |
 | same-kind reoccurrence on day 4+ after deletion | restart as a new cluster with t=0 (no past-occurrence carryover) |
 
-Actor = the agent holding the session the cluster is surfaced in. Firing moment = that surfacing, which is `rules/evolution/cold-start-synthesis.md` Promotion Tally Expiry Surface. A cluster past its window is re-surfaced every session until the judgment removes it. Opening the tally on recall is not the firing moment.
+Actor = the agent holding the session the cluster is surfaced in. Firing moment = that surfacing, which is `rules/evolution/cold-start-synthesis.md` Promotion Tally Expiry Surface. Opening the tally on recall is not the firing moment.
 
 Disposition line on every exit: three of the rows above end in the cluster leaving the tally — full deletion at sub-threshold, deletion after issue creation, and deletion after folding into an existing `promotion` issue under Reconciliation below. Each requires one line in the disposition log (Tally above), written by this same actor in the same hand as the deletion, not as a separate procedure.
 
@@ -120,7 +109,7 @@ Override storage = a memory file outside the tally (e.g. a `memory/feedback_<top
 
 Fixed metadata at creation:
 - type label: AI selects from `spec` / `bug` / `enhancement` based on the observation target
-- marker label: `promotion` (creation-path flag, axis-independent of type)
+- marker label: `promotion`
 - maturity label: `forming` (fixed; do not start at `memo`)
 - record an occurrence field in the body (e.g. `occurrences: 6 / 3d → immediate`)
 - express the ≥5 immediate-promotion flag as a body field, not a new label axis.
@@ -131,20 +120,8 @@ Fixed metadata at creation:
 
 ## Relation to L1 Update Gating
 
-This mechanism is the observation → issue-creation front stage. Issue creation does not directly establish a L1 Model Layer spec update.
-A post-creation L1 spec update additionally requires the long-horizon observation defined in `skills/evolution-l1-update-gating/SKILL.md`.
-Promotion Judgment proves the noise floor has been crossed; L1 Update Gating authorizes the update itself. The axes are separated.
+An issue created here does not authorize an L1 Model Layer update: that update still requires the long-horizon observation of `skills/evolution-l1-update-gating/SKILL.md`.
 
 </relation-to-l1-update-gating>
-
-<relation-to-persistence-tiering>
-
-## Relation to Persistence Tiering
-
-The memory ↔ docs binary sorting defined by `skills/evolution-persistence-tiering/SKILL.md` continues to apply.
-On top of that, this mechanism handles "memory entry → canonical rule (`rules/` / `skills/` / `adapter/`) promotion" as an independent axis.
-Whether to keep an item in memory or split it out to docs is a persistence-tiering judgment; whether a memory observation set deserves canonical-rule promotion is a promotion-judgment judgment.
-
-</relation-to-persistence-tiering>
 
 </promotion-judgment>

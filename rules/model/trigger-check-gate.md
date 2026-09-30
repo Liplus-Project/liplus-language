@@ -8,10 +8,10 @@ layer: L1-model
 
 # Trigger Check Gate
 
-Application-moment gate. Operationalizes rule-policy.md's abstract `Before forming judgment, proactively gather related context`.
+Operationalizes `rules/model/rule-policy.md` `Before forming judgment, proactively gather related context`.
 Load-bearing rule existence does not imply application-moment trigger.
 
-Scope = preventive pre-judgment. Post-judgment observational scoring belongs to L2 Evolution self-evaluation, not here.
+Scope = preventive pre-judgment. Post-judgment observational scoring belongs to L2 Evolution self-evaluation (`skills/evolution-self-eval/SKILL.md`), not here.
 
 <the-gate-5-axis-check>
 
@@ -33,9 +33,9 @@ One tempo slower.
 
 ## Trigger firing
 
-The Gate is re-armed every turn by the `on-user-prompt.sh` UserPromptSubmit hook. The hook injects a terse re-arm of the 5 axes + situational routing (external content read -> Frame + Source; asserting from internal memory -> Source; applying a rule -> Rule + Literal) at turn start. The always-on rule body carries axis detail; per-judgment application stays the agent's.
+The Gate is re-armed every turn by the `on-user-prompt.sh` UserPromptSubmit hook: the 5 axes + situational routing (external content read -> Frame + Source; asserting from internal memory -> Source; applying a rule -> Rule + Literal) at turn start. Per-judgment application stays the agent's.
 
-Do not re-add a self-declaration trigger: a forgettable relief path is strictly dominated by the deterministic hook. Recall-gap rationale and the residual limit (mid-turn gist-assertion precision is not structurally enforced; post-judgment misses are observed by `skills/evolution-self-eval/SKILL.md`) live in the Decision Structure entry `hook-driven-gate-trigger`.
+Do not re-add a self-declaration trigger: a forgettable relief path is strictly dominated by the deterministic hook.
 
 </trigger-firing>
 
@@ -45,7 +45,7 @@ Do not re-add a self-declaration trigger: a forgettable relief path is strictly 
 
 - Trigger moments enumeration + Retrieval tools mapping → `skills/model-trigger-check-gate-actions/SKILL.md`
 - Frame check 6-step resistance protocol + absorption tells + litmus → `skills/model-frame-check/SKILL.md`
-- Source check two-pillar verify + perfect-defense illusion + capability+visibility note + causal-assertion guard + external-capability spec-write order + fixed-reference temporal separation + external-framework projection inhibitor + project-metadata temporal-claim guard + system-injected output litmus → `skills/model-source-check/SKILL.md`
+- Source check two-pillar verify + per-moment guards → `skills/model-source-check/SKILL.md`
 
 </on-demand-action-surfaces>
 

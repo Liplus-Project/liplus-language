@@ -1,6 +1,6 @@
 ---
 name: evolution-observation-entry
-description: Invoke when a self-evolution PR has just merged and its post-merge obligations are running / a self-evolution observation entry has been surfaced due or overdue at cold-start / a Post-L1-Merge Runtime Observation has returned a miss verdict / a short-window observation is being deferred, or its deferred result appended. Provides the self-evolution observation entry format, its creation criterion and its verdict lifecycle.
+description: Invoke when a self-evolution PR has just merged and its post-merge obligations are running / a PR changing L1 Model Layer source has just merged / a self-evolution observation entry has been surfaced due or overdue at cold-start / a Post-L1-Merge Runtime Observation has returned a miss verdict / a short-window observation is being deferred, or its deferred result appended. Provides the self-evolution observation entry format, its creation criterion, its verdict lifecycle and the post-L1-merge runtime observation.
 layer: L2-evolution
 ---
 
@@ -26,8 +26,8 @@ notes:
 
 Auto-entry trigger:
 - At the post-merge moment of a self-evolution PR (`Evolution_Initiator_Autonomy` initiator path; the moment and its actor are `rules/operations/main-agent-procedures.md` Merge Execution, Post-merge moment), the agent holding that moment writes an entry when at least one surface the PR changes meets the creation criterion below. expiration window is chosen per PR risk (default 2 weeks). A PR that meets it on no surface gets no entry; instead, comment on the merged PR one line naming the condition that failed.
-- Short-window miss escalation: when `rules/operations/operations.md` Post-L1-Merge Runtime Observation surfaces a `miss` verdict, the parent AI writes the entry immediately rather than waiting for the default cycle, whether or not the change meets the creation criterion.
-- Deferred short-window observation: when `rules/operations/operations.md` Post-L1-Merge Runtime Observation cannot start at the post-merge moment (`rules/operations/main-agent-procedures.md` Merge Execution) because the changed rule is not carried in runtime context yet, the agent holding that moment writes the deferral into this entry's `notes` as one line, and the session that later takes the observation appends its result there as a second line. Add no field for it, and enter no verdict for the deferral itself. Where the PR has no entry, both lines are comments on the merged PR instead.
+- Short-window miss escalation: when Post-L1-Merge Runtime Observation below surfaces a `miss` verdict, the parent AI writes the entry immediately rather than waiting for the default cycle, whether or not the change meets the creation criterion.
+- Deferred short-window observation: when Post-L1-Merge Runtime Observation below cannot start at the post-merge moment (`rules/operations/main-agent-procedures.md` Merge Execution) because the changed rule is not carried in runtime context yet, the agent holding that moment writes the deferral into this entry's `notes` as one line, and the session that later takes the observation appends its result there as a second line. Add no field for it, and enter no verdict for the deferral itself. Where the PR has no entry, both lines are comments on the merged PR instead.
 
 Creation criterion — a changed surface meets it when both hold:
 1. an application moment of that surface can be expected to arrive, observably, within an ordinary session before `expires`;
@@ -63,3 +63,26 @@ Where a wiki write cannot be completed in the same session, post the same conten
 `expires` past without resolution -> the creation-criterion test above runs first at that surfacing too; an entry it does not delete escalates to human judgment (entry retained).
 
 </self-evolution-observation-format>
+
+<post-l1-merge-runtime-observation>
+
+# Post-L1-Merge Runtime Observation
+
+Scope and invocation anchor = `rules/operations/operations.md` Post-L1-Merge Runtime Observation (resident). Actor and moment = `rules/operations/main-agent-procedures.md` Merge Execution, Post-merge moment.
+
+Start point = the first session that carries the changed rule in runtime context, and the ~5 min budget is spent inside that session. Where the session holding the post-merge moment carries it — a workspace running Li+ source at `main` — run the set below at that moment. Where it does not — a workspace synced to a tag — that session defers instead: record the deferral in that PR's `memory/self-evolution-observation.md` entry, in its `notes`, or on the merged PR where it has no entry (Auto-entry trigger above, Deferred short-window observation), and take the observation in the first session that carries the rule, appending the result where the deferral was recorded.
+
+Required observation set:
+
+1. **Trigger sample**: read the changed rule, then feed one representative prompt that should fire it at its application moment. Verify the rule fires. A rule not carried in runtime context stops here — defer per Start point above.
+2. **Self-eval entry**: write a 3-5 line verdict (fire / partial / miss) to `memory/self-evaluation_log.md`. Miss verdict escalates immediately to the 2-week post-merge cycle above (Auto-entry trigger, Short-window miss escalation).
+
+A deferring session writes no verdict.
+
+Optional (best-effort):
+
+- 5-axis gate spot-check: run 1-2 judgment formations through the gate axis the change touched. Skip when the change does not touch a specific axis.
+
+Separation from existing observation axes: this observation neither replaces nor is replaced by `skills/evolution-l1-update-gating/SKILL.md`, brake 1 (`skills/evolution-parallel-agent-eval`), or the 2-week cycle of `memory/self-evolution-observation.md`. Deferral notes ride in that entry and do not change its `expires` / verdict lifecycle.
+
+</post-l1-merge-runtime-observation>

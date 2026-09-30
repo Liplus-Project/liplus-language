@@ -35,10 +35,7 @@ Wiki sync is mandatory after every release. Skipping wiki sync is prohibited. Wi
 Requirements spec is not post-implementation follow-up.
 Before implementation starts = create or update corresponding requirements spec first.
 PR title must include impact scope.
-AI `gh release create` default = no state flag (prerelease=false, latest=false).
-prerelease flag = AI option. Use only when an explicit test period is desired. Tag name stays final-form; no alpha/rc/-pre suffix. Promotion strips the flag, not the tag.
-latest flag = human-only. Set via `gh release edit {tag} --latest=true` after real-device verification.
-Release body = GitHub generated release notes. Pass --generate-notes. Do not pass empty body via --notes "".
+Release state flags (prerelease / latest) and the release body = `skills/operations-on-release/SKILL.md` Canonical Release Creation Command and `skills/operations-on-release-state/SKILL.md` Release State Rule, read at release create and at a release state change.
 "Prerelease tag" / "stable tag" in human instructions = GitHub Release prerelease flag (boolean attribute), not git tag object and not release entry itself.
 Release terminology interpretation ladder (most-preserving first, literal delete last):
   1. Attribute / flag change (prerelease -> stable, draft -> published)
@@ -83,24 +80,9 @@ Detection signs that the stop condition is being misapplied:
 
 ## Post-L1-Merge Runtime Observation
 
-For L1 substrate changes (any file with `layer: L1-model` frontmatter, typically `rules/model/*`), apply a short-window observation of AI judgment behavior at the rule-application moment, once the changed rule is carried in runtime context.
+For L1 substrate changes (any file with `layer: L1-model` frontmatter, typically `rules/model/*`), apply a short-window observation of AI judgment behavior at the rule-application moment, once the changed rule is carried in runtime context. Its start point, observation set and deferral = `skills/evolution-observation-entry/SKILL.md` Post-L1-Merge Runtime Observation; open it at the post-merge moment of such a PR.
 
 Invocation anchor: this procedure is named at the merge moment by `rules/operations/main-agent-procedures.md` Merge Execution, whose Post-merge moment fixes that moment for each mode. Do not move the anchor into an `operations-*` skill.
-
-Start point = the first session that carries the changed rule in runtime context, and the ~5 min budget is spent inside that session. Where the session holding the post-merge moment carries it — a workspace running Li+ source at `main` — run the set below at that moment. Where it does not — a workspace synced to a tag — that session defers instead: record the deferral in that PR's `memory/self-evolution-observation.md` entry, in its `notes`, or on the merged PR where it has no entry (`skills/evolution-observation-entry/SKILL.md`), and take the observation in the first session that carries the rule, appending the result where the deferral was recorded.
-
-Required observation set:
-
-1. **Trigger sample**: read the changed rule, then feed one representative prompt that should fire it at its application moment. Verify the rule fires. A rule not carried in runtime context stops here — defer per Start point above.
-2. **Self-eval entry**: write a 3-5 line verdict (fire / partial / miss) to `memory/self-evaluation_log.md`. Miss verdict escalates immediately to the 2-week post-merge cycle of `skills/evolution-observation-entry/SKILL.md`.
-
-A deferring session writes no verdict.
-
-Optional (best-effort):
-
-- 5-axis gate spot-check: run 1-2 judgment formations through the gate axis the change touched. Skip when the change does not touch a specific axis.
-
-Separation from existing observation axes: this observation neither replaces nor is replaced by `skills/evolution-l1-update-gating/SKILL.md`, brake 1 (`skills/evolution-parallel-agent-eval`), or the 2-week cycle of `memory/self-evolution-observation.md`. Deferral notes ride in that entry and do not change its `expires` / verdict lifecycle.
 
 </post-l1-merge-runtime-observation>
 

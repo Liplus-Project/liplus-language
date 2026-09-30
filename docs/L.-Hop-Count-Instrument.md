@@ -55,7 +55,7 @@
 | S8 | memory 書き込み直前の persistence 判定 | `adapter/claude/CLAUDE.md:161` | 1 | 1 |
 | S9 | 判断が settle した → Decision Structure entry を書く | `adapter/claude/CLAUDE.md:172` | 2 | 1 |
 | S10 | drift / pattern を観測 → 昇格の閾値判定 | `rules/evolution/promotion-judgment.md:15` | 0 | 0 |
-| S11 | merge 完了直後 → L1 変更の短窓観察 | `rules/operations/operations.md:88` | 1 | 1 |
+| S11 | merge 完了直後 → L1 変更の短窓観察 | `rules/operations/operations.md:85` | 1 | 1 |
 | S12 | session 開始 → cold-start synthesis | `rules/evolution/cold-start-synthesis.md:11` | 2 | 1 |
 | | **合計** | | **14** | **4** |
 
@@ -116,6 +116,7 @@ S2 のみ #1564 実測2 の記録（ツール2 / 文脈内2）と一致しない
 **S11** — anchor: `Invocation anchor: this procedure is named at the merge moment by rules/operations/main-agent-procedures.md Merge Execution`
 - → `rules/operations/main-agent-procedures.md` `## Merge Execution` `[ctx]`
 - → `skills/evolution-observation-entry/SKILL.md`（miss verdict の escalation 先）`[tool]`
+- 追記（#2141）—— アンカー文は `rules/operations/operations.md` の `## Post-L1-Merge Runtime Observation` に文面のまま残る（アンカーの差し替えではない）。起点・観測セット・繰り越し・既存の観測軸との分離は `skills/evolution-observation-entry/SKILL.md` の `# Post-L1-Merge Runtime Observation` へ移り、常駐に残った節の 1 文がそこを名指す。移し先は上の miss verdict の escalation 先と同じファイルなので、ツール跳躍は 1 のまま変わらない（観測手順そのものへの到達は、#2141 までは常駐面の内側だったものが同じ `[tool]` 跳躍の先になる）。跳躍先は `evolution-*` skill でメインが開ける。
 
 `[tool]` から `[ctx]` へ変わっているのは #1708 の移設による。旧アンカーは `skills/operations-on-merge/SKILL.md` の invoke を指していたが、この手続きの実行主体は `auto` / `semi_auto` では親であり、親は operations 系 skill を読まない。跳躍先が実行主体にとって開けない `[tool]` だったものが、常駐で保持される `[ctx]` になった。
 

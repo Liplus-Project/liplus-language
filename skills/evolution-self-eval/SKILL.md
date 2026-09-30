@@ -1,6 +1,6 @@
 ---
 name: evolution-self-eval
-description: Invoke when an externally observable fact bearing on dialogue quality or Li+ compliance has just occurred (a human correction landed, a procedure step was skipped, CI failed) / a self-evaluation entry is about to be recorded. Provides the 10 observational axes for scoring.
+description: Invoke when an externally observable fact bearing on dialogue quality or Li+ compliance has just occurred (a human correction landed, a procedure step was skipped, CI failed) and whether to record it is being decided / a self-evaluation entry is about to be recorded. Provides the 10 observational axes for scoring.
 layer: L2-evolution
 ---
 

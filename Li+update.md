@@ -148,7 +148,8 @@ clone mode:
         way. The repair is the user's: it writes shared local git state, which no agent takes on its own.
         The same condition is surfaced every session by the on-session-start hooks, which is where a clone
         that stays in this state keeps being reported; the destination, and why it is not
-        `LI_PLUS_UPDATE_STATUS`, are `rules/evolution/cold-start-synthesis.md` Clone Branch Fetch Surface.
+        `LI_PLUS_UPDATE_STATUS`, are in the Clone Branch Fetch Surface of `docs/2.-Evolution.md` Cold-start
+        Synthesis section (hook output contract).
    Whatever HEAD holds after this step — attached to a branch, detached at some other tag, mid-operation
    in another session sharing this clone, anything — is not inspected and does not branch this procedure.
    Step 3 reads `{target_tag}` directly from the object database; it neither depends on nor disturbs the

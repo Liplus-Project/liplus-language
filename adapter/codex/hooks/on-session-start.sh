@@ -95,7 +95,7 @@ CONFIG_FILE="$PROJECT_ROOT/Li+config.md"
 # "default" and reproduces the pre-#1811 single-partition behavior exactly.
 # See adapter/claude/hooks/on-session-start.sh for the full rationale
 # (including why Codex/Claude session identifiers were rejected for this)
-# and rules/evolution/cold-start-synthesis.md Hook Emission Contract.
+# and docs/2.-Evolution.md Cold-start Synthesis (hook output contract).
 AGENT_KEY="${LI_PLUS_AGENT_KEY:-default}"
 # RULES_ROOT / COLDSTART_MD / DECISION_STRUCTURE are set below, after the
 # ref-pinned source extraction (#1982) — they read against SOURCE_ROOT, not
@@ -344,7 +344,7 @@ emit ""
 # Anchor = the H1 preamble only, cut at the first H2 semantic tag. The rule file
 # is always-on loaded, so emitting it whole put the same text in one session's
 # context twice. A file with no H2 section emits whole. Contract source =
-# rules/evolution/cold-start-synthesis.md Hook Emission Contract (Anchor cut).
+# docs/2.-Evolution.md Cold-start Synthesis (hook output contract, anchor cut).
 COLDSTART_LITERAL=""
 if [ -f "$COLDSTART_MD" ]; then
   COLDSTART_LITERAL=$(awk '
@@ -388,7 +388,9 @@ OPEN_ISSUES=$(gh issue list -R Liplus-Project/liplus-language --state open --lab
 register_section "open_in_progress_issues" "Open in-progress issues (max 5)" "$OPEN_ISSUES"
 
 # --- open issues blocked by an open issue (dependency ordering surface) ---
-# Contract = rules/evolution/cold-start-synthesis.md Dependency Ordering Surface.
+# Contract = rules/evolution/cold-start-synthesis.md Dependency Ordering Surface
+# (which issues surface); the query, scan cap and silent-skip conditions =
+# docs/2.-Evolution.md Cold-start Synthesis (hook output contract).
 # GraphQL through `gh api`, so no gh CLI dependency flag is needed.
 # Raw JSON is filtered here rather than with --jq so the filter is the hook's
 # own code: only blockers whose state is OPEN count, and a blocker in another

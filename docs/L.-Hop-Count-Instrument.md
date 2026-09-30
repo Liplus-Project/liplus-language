@@ -120,13 +120,13 @@ S2 のみ #1564 実測2 の記録（ツール2 / 文脈内2）と一致しない
 
 **S12** — anchor: `Trigger = session start, after Li+config.md execution completes.`
 - → `docs/Decision-Structure.md`（Action step 1）`[tool]`
-- → `adapter/claude/hooks/on-session-start.sh`（Hook coordination）`[tool]`
+- → `adapter/claude/hooks/on-session-start.sh`（Hook coordination。baseline 時点の経路。#2118 以降、この段落は `docs/2.-Evolution.md` Cold-start Synthesis 節「フックの出力契約」にあり、規則本文からのポインタは無い）`[tool]`
 - → `rules/evolution/memory-entry-format.md` Self-Evolution Observation Format `[ctx]`
 - → `skills/evolution-observation-entry/SKILL.md` `[tool]`
 
 S11 / S12 の observation 手順への跳躍は #2131 で `[ctx]` から `[tool]` になった。同 PR が observation エントリの書式・作成基準・判定の lifecycle を常時ロード面（`rules/evolution/memory-entry-format.md`）から `skills/evolution-observation-entry/SKILL.md` へ移したためで、ツール呼び出し跳躍が各 1 増える。表の数値は baseline tag 時点の実測なので動かさない（上の S12 の据え置きと同じ理由）。増分の理由: この手順が要るのはマージ後の瞬間と cold-start で due / overdue が surface されたときだけで、それ以外のすべてのセッションで約 6 KB を文脈に載せていた。どちらの瞬間にも常時ロード面または hook の出力に名指しのポインタが立ち（S11 は `rules/operations/operations.md` が skill を直接名指し、S12 は cold-start-synthesis の参照が `memory-entry-format.md` の同名節を経て skill に届き、hook の due / overdue 出力も skill を名指す）、跳躍先は `evolution-*` skill なのでメインが開ける。
 
-`Hook coordination` 段落は #1765 で同一ファイル内の H2 `## Hook Emission Contract`（冒頭に「読むのは on demand、step 3 の適用瞬間には適用しない」と明示）へ移した。跳躍数は据え置き — 同一ファイル内の節移動は跳躍ではなく（計数規則 :15）、ポインタは同じファイルから解決するため。
+`Hook coordination` 段落は #1765 で同一ファイル内の H2 `## Hook Emission Contract`（冒頭に「読むのは on demand、step 3 の適用瞬間には適用しない」と明示）へ移した。跳躍数は据え置き — 同一ファイル内の節移動は跳躍ではなく（計数規則 :15）、ポインタは同じファイルから解決するため。その H2 は #2118 で規則本文から外れ、`docs/2.-Evolution.md` の Cold-start Synthesis 節（フックの出力契約）へ移った。適用瞬間に要る anchor 内の Operational criterion は動いておらず（アンカー行 `cold-start-synthesis.md:11` のまま）、この移動も表を動かさない。
 
 据え置きを選んだ判断は記録しておく（再計測手順 :31）。適用瞬間に要るのは anchor 内の Operational criterion だけで、そこが引く emit 状態（full / diff-only / marker）は「状態によらず silent」と言うためのものであり、marker 自体は emit 済みコンテキストに直接見える。この読みではツール跳躍は 1 に落ちる。それでも表を動かさないのは、表の数値が baseline tag 時点の実測だからで、後続 PR が読み替えで数値を動かすと before / after の比較面そのものが失われる。S2 / S3 の訂正は計数規則違反の是正であり、適用ステータスの読み替えとは別軸。
 

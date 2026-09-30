@@ -6,14 +6,15 @@ Target = the three `adapter/*/hooks/on-session-start.*` implementations
 The contract is `rules/evolution/cold-start-synthesis.md` Dependency Ordering
 Surface: an open issue of the Li+ repository surfaces when at least one of its
 `blockedBy` issues is open, with those open blockers named; a closed blocker
-does not count; the result is read through GraphQL; the section sits in the
-diff-only set.
+does not count. The hook side of it (`docs/2.-Evolution.md` Cold-start Synthesis, hook output
+contract) adds that the result is read through GraphQL and that the section
+sits in the diff-only set.
 
 What is pinned and what is not
 ------------------------------
 The contract fixes which issues surface and which blockers they carry, and
-delegates presentation to the adapter ("Material gathering and concrete
-surfacing logic belong to the adapter cold-start path"). The assertions read
+leaves presentation to the adapter (the hook output contract fixes no banner
+wording, ordering or separator). The assertions read
 the judgment out of the emission -- which issue numbers surfaced, which blocker
 references each carried, whether the scan-cap note appeared -- and do not match
 the banner wording, the separator between an issue and its blockers, or the

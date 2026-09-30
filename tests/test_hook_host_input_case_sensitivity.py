@@ -44,7 +44,7 @@ Both cases read the judgment out of an observable side effect rather than out of
 wording. The matcher case reads which branch ran off the diff-only set — whether
 the emission carried material that moved since the previous run, and whether the
 state baseline was rewritten — because the branch is specified
-(`rules/evolution/cold-start-synthesis.md` Hook Emission Contract) while the
+(`docs/2.-Evolution.md` Cold-start Synthesis, hook output contract) while the
 banner text around it is an adapter choice. The tool-name case reads whether
 `gh` was invoked at all, via a stub that logs its own calls: the guard under
 test is the one standing between the payload and that call, and everything past

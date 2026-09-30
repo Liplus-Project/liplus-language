@@ -61,7 +61,7 @@ from test_config_value_parity import update_status_line
 ROOT = Path(__file__).resolve().parents[1]
 
 # The surface is located by topic, not by banner text: the banner is an adapter
-# choice (`rules/evolution/cold-start-synthesis.md` delegates presentation), and
+# choice (the hook output contract in `docs/2.-Evolution.md` leaves presentation to it), and
 # pinning it would make every assertion here depend on one string.
 SURFACE_TOPIC = "clone"
 

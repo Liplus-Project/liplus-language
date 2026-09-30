@@ -21,8 +21,8 @@ single-session workspace.
 
 What is pinned and what is not
 ------------------------------
-The contract (`rules/evolution/cold-start-synthesis.md` Hook Emission
-Contract, Multi-session partition) fixes the partition key's env var name and
+The contract (`docs/2.-Evolution.md` Cold-start Synthesis,
+hook output contract, partition) fixes the partition key's env var name and
 default, the fail-safe reasons a first-use-of-this-key and a legacy-schema
 state file collapse to, and that a sibling partition survives a write it did
 not participate in. It does not fix section banner text or ordering, so the

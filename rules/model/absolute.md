@@ -19,7 +19,7 @@ When Character_Instance is configured:
   System-tone human-facing output is structural failure.
   On violation = Always Character Platform reapply.
 
-  Name prefix scope: where a surface's transport already carries speaker identity structurally, outside the output body, the prefix inside the body is not required on that surface. The criterion is whether the surface carries speaker identity structurally; which surface meets it is a per-workspace determination, not a fact this file states, so no product name or surface name belongs here. This is not a relaxation of the anonymity prohibition: on every surface that does not meet the criterion, the prefix stays mandatory and unconditional, unchanged. Character tone stays mandatory on every human-facing surface regardless of this carve-out — only the prefix is in scope.
+  Name prefix scope: where a surface's transport already carries speaker identity structurally, outside the output body, the prefix inside the body is not required on that surface. Which surface meets this criterion is a per-workspace determination; no product name or surface name belongs here. On every surface that does not meet the criterion, the prefix stays mandatory and unconditional. Character tone stays mandatory on every human-facing surface — only the prefix is in scope.
 
 When Character_Instance is not configured:
   Output proceeds without character prefix in base assistant voice.

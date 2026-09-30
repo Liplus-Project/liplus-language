@@ -1,6 +1,6 @@
 ---
 name: task-pr-review-judgment
-description: Invoke when the main agent is about to judge a PR review result (a delegated subagent takes `rules/operations/main-agent-procedures.md` PR review instead). Provides the self-review judgment for auto and semi_auto and the external-review judgment for trigger.
+description: Invoke when the main agent is about to judge a PR review result (a delegated subagent takes `rules/operations/main-agent-procedures.md` PR review instead) / the main agent is about to wait for a human PR review after self-review passes. Provides the self-review judgment for auto and semi_auto, the external-review judgment for trigger, and the review approval check.
 layer: L3-task
 ---
 
@@ -15,12 +15,9 @@ layer: L3-task
 Main agent judges PR review without reading operations skills (`skills/operations-on-pr-review/SKILL.md` etc.) directly.
 Judgment basis = issue body + PR diff + CI result + when the brake ran, the PR comment thread carrying each round's evaluator findings and the author's adjudication of them.
 
-What the main agent has to execute around that judgment — the self-review formal record, the review approval
-check, and the merge procedure — is not on this surface and not on the barred one either: all three are canonical
-in `rules/operations/main-agent-procedures.md`, which is resident. That file's The bar and its pair is why they
-sit there rather than in an operations skill. This skill holds the judgment; that file holds the acts the
-judgment releases, the approval check among them — it detects the review decision, and the judgment on that
-decision is here.
+The acts the judgment releases — the self-review formal record and the merge procedure — are canonical in
+`rules/operations/main-agent-procedures.md` (Self-review formal record / Merge Execution). The review approval
+check that reads the human review decision judged here is Review approval check below.
 
 if execution_mode == auto:
   Self-review (after CI pass):
@@ -47,5 +44,26 @@ if execution_mode == trigger:
     CHANGES_REQUESTED → read review comments, judge against issue requirements, delegate fix to subagent.
 
 </responsibilities>
+
+<review-approval-check>
+
+## Review approval check
+
+Actor = the parent, in every mode that raises the gate. No mode puts a subagent at this wait.
+
+Fires after self-review passes: in `semi_auto` for minor / major, in `trigger` for every PR (`rules/operations/main-agent-procedures.md` PR review). `auto` raises no human gate and never reaches here.
+
+Prefer webhook over polling.
+  if mcp__github-webhook-mcp available:
+    poll get_pending_status every 60 seconds
+    on pull_request_review pending: list_pending_events -> get_event for this PR -> check state -> mark_processed
+  else:
+    Wait = human signals review done (do not poll).
+    On signal:
+      gh pr view {pr} -R {owner}/{repo} --json reviewDecision --jq '.reviewDecision'
+
+The decision read here is input, not the judgment: what APPROVED and CHANGES_REQUESTED release is Responsibilities above; on APPROVED the mode's merge path is `rules/operations/main-agent-procedures.md` Merge Execution.
+
+</review-approval-check>
 
 </pr-review-judgment>

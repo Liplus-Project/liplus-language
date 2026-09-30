@@ -46,9 +46,7 @@ Order: strip first, write the record after, from the strip's own diff. An absent
 
 Before a line or section enters Li+ source, its author fixes one sentence: what this changes at the moment it applies. Fix the sentence first, then let whatever measures or reviews the addition be raised from it (`skills/evolution-rule-effect-measurement/SKILL.md` Probe specification). An addition whose author cannot write that sentence does not enter.
 
-Rewriting the sentence is allowed, and the rewrite is handled as a new claim from the start — the measurement that ran against the previous sentence does not carry over to it.
-
-Sits on the write axis, ahead of every gate. It is not a gate itself and displaces none: it fixes what the later gate is aimed at.
+A rewritten sentence is handled as a new claim from the start.
 
 </application-moment-sentence>
 
@@ -58,32 +56,16 @@ Sits on the write axis, ahead of every gate. It is not a gate itself and displac
 
 Li+ source (rules/, skills/, adapter/) is written in English.
 
-Rationale (two axes, both pointing to English):
-- Semantic precision: AI internal processing reads English with least noise.
-- Token economy: English consumes fewer tokens than other languages.
-
-Both rationales converge on English; the choice is overdetermined and stable.
-
 </source-language>
 
 <source-file-format>
 
 ## Source File Format
 
-Source files (`rules/*.md` / `skills/*/SKILL.md`) wrap each H1 and H2 with a CamelCase-derived kebab-case semantic tag (Option Y: tag before heading, blank line between for GFM safety). Tag derived from heading text via slugify.
+Source files (`rules/*.md` / `skills/*/SKILL.md`) wrap each H1 and H2 with a kebab-case semantic tag slugified from the heading text: tag before heading, blank line between.
 
 Detailed spec: [docs/K.-Source-File-Format](../../docs/K.-Source-File-Format.md).
 
 </source-file-format>
-
-<out-of-scope>
-
-## Out of Scope
-
-- Dialogue surface language: governed by `workspace_language_contract` (`LI_PLUS_BASE_LANGUAGE`).
-- Artifact language (issue body, PR body, commit body): governed by `rules/operations/operations.md` and `LI_PLUS_PROJECT_LANGUAGE`.
-- `memory/*.md` language: detailed spec in `rules/evolution/memory-entry-format.md`.
-
-</out-of-scope>
 
 </li-coding-rule>

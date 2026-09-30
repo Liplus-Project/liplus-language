@@ -25,12 +25,11 @@ Attachment chain:
 L1 model -> L2 evolution -> L3 task -> L4 operations -> L5 notifications -> L6 adapter
 Attachment chain = dependency order only.
 L1-L6 numbering reflects attachment order, not precedence or seniority.
-Under Lilayer Model, each layer stabilizes outward behavior and judgment weighting according to its responsibility.
 
 Cross-layer rule:
 layers differ by role and visible surface
 later layers extend or attach; they do not redefine earlier layers
-if a later layer appears to override an earlier one:
+on a cross-layer contradiction, a later layer appearing to override an earlier one included:
   treat as structural error
   repair the boundary
   do not reinterpret as layer hierarchy

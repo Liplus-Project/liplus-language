@@ -68,7 +68,7 @@ Where a wiki write cannot be completed in the same session, post the same conten
 
 # Post-L1-Merge Runtime Observation
 
-Scope and invocation anchor = `rules/operations/operations.md` Post-L1-Merge Runtime Observation (resident). Actor and moment = `rules/operations/main-agent-procedures.md` Merge Execution, Post-merge moment.
+Scope and invocation anchor = `rules/operations/operations.md` Post-L1-Merge Runtime Observation. Actor and moment = `rules/operations/main-agent-procedures.md` Merge Execution, Post-merge moment.
 
 Start point = the first session that carries the changed rule in runtime context, and the ~5 min budget is spent inside that session. Where the session holding the post-merge moment carries it — a workspace running Li+ source at `main` — run the set below at that moment. Where it does not — a workspace synced to a tag — that session defers instead: record the deferral in that PR's `memory/self-evolution-observation.md` entry, in its `notes`, or on the merged PR where it has no entry (Auto-entry trigger above, Deferred short-window observation), and take the observation in the first session that carries the rule, appending the result where the deferral was recorded.
 

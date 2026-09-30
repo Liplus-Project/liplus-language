@@ -8,7 +8,7 @@ layer: L3-task
 
 # Sub-issue
 
-The simultaneous-task structure and the scope-exceed trigger are resident in `rules/operations/main-agent-procedures.md` Sub-issue rules, which names the moments that open this skill.
+The simultaneous-task structure and the scope-exceed trigger are resident in `rules/operations/main-agent-procedures.md` Sub-issue rules.
 Actor = the parent on every judgment below.
 
 <classification>

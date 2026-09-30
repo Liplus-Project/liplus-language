@@ -17,6 +17,6 @@ This satisfies per-commit CI visibility without splitting into per-sub-issue PRs
 
 # Sub-issue Rules
 
-Pointer. The simultaneous-task structure and the scope-exceed trigger are resident in `rules/operations/main-agent-procedures.md` Sub-issue rules, so the scope-exceed detection the subagent owns at its own pre-commit moment loads without invocation. The work-unit definition, the sub-issue versus sibling classification litmus, the sub-issue API, the parallel conflict analysis, the confirm's threshold, carve-out and shape, and the recovery from accidental per-sub-issue PR runs live in `skills/task-sub-issue/SKILL.md`.
+Pointer. The simultaneous-task structure and the scope-exceed trigger are resident in `rules/operations/main-agent-procedures.md` Sub-issue rules. The work-unit definition, the sub-issue versus sibling classification litmus, the sub-issue API, the parallel conflict analysis, the confirm's threshold, carve-out and shape, and the recovery from accidental per-sub-issue PR runs live in `skills/task-sub-issue/SKILL.md`.
 
 </sub-issue-rules>

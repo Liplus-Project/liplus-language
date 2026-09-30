@@ -18,6 +18,15 @@ The moments are the description's. **Self-evolution PR brake (mandatory)**: ever
 
 **Axis selection.** On the brake 1 path every draft gets three axes: per-draft A (issue requirement) and B (rule violation) from Axis statement form, Held per-draft axes, and the fixed impression-literal axis from `skills/evolution-impression-literal-detection/SKILL.md` Prompt literal. Do not compose axes per draft, add a third per-draft axis, or split either. Elsewhere the fixed axis is included for Li+ source drafts, and further axes are composed under Axis statement form.
 
+### Governed surface exclusions
+
+What `rules/evolution/initiator-autonomy.md` Governed surface (condition 2) excludes from brake 1's firing side, each by the property that excludes it. Its criterion and its default place everything else.
+
+- **Record surfaces** — `docs/**`, the wiki, `README.md`, `LICENSE`, `NOTICE`. Read on demand as a record of past judgment or as description. A file carrying a line that can go stale with no change inside the repo is not covered by this exclusion, whichever of its lines a change touches; the criterion places it.
+- **Executed code a check stands behind** — `scripts/**`, `.github/scripts/**`. A defect surfaces as a raised exception in the calling turn or as a red check. The backstop itself (`tests/**`) is on the firing side. Executed code this exclusion does not cover is reached by the default, not by this bullet.
+
+`docs/` is in `rules/evolution/initiator-autonomy.md` Scope and excluded here, save a file the Record surfaces bullet hands back to the criterion. The two lists run on different axes — Scope is what the AI may initiate, condition 2 is what brake 1 gates. Do not read either membership off the other.
+
 </trigger>
 
 <design-dimensions>
@@ -158,7 +167,7 @@ A comment on the same thread, with or without a commit; a commit applying an acc
   > Do not modify the evaluation target. Do not edit, write, commit, or push anything in the repository under evaluation, and do not run its build, tests, formatter, or any other command that mutates it. Read the PR diff and the file bodies at the named commit SHA. The one thing you write is your own findings comment on that PR: post it once, post nothing else there, and never a review, an approval, a merge, or a reply to anyone else's comment. If an axis looks like it needs a change applied before it can be answered, report that as a finding instead of applying it.
 
 - **An evaluator receives the measurement's scope, never its verdict**: the probes, or the positions of the lines exercised - never whether the arms differed, matched, or returned nothing, on any surface the evaluator is pointed at; the run's record stays off the PR thread until the loop exits
-- **Findings are posted to the PR by the evaluator**: the author answers on the same thread; nothing consolidates between them, and the parent composes nothing and reads what passes only for the recurrence test at Procedure step 8
+- **Findings are posted to the PR by the evaluator**: the author answers on the same thread; nothing consolidates between them, and the parent composes nothing and reads what passes only for the recurrence test at Procedure step 8. Its share of the exchange is scheduling: it wakes the author onto new findings, and it opens or closes the next round or stops the loop for the human. It still reads the whole thread once, at the exit, and its self-review and merge judgment are formed there (`rules/operations/execution-mode.md`, `rules/model/role-separation.md`)
 - **A rejection is final inside the loop**: the author does not re-adjudicate it, and a later round raising it again is a recurrence (Procedure step 8); the parent examines it at Procedure step 9
 - **Adjudication actor = the resumed implementation subagent**: canonical at `rules/evolution/initiator-autonomy.md` Merge brake, Adjudication actor; what the resume carries is `skills/task-subagent-prompt/SKILL.md` Resume-phase authority boundary
 - **Character_Instance non-inheritance**: subagent context receives `CLAUDE.md`, `.claude/rules/**/*.md` (full body), `.claude/skills/*/SKILL.md` (description only), MEMORY.md, and harness system-reminders - not `.claude/output-styles/`, hook output, or `.claude/settings.json`. When character behavior is under verification, inject the Character_Instance body into the step 3 prompt, or the axis yields a hollow name prefix with no persona

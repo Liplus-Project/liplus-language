@@ -46,14 +46,14 @@
 | ID | 適用瞬間 | 起点 `file:line` | ツール | 文脈内 |
 |---|---|---|---:|---:|
 | S1 | self-evolution PR が CI green → 次に何を走らせるか | `rules/evolution/initiator-autonomy.md:55` | 3 | 0 |
-| S2 | subagent 完了 → 親の次の行動 | `adapter/claude/CLAUDE.md:75` | 1 | 0 |
-| S3 | webhook イベント到着 → 処理と `mark_processed` | `adapter/claude/CLAUDE.md:200` | 2 | 0 |
+| S2 | subagent 完了 → 親の次の行動 | `adapter/claude/CLAUDE.md:47` | 1 | 0 |
+| S3 | webhook イベント到着 → 処理と `mark_processed` | `adapter/claude/CLAUDE.md:153` | 2 | 0 |
 | S4 | sub-issue が親の本文範囲を超える | `rules/operations/main-agent-procedures.md:121` | 1 | 0 |
 | S5 | L1 evaluator の判定基準そのもの | `rules/evolution/initiator-autonomy.md:69` | 1 | 0 |
 | S6 | patch / minor / major の分類 | `rules/operations/release-version-rule.md:25` | 0 | 0 |
-| S7 | Li+update 実行要否の判定 | `adapter/claude/CLAUDE.md:22` | 0 | 0 |
-| S8 | memory 書き込み直前の persistence 判定 | `adapter/claude/CLAUDE.md:161` | 1 | 1 |
-| S9 | 判断が settle した → Decision Structure entry を書く | `adapter/claude/CLAUDE.md:172` | 2 | 1 |
+| S7 | Li+update 実行要否の判定 | `adapter/claude/CLAUDE.md:9` | 0 | 0 |
+| S8 | memory 書き込み直前の persistence 判定 | `adapter/claude/CLAUDE.md:118` | 1 | 1 |
+| S9 | 判断が settle した → Decision Structure entry を書く | `adapter/claude/CLAUDE.md:128` | 2 | 1 |
 | S10 | drift / pattern を観測 → 昇格の閾値判定 | `rules/evolution/promotion-judgment.md:15` | 0 | 0 |
 | S11 | merge 完了直後 → L1 変更の短窓観察 | `rules/operations/operations.md:85` | 1 | 1 |
 | S12 | session 開始 → cold-start synthesis | `rules/evolution/cold-start-synthesis.md:11` | 2 | 1 |
@@ -78,6 +78,7 @@ S2 のみ #1564 実測2 の記録（ツール2 / 文脈内2）と一致しない
 - 非計数1 — 自己レビュー〜merge へ続く鎖（`rules/evolution/initiator-autonomy.md` Two-stage brake → `skills/evolution-parallel-agent-eval/SKILL.md`）: S1 が計測するため二重計上を避ける。加えてアンカー行（`:75-78`）にこの鎖を名指す明示ポインタがない — `initiator-autonomy.md` への参照は `adapter/claude/CLAUDE.md:190` / `:194` / `:196`、すなわち `Evolution_Initiator_Autonomy` ブロック内にのみ存在する。境界規則と計数規則（:14）の双方から除外。
 - 非計数2 — `rules/operations/release-version-rule.md`（release の version type 確認）: `grep -c release-version-rule adapter/claude/CLAUDE.md` = 0。アンカーからの明示ポインタが存在しない連想的参照であり、計数規則（:14）により除外。
 - 追記（#1808）—— baseline 以降、非計数1 が名指す節 `Two-stage brake` は `Merge brake` へ改名された。上の節名は baseline タグ時点の literal なので書き換えない。
+- 追記（#2145）—— アンカー文と CHANGES_REQUESTED の行は `adapter/claude/CLAUDE.md` に文面のまま残る（アンカーの差し替えではない）。同じブロックの `For release: confirm version type and tag with human.` は、常時ロードの `rules/operations/main-agent-procedures.md` Human confirmation required の写しとして外した。release の確認に届くまでの経路は文脈内跳躍が 1 増え、ツール跳躍は変わらない。この行は上の計数でも数えていない。上の経路行と非計数行の中の行番号（`:126` / `:75-78` / `:190` / `:194` / `:196`）は本 instrument を固定した時点の literal なので書き換えない。`:126` が指す明示ポインタは、#2145 以降 `Delegation semantics are defined in skills/task-subagent-delegation/SKILL.md.`（`adapter/claude/CLAUDE.md:89`）にある。
 
 **S3** — anchor: `Webhook intake policy and procedures:`
 - → `skills/operations-foreground-webhook-intake/SKILL.md` `[tool]`

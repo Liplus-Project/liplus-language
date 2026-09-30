@@ -26,6 +26,8 @@ gh release create {tag} \
   --latest=false
 ```
 
+Release body = GitHub generated release notes (`--generate-notes`). Do not pass an empty body via `--notes ""`.
+
 `--latest=false` must be passed explicitly. Omitting the flag makes gh CLI fall back to its default `legacy` behavior (semver + date auto-pick), which promotes the new release to Latest and silently demotes the existing Latest anchor.
 
 </canonical-release-creation-command-ai>

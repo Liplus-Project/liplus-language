@@ -48,7 +48,7 @@
 | S1 | self-evolution PR が CI green → 次に何を走らせるか | `rules/evolution/initiator-autonomy.md:60` | 3 | 0 |
 | S2 | subagent 完了 → 親の次の行動 | `adapter/claude/CLAUDE.md:75` | 1 | 0 |
 | S3 | webhook イベント到着 → 処理と `mark_processed` | `adapter/claude/CLAUDE.md:200` | 2 | 0 |
-| S4 | sub-issue が親の本文範囲を超える | `rules/task/task.md:38` | 1 | 0 |
+| S4 | sub-issue が親の本文範囲を超える | `rules/operations/main-agent-procedures.md:144` | 1 | 0 |
 | S5 | L1 evaluator の判定基準そのもの | `rules/evolution/initiator-autonomy.md:69` | 1 | 0 |
 | S6 | patch / minor / major の分類 | `rules/operations/release-version-rule.md:25` | 0 | 0 |
 | S7 | Li+update 実行要否の判定 | `adapter/claude/CLAUDE.md:22` | 0 | 0 |
@@ -87,6 +87,7 @@ S2 のみ #1564 実測2 の記録（ツール2 / 文脈内2）と一致しない
 **S4** — anchor: `Sub-issue work exceeding parent body literal ... requires dialogue confirm`
 - → `skills/operations-on-sub-issue/SKILL.md` scope-exceed dialogue confirm `[tool]`
 - 追記（#1764）—— baseline 以降、この鎖の到達先は `rules/operations/main-agent-procedures.md` の `## Sub-issue rules` へ移り、skill 側はポインタになった。上の跳躍数は baseline タグ時点の実測なので書き換えない。
+- 差し替え（#2136）—— 旧アンカー `Sub-issue work exceeding parent body literal ... requires dialogue confirm`（`rules/task/task.md`）は、同じ行いを常時ロードで持つ `rules/operations/main-agent-procedures.md` Sub-issue rules の写しとして #2136 で外れた。新アンカーは到達先そのもの `Issue body literal is the scope boundary. ... fire a dialogue confirm`（表の `file:line`）。上の跳躍数は baseline タグ時点の実測なので書き換えない。
 
 **S5** — anchor: `brake 2 (L1 only)`
 - → `adapter/claude/agents/l1-gate-eval.md` `[tool]`

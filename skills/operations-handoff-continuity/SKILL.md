@@ -1,6 +1,6 @@
 ---
 name: operations-handoff-continuity
-description: Invoke when a subagent judges whether intermediate state may stay local instead of being pushed to the linked branch / a delegated run may be interrupted before its stop condition / subagent capability is unavailable and the parent is executing operations directly. Points to `rules/operations/main-agent-procedures.md` Handoff continuity.
+description: Invoke when a subagent judges whether intermediate state may stay local / a delegated run may be interrupted before its stop condition / subagent capability is unavailable and the parent is executing operations directly. Points to `rules/operations/main-agent-procedures.md` Handoff continuity.
 layer: L4-operations
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: task-subagent-prompt
-description: Invoke when a subagent delegation prompt is being composed / example artifact text such as a suggested PR title or commit body is about to be written into a delegation prompt / a delegation runs in trigger execution mode and merge-gate context must be injected / an implementation subagent is about to be resumed to adjudicate brake findings / brake adjudication is starting and no resume target for the implementation subagent is held / subagent behavior depends on something only in parent-side memory / a bounded read-only investigation prompt is being written and recursive subagent spawn must be prohibited. Provides the prompt composition rules for each moment.
+description: Invoke when a subagent delegation prompt is being composed / example artifact text such as a suggested PR title or commit body is about to be written into a delegation prompt / a delegation runs in trigger execution mode and merge-gate context must be injected / an implementation subagent is about to be resumed to adjudicate brake findings / brake adjudication is starting and no resume target for the implementation subagent is held / subagent behavior depends on something only in parent-side memory / a bounded read-only investigation prompt is being written. Provides the prompt composition rules for each moment.
 layer: L3-task
 ---
 

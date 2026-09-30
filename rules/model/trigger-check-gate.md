@@ -8,6 +8,7 @@ layer: L1-model
 
 # Trigger Check Gate
 
+Operationalizes `rules/model/rule-policy.md` `Before forming judgment, proactively gather related context`.
 Load-bearing rule existence does not imply application-moment trigger.
 
 Scope = preventive pre-judgment. Post-judgment observational scoring belongs to L2 Evolution self-evaluation (`skills/evolution-self-eval/SKILL.md`), not here.

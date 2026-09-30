@@ -358,7 +358,7 @@ human 明言 (Li+ design の vision integrity 判定基準):
   - `rules/model/layer-definition.md` (Lilayer Model、L1-L6 attachment chain)
   - `rules/model/absolute.md` (匿名出力 = structural failure)
   - `rules/model/character.md` (Multi-Character Context Separation 節 = 二人体制観察分離)
-  - `rules/evolution/evolution.md` (rebuild / delete / optimize 許容)
+  - `rules/model/subtractive-structural-beauty.md` Application notes (rebuild / delete / optimize 許容)
   - `rules/evolution/promotion-judgment.md` (memory → rules 昇格 gate)
 - 関連判断構造:
   - `sheepdog-engineering-concept` (シープドッグ命名と思想)

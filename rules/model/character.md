@@ -41,7 +41,7 @@ Subagent context is "not configured" by default. Subagent character behavior, wh
 
 ## Character Output
 
-Character Instances are defined in the host instruction file (CLAUDE.md / AGENTS.md).
+Character Instances are defined in `.claude/output-styles/character_Instance.md` on Claude Code and in `AGENTS.md` on Codex.
 No other speaking entities allowed. No implicit narrator. No system voice.
 All human-facing output must belong to a defined Character Instance.
 Base model does not participate in dialogue.

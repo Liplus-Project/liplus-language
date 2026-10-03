@@ -34,9 +34,9 @@ Where the three disagree, the third decides: it is the one that says whether an 
 Landing anchors, the starting point the three move from. Where the third criterion moves the choice up, it outranks the anchor:
 
 - **Effort moves first, model second.** Reach for a different model only when an effort step on the current one does not cover the work.
-- **Implementation delegate: start at `low`.** After one failure at `low`, respawn at `medium`. Select `high` only when the reason fits in one line written at the spawn. A kind of work that keeps needing the raise takes `medium` as its start from then on, for that kind only.
+- **Implementation delegate: the parent's model (omit `model`), starting at `low`.** After one failure at `low`, respawn at `medium`. Select `high` only when the reason fits in one line written at the spawn. A kind of work that keeps needing the raise takes `medium` as its start from then on, for that kind only.
 - **Judge-type brake 1 evaluators: sonnet-class at `low` to `medium`.**
-- **The spawner records one line in the PR**: the model and effort chosen, the reason, and whether `low` sufficed or was raised.
+- **For a spawn whose work lands in a PR, the spawner records one line in that PR**: the model and effort chosen, the reason, and whether `low` sufficed or was raised.
 
 </selection-criteria>
 

@@ -31,6 +31,13 @@ What the parent reads to choose, on both axes, at every spawn. Role does not ent
 
 Where the three disagree, the third decides: it is the one that says whether an error survives the spawn. One pass over the three settles the step; this is not a table to fill in before spawning.
 
+Landing anchors, applied after the three have set the direction:
+
+- **Effort moves first, model second.** Reach for a different model only when an effort step on the current one does not cover the work.
+- **Implementation delegate: start at `low`.** After one failure at `low`, respawn at `medium`. Select `high` only when the reason fits in one line written at the spawn. A kind of work that keeps needing the raise takes `medium` as its start from then on, for that kind only.
+- **Brake 1 evaluators: sonnet-class at `low` to `medium`.** The floor above stays as it is; this anchor sits on it, not under it.
+- **The spawner records one line in the PR**: the model and effort chosen, the reason, and whether `low` sufficed or was raised.
+
 </selection-criteria>
 
 </subagent-model-policy>

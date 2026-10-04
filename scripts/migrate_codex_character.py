@@ -31,7 +31,7 @@ def legacy_literal(agents: bytes) -> str | None:
     text = agents.decode("utf-8-sig")
     markers = list(re.finditer(r"^\[Character_Instance\]\r?$", text, re.M))
     if not markers:
-        if MARKER in text:
+        if MARKER in text or re.search(r"^(?:NAME\s*=|\w+_CONTEXT:)", text, re.M):
             raise MigrationBlocked("Unrecognized legacy character marker")
         return None
     begins = list(re.finditer(r"^# --- Li\+ BEGIN \([^\r\n]*\) ---\r?$", text, re.M))

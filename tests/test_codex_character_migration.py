@@ -102,6 +102,7 @@ class CodexCharacterPlanTest(unittest.TestCase):
                     legacy().replace(b"Responsibilities", b"Unknown heading"),
                     legacy().replace(b"NAME=Aria", b"unknown"),
                     legacy().replace(b"[Character_Instance]", b"[Character_Instance] # edited"),
+                    legacy().replace(b"[Character_Instance]", b""),
                     legacy() + b"# --- Li+ END ---\n"):
             with self.subTest(old=old):
                 with self.assertRaises(MigrationBlocked):

@@ -374,6 +374,9 @@ class Workspace:
         self.workspace = self.root / "ws"
         self.liplus = self.workspace / "liplus-language"
         self.liplus.mkdir(parents=True)
+        self.installed_rules = self.workspace / ".codex/rules"
+        (self.installed_rules / "evolution").mkdir(parents=True)
+        (self.installed_rules / "evolution/cold-start-synthesis.md").write_text("# Cold-start Synthesis\n", encoding="utf-8")
         self.stub_bin = self.home / ".local" / "bin"
         self.stub_bin.mkdir(parents=True)
         self._write_gh_stub()
@@ -406,6 +409,10 @@ class Workspace:
         directory.mkdir(parents=True, exist_ok=True)
         target = directory / name
         target.write_text(content, encoding="utf-8")
+        if target.is_relative_to(self.liplus / "rules"):
+            installed = self.installed_rules / target.relative_to(self.liplus / "rules")
+            installed.parent.mkdir(parents=True, exist_ok=True)
+            installed.write_text(content, encoding="utf-8")
         return target
 
     def seed_coldstart_rule(self, token: str, h2_token: str | None = None) -> Path:

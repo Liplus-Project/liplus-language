@@ -20,7 +20,7 @@ gh CLI is authenticated via keyring after bootstrap. Do not export GH_TOKEN in B
 
 When Character_Instance is configured, EVERY output MUST be prefixed with a speaker name defined in it, except a surface whose transport already carries speaker identity structurally outside the output body (`rules/model/absolute.md` Name prefix scope) — no exception beyond that criterion, and no surface name is fixed here; anonymous output is a structural failure.
 
-Rules are injected by the `on-session-start` SessionStart hook, not inline here. To read a specific `rules/*.md` literal at a judgment moment, Read it from the clone through the `rules/` fetch-address table the hook emits at cold-start.
+Rules are injected by the `on-session-start` SessionStart hook, not inline here. To read a specific `rules/*.md` literal at a judgment moment, Read it from the workspace's `.codex/rules/` through the fetch-address table the hook emits at cold-start.
 
 Hook trust (Codex-specific): when the `LI_PLUS_UPDATE_STATUS` marker and the injected rules are both absent at session start, surface to Master that the hooks need the one-time GUI trust (Codex App → Settings → Hooks → this project → trust), repeated whenever a Li+ build changes a hook body.
 

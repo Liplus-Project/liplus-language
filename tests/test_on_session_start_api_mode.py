@@ -80,6 +80,9 @@ class ApiModeWorkspace(Workspace):
         shutil.rmtree(self.liplus)
         self.tarball = self.root / "source.tar.gz"
         fixture_tarball(self.tarball)
+        self.write(self.installed_rules / "evolution", "cold-start-synthesis.md",
+                   f"---\nalwaysApply: true\n---\n\n# Cold-start Synthesis\n\n{ANCHOR_TOKEN} anchor body.\n")
+        self.write(self.installed_rules / "model", "probe.md", f"# Probe\n{RULE_TOKEN}\n")
         # Present -> the stub plants a peer session's finished `<tag>/` before it
         # streams the tarball: the peer's rename lands mid-fetch, after this
         # session's existence gate and before its own rename.
@@ -172,9 +175,9 @@ class ApiModeSessionStartTestCase(unittest.TestCase):
                 self.assertIn("LI_PLUS_BASE_LANGUAGE=ja", output)
                 self.assertIn(ANCHOR_TOKEN, section_body(output, "Cold-start Synthesis ("))
                 self.assertIn(DECISION_TOKEN, section_body(output, "Decision structure"))
-                self.assertIn("rules/model/probe.md", section_body(output, "Rules tree"))
+                self.assertIn(("rules/model/probe.md" if adapter == "claude_sh" else ".codex/rules/model/probe.md"), section_body(output, "Rules tree"))
                 if adapter != "claude_sh":
-                    self.assertIn(RULE_TOKEN, output, "codex rules injection reads the fetched tree")
+                    self.assertIn(RULE_TOKEN, output, "codex rules injection reads the installed tree")
                 self.assertNotIn("liplus-source-unresolved", output)
 
     def test_fetched_tree_is_cached_per_tag_and_reused(self) -> None:

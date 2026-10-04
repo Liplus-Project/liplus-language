@@ -5,7 +5,7 @@
 # Port of adapter/claude/hooks/on-session-start.sh.
 #
 # Three responsibilities (the first is Codex-specific):
-#   1. RULES INJECTION (Codex-only): read rules/*.md from the LI_PLUS_REPO clone
+#   1. RULES INJECTION (Codex-only): read installed .codex/rules/**/*.md
 #      and emit them as additionalContext (Codex has no .claude/rules/ always-on
 #      folder). #1502 verified design.
 #   2. Update-status verification (sentinel tag / config schema / language
@@ -153,7 +153,7 @@ if [ "$LI_PLUS_MODE_VAL" != "api" ] && [ ! -d "$LIPLUS_DIR" ]; then
 fi
 
 # ===================================================================
-# Ref-pinned source extraction (#1982): every read of rules/ skills/ docs/
+# Ref-pinned source extraction (#1982): skills/ and docs/
 # content below resolves against the clone's object database at the
 # adapter's OWN installed sentinel tag, not against the clone's working
 # tree. The clone's HEAD/working tree is shared with other sessions and
@@ -191,15 +191,23 @@ if [ "$LI_PLUS_MODE_VAL" = "api" ]; then
   fi
 elif [ -n "$ADAPTER_TAG" ] && [ -e "$LIPLUS_DIR/.git" ] && command -v git >/dev/null 2>&1 && command -v tar >/dev/null 2>&1; then
   GIT_TREE_TMP=$(mktemp -d 2>/dev/null || echo "/tmp/liplus-tree-$$")
-  if git -C "$LIPLUS_DIR" archive "$ADAPTER_TAG" -- rules skills docs 2>/dev/null | tar -x -C "$GIT_TREE_TMP" 2>/dev/null; then
+  if git -C "$LIPLUS_DIR" archive "$ADAPTER_TAG" -- skills docs 2>/dev/null | tar -x -C "$GIT_TREE_TMP" 2>/dev/null; then
     SOURCE_ROOT="$GIT_TREE_TMP"
     trap 'rm -rf "$GIT_TREE_TMP" 2>/dev/null' EXIT
   else
     rm -rf "$GIT_TREE_TMP" 2>/dev/null
   fi
 fi
-RULES_ROOT="$SOURCE_ROOT/rules"
-COLDSTART_MD="$SOURCE_ROOT/rules/evolution/cold-start-synthesis.md"
+RULES_ROOT="$PROJECT_ROOT/.codex/rules"
+COLDSTART_MD="$RULES_ROOT/evolution/cold-start-synthesis.md"
+if [ ! -f "$COLDSTART_MD" ]; then
+  emit "━━━ Li+ update status ━━━"
+  emit "LI_PLUS_UPDATE_STATUS=needed reason=installed-rules-missing"
+  emit "Install the .codex/rules mirror through Li+update Phase 4 codex."
+  emit "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  flush_json
+  exit 0
+fi
 DECISION_STRUCTURE="$SOURCE_ROOT/docs/Decision-Structure.md"
 
 # ===================================================================
@@ -207,13 +215,13 @@ DECISION_STRUCTURE="$SOURCE_ROOT/docs/Decision-Structure.md"
 # Runs on EVERY matcher (Codex has no folder-level persistence).
 # ===================================================================
 if [ -d "$RULES_ROOT" ]; then
-  RULE_FILES=$(cd "$SOURCE_ROOT" && find rules -type f -name '*.md' 2>/dev/null | LC_ALL=C sort)
+  RULE_FILES=$(cd "$PROJECT_ROOT" && find .codex/rules -type f -name '*.md' ! -path '*/model/character_Instance.md' 2>/dev/null | LC_ALL=C sort)
   if [ -n "$RULE_FILES" ]; then
     emit "━━━ Li+ rules (always-on; injected because Codex has no .claude/rules equivalent) ━━━"
     while IFS= read -r rel; do
       [ -n "$rel" ] || continue
       emit "----- $rel -----"
-      emit "$(cat "$SOURCE_ROOT/$rel" 2>/dev/null)"
+      emit "$(cat "$PROJECT_ROOT/$rel" 2>/dev/null)"
       emit ""
     done <<< "$RULE_FILES"
     emit "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -376,7 +384,7 @@ DECISION_HEAD=""
 register_section "decision_structure_head" "Decision structure index (docs/Decision-Structure.md head)" "$DECISION_HEAD"
 
 RULES_TREE=""
-[ -d "$RULES_ROOT" ] && RULES_TREE=$(cd "$SOURCE_ROOT" && find rules -type f -name '*.md' 2>/dev/null | LC_ALL=C sort)
+[ -d "$RULES_ROOT" ] && RULES_TREE=$(cd "$PROJECT_ROOT" && find .codex/rules -type f -name '*.md' ! -path '*/model/character_Instance.md' 2>/dev/null | LC_ALL=C sort)
 register_section "rules_tree" "Rules tree (fetch address table for rules/ cache)" "$RULES_TREE"
 
 LATEST_RELEASE=$(gh release list -R Liplus-Project/liplus-language --limit 3 2>/dev/null | head -n 3)
@@ -835,10 +843,10 @@ if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
             print lbl "\t" $0
           }' >> "$TMP_TOKENS"
   done < <(memory_entry_files "$MEMORY_DIR")
-  find "$SOURCE_ROOT/rules" -type f -name '*.md' 2>/dev/null > "$TMP_SRCLIST"
+  find "$RULES_ROOT" -type f -name '*.md' ! -path '*/model/character_Instance.md' 2>/dev/null > "$TMP_SRCLIST"
   find "$SOURCE_ROOT/skills" -maxdepth 2 -type f -name 'SKILL.md' 2>/dev/null >> "$TMP_SRCLIST"
   if [ -s "$TMP_TOKENS" ] && [ -s "$TMP_SRCLIST" ]; then
-    OVERLAP_ALL=$(awk -v n="$THRESHOLD_N" -v root="$SOURCE_ROOT/" "$ASCII_LOWER_AWK"'
+    OVERLAP_ALL=$(awk -v n="$THRESHOLD_N" -v root="$SOURCE_ROOT/" -v installed="$RULES_ROOT/" "$ASCII_LOWER_AWK"'
       # pass 1: "<entry label>\t<token>" lines
       NR == FNR {
         sep = index($0, "\t")
@@ -854,7 +862,8 @@ if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
         path = $0
         if (path == "") next
         src = path
-        if (substr(src, 1, length(root)) == root) src = substr(src, length(root) + 1)
+        if (substr(src, 1, length(installed)) == installed) src = ".codex/rules/" substr(src, length(installed) + 1)
+        else if (substr(src, 1, length(root)) == root) src = substr(src, length(root) + 1)
         gsub(/\\/, "/", src)
         while ((getline srcline < path) > 0) {
           words = ascii_lower(srcline)

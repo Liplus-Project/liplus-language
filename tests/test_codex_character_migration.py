@@ -109,8 +109,7 @@ class CodexCharacterPlanTest(unittest.TestCase):
     def test_explicit_native_character_and_opt_out_win(self) -> None:
         native = ('developer_instructions = ' + json.dumps(CUSTOM) + "\n").encode()
         for state, old in (("present", native), ("absent", native),
-                           ("disabled", b"model = 'keep'\n"),
-                           ("absent", b'developer_instructions = ""\n')):
+                           ("disabled", b"model = 'keep'\n")):
             with self.subTest(state=state, old=old):
                 self.assertEqual(plan_migration(legacy(), old, state).config, old)
                 adapter = (ROOT / "adapter/codex/AGENTS.md").read_bytes()
@@ -125,7 +124,10 @@ class CodexCharacterPlanTest(unittest.TestCase):
         self.assertEqual(plan_migration(legacy(), first.config, "absent").config, first.config)
         adapter = (ROOT / "adapter/codex/AGENTS.md").read_bytes()
         self.assertEqual(plan_migration(adapter, first.config, "present").config, first.config)
-        self.assertEqual(plan_migration(adapter, None, "absent").config, b"")
+        self.assertEqual(plan_migration(adapter, None, "absent").status, "install-default")
+        empty = b'developer_instructions = ""\nmodel = "keep"\n'
+        self.assertIn("NAME=Lin", instructions(plan_migration(adapter, empty, "absent").config))
+        self.assertEqual(plan_migration(adapter, empty, "disabled").config, empty)
 
     def test_ambiguous_boundaries_stop_before_replacement(self) -> None:
         for old in (CUSTOM.encode(), legacy() + CUSTOM.encode(),

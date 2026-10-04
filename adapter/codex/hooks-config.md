@@ -197,13 +197,18 @@ matcher = "Bash"
 
 ## Hook script sources
 
+Rules injection, the cold-start anchor and fetch-address table use the installed
+`.codex/rules/` mirror from `Li+update.md` 4x.1r. Missing installed rules emit
+`LI_PLUS_UPDATE_STATUS=needed reason=installed-rules-missing`; there is no clone
+working-tree fallback for rules. Skills/docs retain tag-resolved source reads.
+
 Real files, copied verbatim into `{workspace_root}/.codex/hooks/` on bootstrap
 (with `{LI_PLUS_TAG}` placeholder replaced by the resolved target tag). Each pair
 is `.ps1` (Windows native, primary on the verified Codex Windows env) + `.sh`
 (POSIX fallback):
 
 - `adapter/codex/hooks/on-session-start.{ps1,sh}` — **rules injection** (reads
-  `rules/**/*.md` from the clone, the Codex substitute for `.claude/rules/`) +
+  installed `.codex/rules/**/*.md` (excluding the native character template), the Codex substitute for `.claude/rules/`) +
   update-status marker (`LI_PLUS_UPDATE_STATUS`, startup only) + language contract
   marker (`LI_PLUS_BASE_LANGUAGE` / `LI_PLUS_PROJECT_LANGUAGE`, every matcher) +
   diff-only Cold-start Synthesis

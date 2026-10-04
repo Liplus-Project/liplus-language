@@ -246,11 +246,21 @@ Codex ホストでは Phase 4 claude branch と同型に adapter / skills / hook
 
 **Codex hook trust 前提条件（ユーザーへ明示）:** Codex の hook は実行前に一度だけ GUI trust が必要（Codex App → 設定 → フック → 当該プロジェクト → 信頼する）。build が hook 本体を変えるたびに再 trust が必要（trust は内容ハッシュ単位）。trust 前は SessionStart の rules 注入と毎ターンの gate 再注入が無音で何もしない。bootstrap は hook ファイルを書くが trust は付与できないため、Phase 6 完了報告で GUI trust を案内する。詳細は [D. Installation](D.-Installation) を参照。
 
+**4x.0. アダプター置換前のキャラ保持**
+
+- 実効 `developer_instructions` と明示的 opt-out を先に確認し、CLI・trusted project・選択 profile・user・managed/system の設定を解決する。profile の選択・形式・trust は変更しない（公式資料と版差は `adapter/codex/character-config.md`）
+- 旧 AGENTS.md の `[Character_Instance]` を区画置換・tag 一致スキップより先に読む。一意な sentinel と Responsibilities 境界の内側ならカスタム literal 全文を保存。境界が曖昧・legacy 無 sentinel・TOML 無効・実効設定未解決なら 4x.1 を止め、既存の legacy 判断手順へ戻る
+- Python 3.11+ `scripts/migrate_codex_character.py --agents <workspace>/AGENTS.md --config <workspace>/.codex/config.toml --native-state absent|present|disabled` の既定は read-only plan。既存キャラと opt-out を優先し、設定を書き換えない。新規のみ Lin/Lay の opt-in を提案。移行済み / opt-out 済みの既存 adapter に既定キャラを再挿入しない
+- 初回には Li+ 区画のない通常の既存 AGENTS.md も含む。literal のない既存 adapter の再更新は、一意で順序の正しい Li+ BEGIN / END sentinel 区画で判定する。AGENTS.md の存在だけでは移行済み / opt-out 済みとしない。sentinel 境界が曖昧なら 4x.1 を止める。既存 native 設定／opt-out を保持する分岐より先に境界を検査する
+- 既存 config の共通指示への追記は差分提示・承認後に `--apply --approve-existing` で保存。新規への opt-in は `--apply`。旧 AGENTS.md と変更する既存 config を一意名でバイト忠実にバックアップ。保存・read-back に失敗したら config を復旧し、旧区画を保持する。保存した TOML・共通指示・literal（または実効ネイティブ設定 / opt-out）を検証してから 4x.1 へ進む。helper 不在時も同じ保存判断を手動で行う
+- target に root の指示キーが無い場合は、実効設定から継承された共通指示も保持する。private UTF-8 file の `--inherited-instructions <file>` で helper へ渡し、使用後に削除する。指示本文を command line や report に出さない
+
 **4x.1. アダプターの bootstrap**
 
 - target = `{workspace_root}/AGENTS.md`, source = `adapter/codex/AGENTS.md`
 - sentinel 判定ロジックは 4c.1 と同一（存在しなければ新規、sentinel ありタグ一致でスキップ、不一致で section 差し替え、sentinel なしでユーザー確認）。差し替え時の legacy webhook trailer migration も4c.1と同一で、旧 section が heading を持たない時だけ、連続する byte-exact legacy trailer を `Li+ END` 直後から除去し、canonical sentinel 外のユーザー作成 suffix を保持する
-- 32 KiB 上限: ルートの AGENTS.md は最小コア（identity / character / 起動契約）のみを保持。rules 全体は 4x.3 の SessionStart hook 注入で届くため inline しない（Codex の `project_doc_max_bytes` 既定 32 KiB を超えないため）
+- 生成 AGENTS.md にキャラ定義・代替項目・参照リンクを残さない。ネイティブ設定は利用者所有のまま更新で再生成しない
+- 32 KiB 上限: ルートの AGENTS.md は最小コア（identity / 起動契約）のみを保持。rules 全体は 4x.3 の SessionStart hook 注入で届くため inline しない（Codex の `project_doc_max_bytes` 既定 32 KiB を超えないため）
 
 **4x.2. `.agents/skills/` ファイル生成（flat ディレクトリミラー）**
 

@@ -365,6 +365,54 @@ and the per-turn gate re-arm silently do nothing. Bootstrap writes the hook file
 but cannot grant trust; the completion report (Phase 6) must instruct the user to
 grant trust in the GUI. See `docs/D.-Installation.md` for the step-by-step.
 
+4x.0. Preserve the native character before adapter replacement:
+- Resolve the effective native `developer_instructions` and user opt-out across
+  CLI overrides, trusted project layers, the selected profile, user and managed /
+  system configuration. Do not print config contents or credentials. Follow
+  `adapter/codex/character-config.md` for official host configuration references
+  and version-specific profile formats. Do not change profile selection, migrate
+  profile formats, or grant trust as part of this step.
+- Read the old AGENTS.md before any 4x.1 tag skip or region replacement. Existing
+  native character settings and explicit opt-out take precedence. Never refresh
+  a user-owned character from a later Li+ template.
+- Run `scripts/migrate_codex_character.py` (Python 3.11+) against the explicit
+  `{workspace_root}/AGENTS.md` and `{workspace_root}/.codex/config.toml` paths,
+  passing the resolved `--native-state absent|present|disabled`. Its default is
+  a read-only plan. If the helper is unavailable, follow these same preservation
+  decisions manually; do not skip preservation to reach adapter replacement.
+- A unique old `[Character_Instance]` block inside one Li+ sentinel, ending at
+  the distributed Responsibilities separator, is migrated with its custom body
+  intact. Multiple markers, an unrecognized boundary, a legacy file without
+  sentinels, invalid TOML or unresolved effective configuration stops 4x.1.
+  Apply the existing legacy user-decision procedure; never replace the old region
+  until the literal is saved or the user has explicitly chosen opt-out / the
+  existing native setting. Declining migration keeps the old adapter untouched.
+- On fresh install with no Li+ adapter and no native setting / opt-out, offer the
+  Lin/Lay initial template `adapter/codex/character-instructions.toml`. Apply on
+  opt-in; on opt-out preserve configuration and continue without a literal.
+  This includes a user's existing AGENTS.md without a Li+ region. Only an
+  existing adapter with one ordered Li+ BEGIN / END sentinel pair and no old
+  literal is treated as already migrated / opted out: do not insert defaults
+  on re-update. Ambiguous sentinel boundaries stop preservation and 4x.1.
+  Check boundaries before returning a plan that preserves native settings or
+  opt-out; neither preservation choice exempts that check.
+- Before changing an existing config, show the proposed instruction delta
+  locally and obtain approval. Preserve its common `developer_instructions` by
+  appending the literal, and preserve every other setting. `--apply` performs
+  the save; `--approve-existing` records that approval for an existing config.
+  It is not permission inferred from a sentinel tag or generic update request.
+- If the target has no root `developer_instructions`, retain common instructions
+  inherited from the effective native layer too: pass their exact string via a
+  private UTF-8 file with `--inherited-instructions <file>`. Do not place that
+  string on the command line or print it. Remove the temporary file after use.
+- Before 4x.1, keep byte-faithful, uniquely named backups of old AGENTS.md with a
+  literal and of any existing config being changed. The helper makes them on
+  `--apply`, even when native settings win and config stays unchanged. If a save
+  or read-back fails, restore config from its backup and keep AGENTS.md unchanged.
+  Verify the saved TOML, retained common instructions and character literal (or
+  resolved native character / opt-out) before proceeding to 4x.1. A second save
+  sees the native literal and does not append another copy.
+
 4x.1. Bootstrap adapter:
 - target = {workspace_root}/AGENTS.md, source = adapter/codex/AGENTS.md
 - Replace {LI_PLUS_TAG} in all generated content with the resolved target tag from Phase 3.
@@ -394,8 +442,10 @@ grant trust in the GUI. See `docs/D.-Installation.md` for the step-by-step.
        skips migration because the old section already owns the webhook block, so the result has
        exactly one webhook heading for the migrated layout.
   c. If target file exists but does not contain "Li+ BEGIN": ask user -- append Li+ section or skip?
+- The generated AGENTS.md contains no character definition, alternative character
+  item or reference link. Native settings remain user owned across tag updates.
 - Note (32 KiB cap): the root AGENTS.md holds only the minimal always-present core
-  (identity / character / startup contract). The full rule set arrives via the
+  (identity / startup contract). The full rule set arrives via the
   SessionStart hook injection (4x.3), not inline, to stay under Codex's
   `project_doc_max_bytes` (default 32 KiB).
 

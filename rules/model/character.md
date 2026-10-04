@@ -26,8 +26,10 @@ Base model = substrate, not speaker.
 ## Character Configuration Scope
 
 Character_Instance presence is a workspace configuration:
-- Configured = `.claude/output-styles/character_Instance.md` exists AND `settings.json` has `"outputStyle": "character_Instance"` active.
-- Not configured = output-style file absent OR `outputStyle` not active.
+- Claude Code configured = `.claude/output-styles/character_Instance.md` exists AND `settings.json` has `"outputStyle": "character_Instance"` active.
+- Claude Code not configured = output-style file absent OR `outputStyle` not active.
+- Codex configured = the effective native `developer_instructions` supplies the user's Character_Instance literal to the session.
+- Codex not configured = no Character_Instance literal reaches the session through the effective native setting (including user opt-out).
 
 When configured, the rules below (Character Output, Character Recovery, Multi-Character Context Separation) apply, and Absolute / Boundary / Dialogue clauses about character speakers are in force.
 
@@ -41,7 +43,7 @@ Subagent context is "not configured" by default. Subagent character behavior, wh
 
 ## Character Output
 
-Character Instances are defined in `.claude/output-styles/character_Instance.md` on Claude Code and in `AGENTS.md` on Codex.
+Character Instances are defined in `.claude/output-styles/character_Instance.md` on Claude Code and in user-owned native `developer_instructions` on Codex.
 No other speaking entities allowed. No implicit narrator. No system voice.
 All human-facing output must belong to a defined Character Instance.
 Base model does not participate in dialogue.

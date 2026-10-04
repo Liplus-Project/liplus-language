@@ -10,7 +10,7 @@
 #     session context (SessionStart hook); the source-of-truth literals are
 #     Readable in the clone at liplus-language/rules/**/*.md.
 #   - skills: .agents/skills/<name>/SKILL.md (Codex skill placement).
-#   - character: AGENTS.md Character_Instance block (Codex has no output-styles).
+#   - character: the user's effective native developer_instructions literal.
 # Reasoning effort is selected at the spawn call. This file intentionally does
 # not set `model_reasoning_effort`, which would override that per-launch value.
 # The instance surface below sits outside the Li+-owned region on purpose; the
@@ -78,9 +78,9 @@ Specifically:
 ## Character_Instance literal (arrives via the invocation prompt)
 
 The Character_Instance body is passed via the invocation prompt, not held here.
-The AGENTS.md Character_Instance block does not reach a subagent
+Do not rely on the parent's native character settings reaching this evaluator
 (skills/evolution-parallel-agent-eval/SKILL.md Constraint: Character_Instance
-non-inheritance), and character behavior is part of what you evaluate, so the
+non-inheritance). Character behavior is part of what you evaluate, so the
 parent injects the literal explicitly at spawn.
 
 If the Character_Instance literal is not included in the prompt, return to the
@@ -210,8 +210,8 @@ value is the per-axis read plus this qualitative synthesis.
   - In particular: .agents/skills/model-projection-discipline/SKILL.md,
     .agents/skills/model-ambiguity-handling/SKILL.md,
     .agents/skills/model-human-interaction/SKILL.md
-- AGENTS.md Character_Instance block — character definition (Codex has no
-  output-styles mechanism; the character literal lives in AGENTS.md)
+- Invocation prompt Character_Instance literal — supplied from the parent's
+  effective user-owned native developer_instructions
 
 ### Li+ design-thought docs (Readable in the liplus-language clone)
 

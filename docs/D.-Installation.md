@@ -182,12 +182,15 @@ CODEX ホストでは bootstrap が以下を生成します（Claude の `.claud
 
 | 配置 | 内容 |
 |------|------|
-| `AGENTS.md`（ルート） | 最小コア（identity / character / 起動契約）。32 KiB 上限内。rules 全体はここに inline せず、SessionStart hook が注入します |
+| `AGENTS.md`（ルート） | 最小コア（identity / 起動契約）。キャラ定義・参照リンクは置きません。32 KiB 上限内。rules 全体はここに inline せず、SessionStart hook が注入します |
+| `.codex/config.toml` の `developer_instructions` | 利用者所有のキャラ literal。初回は Lin/Lay を提案し、既存ネイティブ設定と opt-out を優先。旧 AGENTS.md のカスタムは区画置換前にバックアップ・保存します |
 | `.agents/skills/<name>/SKILL.md` | skill 本体。**trust 不要**で `description` マッチにより自動発火（実機検証済み #1502） |
 | `.codex/hooks/*.ps1`・`*.sh` | hook 本体。`.ps1` が Windows ネイティブの主経路、`.sh` が POSIX フォールバック |
 | `.codex/hooks.json` | hook 登録ファイル。絶対パスで `.codex/hooks/*` を指す（Codex には `$CLAUDE_PROJECT_DIR` 相当が無いため） |
 | `.codex/agents/*.toml` | subagent（Codex "agents"）定義。Li+ が判定基準として所有する本文は `# --- Li+ BEGIN (<tag>) ---` / `# --- Li+ END ---` の区画に入っており、build 更新のたびにこの区画だけが差し替わります（区画外のあなたの記述は保持されます） |
 | `.codex/state/` | cold-start diff-only 出力の state。gitignore 同梱 |
+
+キャラ設定の配置例・profile の版差・公式資料は [`adapter/codex/character-config.md`](../adapter/codex/character-config.md) にあります。共通指示と無関係な設定を保持し、既存 config への追記は差分の確認・承認後に行います。移行済み環境の再更新ではキャラを再生成しません。ネイティブ設定の読込には project trust が必要で、次 session で届くことを確認します。下の hook trust は別の条件です。
 
 ### hook の一度きり GUI trust（Codex 固有の摩擦）
 

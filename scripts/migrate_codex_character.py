@@ -82,6 +82,17 @@ def instruction_span(text: str) -> tuple[int, int]:
     raise MigrationBlocked("Cannot safely locate root developer_instructions value")
 
 
+def adapter_present(agents: bytes) -> bool:
+    text = agents.decode("utf-8-sig")
+    if "Li+ BEGIN" not in text and "Li+ END" not in text:
+        return False
+    begins = list(re.finditer(r"^# --- Li\+ BEGIN \([^\r\n]*\) ---\r?$", text, re.M))
+    ends = list(re.finditer(r"^# --- Li\+ END ---\r?$", text, re.M))
+    if len(begins) != 1 or len(ends) != 1 or begins[0].end() >= ends[0].start():
+        raise MigrationBlocked("Li+ adapter boundaries require user judgment")
+    return True
+
+
 def plan_migration(agents: bytes | None, config: bytes | None, native_state: str,
                    inherited_instructions: str = "") -> Plan:
     if native_state not in ("absent", "present", "disabled"):
@@ -97,8 +108,9 @@ def plan_migration(agents: bytes | None, config: bytes | None, native_state: str
         return Plan("preserve-native", original, literal)
     if "developer_instructions" in data and not common:
         return Plan("preserve-opt-out", original, literal)
-    if agents is not None and literal is None:
+    if agents is not None and literal is None and adapter_present(agents):
         return Plan("already-migrated-or-opted-out", original)
+    saving_legacy = literal is not None
     if literal is None:
         literal = tomllib.loads(
             (ROOT / "adapter/codex/character-instructions.toml").read_text(encoding="utf-8")
@@ -116,7 +128,7 @@ def plan_migration(agents: bytes | None, config: bytes | None, native_state: str
     expected = dict(data, developer_instructions=combined)
     if tomllib.loads(rendered) != expected:
         raise MigrationBlocked("Proposed config changes unrelated settings")
-    return Plan("save-legacy" if agents is not None else "install-default", result, literal)
+    return Plan("save-legacy" if saving_legacy else "install-default", result, literal)
 
 
 def backup(path: Path, content: bytes) -> Path:

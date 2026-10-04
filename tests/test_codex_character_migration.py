@@ -48,6 +48,27 @@ class CodexCharacterPlanTest(unittest.TestCase):
                 self.assertEqual(instructions(plan.config), CUSTOM.replace("\n", newline))
                 self.assertNotIn("NAME=Lin", instructions(plan.config))
 
+    def test_existing_user_agents_without_adapter_offers_initial_pair(self) -> None:
+        agents = "# Workspace\nKeep the user's 日本語 instructions.\n".encode()
+        plan = plan_migration(agents, None, "absent")
+        self.assertEqual(plan.status, "install-default")
+        self.assertEqual(plan.config, plan_migration(None, None, "absent").config)
+        for state in ("present", "disabled"):
+            with self.subTest(state=state):
+                self.assertEqual(plan_migration(agents, None, state).config, b"")
+
+    def test_literal_free_adapter_with_ambiguous_sentinels_blocks_default(self) -> None:
+        adapter = (ROOT / "adapter/codex/AGENTS.md").read_bytes()
+        begin = b"# --- Li+ BEGIN ({LI_PLUS_TAG}) ---"
+        end = b"# --- Li+ END ---"
+        for agents in (adapter.replace(end, b""), adapter.replace(begin, b""),
+                       adapter + b"\n" + end, adapter + b"\n" + begin,
+                       end + b"\n" + begin,
+                       adapter.replace(begin, b"# --- Li+ BEGIN malformed ---")):
+            with self.subTest(agents=agents):
+                with self.assertRaises(MigrationBlocked):
+                    plan_migration(agents, None, "absent")
+
     def test_common_instructions_and_unrelated_config_bytes_survive(self) -> None:
         for common in ('"common \\"quote\\""', "'''common\nmultiline'''", '"""common\nmultiline"""'):
             old = ("# user header\n'developer_instructions' = " + common
@@ -153,6 +174,29 @@ class CodexCharacterSaveTest(unittest.TestCase):
         self.assertEqual(backups, [legacy(), before])
         self.assertEqual(self.agents.read_bytes(), legacy())
         self.assertEqual(instructions(self.config.read_bytes()), "common\n\n" + CUSTOM)
+
+    def test_first_install_with_user_agents_preserves_common_config_and_opt_out(self) -> None:
+        agents = b"# User workspace\nUse small commits.\n"
+        old = b'developer_instructions = "common"\nmodel = "keep"\n'
+        self.agents.write_bytes(agents)
+        self.config.parent.mkdir()
+        self.config.write_bytes(old)
+        plan = migrate(self.agents, self.config, "absent")
+        self.assertEqual(plan["status"], "install-default")
+        self.assertFalse(plan["applied"])
+        self.assertEqual(migrate(self.agents, self.config, "disabled", apply=True)["backups"], [])
+        self.assertEqual(self.config.read_bytes(), old)
+        with self.assertRaises(MigrationBlocked):
+            migrate(self.agents, self.config, "absent", apply=True)
+        result = migrate(self.agents, self.config, "absent", apply=True, approve_existing=True)
+        saved = self.config.read_bytes()
+        self.assertTrue(instructions(saved).startswith("common\n\n[Character_Instance]"))
+        self.assertIn("NAME=Lin", instructions(saved))
+        self.assertIn("NAME=Lay", instructions(saved))
+        self.assertTrue(saved.endswith(b'\nmodel = "keep"\n'))
+        self.assertEqual(self.agents.read_bytes(), agents)
+        self.assertEqual([Path(p).read_bytes() for p in result["backups"]], [agents, old])
+        self.assertEqual(migrate(self.agents, self.config, "absent")["config_change"], False)
 
     def test_native_wins_but_legacy_is_backed_up_before_adapter_replacement(self) -> None:
         self.agents.write_bytes(legacy())

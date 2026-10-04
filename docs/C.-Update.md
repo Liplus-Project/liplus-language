@@ -251,6 +251,7 @@ Codex ホストでは Phase 4 claude branch と同型に adapter / skills / hook
 - 実効 `developer_instructions` と明示的 opt-out を先に確認し、CLI・trusted project・選択 profile・user・managed/system の設定を解決する。profile の選択・形式・trust は変更しない（公式資料と版差は `adapter/codex/character-config.md`）
 - 旧 AGENTS.md の `[Character_Instance]` を区画置換・tag 一致スキップより先に読む。一意な sentinel と Responsibilities 境界の内側ならカスタム literal 全文を保存。境界が曖昧・legacy 無 sentinel・TOML 無効・実効設定未解決なら 4x.1 を止め、既存の legacy 判断手順へ戻る
 - Python 3.11+ `scripts/migrate_codex_character.py --agents <workspace>/AGENTS.md --config <workspace>/.codex/config.toml --native-state absent|present|disabled` の既定は read-only plan。既存キャラと opt-out を優先し、設定を書き換えない。新規のみ Lin/Lay の opt-in を提案。移行済み / opt-out 済みの既存 adapter に既定キャラを再挿入しない
+- 初回には Li+ 区画のない通常の既存 AGENTS.md も含む。literal のない既存 adapter の再更新は、一意で順序の正しい Li+ BEGIN / END sentinel 区画で判定する。AGENTS.md の存在だけでは移行済み / opt-out 済みとしない。sentinel 境界が曖昧なら 4x.1 を止める
 - 既存 config の共通指示への追記は差分提示・承認後に `--apply --approve-existing` で保存。新規への opt-in は `--apply`。旧 AGENTS.md と変更する既存 config を一意名でバイト忠実にバックアップ。保存・read-back に失敗したら config を復旧し、旧区画を保持する。保存した TOML・共通指示・literal（または実効ネイティブ設定 / opt-out）を検証してから 4x.1 へ進む。helper 不在時も同じ保存判断を手動で行う
 - target に root の指示キーが無い場合は、実効設定から継承された共通指示も保持する。private UTF-8 file の `--inherited-instructions <file>` で helper へ渡し、使用後に削除する。指示本文を command line や report に出さない
 

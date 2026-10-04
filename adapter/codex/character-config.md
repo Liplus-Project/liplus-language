@@ -67,8 +67,10 @@ decision, and `--approve-existing` only after consent to changing existing confi
 For a confirmed native character or opt-out, pass `present` or `disabled`; the
 helper preserves config and backs up a detected old literal. `blocked` means the
 old AGENTS.md region must remain. Re-run the plan after resolving the ambiguity.
-An absent file on fresh install offers the default; an existing adapter without
-a literal is treated as already migrated/opted out and gets no default inserted.
+Fresh install offers the default both when AGENTS.md is absent and when a user's
+existing AGENTS.md has no Li+ region. An existing adapter with one ordered Li+
+BEGIN / END sentinel pair and no literal is treated as already migrated/opted
+out and gets no default inserted. Ambiguous sentinel boundaries block the plan.
 When the project config has no root instruction key, pass effective inherited
 common instructions through a private UTF-8 file with `--inherited-instructions
 <file>` so adding the project value does not hide them. Remove that temporary

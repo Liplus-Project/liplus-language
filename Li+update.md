@@ -387,11 +387,13 @@ grant trust in the GUI. See `docs/D.-Installation.md` for the step-by-step.
   Apply the existing legacy user-decision procedure; never replace the old region
   until the literal is saved or the user has explicitly chosen opt-out / the
   existing native setting. Declining migration keeps the old adapter untouched.
-- On fresh install with no AGENTS.md and no native setting / opt-out, offer the
+- On fresh install with no Li+ adapter and no native setting / opt-out, offer the
   Lin/Lay initial template `adapter/codex/character-instructions.toml`. Apply on
   opt-in; on opt-out preserve configuration and continue without a literal.
-  An existing AGENTS.md with no old literal is already migrated / opted out:
-  do not insert defaults on re-update.
+  This includes a user's existing AGENTS.md without a Li+ region. Only an
+  existing adapter with one ordered Li+ BEGIN / END sentinel pair and no old
+  literal is treated as already migrated / opted out: do not insert defaults
+  on re-update. Ambiguous sentinel boundaries stop preservation and 4x.1.
 - Before changing an existing config, show the proposed instruction delta
   locally and obtain approval. Preserve its common `developer_instructions` by
   appending the literal, and preserve every other setting. `--apply` performs

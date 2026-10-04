@@ -18,7 +18,7 @@ Rules
 
 gh CLI is authenticated via keyring after bootstrap. Do not export GH_TOKEN in Bash commands. Do not include tokens in command strings.
 
-EVERY output MUST be prefixed with a speaker name defined in Character_Instance, except a surface whose transport already carries speaker identity structurally outside the output body (`rules/model/absolute.md` Name prefix scope) — no exception beyond that criterion, and no surface name is fixed here. Anonymous output is a structural failure.
+When Character_Instance is configured, EVERY output MUST be prefixed with a speaker name defined in it, except a surface whose transport already carries speaker identity structurally outside the output body (`rules/model/absolute.md` Name prefix scope) — no exception beyond that criterion, and no surface name is fixed here; anonymous output is a structural failure.
 
 Rules are injected by the `on-session-start` SessionStart hook, not inline here. To read a specific `rules/*.md` literal at a judgment moment, Read it from the clone through the `rules/` fetch-address table the hook emits at cold-start.
 
@@ -27,26 +27,6 @@ Hook trust (Codex-specific): when the `LI_PLUS_UPDATE_STATUS` marker and the inj
 Main never reads operations skills directly when subagent is available.
 
 Subagent does not create, move, or remove worktrees or per-session clones. Use raw `git worktree add` + absolute paths for parallel isolation.
-
-#######################################################
-
-[Character_Instance]
-
-#######################################################
-LIN_CONTEXT:
-NAME=Lin
-The_lady_in_the_backseat_map_open_calling_the_next_destination
-Feminine_Soft_Tone
-EXPRESSION=Creative
-HUMOR_STYLE=Gentle_Warm
-
-LAY_CONTEXT:
-NAME=Lay
-A_lady_in_the_passenger_seat_gently_supporting_the_driver
-Emotional_Feminine_Soft_Tone
-EXPRESSION=Gentle
-HUMOR_STYLE=Natural
-#######################################################
 
 #######################################################
 Responsibilities

@@ -48,8 +48,10 @@ trust is a hard precondition for Li+ "always-on" behavior on Codex.
 the literal template below (compare-and-overwrite on content drift, same policy
 as the Claude `settings.json`).
 
-`{workspace_root}/.codex/config.toml` = **user owned** when present for non-Li+
-settings. If the user prefers TOML placement of hooks over `hooks.json`, the
+`{workspace_root}/.codex/config.toml` = **user owned**, including its character
+instructions. Character migration is the approved, backed-up save in
+`Li+update.md` 4x.0; it is not template regeneration. If the user prefers TOML
+placement of hooks over `hooks.json`, the
 `[hooks]` snippet below can be merged into `config.toml` instead; do not maintain
 both at once (Codex would register the hooks twice). The `hooks.json` template is
 the Li+ default; the TOML snippet is the documented alternate.
@@ -220,7 +222,8 @@ is `.ps1` (Windows native, primary on the verified Codex Windows env) + `.sh`
   re-emit (same condition and lines as the Claude port, reading
   `.codex/state/update-status.txt` and the `AGENTS.md` sentinel tag) + Trigger
   Check Gate re-arm + webhook re-arm, whose call half is `poll`-only and whose handling half
-  is emitted in every delivery mode (Character_Instance lives in AGENTS.md, not
+  is emitted in every delivery mode (Character_Instance arrives through native
+  `developer_instructions`, not
   re-notified per turn).
 - `adapter/codex/hooks/post-tool-use.{ps1,sh}` — sub-issue refs auto-append on
   `gh pr create`, with a one-line `additionalContext` firing trace on every run
@@ -241,7 +244,7 @@ tag-tracking anchor. Bootstrap's tag-mismatch check reads this line.
    included.
 3. **GUI trust gate.** See the One-time GUI trust section above. No Claude analog.
 4. **32 KiB AGENTS.md cap** (`project_doc_max_bytes`). The root AGENTS.md holds
-   only the minimal always-present core (identity / character / startup contract);
+   only the minimal always-present core (identity / startup contract);
    full rules go through the SessionStart injection, well past 32 KiB.
 
 ## mcp_tool webhook entry

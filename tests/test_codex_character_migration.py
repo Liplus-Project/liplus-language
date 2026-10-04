@@ -57,17 +57,24 @@ class CodexCharacterPlanTest(unittest.TestCase):
             with self.subTest(state=state):
                 self.assertEqual(plan_migration(agents, None, state).config, b"")
 
-    def test_literal_free_adapter_with_ambiguous_sentinels_blocks_default(self) -> None:
+    def test_literal_free_adapter_with_ambiguous_sentinels_blocks_native_choices(self) -> None:
         adapter = (ROOT / "adapter/codex/AGENTS.md").read_bytes()
         begin = b"# --- Li+ BEGIN ({LI_PLUS_TAG}) ---"
         end = b"# --- Li+ END ---"
+        native = ('developer_instructions = ' + json.dumps(CUSTOM) + "\n").encode()
         for agents in (adapter.replace(end, b""), adapter.replace(begin, b""),
                        adapter + b"\n" + end, adapter + b"\n" + begin,
                        end + b"\n" + begin,
                        adapter.replace(begin, b"# --- Li+ BEGIN malformed ---")):
-            with self.subTest(agents=agents):
-                with self.assertRaises(MigrationBlocked):
-                    plan_migration(agents, None, "absent")
+            for state, config, inherited in (("absent", None, ""),
+                                             ("present", b"model = 'keep'\n", ""),
+                                             ("disabled", b"model = 'keep'\n", ""),
+                                             ("absent", b'developer_instructions = ""\n', ""),
+                                             ("absent", native, ""),
+                                             ("absent", b"model = 'keep'\n", CUSTOM)):
+                with self.subTest(agents=agents, state=state, config=config, inherited=inherited):
+                    with self.assertRaises(MigrationBlocked):
+                        plan_migration(agents, config, state, inherited)
 
     def test_common_instructions_and_unrelated_config_bytes_survive(self) -> None:
         for common in ('"common \\"quote\\""', "'''common\nmultiline'''", '"""common\nmultiline"""'):
@@ -106,6 +113,8 @@ class CodexCharacterPlanTest(unittest.TestCase):
                            ("absent", b'developer_instructions = ""\n')):
             with self.subTest(state=state, old=old):
                 self.assertEqual(plan_migration(legacy(), old, state).config, old)
+                adapter = (ROOT / "adapter/codex/AGENTS.md").read_bytes()
+                self.assertEqual(plan_migration(adapter, old, state).config, old)
 
     def test_inherited_native_literal_is_preserved_without_project_override(self) -> None:
         old = b"model = 'keep'\n"
@@ -151,6 +160,21 @@ class CodexCharacterSaveTest(unittest.TestCase):
         result = migrate(self.agents, self.config, "absent")
         self.assertFalse(result["applied"])
         self.assertEqual(list(self.directory.iterdir()), [self.agents])
+
+    def test_ambiguous_adapter_blocks_apply_without_changing_native_or_opt_out(self) -> None:
+        agents = (ROOT / "adapter/codex/AGENTS.md").read_bytes().replace(b"# --- Li+ END ---", b"")
+        self.agents.write_bytes(agents)
+        self.config.parent.mkdir()
+        for state, config in (("present", b"model = 'keep'\n"),
+                              ("disabled", b"model = 'keep'\n"),
+                              ("absent", b'developer_instructions = ""\n')):
+            with self.subTest(state=state, config=config):
+                self.config.write_bytes(config)
+                with self.assertRaises(MigrationBlocked):
+                    migrate(self.agents, self.config, state, apply=True, approve_existing=True)
+                self.assertEqual(self.agents.read_bytes(), agents)
+                self.assertEqual(self.config.read_bytes(), config)
+                self.assertEqual(list(self.directory.rglob("*.liplus-character-backup-*")), [])
 
     def test_default_install_and_update_preserve_exact_config(self) -> None:
         migrate(self.agents, self.config, "absent", apply=True)

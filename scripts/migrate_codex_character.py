@@ -98,6 +98,7 @@ def plan_migration(agents: bytes | None, config: bytes | None, native_state: str
     if native_state not in ("absent", "present", "disabled"):
         raise MigrationBlocked("Effective native character state must be resolved")
     literal = legacy_literal(agents) if agents is not None else None
+    installed_adapter = adapter_present(agents) if agents is not None else False
     original = config or b""
     text = original.decode("utf-8-sig")
     data = tomllib.loads(text)
@@ -108,7 +109,7 @@ def plan_migration(agents: bytes | None, config: bytes | None, native_state: str
         return Plan("preserve-native", original, literal)
     if "developer_instructions" in data and not common:
         return Plan("preserve-opt-out", original, literal)
-    if agents is not None and literal is None and adapter_present(agents):
+    if installed_adapter and literal is None:
         return Plan("already-migrated-or-opted-out", original)
     saving_legacy = literal is not None
     if literal is None:

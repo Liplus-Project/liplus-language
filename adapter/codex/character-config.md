@@ -71,6 +71,7 @@ Fresh install offers the default both when AGENTS.md is absent and when a user's
 existing AGENTS.md has no Li+ region. An existing adapter with one ordered Li+
 BEGIN / END sentinel pair and no literal is treated as already migrated/opted
 out and gets no default inserted. Ambiguous sentinel boundaries block the plan.
+The boundary check precedes the native-setting and opt-out preservation returns.
 When the project config has no root instruction key, pass effective inherited
 common instructions through a private UTF-8 file with `--inherited-instructions
 <file>` so adding the project value does not hide them. Remove that temporary

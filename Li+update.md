@@ -394,6 +394,8 @@ grant trust in the GUI. See `docs/D.-Installation.md` for the step-by-step.
   existing adapter with one ordered Li+ BEGIN / END sentinel pair and no old
   literal is treated as already migrated / opted out: do not insert defaults
   on re-update. Ambiguous sentinel boundaries stop preservation and 4x.1.
+  Check boundaries before returning a plan that preserves native settings or
+  opt-out; neither preservation choice exempts that check.
 - Before changing an existing config, show the proposed instruction delta
   locally and obtain approval. Preserve its common `developer_instructions` by
   appending the literal, and preserve every other setting. `--apply` performs

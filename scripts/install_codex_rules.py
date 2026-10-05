@@ -10,6 +10,8 @@ from pathlib import Path, PurePosixPath
 import tomllib
 import uuid
 
+from codex_output_style import load
+
 
 CHARACTER = "model/character_Instance.md"
 MANIFEST = "liplus-rules.json"
@@ -56,12 +58,22 @@ def safe_path(root: Path, relative: str) -> Path:
 
 def install(source: Path, workspace: Path, config: Path, native_state: str, *,
             apply: bool = False, effective_instructions: str | None = None) -> dict:
-    if native_state not in ("present", "disabled"):
+    if native_state not in ("present", "disabled", "style"):
         raise InstallationBlocked("Resolve and save the native character first")
     original_config = config.read_bytes() if config.exists() else None
     data = tomllib.loads((original_config or b"").decode("utf-8-sig"))
     instructions = (effective_instructions if effective_instructions is not None
                     else data.get("developer_instructions", ""))
+    resolved, style_body = load(workspace, workspace, environment=False)
+    if config.resolve() != (workspace / ".codex/config.toml").resolve():
+        raise InstallationBlocked("Config must be the project config")
+    if resolved["mode"] == "file":
+        instructions = style_body.decode("utf-8")
+        native_state = "style"
+    elif resolved["mode"] == "disabled":
+        native_state = "disabled"
+    elif native_state == "style":
+        raise InstallationBlocked("Style read-back has not been confirmed")
     if not isinstance(instructions, str):
         raise InstallationBlocked("Effective instructions must be a string")
     if (native_state == "present" and "[Character_Instance]" not in instructions
@@ -104,7 +116,7 @@ def install(source: Path, workspace: Path, config: Path, native_state: str, *,
             if not isinstance(previous, str) or len(previous) != 64:
                 raise InstallationBlocked("Invalid ownership hash")
             if (existing is not None and digest(existing) != previous and existing != target
-                    and not (relative == CHARACTER and native_state == "present"
+                    and not (relative == CHARACTER and native_state in ("present", "style")
                              and character_preserved(existing, instructions))):
                 raise InstallationBlocked("A managed rule was modified; preserve it before updating")
         elif existing is not None and existing != target:
@@ -113,7 +125,7 @@ def install(source: Path, workspace: Path, config: Path, native_state: str, *,
             template = source / CHARACTER
             if relative != CHARACTER or not (
                     (template.is_file() and existing == template.read_bytes())
-                    or (native_state == "present" and character_preserved(existing, instructions))):
+                    or (native_state in ("present", "style") and character_preserved(existing, instructions))):
                 raise InstallationBlocked("An unowned rule conflicts with the installation")
         if existing != target:
             changes[relative] = target
@@ -187,7 +199,7 @@ def main() -> int:
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--workspace", type=Path, required=True)
     parser.add_argument("--config", type=Path, required=True)
-    parser.add_argument("--native-state", choices=("present", "disabled"), required=True)
+    parser.add_argument("--native-state", choices=("present", "disabled", "style"), required=True)
     parser.add_argument("--effective-instructions", type=Path)
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args()

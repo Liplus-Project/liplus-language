@@ -7,7 +7,8 @@
 #
 # Per-turn Trigger Check Gate re-arm + webhook reminder. The gate re-arm is the
 # deterministic firing surface for rules/model/trigger-check-gate.md.
-# Character_Instance is loaded via native developer_instructions,
+# Character_Instance is loaded via the independent style SessionStart handler
+# or legacy native developer_instructions,
 # not re-notified per turn.
 #
 # Codex contract difference vs Claude: UserPromptSubmit context injection on

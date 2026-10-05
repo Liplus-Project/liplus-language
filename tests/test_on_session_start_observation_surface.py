@@ -35,6 +35,7 @@ are specified on the docs side (`docs/6.-Adapter.md:74`), not chosen here.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -379,8 +380,7 @@ class Workspace:
         self.liplus = self.workspace / "liplus-language"
         self.liplus.mkdir(parents=True)
         self.installed_rules = self.workspace / ".codex/rules"
-        (self.installed_rules / "evolution").mkdir(parents=True)
-        (self.installed_rules / "evolution/cold-start-synthesis.md").write_text("# Cold-start Synthesis\n", encoding="utf-8")
+        self.write(self.installed_rules / "evolution", "cold-start-synthesis.md", "# Cold-start Synthesis\n")
         self.stub_bin = self.home / ".local" / "bin"
         self.stub_bin.mkdir(parents=True)
         self._write_gh_stub()
@@ -417,6 +417,16 @@ class Workspace:
             installed = self.installed_rules / target.relative_to(self.liplus / "rules")
             installed.parent.mkdir(parents=True, exist_ok=True)
             installed.write_text(content, encoding="utf-8")
+        else:
+            installed = target
+        if installed.is_relative_to(self.installed_rules):
+            relative = installed.relative_to(self.installed_rules).as_posix()
+            if relative != "model/character_Instance.md":
+                manifest = self.workspace / ".codex/state/liplus-rules.json"
+                record = json.loads(manifest.read_text(encoding="utf-8")) if manifest.exists() else {"version": 1, "files": {}}
+                record["files"][relative] = hashlib.sha256(installed.read_bytes()).hexdigest()
+                manifest.parent.mkdir(parents=True, exist_ok=True)
+                manifest.write_text(json.dumps(record), encoding="utf-8")
         return target
 
     def seed_coldstart_rule(self, token: str, h2_token: str | None = None) -> Path:

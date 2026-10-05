@@ -200,7 +200,24 @@ elif [ -n "$ADAPTER_TAG" ] && [ -e "$LIPLUS_DIR/.git" ] && command -v git >/dev/
 fi
 RULES_ROOT="$PROJECT_ROOT/.codex/rules"
 COLDSTART_MD="$RULES_ROOT/evolution/cold-start-synthesis.md"
-if [ ! -f "$COLDSTART_MD" ]; then
+RULES_PRESENT=$(node -e '
+  const fs = require("fs"), path = require("path");
+  try {
+    const record = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+    if (record.version !== 1 || !record.files || typeof record.files !== "object" ||
+        Array.isArray(record.files) ||
+        !Object.prototype.hasOwnProperty.call(record.files, "evolution/cold-start-synthesis.md")) throw Error();
+    for (const [relative, hash] of Object.entries(record.files)) {
+      if (relative.startsWith("/") || relative.includes("\\") || relative.includes(":") ||
+          !relative.endsWith(".md") || relative === "model/character_Instance.md" ||
+          relative.split("/").some(p => !p || p === "." || p === "..") ||
+          typeof hash !== "string" || !/^[0-9a-f]{64}$/.test(hash) ||
+          !fs.statSync(path.join(process.argv[2], relative)).isFile()) throw Error();
+    }
+    process.stdout.write("yes");
+  } catch (_) {}
+' "$STATE_DIR/liplus-rules.json" "$RULES_ROOT" 2>/dev/null)
+if [ "$RULES_PRESENT" != "yes" ]; then
   emit "━━━ Li+ update status ━━━"
   emit "LI_PLUS_UPDATE_STATUS=needed reason=installed-rules-missing"
   emit "Install the .codex/rules mirror through Li+update Phase 4 codex."

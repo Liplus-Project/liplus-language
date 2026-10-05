@@ -206,7 +206,29 @@ if ($liplusMode -ceq 'api') {
 }
 $rulesRoot = Join-Path $projectRoot '.codex/rules'
 $coldstartMd = Join-Path $rulesRoot 'evolution/cold-start-synthesis.md'
-if (-not (Test-Path -LiteralPath $coldstartMd -PathType Leaf)) {
+$rulesPresent = $false
+try {
+  $ruleManifest = Get-Content -LiteralPath (Join-Path $stateDir 'liplus-rules.json') -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+  if (($ruleManifest.version -isnot [int] -and $ruleManifest.version -isnot [long]) -or
+      $ruleManifest.version -cne 1 -or $ruleManifest.files -isnot [System.Management.Automation.PSCustomObject] -or
+      -not $ruleManifest.files.PSObject.Properties['evolution/cold-start-synthesis.md']) {
+    throw 'Invalid installed rule manifest'
+  }
+  foreach ($entry in $ruleManifest.files.PSObject.Properties) {
+    $relative = $entry.Name
+    $segments = $relative.Split('/')
+    if ($relative.StartsWith('/') -or $relative.Contains('\') -or $relative.Contains(':') -or
+        -not $relative.EndsWith('.md', [System.StringComparison]::Ordinal) -or
+        $relative -ceq 'model/character_Instance.md' -or
+        @($segments | Where-Object { $_ -ceq '' -or $_ -ceq '.' -or $_ -ceq '..' }).Count -gt 0 -or
+        $entry.Value -isnot [string] -or $entry.Value -cnotmatch '^[0-9a-f]{64}$' -or
+        -not (Test-Path -LiteralPath (Join-Path $rulesRoot $relative) -PathType Leaf)) {
+      throw 'Invalid or missing installed rule'
+    }
+  }
+  $rulesPresent = $true
+} catch { $rulesPresent = $false }
+if (-not $rulesPresent) {
   Emit '━━━ Li+ update status ━━━'
   Emit 'LI_PLUS_UPDATE_STATUS=needed reason=installed-rules-missing'
   Emit 'Install the .codex/rules mirror through Li+update Phase 4 codex.'

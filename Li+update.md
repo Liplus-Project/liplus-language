@@ -479,8 +479,12 @@ grant trust in the GUI. See `docs/D.-Installation.md` for the step-by-step.
   whole `.codex/rules/` directory or delete unrecorded files/empty directories.
 - SessionStart's rules injection, cold-start rule anchor, fetch-address table
   and rule keyword scan read this installed tree; skills/docs still use the
-  resolved source. Missing installed rules require this step again, never a
-  fallback to a shared clone's working tree. Rules are still hook-injected;
+  resolved source. Before injection on every matcher, validate the ownership
+  manifest and the file presence of every recorded rule, including the anchor.
+  A missing or invalid manifest, an unrecorded anchor, or a missing recorded rule
+  requires this step again, without partial injection or a fallback to a shared
+  clone's working tree. This presence check does not compare content hashes.
+  Rules are still hook-injected;
   `.codex/rules/` is not claimed to be a Codex automatic Markdown loader.
 
 4x.2. Generate .agents/skills/ files (flat directory mirror):

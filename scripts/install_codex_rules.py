@@ -64,7 +64,8 @@ def install(source: Path, workspace: Path, config: Path, native_state: str, *,
                     else data.get("developer_instructions", ""))
     if not isinstance(instructions, str):
         raise InstallationBlocked("Effective instructions must be a string")
-    if native_state == "present" and "[Character_Instance]" not in instructions:
+    if (native_state == "present" and "[Character_Instance]" not in instructions
+            and not re.search(r"^NAME\s*=\s*\S", instructions, re.M)):
         raise InstallationBlocked("Native character read-back has not been confirmed")
     root = workspace / ".codex" / "rules"
     manifest = workspace / ".codex" / "state" / MANIFEST

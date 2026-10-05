@@ -106,7 +106,7 @@ def plan_migration(agents: bytes | None, config: bytes | None, native_state: str
     common = data.get("developer_instructions", inherited_instructions)
     if not isinstance(common, str):
         raise MigrationBlocked("developer_instructions must be a string")
-    if native_state != "absent" or MARKER in common:
+    if native_state != "absent" or MARKER in common or re.search(r"^NAME\s*=\s*\S", common, re.M):
         return Plan("preserve-native", original, literal)
     saving_legacy = literal is not None
     if literal is None:

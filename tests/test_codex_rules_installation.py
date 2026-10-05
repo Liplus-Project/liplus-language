@@ -112,6 +112,12 @@ class RulesInstallationTest(unittest.TestCase):
         self.assertEqual(self.config.read_bytes(), original)
         self.assertFalse((self.rules / CHARACTER).exists())
 
+    def test_native_name_literal_without_bracket_marker_is_read_back(self):
+        self.config.write_bytes(b'developer_instructions = "common\\nLUNA_CONTEXT:\\nNAME=Luna"\n')
+        original = self.config.read_bytes()
+        self.run_install(apply=True)
+        self.assertEqual(self.config.read_bytes(), original)
+
     def test_unowned_custom_character_already_saved_in_native_can_be_retired(self):
         (self.rules / "model").mkdir(parents=True)
         old = self.rules / CHARACTER

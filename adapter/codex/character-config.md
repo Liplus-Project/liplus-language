@@ -19,6 +19,8 @@ defines `developer_instructions` as additional session instructions. The
 document user `~/.codex/config.toml` and trusted project `.codex/config.toml`.
 Resolve CLI overrides, the closest trusted project layer, the selected profile,
 user, managed and system layers before deciding that a character is absent.
+A user native literal with a `NAME=...` line is preserved even when it does not
+use the template's bracket marker.
 Read settings without displaying credentials. Do not override an explicit native
 character or opt-out with a project default. An untrusted project's config is
 not loaded; verify the intended setting reaches the next session.

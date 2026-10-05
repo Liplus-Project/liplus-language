@@ -372,6 +372,8 @@ grant trust in the GUI. See `docs/D.-Installation.md` for the step-by-step.
   `adapter/codex/character-config.md` for official host configuration references
   and version-specific profile formats. Do not change profile selection, migrate
   profile formats, or grant trust as part of this step.
+- Native character detection also preserves a user literal with a `NAME=...`
+  line, even when it does not use the template's bracket marker.
 - Read the old AGENTS.md before any 4x.1 tag skip or region replacement. Existing
   native character settings and explicit opt-out take precedence. Never refresh
   a user-owned character from a later Li+ template.

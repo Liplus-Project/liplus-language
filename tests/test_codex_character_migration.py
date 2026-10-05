@@ -119,6 +119,11 @@ class CodexCharacterPlanTest(unittest.TestCase):
         old = b"model = 'keep'\n"
         self.assertEqual(plan_migration(legacy(), old, "absent", CUSTOM).config, old)
 
+    def test_native_name_literal_without_bracket_marker_is_preserved(self) -> None:
+        old = b'developer_instructions = "common\\nLUNA_CONTEXT:\\nNAME=Luna\\nKeep user wording"\n'
+        for state in ("present", "absent"):
+            self.assertEqual(plan_migration(None, old, state).config, old)
+
     def test_repeated_save_and_reupdate_do_not_duplicate_or_reintroduce(self) -> None:
         first = plan_migration(legacy(), None, "absent")
         self.assertEqual(plan_migration(legacy(), first.config, "absent").config, first.config)

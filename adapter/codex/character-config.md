@@ -102,7 +102,7 @@ uses `additionalContextLimit: 0` and timeout 30; the existing rules handler limi
 and other event/product handlers remain unchanged. Success returns
 `hookSpecificOutput.hookEventName: SessionStart` and `additionalContext` equal to
 the full selected body; disabled/legacy context is empty. Failure returns
-`continue:false`, a secret-free stopReason and exit 0 without partial context.
+`"continue": false`, a secret-free stopReason and exit 0 without partial context.
 Codex 0.160.0 [SessionStart parse_completed](https://github.com/openai/codex/blob/rust-v0.160.0/codex-rs/hooks/src/events/session_start.rs)
 interprets control JSON only after command exit 0;
 a nonzero hook exit is a failed handler whose stop flag is not interpreted.

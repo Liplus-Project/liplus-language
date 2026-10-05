@@ -4,7 +4,7 @@
 #
 # Three responsibilities (the first is Codex-specific; Claude gets it from the
 # always-loaded .claude/rules/ folder which Codex has no equivalent of):
-#   1. RULES INJECTION (Codex-only): read rules/*.md from the LI_PLUS_REPO clone
+#   1. RULES INJECTION (Codex-only): read installed .codex/rules/**/*.md
 #      and emit them as additionalContext. This is the Codex substitute for
 #      Claude's .claude/rules/ always-on folder (#1502 verified design).
 #   2. Update-status verification: sentinel tag / config schema / language
@@ -126,7 +126,7 @@ if ($liplusMode -cne 'api' -and -not (Test-Path -LiteralPath $liplusDir)) {
 }
 
 # ===================================================================
-# Ref-pinned source extraction (#1982): every read of rules/ skills/ docs/
+# Ref-pinned source extraction (#1982): skills/ and docs/
 # content below resolves against the clone's object database at the
 # adapter's OWN installed sentinel tag, not against the clone's working
 # tree. The clone's HEAD/working tree is shared with other sessions and
@@ -194,7 +194,7 @@ if ($liplusMode -ceq 'api') {
   New-Item -ItemType Directory -Path $candidateTmp -Force -ErrorAction SilentlyContinue | Out-Null
   $archiveOk = $false
   try {
-    & git -C $liplusDir archive $adapterTag -- rules skills docs 2>$null | & tar -x -C $candidateTmp 2>$null
+    & git -C $liplusDir archive $adapterTag -- skills docs 2>$null | & tar -x -C $candidateTmp 2>$null
     if ($LASTEXITCODE -eq 0) { $archiveOk = $true }
   } catch { $archiveOk = $false }
   if ($archiveOk) {
@@ -204,13 +204,45 @@ if ($liplusMode -ceq 'api') {
     Remove-Item -LiteralPath $candidateTmp -Recurse -Force -ErrorAction SilentlyContinue
   }
 }
-$coldstartMd    = Join-Path $sourceRoot 'rules/evolution/cold-start-synthesis.md'
+$rulesRoot = Join-Path $projectRoot '.codex/rules'
+$coldstartMd = Join-Path $rulesRoot 'evolution/cold-start-synthesis.md'
+$rulesPresent = $false
+try {
+  $ruleManifest = Get-Content -LiteralPath (Join-Path $stateDir 'liplus-rules.json') -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+  if (($ruleManifest.version -isnot [int] -and $ruleManifest.version -isnot [long]) -or
+      $ruleManifest.version -cne 1 -or $ruleManifest.files -isnot [System.Management.Automation.PSCustomObject] -or
+      -not $ruleManifest.files.PSObject.Properties['evolution/cold-start-synthesis.md']) {
+    throw 'Invalid installed rule manifest'
+  }
+  foreach ($entry in $ruleManifest.files.PSObject.Properties) {
+    $relative = $entry.Name
+    $segments = $relative.Split('/')
+    if ($relative.StartsWith('/') -or $relative.Contains('\') -or $relative.Contains(':') -or
+        -not $relative.EndsWith('.md', [System.StringComparison]::Ordinal) -or
+        $relative -ceq 'model/character_Instance.md' -or
+        @($segments | Where-Object { $_ -ceq '' -or $_ -ceq '.' -or $_ -ceq '..' }).Count -gt 0 -or
+        $entry.Value -isnot [string] -or $entry.Value -cnotmatch '^[0-9a-f]{64}$' -or
+        -not (Test-Path -LiteralPath (Join-Path $rulesRoot $relative) -PathType Leaf)) {
+      throw 'Invalid or missing installed rule'
+    }
+  }
+  $rulesPresent = $true
+} catch { $rulesPresent = $false }
+if (-not $rulesPresent) {
+  Emit '━━━ Li+ update status ━━━'
+  Emit 'LI_PLUS_UPDATE_STATUS=needed reason=installed-rules-missing'
+  Emit 'Install the .codex/rules mirror through Li+update Phase 4 codex.'
+  Emit '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+  Flush-Json
+  if ($gitTreeTmp) { Remove-Item -LiteralPath $gitTreeTmp -Recurse -Force -ErrorAction SilentlyContinue }
+  exit 0
+}
 $decisionStruct = Join-Path $sourceRoot 'docs/Decision-Structure.md'
 
 # ===================================================================
 # RULES INJECTION (Codex-only; substitute for Claude .claude/rules/)
 # ===================================================================
-# Read every rules/**/*.md from $sourceRoot and emit the literal bodies. This is
+# Read installed .codex/rules/**/*.md and emit the literal bodies. This is
 # the always-on rules surface for Codex. Runs on EVERY matcher (startup and
 # resume/clear/compact) because Codex has no folder-level persistence — the
 # only always-on substrate is re-injection per session boundary.
@@ -218,17 +250,17 @@ $decisionStruct = Join-Path $sourceRoot 'docs/Decision-Structure.md'
 # emission order matches the bash ports' `find rules ... | LC_ALL=C sort` on both
 # axes at once: `Sort-Object` is culture-aware, and `FullName` would order on the
 # native separator instead of the `/` the bash ports compare.
-$rulesRoot = Join-Path $sourceRoot 'rules'
 if (Test-Path -LiteralPath $rulesRoot) {
   $ruleFiles = [string[]]@(
     Get-ChildItem -LiteralPath $rulesRoot -Recurse -Filter '*.md' -File -ErrorAction SilentlyContinue |
-      ForEach-Object { $_.FullName.Substring($sourceRoot.Length).TrimStart('\', '/') -replace '\\', '/' })
+      Where-Object { $_.FullName -cne (Join-Path $rulesRoot 'model/character_Instance.md') } |
+      ForEach-Object { $_.FullName.Substring($rulesRoot.Length).TrimStart('\', '/') -replace '\\', '/' })
   if ($ruleFiles.Count -gt 0) {
     [Array]::Sort($ruleFiles, [System.StringComparer]::Ordinal)
     Emit '━━━ Li+ rules (always-on; injected because Codex has no .claude/rules equivalent) ━━━'
     foreach ($rel in $ruleFiles) {
-      $content = Get-Content -LiteralPath (Join-Path $sourceRoot $rel) -Raw -ErrorAction SilentlyContinue
-      Emit "----- $rel -----"
+      $content = Get-Content -LiteralPath (Join-Path $rulesRoot $rel) -Raw -ErrorAction SilentlyContinue
+      Emit "----- .codex/rules/$rel -----"
       Emit $content
       Emit ''
     }
@@ -467,7 +499,8 @@ if (Test-Path -LiteralPath $rulesRoot) {
   # culture-aware and would reorder this list under some locales.
   $rel = [string[]]@(
     Get-ChildItem -LiteralPath $rulesRoot -Recurse -Filter '*.md' -File -ErrorAction SilentlyContinue |
-      ForEach-Object { 'rules/' + ($_.FullName.Substring($rulesRoot.Length).TrimStart('\','/') -replace '\\','/') })
+      Where-Object { $_.FullName -cne (Join-Path $rulesRoot 'model/character_Instance.md') } |
+      ForEach-Object { '.codex/rules/' + ($_.FullName.Substring($rulesRoot.Length).TrimStart('\','/') -replace '\\','/') })
   if ($rel.Count -gt 0) { [Array]::Sort($rel, [System.StringComparer]::Ordinal) }
   $rulesTree = ($rel -join "`n")
 }
@@ -954,7 +987,8 @@ if ($memoryDir -and (Test-Path -LiteralPath $memoryDir)) {
   }
   $srcFiles = @()
   if (Test-Path -LiteralPath $rulesRoot) {
-    $srcFiles += @(Get-ChildItem -LiteralPath $rulesRoot -Recurse -Filter '*.md' -File -ErrorAction SilentlyContinue)
+    $srcFiles += @(Get-ChildItem -LiteralPath $rulesRoot -Recurse -Filter '*.md' -File -ErrorAction SilentlyContinue |
+      Where-Object { $_.FullName -cne (Join-Path $rulesRoot 'model/character_Instance.md') })
   }
   $skillsRoot = Join-Path $sourceRoot 'skills'
   if (Test-Path -LiteralPath $skillsRoot) {
@@ -967,7 +1001,9 @@ if ($memoryDir -and (Test-Path -LiteralPath $memoryDir)) {
     $rootPrefix = ($sourceRoot -replace '\\', '/').TrimEnd('/') + '/'
     foreach ($sf in $srcFiles) {
       $rel = $sf.FullName -replace '\\', '/'
-      if ($rel.StartsWith($rootPrefix)) { $rel = $rel.Substring($rootPrefix.Length) }
+      if ($sf.FullName.StartsWith($rulesRoot + [System.IO.Path]::DirectorySeparatorChar)) {
+        $rel = '.codex/rules/' + ($sf.FullName.Substring($rulesRoot.Length).TrimStart('\','/') -replace '\\','/')
+      } elseif ($rel.StartsWith($rootPrefix)) { $rel = $rel.Substring($rootPrefix.Length) }
       $content = Get-Content -LiteralPath $sf.FullName -Raw -ErrorAction SilentlyContinue
       if (-not $content) { continue }
       $seen = @{}

@@ -350,7 +350,7 @@ claude branch surface-for-surface (#1502 real-device-verified Codex placements):
 - skills land at `.agents/skills/<name>/SKILL.md` (Codex native auto-invocation,
   NO trust gate — verified).
 - always-on rules have no Codex folder equivalent; they are injected by the
-  SessionStart hook from the LI_PLUS_REPO clone (`.codex/hooks/on-session-start`).
+  SessionStart hook from the installed `.codex/rules/` mirror (`.codex/hooks/on-session-start`).
   So unlike the previous Codex branch, there is no "read all rules/ inline at
   bootstrap" step — the hook is the always-on substrate.
 - hooks land at `.codex/hooks/` (`*.ps1` Windows-native primary + `*.sh` POSIX
@@ -372,6 +372,8 @@ grant trust in the GUI. See `docs/D.-Installation.md` for the step-by-step.
   `adapter/codex/character-config.md` for official host configuration references
   and version-specific profile formats. Do not change profile selection, migrate
   profile formats, or grant trust as part of this step.
+- Native character detection also preserves a user literal with a `NAME=...`
+  line, even when it does not use the template's bracket marker.
 - Read the old AGENTS.md before any 4x.1 tag skip or region replacement. Existing
   native character settings and explicit opt-out take precedence. Never refresh
   a user-owned character from a later Li+ template.
@@ -387,13 +389,13 @@ grant trust in the GUI. See `docs/D.-Installation.md` for the step-by-step.
   Apply the existing legacy user-decision procedure; never replace the old region
   until the literal is saved or the user has explicitly chosen opt-out / the
   existing native setting. Declining migration keeps the old adapter untouched.
-- On fresh install with no Li+ adapter and no native setting / opt-out, offer the
+- With no native character and no explicit opt-out, offer the
   Lin/Lay initial template `adapter/codex/character-instructions.toml`. Apply on
   opt-in; on opt-out preserve configuration and continue without a literal.
-  This includes a user's existing AGENTS.md without a Li+ region. Only an
-  existing adapter with one ordered Li+ BEGIN / END sentinel pair and no old
-  literal is treated as already migrated / opted out: do not insert defaults
-  on re-update. Ambiguous sentinel boundaries stop preservation and 4x.1.
+  This includes re-update with an existing adapter. A missing legacy literal or
+  an empty instruction value is absence, not evidence of opt-out; resolve an
+  explicit user decision as `disabled`. Ambiguous sentinel boundaries stop
+  preservation and 4x.1.
   Check boundaries before returning a plan that preserves native settings or
   opt-out; neither preservation choice exempts that check.
 - Before changing an existing config, show the proposed instruction delta
@@ -448,6 +450,42 @@ grant trust in the GUI. See `docs/D.-Installation.md` for the step-by-step.
   (identity / startup contract). The full rule set arrives via the
   SessionStart hook injection (4x.3), not inline, to stay under Codex's
   `project_doc_max_bytes` (default 32 KiB).
+
+4x.1r. Install .codex/rules/ (recursive, ownership-tracked mirror):
+- After 4x.0 saves and verifies the native literal (or resolves explicit opt-out),
+  run `scripts/install_codex_rules.py` from `{resolved_source_root}` (Python 3.11+):
+  `--source {resolved_source_root}/rules --workspace {workspace_root}
+  --config {workspace_root}/.codex/config.toml --native-state present|disabled`.
+  The default is a read-only plan; `--apply` performs installation after checking
+  ownership. For a character inherited from another effective native layer,
+  supply `--effective-instructions <private-UTF-8-file>` and remove it after use.
+- Mirror all `rules/**/*.md` except `model/character_Instance.md`, retaining each
+  relative path and byte content. The native character is user owned and is not
+  reintroduced via the mirror. The helper verifies native read-back and leaves
+  config bytes unchanged, reporting only their SHA256, paths and status.
+- Ownership record = `.codex/state/liplus-rules.json` (relative markdown paths
+  plus installed hashes). Only recorded, unmodified Li+ files can be replaced
+  or retired. Byte-identical unowned files can be adopted; conflicting unowned
+  or modified files stop installation without mutation. Native execution-policy
+  files and unrecorded additional rules are preserved. A byte-identical old
+  distributed character rule can be backed up and removed after native read-back;
+  a custom copy already preserved verbatim in effective native instructions
+  can also be backed up and retired. Divergent custom content requires
+  preservation/ownership resolution before removal.
+- Before mutations, save unique byte-faithful rule/manifest backups under
+  `.codex/state/rules-backup-<id>/`. Recheck inputs, read back saved rules, then
+  atomically save the manifest; restore touched rules on save failure. Repeated
+  installation is a no-op when contents match. Do not infer ownership from the
+  whole `.codex/rules/` directory or delete unrecorded files/empty directories.
+- SessionStart's rules injection, cold-start rule anchor, fetch-address table
+  and rule keyword scan read this installed tree; skills/docs still use the
+  resolved source. Before injection on every matcher, validate the ownership
+  manifest and the file presence of every recorded rule, including the anchor.
+  A missing or invalid manifest, an unrecorded anchor, or a missing recorded rule
+  requires this step again, without partial injection or a fallback to a shared
+  clone's working tree. This presence check does not compare content hashes.
+  Rules are still hook-injected;
+  `.codex/rules/` is not claimed to be a Codex automatic Markdown loader.
 
 4x.2. Generate .agents/skills/ files (flat directory mirror):
 - Mirrors 4c.3, but the Codex native skill location is `.agents/skills/`, not

@@ -8,7 +8,7 @@
 # .claude/rules and .claude/skills folders to the Codex surfaces:
 #   - rules: on Codex there is no .claude/rules folder. The injected rules are in
 #     session context (SessionStart hook); the source-of-truth literals are
-#     Readable in the clone at liplus-language/rules/**/*.md.
+#     Readable in the workspace at .codex/rules/**/*.md.
 #   - skills: .agents/skills/<name>/SKILL.md (Codex skill placement).
 #   - character: the user's effective native developer_instructions literal.
 # Reasoning effort is selected at the spawn call. This file intentionally does
@@ -63,7 +63,7 @@ Specifically:
   frame check engaged
 - Do not evaluate by gist ("they did okay"); judge literally as "turn N produced
   X, Master register Y, interaction Z"
-- Li+ rules / skills are Readable in the workspace and the liplus-language clone
+- Li+ rules / skills are Readable in the workspace (.codex/rules and .agents/skills)
   (see Reference materials below) and referenceable
 - The Decision Log wiki is referenceable via web fetch
   (https://github.com/Liplus-Project/liplus-language/wiki)
@@ -201,9 +201,8 @@ value is the per-axis read plus this qualitative synthesis.
 ## Reference materials (consult as needed)
 
 ### Li+ specification (Readable in the workspace / clone)
-- liplus-language/rules/**/*.md — L1-L4 layer rules. On Codex these are also
-  injected into session context by the SessionStart hook; the clone holds the
-  source-of-truth literals.
+- .codex/rules/**/*.md — installed L1-L4 layer rule literals. On Codex these
+  are also injected into session context by the SessionStart hook.
   - In particular: model/character.md, model/dialogue.md,
     model/trigger-check-gate.md
 - .agents/skills/**/SKILL.md — description-invoked skills

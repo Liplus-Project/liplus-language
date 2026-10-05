@@ -9,8 +9,9 @@ Copy the literal from `adapter/codex/character-instructions.toml` into the
 effective `developer_instructions`, retaining the user's common instructions.
 That template contains the initial Lin/Lay pair; a legacy custom literal takes
 its place during migration. Once installed, Li+ updates do not refresh it.
-To opt out, remove the literal from the effective native instructions. On initial
-installation, declining the default is also an opt-out.
+To opt out, explicitly decline the character and pass `disabled` at bootstrap.
+Removing a literal or leaving an empty value alone is absence, not an explicit
+opt-out decision. Absent characters are offered on re-update as well.
 
 The official [configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
 defines `developer_instructions` as additional session instructions. The
@@ -18,6 +19,8 @@ defines `developer_instructions` as additional session instructions. The
 document user `~/.codex/config.toml` and trusted project `.codex/config.toml`.
 Resolve CLI overrides, the closest trusted project layer, the selected profile,
 user, managed and system layers before deciding that a character is absent.
+A user native literal with a `NAME=...` line is preserved even when it does not
+use the template's bracket marker.
 Read settings without displaying credentials. Do not override an explicit native
 character or opt-out with a project default. An untrusted project's config is
 not loaded; verify the intended setting reaches the next session.
@@ -69,8 +72,8 @@ helper preserves config and backs up a detected old literal. `blocked` means the
 old AGENTS.md region must remain. Re-run the plan after resolving the ambiguity.
 Fresh install offers the default both when AGENTS.md is absent and when a user's
 existing AGENTS.md has no Li+ region. An existing adapter with one ordered Li+
-BEGIN / END sentinel pair and no literal is treated as already migrated/opted
-out and gets no default inserted. Ambiguous sentinel boundaries block the plan.
+BEGIN / END sentinel pair and no literal still receives the absent-character
+offer. Ambiguous sentinel boundaries block the plan.
 The boundary check precedes the native-setting and opt-out preservation returns.
 When the project config has no root instruction key, pass effective inherited
 common instructions through a private UTF-8 file with `--inherited-instructions
@@ -81,5 +84,8 @@ Backups use unique `.liplus-character-backup-<id>` siblings and contain the full
 original bytes. Keep them private with the source files, since config may contain
 secrets. Verify the config read-back, preserved common instructions and character
 literal before replacing AGENTS.md. Backups are recovery evidence, not generated
-instructions. The helper neither grants project/hook trust nor edits user-global
+instructions. After native read-back, install the rules mirror with
+`scripts/install_codex_rules.py` as specified in `Li+update.md` 4x.1r.
+It omits the character template and verifies that config bytes stay unchanged.
+The helper neither grants project/hook trust nor edits user-global
 configuration, profiles, hooks or AGENTS.md.

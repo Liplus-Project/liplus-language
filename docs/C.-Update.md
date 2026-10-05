@@ -237,10 +237,10 @@ api モードが clone モードと違うのはソースの取得元だけであ
 
 ### Phase 4 codex: Codex 統合
 
-Codex ホストでは Phase 4 claude branch と同型に adapter / skills / hooks / agents を生成する（#1502 実機検証済みの Codex 配置）。
+Codex ホストでは Phase 4 claude branch と同型に adapter / rules / skills / hooks / agents を生成する（#1502 実機検証済みの Codex 配置）。
 
 - skill は `.agents/skills/<name>/SKILL.md` に配置（Codex ネイティブの `description` 自動発火、**trust 不要**）
-- 常時 rules には Codex 側のフォルダ相当が無いため、SessionStart hook が LI_PLUS_REPO clone から `rules/**/*.md` を読み `additionalContext` で注入する（`.codex/hooks/on-session-start`）。旧 branch の「bootstrap で rules を直接読む」ステップは廃止
+- 常時 rules には Codex 側のフォルダ相当が無いため、SessionStart hook が導入済み `.codex/rules/**/*.md` を読み `additionalContext` で注入する（`.codex/hooks/on-session-start`）。旧 branch の「bootstrap で rules を直接読む」ステップは廃止
 - hook は `.codex/hooks/`（`*.ps1` が Windows ネイティブ主経路 + `*.sh` POSIX フォールバック）に配置し、`.codex/hooks.json` で登録
 - subagent（Codex "agents"）は `.codex/agents/*.toml` に配置
 
@@ -250,8 +250,8 @@ Codex ホストでは Phase 4 claude branch と同型に adapter / skills / hook
 
 - 実効 `developer_instructions` と明示的 opt-out を先に確認し、CLI・trusted project・選択 profile・user・managed/system の設定を解決する。profile の選択・形式・trust は変更しない（公式資料と版差は `adapter/codex/character-config.md`）
 - 旧 AGENTS.md の `[Character_Instance]` を区画置換・tag 一致スキップより先に読む。一意な sentinel と Responsibilities 境界の内側ならカスタム literal 全文を保存。境界が曖昧・legacy 無 sentinel・TOML 無効・実効設定未解決なら 4x.1 を止め、既存の legacy 判断手順へ戻る
-- Python 3.11+ `scripts/migrate_codex_character.py --agents <workspace>/AGENTS.md --config <workspace>/.codex/config.toml --native-state absent|present|disabled` の既定は read-only plan。既存キャラと opt-out を優先し、設定を書き換えない。新規のみ Lin/Lay の opt-in を提案。移行済み / opt-out 済みの既存 adapter に既定キャラを再挿入しない
-- 初回には Li+ 区画のない通常の既存 AGENTS.md も含む。literal のない既存 adapter の再更新は、一意で順序の正しい Li+ BEGIN / END sentinel 区画で判定する。AGENTS.md の存在だけでは移行済み / opt-out 済みとしない。sentinel 境界が曖昧なら 4x.1 を止める。既存 native 設定／opt-out を保持する分岐より先に境界を検査する
+- Python 3.11+ `scripts/migrate_codex_character.py --agents <workspace>/AGENTS.md --config <workspace>/.codex/config.toml --native-state absent|present|disabled` の既定は read-only plan。既存キャラと opt-out を優先し、設定を書き換えない。キャラ不在なら初回・再更新とも Lin/Lay の opt-in を提案。既存キャラと明示 opt-out は保持する
+- 初回には Li+ 区画のない通常の既存 AGENTS.md も含む。旧 literal の不在や空の指示値は単なる不在であり、明示 opt-out と判断しない。sentinel 境界が曖昧なら 4x.1 を止める。既存 native 設定／opt-out を保持する分岐より先に境界を検査する
 - 既存 config の共通指示への追記は差分提示・承認後に `--apply --approve-existing` で保存。新規への opt-in は `--apply`。旧 AGENTS.md と変更する既存 config を一意名でバイト忠実にバックアップ。保存・read-back に失敗したら config を復旧し、旧区画を保持する。保存した TOML・共通指示・literal（または実効ネイティブ設定 / opt-out）を検証してから 4x.1 へ進む。helper 不在時も同じ保存判断を手動で行う
 - target に root の指示キーが無い場合は、実効設定から継承された共通指示も保持する。private UTF-8 file の `--inherited-instructions <file>` で helper へ渡し、使用後に削除する。指示本文を command line や report に出さない
 
@@ -261,6 +261,10 @@ Codex ホストでは Phase 4 claude branch と同型に adapter / skills / hook
 - sentinel 判定ロジックは 4c.1 と同一（存在しなければ新規、sentinel ありタグ一致でスキップ、不一致で section 差し替え、sentinel なしでユーザー確認）。差し替え時の legacy webhook trailer migration も4c.1と同一で、旧 section が heading を持たない時だけ、連続する byte-exact legacy trailer を `Li+ END` 直後から除去し、canonical sentinel 外のユーザー作成 suffix を保持する
 - 生成 AGENTS.md にキャラ定義・代替項目・参照リンクを残さない。ネイティブ設定は利用者所有のまま更新で再生成しない
 - 32 KiB 上限: ルートの AGENTS.md は最小コア（identity / 起動契約）のみを保持。rules 全体は 4x.3 の SessionStart hook 注入で届くため inline しない（Codex の `project_doc_max_bytes` 既定 32 KiB を超えないため）
+
+**4x.1r. `.codex/rules/` の導入**
+
+- 正本は `Li+update.md` 4x.1r。タグ解決した source の helper を実行し、native 保存確認後に character_Instance.md を除く rules をコピーする。所有 manifest に従って更新・stale 削除し、無関係な追加 md と native execution-policy を保持する。既定は read-only plan、書込前 backup と読戻し・失敗時復旧を行う。
 
 **4x.2. `.agents/skills/` ファイル生成（flat ディレクトリミラー）**
 

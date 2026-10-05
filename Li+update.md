@@ -365,7 +365,15 @@ and the per-turn gate re-arm silently do nothing. Bootstrap writes the hook file
 but cannot grant trust; the completion report (Phase 6) must instruct the user to
 grant trust in the GUI. See `docs/D.-Installation.md` for the step-by-step.
 
-4x.0. Preserve the native character before adapter replacement:
+4x.0. Resolve character delivery before adapter replacement:
+- First validate project style state using the output-style helper without a
+  process override. `.codex/output-styles` plus no selector selects
+  `character_instance`; a missing default is an error. Only absence of both
+  directory and selector is legacy. Verified file mode or `[liplus] output_style =
+  false` satisfies the character gate; do not execute the native default install
+  below, regenerate user styles, or re-add inline personas. Resolve any overlapping
+  effective native persona before entering file mode, preserving common instructions.
+- The following native-preservation steps are the legacy compatibility path only.
 - Resolve the effective native `developer_instructions` and user opt-out across
   CLI overrides, trusted project layers, the selected profile, user and managed /
   system configuration. Do not print config contents or credentials. Follow
@@ -415,6 +423,36 @@ grant trust in the GUI. See `docs/D.-Installation.md` for the step-by-step.
   resolved native character / opt-out) before proceeding to 4x.1. A second save
   sees the native literal and does not append another copy.
 
+4x.0s. Explicit project output-style migration (optional, one-time):
+- Canonical user artifact = `{workspace_root}/.codex/output-styles/<name>.md`.
+  Default name = `character_instance`; project `.codex/config.toml` stores only
+  `[liplus] output_style = "<name>"` (false disables the default). API and parser
+  details are owned by `adapter/codex/character-config.md`.
+- Run `scripts/migrate_codex_output_style.py --workspace {workspace_root}
+  --name <stem> --persona-file <private-approved-body-file>` for a read-only plan.
+  The file is the approved exact slice of a root native instruction value, never
+  a body argument/environment variable. It must have a unique boundary. Do not
+  infer approval to extract a persona from unrelated common instructions.
+- `--apply --approve-existing` records explicit approval. The helper preserves
+  common text and unrelated/MCP/profile/model settings and encoding, creates
+  Claude-compatible frontmatter, checks inputs for concurrent changes, saves
+  byte-faithful private backups, verifies read-back and rolls back failed writes.
+  Empty common instructions retain an empty key; deleting it could expose lower
+  native personas. Completed re-application is a no-op. Existing styles are protected.
+- Explicit `--use-existing-style` activates an existing validated user artifact
+  without overwriting it, even when its body differs from the approved old inline
+  slice. The old inline is saved in the byte backup, then only its unique approved
+  boundary is removed. Style bytes and common instructions remain unchanged.
+- An approved local standalone profile may be selected with `--remove <config>
+  <private-approved-body-file>`; repeat only for individually approved local
+  `.codex/*.toml` files. `--preserve-selection` exports/activates an account style
+  without changing the project selector. Do not scan or edit unspecified profiles,
+  user/global settings, CLI overrides or profile selections. Clean up private
+  body files after use. The helper does not grant trust or edit AGENTS/hooks.
+- Claude sharing is an environment operation: protect existing
+  `.claude/output-styles` content, then link the selected artifact and select its
+  stem. Do not overwrite existing Claude files or create a second persona delivery.
+
 4x.1. Bootstrap adapter:
 - target = {workspace_root}/AGENTS.md, source = adapter/codex/AGENTS.md
 - Replace {LI_PLUS_TAG} in all generated content with the resolved target tag from Phase 3.
@@ -452,16 +490,16 @@ grant trust in the GUI. See `docs/D.-Installation.md` for the step-by-step.
   `project_doc_max_bytes` (default 32 KiB).
 
 4x.1r. Install .codex/rules/ (recursive, ownership-tracked mirror):
-- After 4x.0 saves and verifies the native literal (or resolves explicit opt-out),
+- After 4x.0 validates the selected style/disabled state or preserves legacy native,
   run `scripts/install_codex_rules.py` from `{resolved_source_root}` (Python 3.11+):
   `--source {resolved_source_root}/rules --workspace {workspace_root}
-  --config {workspace_root}/.codex/config.toml --native-state present|disabled`.
+  --config {workspace_root}/.codex/config.toml --native-state style|present|disabled`.
   The default is a read-only plan; `--apply` performs installation after checking
   ownership. For a character inherited from another effective native layer,
   supply `--effective-instructions <private-UTF-8-file>` and remove it after use.
 - Mirror all `rules/**/*.md` except `model/character_Instance.md`, retaining each
   relative path and byte content. The native character is user owned and is not
-  reintroduced via the mirror. The helper verifies native read-back and leaves
+  reintroduced via the mirror. The helper verifies style/disabled or native read-back and leaves
   config bytes unchanged, reporting only their SHA256, paths and status.
 - Ownership record = `.codex/state/liplus-rules.json` (relative markdown paths
   plus installed hashes). Only recorded, unmodified Li+ files can be replaced
@@ -506,11 +544,30 @@ Claude host). Skill auto-invocation is by `description` match with NO trust gate
 is expressed via the skill-name prefix convention (e.g. `evolution-judgment-learning`).
 
 4x.3. Bootstrap hooks:
+- Install/update the independent output-style handler with
+  `scripts/install_codex_output_style.py --source {resolved_source_root}/scripts/codex_output_style.py
+  --workspace {workspace_root}` (read-only plan; `--apply` saves). This helper
+  retains all other JSON event/group/product handlers, verifies helper ownership,
+  backs up original bytes, checks concurrent inputs and restores failed writes.
+  Its ownership record is `.codex/state/liplus-output-style.json`. It refuses
+  duplicate JSON/TOML placement; use the documented TOML alternate explicitly.
+- When rendering/updating the full hooks template below, retain every existing
+  handler not owned by the corresponding Li+ template. Do not discard unrelated
+  product/user handlers just because the enclosing hooks.json is Li+ managed.
 - Source files:
   - adapter/codex/hooks-config.md — contains the literal `.codex/hooks.json` JSON
     block (and an alternate `config.toml [hooks]` snippet).
   - adapter/codex/hooks/*.ps1 (Windows-native primary) and adapter/codex/hooks/*.sh
     (POSIX fallback) — hook script bodies as real files.
+  - scripts/codex_output_style.py (Python >=3.11, stdlib tomllib) — install as
+    `.codex/hooks/codex-output-style.py`, byte-faithfully, on first install and
+    whenever helper content differs. Never use the native model-instructions
+    replacement setting or an `@path` inline include to deliver this artifact.
+- The independent output-style SessionStart handler in hooks-config.md uses
+  `additionalContextLimit: 0` on startup/resume/clear/compact; retain the existing
+  rules handler/context limit and other product/event handlers. The helper bounds
+  full UTF-8 output to 128 KiB. Native GUI trust is required again after its body
+  changes; no bypass or hash editing. Resolve metadata is not proof of hook trust.
 - BYTE-FAITHFUL .ps1 copy (CRITICAL): the `.ps1` files are UTF-8 WITH BOM
   (first three bytes EF BB BF). Windows PowerShell 5.1 — the interpreter the
   `commandWindows` line invokes — misparses BOM-less non-ASCII `.ps1`. Copy the

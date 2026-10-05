@@ -144,6 +144,21 @@ def migrate(agents: Path, config: Path, native_state: str, *, apply: bool = Fals
         raise MigrationBlocked("Agents and config paths must differ")
     old_agents = agents.read_bytes() if agents.exists() else None
     old_config = config.read_bytes() if config.exists() else None
+    from codex_output_style import load
+    workspace = config.parent.parent
+    resolved, _ = load(workspace, workspace, environment=False)
+    if resolved["mode"] != "legacy":
+        old_literal = None
+        if old_agents is not None:
+            adapter_present(old_agents)
+            old_literal = legacy_literal(old_agents)
+        saved = []
+        if apply and old_literal is not None:
+            if agents.read_bytes() != old_agents or (config.read_bytes() if config.exists() else None) != old_config:
+                raise MigrationBlocked("Preservation inputs changed")
+            saved.append(str(backup(agents, old_agents)))
+        return {"status": "preserve-style" if resolved["mode"] == "file" else "preserve-disabled",
+                "config_change": False, "applied": apply, "backups": saved}
     plan = plan_migration(old_agents, old_config, native_state, inherited_instructions)
     changed = plan.config != (old_config or b"")
     report: dict[str, object] = {"status": plan.status, "config_change": changed,

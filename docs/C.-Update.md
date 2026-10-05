@@ -248,12 +248,21 @@ Codex ホストでは Phase 4 claude branch と同型に adapter / rules / skill
 
 **4x.0. アダプター置換前のキャラ保持**
 
+- 最初に `.codex/output-styles` と project `[liplus] output_style` を検証する。選択未設定＋フォルダありは `character_instance`、標準欠落は明示失敗。両方なしだけ legacy。検証済み file/false は gate を満たし、以下の native 既定追加を実行しない。共通指示を保持し有効 native persona の併置を移行前に解決する。
+- 以下の native 手順は legacy mode に限る。file mode の再更新で利用者 style を生成し直さない。
+
 - 実効 `developer_instructions` と明示的 opt-out を先に確認し、CLI・trusted project・選択 profile・user・managed/system の設定を解決する。profile の選択・形式・trust は変更しない（公式資料と版差は `adapter/codex/character-config.md`）
 - 旧 AGENTS.md の `[Character_Instance]` を区画置換・tag 一致スキップより先に読む。一意な sentinel と Responsibilities 境界の内側ならカスタム literal 全文を保存。境界が曖昧・legacy 無 sentinel・TOML 無効・実効設定未解決なら 4x.1 を止め、既存の legacy 判断手順へ戻る
 - Python 3.11+ `scripts/migrate_codex_character.py --agents <workspace>/AGENTS.md --config <workspace>/.codex/config.toml --native-state absent|present|disabled` の既定は read-only plan。既存キャラと opt-out を優先し、設定を書き換えない。キャラ不在なら初回・再更新とも Lin/Lay の opt-in を提案。既存キャラと明示 opt-out は保持する
 - 初回には Li+ 区画のない通常の既存 AGENTS.md も含む。旧 literal の不在や空の指示値は単なる不在であり、明示 opt-out と判断しない。sentinel 境界が曖昧なら 4x.1 を止める。既存 native 設定／opt-out を保持する分岐より先に境界を検査する
 - 既存 config の共通指示への追記は差分提示・承認後に `--apply --approve-existing` で保存。新規への opt-in は `--apply`。旧 AGENTS.md と変更する既存 config を一意名でバイト忠実にバックアップ。保存・read-back に失敗したら config を復旧し、旧区画を保持する。保存した TOML・共通指示・literal（または実効ネイティブ設定 / opt-out）を検証してから 4x.1 へ進む。helper 不在時も同じ保存判断を手動で行う
 - target に root の指示キーが無い場合は、実効設定から継承された共通指示も保持する。private UTF-8 file の `--inherited-instructions <file>` で helper へ渡し、使用後に削除する。指示本文を command line や report に出さない
+
+**4x.0s. project output-style の一回移行**
+
+- 正本は `Li+update.md` 4x.0s、API は `adapter/codex/character-config.md`。利用者所有の `.codex/output-styles/<name>.md` と選択名だけを持つ project config を導入する。`scripts/migrate_codex_output_style.py` は private file に保存された承認済み一意 persona 境界を保存し、common/無関係な設定・encoding を保持する。既定は read-only、`--apply --approve-existing` で明示適用、byte backup・同時変更 guard・read-back・失敗復旧・再適用 no-op を行う。
+- 既存 style を上書きしない。明示 `--use-existing-style` は既存本文を検証して保持し、旧 inline だけを backup 後に除去する。空 common は空キーを残す。個別承認した local config のみ `--remove` で指定し、account 保存は `--preserve-selection` で project 選択を保持する。global/profile を自動走査編集しない。
+- Claude 共有リンクは環境移行時に既存内容保護の上で作る。GUI trust・CLI startup/resume・Pullcept 実経路は source CI と別の完了証拠である。
 
 **4x.1. アダプターの bootstrap**
 
@@ -264,7 +273,7 @@ Codex ホストでは Phase 4 claude branch と同型に adapter / rules / skill
 
 **4x.1r. `.codex/rules/` の導入**
 
-- 正本は `Li+update.md` 4x.1r。タグ解決した source の helper を実行し、native 保存確認後に character_Instance.md を除く rules をコピーする。所有 manifest に従って更新・stale 削除し、無関係な追加 md と native execution-policy を保持する。既定は read-only plan、書込前 backup と読戻し・失敗時復旧を行う。
+- 正本は `Li+update.md` 4x.1r。タグ解決した source の helper を実行し、style/disabled または legacy native 保存確認後に character_Instance.md を除く rules をコピーする。所有 manifest に従って更新・stale 削除し、無関係な追加 md と native execution-policy を保持する。既定は read-only plan、書込前 backup と読戻し・失敗時復旧を行う。
 
 **4x.2. `.agents/skills/` ファイル生成（flat ディレクトリミラー）**
 
@@ -278,6 +287,7 @@ Codex ホストでは Phase 4 claude branch と同型に adapter / rules / skill
 - ソースファイル:
   - `adapter/codex/hooks-config.md` — `.codex/hooks.json` の JSON ブロックをリテラルで保持（`config.toml [hooks]` 代替スニペットも併記）
   - `adapter/codex/hooks/*.ps1`（Windows ネイティブ主経路）+ `adapter/codex/hooks/*.sh`（POSIX フォールバック）
+  - Python >=3.11 の `scripts/codex_output_style.py` を `.codex/hooks/codex-output-style.py` として byte-faithful 導入・内容更新する。独立 SessionStart handler の `additionalContextLimit: 0` と helper の 128 KiB 出力上限を使う。既存 rules context limit と他 handler を保持し、hook body 更新後は GUI trust を再確認する。resolve 成功だけで trust 済みとしない。
 - **`.ps1` のバイト忠実コピー（重要）:** `.ps1` は BOM 付き UTF-8（先頭 3 バイト `EF BB BF`）。これを呼び出す Windows PowerShell 5.1 は BOM 無しの非 ASCII `.ps1` を誤読する。`.ps1` は生バイトでコピーし、BOM を剥がす / 付け直す / 改行を書き換えるテキスト変換を通さない。インストール後、各 `.ps1` が `EF BB BF` で始まることを検証する（`.sh` は BOM 無し LF 終端 UTF-8、こちらもそのままコピー）
 - hook 本体の `{LI_PLUS_TAG}` 置換: `# Source: ... ({LI_PLUS_TAG})` 行の token を解決済みターゲットタグへ置換。BOM とその他バイトを保つためバイトレベルの token 置換で行う（token は ASCII、置換は先頭 BOM に触れない）
 - `.codex/hooks.json` の `{WORKSPACE_ROOT}` 置換: Codex の hook は絶対パスが必要（`$CLAUDE_PROJECT_DIR` 相当が無い）。`.codex/hooks.json` 内の `{WORKSPACE_ROOT}` をすべて絶対 workspace パスへ置換。スペースを含むパスは quote（テンプレートは `-File` 引数を既に quote 済み）

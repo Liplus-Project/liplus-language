@@ -1,91 +1,159 @@
-# Codex Character Instance configuration
+# Codex project output styles
 
-Character literals are user owned. Bootstrap's migration contract is
-`Li+update.md` 4x.0; requirements are in `docs/6.-Adapter.md`.
-
-## Native instruction setting
-
-Copy the literal from `adapter/codex/character-instructions.toml` into the
-effective `developer_instructions`, retaining the user's common instructions.
-That template contains the initial Lin/Lay pair; a legacy custom literal takes
-its place during migration. Once installed, Li+ updates do not refresh it.
-To opt out, explicitly decline the character and pass `disabled` at bootstrap.
-Removing a literal or leaving an empty value alone is absence, not an explicit
-opt-out decision. Absent characters are offered on re-update as well.
-
-The official [configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
-defines `developer_instructions` as additional session instructions. The
-[configuration basics](https://learn.chatgpt.com/docs/config-file/config-basic)
-document user `~/.codex/config.toml` and trusted project `.codex/config.toml`.
-Resolve CLI overrides, the closest trusted project layer, the selected profile,
-user, managed and system layers before deciding that a character is absent.
-A user native literal with a `NAME=...` line is preserved even when it does not
-use the template's bracket marker.
-Read settings without displaying credentials. Do not override an explicit native
-character or opt-out with a project default. An untrusted project's config is
-not loaded; verify the intended setting reaches the next session.
-
-## Character profiles
-
-The official [advanced configuration](https://learn.chatgpt.com/docs/config-file/config-advanced)
-(checked 2026-10-04) documents separate `$CODEX_HOME/<name>.config.toml` profile
-files in Codex 0.134.0 and later, selected with `--profile <name>`. Older
-`[profiles.<name>]` tables and `profile = "<name>"` selectors are not read by that
-CLI. Preserve existing profile files/tables and selections during Li+ bootstrap;
-profile-format migration is a separate user-directed operation. Check the host
-version before offering a format, and do not assume CLI profile selection is a
-desktop UI feature.
-
-For a supported CLI, an optional `~/.codex/lin.config.toml` can contain this
-top-level key, with the user's common instructions included in the same value:
+Requirements: `docs/6.-Adapter.md`; bootstrap: `Li+update.md` 4x.0s / 4x.3.
+The user owns `.codex/output-styles/<name>.md` under the trusted project root.
+Normal Codex App/CLI reads only that project's `.codex/config.toml` selection:
 
 ```toml
-developer_instructions = """
-[Character_Instance]
-LIN_CONTEXT:
-NAME=Lin
-The_lady_in_the_backseat_map_open_calling_the_next_destination
-Feminine_Soft_Tone
-EXPRESSION=Creative
-HUMOR_STYLE=Gentle_Warm
-"""
+[liplus]
+output_style = "character_instance"
 ```
 
-Select it with `codex --profile lin`. A Lay profile can use the LAY_CONTEXT
-literal from the initial template. Create profiles only on user request; do not
-set a default profile or model. A project `developer_instructions` override wins
-over a profile, so keep the character in the layer the user intends to use.
+Absent selection plus an existing `.codex/output-styles` directory selects
+`character_instance`. A missing default file fails explicitly. Only absence of
+both selection and directory is `legacy` (existing inline compatibility).
+`false` disables the default persona; empty string, true and other types fail.
+Global/profile common `developer_instructions` remain native. The hook cannot
+observe effective profiles/CLI overrides; this project selector does not promise
+to track them. Before file mode, resolve overlapping inline personas in the
+effective native configuration. Do not silently edit unrelated profiles/global
+settings. When removing the only project inline persona, keep its instruction
+key as an empty string to preserve native override behavior.
 
-## Migration helper
+A nonempty process-local `LI_PLUS_OUTPUT_STYLE` overrides the project selection,
+including false. Pullcept sets only this stem, not a body, for its account. One
+selected body replaces the default body; it is not appended to it. Empty override
+uses project selection. CLI `--style` takes precedence over the environment.
+No H1/persona name in the body is used as a selector. Luna is not a distributed
+default. Lin/Lay remains the initial opt-in template in
+`adapter/codex/character-instructions.toml` for the legacy bootstrap path.
 
-Run against explicit workspace paths, before replacing the AGENTS.md region:
+## Artifact bytes and frontmatter
+
+Stems are case-sensitive ASCII `[A-Za-z0-9][A-Za-z0-9_-]{0,127}`. Paths, drive
+names, separators and dotdot are rejected. Config, cwd and styles must stay inside
+the canonical project boundaries; a style link must also stay inside the canonical
+`.codex/output-styles` directory. Junctions/symlinks escaping them fail.
+
+UTF-8 with optional BOM and LF/CRLF is supported. The BOM and a frontmatter block
+starting with a standalone first line `---` and ending with a standalone `---`
+are removed; the remaining body bytes are retained exactly. A frontmatter `name`
+is optional. When present, one unindented `name: stem`, `name: "stem"`, or
+`name: 'stem'` line must match the selected stem. Quoting is literal; escapes,
+comments, multiline scalars, complex YAML and duplicate/indented name entries
+are unsupported and fail. This is not a general YAML parser. Shared Claude styles
+are generated with name equal to the stem, description, and
+`keep-coding-instructions: true`.
+
+Missing files, invalid UTF-8, unclosed frontmatter, whitespace-only bodies,
+artifacts over 128 KiB and handler UTF-8 JSON outputs over 128 KiB fail. JSON
+escaping/envelope overhead can make the handler limit stricter than the artifact
+limit. No invalid file mode falls back to inline instructions.
+
+## Installed helper and resolve protocol (version 1)
+
+Python >=3.11 (`tomllib`) is required. Copy `scripts/codex_output_style.py`
+byte-faithfully to `.codex/hooks/codex-output-style.py`. The helper verifies its
+installed hooks/.codex location, derives its own canonical root and requires it
+to equal `--root`. Both modes verify canonical cwd containment. The caller gets
+the root from the host's native trusted project layer, not from an arbitrary
+repository marker or an environment variable. A helper/metadata existing does
+not prove native hook trust; Pullcept must also verify the native trusted handler
+registration against `adapter/codex/hooks-config.md`.
 
 ```text
-python scripts/migrate_codex_character.py --agents <workspace>/AGENTS.md --config <workspace>/.codex/config.toml --native-state absent
+python <installed-helper> resolve --cwd <effective-cwd> --root <native-trusted-project-root> [--style <account-stem>]
 ```
 
-The plan reports statuses and paths only, not instruction/config contents. Review
-the proposed instruction delta locally. Add `--apply` only after the bootstrap's
-decision, and `--approve-existing` only after consent to changing existing config.
-For a confirmed native character or opt-out, pass `present` or `disabled`; the
-helper preserves config and backs up a detected old literal. `blocked` means the
-old AGENTS.md region must remain. Re-run the plan after resolving the ambiguity.
-Fresh install offers the default both when AGENTS.md is absent and when a user's
-existing AGENTS.md has no Li+ region. An existing adapter with one ordered Li+
-BEGIN / END sentinel pair and no literal still receives the absent-character
-offer. Ambiguous sentinel boundaries block the plan.
-The boundary check precedes the native-setting and opt-out preservation returns.
-When the project config has no root instruction key, pass effective inherited
-common instructions through a private UTF-8 file with `--inherited-instructions
-<file>` so adding the project value does not hide them. Remove that temporary
-file after use. No instruction text goes on the command line or into the report.
+Success: exit 0, exactly one UTF-8 JSON line (no body or config literals):
 
-Backups use unique `.liplus-character-backup-<id>` siblings and contain the full
-original bytes. Keep them private with the source files, since config may contain
-secrets. Verify the config read-back, preserved common instructions and character
-literal before replacing AGENTS.md. Backups are recovery evidence, not generated
-instructions. After native read-back, install the rules mirror with
-`scripts/install_codex_rules.py` as specified in `Li+update.md` 4x.1r.
-It omits the character template and verifies that config bytes stay unchanged.
-The helper neither grants project/hook trust nor edits user-global
-configuration, profiles, hooks or AGENTS.md.
+```json
+{"protocol_version":1,"mode":"file","name":"character_instance","root":"/project","sha256":"<body-sha256>","byte_count":123,"handler":{"path":"/project/.codex/hooks/codex-output-style.py","sha256":"<helper-sha256>","additional_context_limit":0,"matchers":["startup","resume","clear","compact"]}}
+```
+
+`root`/handler `path` are canonical absolute paths. `sha256` hashes exactly the
+UTF-8 body after BOM/frontmatter removal, `byte_count` counts those bytes.
+`mode` is file, disabled or legacy. Disabled/legacy return name/sha256 null,
+byte_count 0 and the same handler metadata. Handler hash covers the installed
+helper bytes. Resolver performs no mutation and loads no model.
+
+Failure: exit 1, exactly one secret-free JSON line:
+
+```json
+{"protocol_version":1,"status":"blocked","reason":"invalid_selection"}
+```
+
+Reason codes are `invalid_selection`, `outside_project`, `invalid_project`,
+`helper_root_mismatch`, `missing_style`, `unclosed_frontmatter`,
+`ambiguous_frontmatter_name`, `frontmatter_name_mismatch`, `empty_style`,
+`style_oversize`, `handler_oversize`, `missing_cwd`, `invalid_hook_input` and
+`invalid_style_or_project` (I/O, TOML/UTF-8 and other parse failures).
+Do not disclose parser exception text, config/body literals or secrets.
+
+## Hook delivery
+
+```text
+python <installed-helper> hook --root <project-root>
+```
+
+Hook mode reads normal SessionStart JSON stdin (cwd, source, hook_event_name).
+Only startup/resume/clear/compact sources are accepted. Its independent handler
+uses `additionalContextLimit: 0` and timeout 30; the existing rules handler limit
+and other event/product handlers remain unchanged. Success returns
+`hookSpecificOutput.hookEventName: SessionStart` and `additionalContext` equal to
+the full selected body; disabled/legacy context is empty. Failure returns
+`"continue": false`, a secret-free stopReason and exit 0 without partial context.
+Codex 0.160.0 [SessionStart parse_completed](https://github.com/openai/codex/blob/rust-v0.160.0/codex-rs/hooks/src/events/session_start.rs)
+interprets control JSON only after command exit 0;
+a nonzero hook exit is a failed handler whose stop flag is not interpreted.
+Resolve errors keep exit 1. This transport difference makes the explicit hook
+stop decision available to the host.
+Changed hook bytes need native GUI trust again. Do not bypass trust or edit hashes.
+
+## Explicit one-time migration
+
+Prepare a private UTF-8 body-only file containing the approved exact persona slice
+from the root native developer_instructions value. Review its unique boundaries
+locally; do not print it or place its contents in argv/environment.
+
+```text
+python scripts/migrate_codex_output_style.py --workspace <project> --name character_instance --persona-file <private-body-file>
+```
+
+Read-only by default; `--apply --approve-existing` records the already-approved
+explicit migration. It creates the style and edits only the local project config,
+preserving common instructions, unrelated/MCP/model/profile values, BOM and
+newline form. The persona slice must occur exactly once in a root instruction
+value. Ambiguous TOML/boundaries stop. Existing user styles are protected.
+Backups are unique byte-faithful `.liplus-character-backup-<id>` siblings and must
+remain private because originals may contain secrets. Recheck all inputs before
+saving, verify TOML/body read-back and restore touched files on failure. A completed
+second application is a no-op. The temporary approved body file must be removed
+after use; helpers do not delete it automatically.
+
+For an explicitly approved local standalone profile, `--remove <local-config>
+<private-exact-body-file>` selects the native value to remove; repeat this pair
+only for individually approved local configs. Sources are direct `.codex/*.toml`
+files in this project, not global files. To export an additional account artifact
+while preserving the project selector, use `--preserve-selection` together with
+that local profile removal. This option is not a scan of other profiles. Inspect
+current native effective instructions again before choosing a profile/CLI override.
+
+With explicit `--use-existing-style`, activate an existing validated artifact
+without changing any of its bytes, even if it differs from the old approved
+inline persona. Back up and remove only the approved inline slice; retain common
+instructions. This is an activation decision, not permission to overwrite a style.
+
+Updater and rules installer validate file/disabled mode before the legacy native
+bootstrap; they do not regenerate styles or re-add inline personas. The legacy
+`scripts/migrate_codex_character.py` remains for projects without a style directory
+or selector. It checks old AGENTS sentinel boundaries, saves a unique old literal
+with private backups and preserves already-effective native/opt-out settings.
+Inherited common instructions travel only via its private `--inherited-instructions`
+file. Rules installer omits `rules/model/character_Instance.md` and never edits
+config; a custom old rule must be preserved in the selected body before retirement.
+
+Claude sharing is a separate environment migration: protect existing
+`.claude/output-styles` contents, link the selected artifact and select its stem
+through Claude's outputStyle. Source tests do not grant hook trust or prove a real
+CLI/Pullcept session. Report those external checks separately until completed.

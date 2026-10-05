@@ -58,6 +58,15 @@ the Li+ default; the TOML snippet is the documented alternate.
 
 ## Bootstrap behavior
 
+The style handler installer is `scripts/install_codex_output_style.py --source
+<source>/scripts/codex_output_style.py --workspace <project>` (read-only plan;
+`--apply` saves). It preserves other groups/events/product handlers, tracks
+helper/registration ownership, makes byte backups, guards concurrent changes and
+rolls back failed writes. It refuses concurrent TOML/JSON hook placement. When
+rendering the full template, retain unrelated existing handlers rather than
+discarding them with a whole-file overwrite. The existing Li+ rules handler keeps
+its own context limit; the new full-delivery setting is handler-local.
+
 - If `{workspace_root}/.codex/hooks.json` does **not exist**: create it from the
   literal JSON below.
 - Write the rendered template with LF line endings and a trailing newline, on the
@@ -111,6 +120,14 @@ Target: `{workspace_root}/.codex/hooks.json`
             "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -File \"{WORKSPACE_ROOT}/.codex/hooks/on-session-start.ps1\"",
             "timeout": 60,
             "statusMessage": "Li+ cold-start + rules injection"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"{WORKSPACE_ROOT}/.codex/hooks/codex-output-style.py\" hook --root \"{WORKSPACE_ROOT}\"",
+            "commandWindows": "python \"{WORKSPACE_ROOT}/.codex/hooks/codex-output-style.py\" hook --root \"{WORKSPACE_ROOT}\"",
+            "timeout": 30,
+            "additionalContextLimit": 0,
+            "statusMessage": "Li+ project output style"
           }
         ]
       }
@@ -148,6 +165,16 @@ Target: `{workspace_root}/.codex/hooks.json`
 
 ### Matcher notes
 
+- The independent output-style command requires Python >=3.11 (`tomllib`). Install
+  `scripts/codex_output_style.py` byte-faithfully as `.codex/hooks/codex-output-style.py`.
+  Its root argument must match the canonical project root derived from its own
+  installed location. The rules handler keeps its existing context limit and body.
+  The style handler has `additionalContextLimit: 0`; the helper caps its UTF-8 JSON
+  output at 128 KiB. Do not register a second persona handler on the same matcher.
+  A changed helper body requires native GUI hook trust again. Never bypass trust
+  or hand-edit trust hashes. Protocol and failure semantics are owned by
+  `adapter/codex/character-config.md`.
+
 - Codex matchers are regex: `"startup|resume|clear|compact"` matches all four
   SessionStart sources in one group.
 - `PostToolUse` matcher `"Bash"` filters to Bash tool calls (the hook body also
@@ -174,6 +201,14 @@ matcher = "startup|resume|clear|compact"
   commandWindows = 'powershell -NoProfile -ExecutionPolicy Bypass -File "{WORKSPACE_ROOT}/.codex/hooks/on-session-start.ps1"'
   timeout = 60
   statusMessage = "Li+ cold-start + rules injection"
+
+  [[hooks.SessionStart.hooks]]
+  type = "command"
+  command = 'python3 "{WORKSPACE_ROOT}/.codex/hooks/codex-output-style.py" hook --root "{WORKSPACE_ROOT}"'
+  commandWindows = 'python "{WORKSPACE_ROOT}/.codex/hooks/codex-output-style.py" hook --root "{WORKSPACE_ROOT}"'
+  timeout = 30
+  additionalContextLimit = 0
+  statusMessage = "Li+ project output style"
 
 [[hooks.UserPromptSubmit]]
 
@@ -239,8 +274,8 @@ is `.ps1` (Windows native, primary on the verified Codex Windows env) + `.sh`
   re-emit (same condition and lines as the Claude port, reading
   `.codex/state/update-status.txt` and the `AGENTS.md` sentinel tag) + Trigger
   Check Gate re-arm + webhook re-arm, whose call half is `poll`-only and whose handling half
-  is emitted in every delivery mode (Character_Instance arrives through native
-  `developer_instructions`, not
+  is emitted in every delivery mode (Character_Instance arrives through the
+  independent project-style SessionStart handler or legacy native `developer_instructions`, not
   re-notified per turn).
 - `adapter/codex/hooks/post-tool-use.{ps1,sh}` — sub-issue refs auto-append on
   `gh pr create`, with a one-line `additionalContext` firing trace on every run

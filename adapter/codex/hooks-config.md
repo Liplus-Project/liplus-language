@@ -220,6 +220,15 @@ is `.ps1` (Windows native, primary on the verified Codex Windows env) + `.sh`
   `docs/2.-Evolution.md` Cold-start Synthesis (hook output contract).
   On `resume` / `clear` / `compact`: rules re-injection + language contract marker
   + cold-start anchor only.
+  Windows clone mode extracts a locally resolved installed sentinel tag through
+  a temporary archive file (`git archive --output` then `tar -xf`), preserving
+  binary bytes in Windows PowerShell 5.1. Both exit codes and extracted
+  `docs/Decision-Structure.md` / `skills/*/SKILL.md` files must pass before use.
+  A resolved-tag extraction failure emits `needed reason=liplus-source-unresolved`
+  with a diagnostic and stops; an unresolved tag keeps the existing fallback.
+  Temporary archives and extraction directories are removed after use.
+  The PowerShell port explicitly reads UTF-8 text for installed rules, anchors,
+  source scans, configuration values, and state. See `docs/6.-Adapter.md`.
   Update status state: at `startup`, a `needed` result writes one line
   `status=needed target=<target tag> adapter=<sentinel tag>` to
   `{workspace_root}/.codex/state/update-status.txt` (BOM-less from the `.ps1`

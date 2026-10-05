@@ -47,6 +47,15 @@ function Sha256Of([string]$s) {
   $bytes = [System.Text.Encoding]::UTF8.GetBytes($s)
   ($sha.ComputeHash($bytes) | ForEach-Object { $_.ToString('x2') }) -join ''
 }
+function Remove-TaggedTree([string]$path) {
+  $resolved = [System.IO.Path]::GetFullPath($path)
+  $tempRoot = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd('\', '/')
+  if ([System.IO.Path]::GetDirectoryName($resolved).TrimEnd('\', '/') -cne $tempRoot -or
+      [System.IO.Path]::GetFileName($resolved) -cnotmatch '^liplus-tree-[0-9a-f]{32}$') {
+    throw 'Extraction cleanup path outside temporary tree'
+  }
+  Remove-Item -LiteralPath $resolved -Recurse -Force -ErrorAction SilentlyContinue
+}
 function Flush-Json {
   # Wrap the accumulated buffer into the Codex SessionStart JSON envelope.
   $ctx = $script:BUFFER.ToString()
@@ -110,7 +119,7 @@ if ($payload) {
 # parity with the bash ports' `sed` extraction (see the language-pair note below).
 $liplusMode = ''
 if (Test-Path -LiteralPath $configFile) {
-  $ml = Select-String -LiteralPath $configFile -CaseSensitive -Pattern '^\s*LI_PLUS_MODE\s*=\s*(.*)$' -ErrorAction SilentlyContinue | Select-Object -First 1
+  $ml = Select-String -Encoding UTF8 -LiteralPath $configFile -CaseSensitive -Pattern '^\s*LI_PLUS_MODE\s*=\s*(.*)$' -ErrorAction SilentlyContinue | Select-Object -First 1
   if ($ml) { $liplusMode = $ml.Matches[0].Groups[1].Value.Trim() }
 }
 
@@ -136,12 +145,11 @@ if ($liplusMode -cne 'api' -and -not (Test-Path -LiteralPath $liplusDir)) {
 # $adapterTag is read from this file's own rendered sentinel, so a
 # workspace mid-way between two tags still reads the tag its OWN installed
 # hook was generated from, not whatever tag happens to be newest.
-# Extraction failure (tag not fetched locally, no git/tar on PATH, or no
-# sentinel yet on a pre-Li+update session) falls back to $liplusDir itself
-# — the pre-#1982 behavior — rather than emitting nothing.
+# An unresolved tag (or missing git/sentinel) retains the pre-#1982 fallback.
+# Once resolved, extraction failure stops rather than reading the working tree.
 $adapterTag = ''
 if (Test-Path -LiteralPath $adapterFile) {
-  $line = Select-String -LiteralPath $adapterFile -CaseSensitive -Pattern '^# --- Li\+ BEGIN \(([^)]*)\) ---' -ErrorAction SilentlyContinue | Select-Object -First 1
+  $line = Select-String -Encoding UTF8 -LiteralPath $adapterFile -CaseSensitive -Pattern '^# --- Li\+ BEGIN \(([^)]*)\) ---' -ErrorAction SilentlyContinue | Select-Object -First 1
   if ($line) { $adapterTag = $line.Matches[0].Groups[1].Value }
 }
 #
@@ -189,19 +197,38 @@ if ($liplusMode -ceq 'api') {
     }
     if (Test-Path -LiteralPath $tagDir) { $sourceRoot = $tagDir }
   }
-} elseif ($adapterTag -and (Test-Path -LiteralPath (Join-Path $liplusDir '.git')) -and (Get-Command git -ErrorAction SilentlyContinue) -and (Get-Command tar -ErrorAction SilentlyContinue)) {
-  $candidateTmp = Join-Path ([System.IO.Path]::GetTempPath()) ('liplus-tree-' + [System.Guid]::NewGuid().ToString('N'))
-  New-Item -ItemType Directory -Path $candidateTmp -Force -ErrorAction SilentlyContinue | Out-Null
-  $archiveOk = $false
-  try {
-    & git -C $liplusDir archive $adapterTag -- skills docs 2>$null | & tar -x -C $candidateTmp 2>$null
-    if ($LASTEXITCODE -eq 0) { $archiveOk = $true }
-  } catch { $archiveOk = $false }
-  if ($archiveOk) {
-    $sourceRoot = $candidateTmp
-    $gitTreeTmp = $candidateTmp
-  } else {
-    Remove-Item -LiteralPath $candidateTmp -Recurse -Force -ErrorAction SilentlyContinue
+} elseif ($adapterTag -and (Test-Path -LiteralPath (Join-Path $liplusDir '.git')) -and (Get-Command git -ErrorAction SilentlyContinue)) {
+  & git -C $liplusDir rev-parse --verify "$adapterTag^{commit}" 2>$null | Out-Null
+  if ($LASTEXITCODE -eq 0) {
+    $candidateTmp = Join-Path ([System.IO.Path]::GetTempPath()) ('liplus-tree-' + [System.Guid]::NewGuid().ToString('N'))
+    $archiveFile = Join-Path $candidateTmp 'source.tar'
+    $archiveOk = $false
+    try {
+      New-Item -ItemType Directory -Path $candidateTmp -ErrorAction Stop | Out-Null
+      # --output keeps native binary stdout out of the PS5.1 text pipeline.
+      & git -C $liplusDir archive "--output=$archiveFile" $adapterTag -- skills docs 2>$null
+      if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $archiveFile -PathType Leaf)) { throw 'git archive failed' }
+      & tar -xf $archiveFile -C $candidateTmp 2>$null
+      if ($LASTEXITCODE -ne 0) { throw 'tar failed' }
+      if (-not (Test-Path -LiteralPath (Join-Path $candidateTmp 'docs/Decision-Structure.md') -PathType Leaf) -or
+          -not @(Get-ChildItem -LiteralPath (Join-Path $candidateTmp 'skills') -Recurse -Filter 'SKILL.md' -File -ErrorAction Stop).Count) {
+        throw 'required extracted source absent'
+      }
+      $archiveOk = $true
+    } catch { $archiveOk = $false }
+    finally { Remove-Item -LiteralPath $archiveFile -Force -ErrorAction SilentlyContinue }
+    if ($archiveOk) {
+      $sourceRoot = $candidateTmp
+      $gitTreeTmp = $candidateTmp
+    } else {
+      Remove-TaggedTree $candidateTmp
+      Emit '━━━ Li+ update status ━━━'
+      Emit 'LI_PLUS_UPDATE_STATUS=needed reason=liplus-source-unresolved'
+      Emit 'Installed sentinel tag resolved, but skills/docs extraction failed. Check git/tar and the tagged source.'
+      Emit '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+      Flush-Json
+      exit 0
+    }
   }
 }
 $rulesRoot = Join-Path $projectRoot '.codex/rules'
@@ -234,7 +261,7 @@ if (-not $rulesPresent) {
   Emit 'Install the .codex/rules mirror through Li+update Phase 4 codex.'
   Emit '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
   Flush-Json
-  if ($gitTreeTmp) { Remove-Item -LiteralPath $gitTreeTmp -Recurse -Force -ErrorAction SilentlyContinue }
+  if ($gitTreeTmp) { Remove-TaggedTree $gitTreeTmp }
   exit 0
 }
 $decisionStruct = Join-Path $sourceRoot 'docs/Decision-Structure.md'
@@ -259,7 +286,7 @@ if (Test-Path -LiteralPath $rulesRoot) {
     [Array]::Sort($ruleFiles, [System.StringComparer]::Ordinal)
     Emit '━━━ Li+ rules (always-on; injected because Codex has no .claude/rules equivalent) ━━━'
     foreach ($rel in $ruleFiles) {
-      $content = Get-Content -LiteralPath (Join-Path $rulesRoot $rel) -Raw -ErrorAction SilentlyContinue
+      $content = Get-Content -Encoding UTF8 -LiteralPath (Join-Path $rulesRoot $rel) -Raw -ErrorAction SilentlyContinue
       Emit "----- .codex/rules/$rel -----"
       Emit $content
       Emit ''
@@ -294,9 +321,9 @@ if (Test-Path -LiteralPath $rulesRoot) {
 $baseLang = ''
 $projLang = ''
 if (Test-Path -LiteralPath $configFile) {
-  $bl = Select-String -LiteralPath $configFile -CaseSensitive -Pattern '^\s*LI_PLUS_BASE_LANGUAGE\s*=\s*(.*)$' -ErrorAction SilentlyContinue | Select-Object -First 1
+  $bl = Select-String -Encoding UTF8 -LiteralPath $configFile -CaseSensitive -Pattern '^\s*LI_PLUS_BASE_LANGUAGE\s*=\s*(.*)$' -ErrorAction SilentlyContinue | Select-Object -First 1
   if ($bl) { $baseLang = $bl.Matches[0].Groups[1].Value.Trim() }
-  $pl = Select-String -LiteralPath $configFile -CaseSensitive -Pattern '^\s*LI_PLUS_PROJECT_LANGUAGE\s*=\s*(.*)$' -ErrorAction SilentlyContinue | Select-Object -First 1
+  $pl = Select-String -Encoding UTF8 -LiteralPath $configFile -CaseSensitive -Pattern '^\s*LI_PLUS_PROJECT_LANGUAGE\s*=\s*(.*)$' -ErrorAction SilentlyContinue | Select-Object -First 1
   if ($pl) { $projLang = $pl.Matches[0].Groups[1].Value.Trim() }
 }
 
@@ -318,7 +345,7 @@ if ($matcher -ceq 'startup') {
 
   $channel = ''
   if (Test-Path -LiteralPath $configFile) {
-    $cl = Select-String -LiteralPath $configFile -CaseSensitive -Pattern '^\s*LI_PLUS_CHANNEL\s*=\s*(.*)$' -ErrorAction SilentlyContinue | Select-Object -First 1
+    $cl = Select-String -Encoding UTF8 -LiteralPath $configFile -CaseSensitive -Pattern '^\s*LI_PLUS_CHANNEL\s*=\s*(.*)$' -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($cl) { $channel = $cl.Matches[0].Groups[1].Value.Trim() }
   }
   if (-not $channel) { $channel = 'release' }
@@ -358,7 +385,7 @@ if ($matcher -ceq 'startup') {
 
   # --- axis 2: Li+config.md schema canonical (no legacy keys) ---
   if (Test-Path -LiteralPath $configFile) {
-    $legacy = Select-String -LiteralPath $configFile -CaseSensitive -Pattern '^\s*(LI_PLUS_REPOSITORY|USER_REPOSITORY|USER_REPOSITORY_EXECUTION_MODE)\s*=|^\s*[^#\s][^=]*_EXECUTION_MODE\s*=' -ErrorAction SilentlyContinue | Select-Object -First 1
+    $legacy = Select-String -Encoding UTF8 -LiteralPath $configFile -CaseSensitive -Pattern '^\s*(LI_PLUS_REPOSITORY|USER_REPOSITORY|USER_REPOSITORY_EXECUTION_MODE)\s*=|^\s*[^#\s][^=]*_EXECUTION_MODE\s*=' -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($legacy) { $updateReasons += 'legacy-schema-keys-present' }
   }
 
@@ -443,7 +470,7 @@ Emit ''
 # docs/2.-Evolution.md Cold-start Synthesis (hook output contract, anchor cut).
 $coldstartLiteral = ''
 if (Test-Path -LiteralPath $coldstartMd) {
-  $lines = Get-Content -LiteralPath $coldstartMd -ErrorAction SilentlyContinue
+  $lines = Get-Content -Encoding UTF8 -LiteralPath $coldstartMd -ErrorAction SilentlyContinue
   # Strip frontmatter (between first two --- markers) and a leading H1 line.
   $dashCount = 0
   $afterFm = @()
@@ -470,7 +497,7 @@ if ($matcher -cne 'startup') {
   Emit 'reinjected and the cold-start rule anchor re-anchored above. Treat the prior'
   Emit "session's in-context state as authoritative; do not re-orient from scratch."
   Emit '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
-  if ($gitTreeTmp) { Remove-Item -LiteralPath $gitTreeTmp -Recurse -Force -ErrorAction SilentlyContinue }
+  if ($gitTreeTmp) { Remove-TaggedTree $gitTreeTmp }
   Flush-Json
   exit 0
 }
@@ -488,7 +515,7 @@ function Register-Section([string]$key, [string]$banner, [string]$body) {
 # decision structure index head
 $decisionHead = ''
 if (Test-Path -LiteralPath $decisionStruct) {
-  $decisionHead = (Get-Content -LiteralPath $decisionStruct -TotalCount 20 -ErrorAction SilentlyContinue) -join "`n"
+  $decisionHead = (Get-Content -Encoding UTF8 -LiteralPath $decisionStruct -TotalCount 20 -ErrorAction SilentlyContinue) -join "`n"
 }
 Register-Section 'decision_structure_head' 'Decision structure index (docs/Decision-Structure.md head)' $decisionHead
 
@@ -561,7 +588,7 @@ foreach ($cand in @(
 }
 $selfEvalHead = ''
 if ($selfEvalFound) {
-  $selfEvalHead = (Get-Content -LiteralPath $selfEvalFound -TotalCount 15 -ErrorAction SilentlyContinue) -join "`n"
+  $selfEvalHead = (Get-Content -Encoding UTF8 -LiteralPath $selfEvalFound -TotalCount 15 -ErrorAction SilentlyContinue) -join "`n"
 }
 Register-Section 'self_eval_head' 'Self-evaluation log head (most recent)' $selfEvalHead
 
@@ -671,7 +698,7 @@ function Get-MemoryEntryFiles {
 function Get-MemoryEntryTitle {
   param([string]$Path)
   $title = ''
-  foreach ($line in @(Get-Content -LiteralPath $Path -TotalCount 10 -ErrorAction SilentlyContinue)) {
+  foreach ($line in @(Get-Content -Encoding UTF8 -LiteralPath $Path -TotalCount 10 -ErrorAction SilentlyContinue)) {
     if ($line -cmatch '^name:[ \t]*(.*)$') { $title = $matches[1]; break }
   }
   $title = ($title -replace "`r", '') -replace '\s+$', ''
@@ -878,7 +905,7 @@ if ($selfEvalFound -and (Test-Path -LiteralPath $selfEvalFound)) {
   # differently would produce different keys, not case variants of one.
   $axisCount = New-Object System.Collections.Hashtable ([System.StringComparer]::Ordinal)
   $inAxisBlock = $false
-  foreach ($l in @(Get-Content -LiteralPath $selfEvalFound -ErrorAction SilentlyContinue)) {
+  foreach ($l in @(Get-Content -Encoding UTF8 -LiteralPath $selfEvalFound -ErrorAction SilentlyContinue)) {
     if ($l -cmatch '^\s*\*\*Axis tags') {
       # Everything past the closing "**:" of the label is the inline pair list;
       # an empty remainder means the bullet layout follows.
@@ -1004,7 +1031,7 @@ if ($memoryDir -and (Test-Path -LiteralPath $memoryDir)) {
       if ($sf.FullName.StartsWith($rulesRoot + [System.IO.Path]::DirectorySeparatorChar)) {
         $rel = '.codex/rules/' + ($sf.FullName.Substring($rulesRoot.Length).TrimStart('\','/') -replace '\\','/')
       } elseif ($rel.StartsWith($rootPrefix)) { $rel = $rel.Substring($rootPrefix.Length) }
-      $content = Get-Content -LiteralPath $sf.FullName -Raw -ErrorAction SilentlyContinue
+      $content = Get-Content -Encoding UTF8 -LiteralPath $sf.FullName -Raw -ErrorAction SilentlyContinue
       if (-not $content) { continue }
       $seen = @{}
       foreach ($word in ((ConvertTo-AsciiLower $content) -csplit '[^a-z0-9]+')) {
@@ -1087,7 +1114,7 @@ if ($observationFile) {
   # by default, while the awk ports in the two on-session-start.sh hooks are
   # case-sensitive. Without the c-prefix, `PR:` / `Verdict_State:` / `Pending`
   # would be accepted here and rejected there — same input, different output.
-  foreach ($l in (Get-Content -LiteralPath $observationFile -ErrorAction SilentlyContinue)) {
+  foreach ($l in (Get-Content -Encoding UTF8 -LiteralPath $observationFile -ErrorAction SilentlyContinue)) {
     if ($l -cmatch '^##\s+observation:\s*(.*)$') {
       if ($cur) { $entries += $cur }
       $cur = @{ name = $matches[1].Trim(); pr = ''; expires = ''; next = ''; state = '' }
@@ -1235,7 +1262,7 @@ if ($tallyFile) {
   $curC = $null
   # -cmatch (not -match): same case-sensitivity parity with the awk ports as the
   # observation block above.
-  foreach ($l in (Get-Content -LiteralPath $tallyFile -ErrorAction SilentlyContinue)) {
+  foreach ($l in (Get-Content -Encoding UTF8 -LiteralPath $tallyFile -ErrorAction SilentlyContinue)) {
     if ($l -cmatch '^##\s+cluster:\s*(.*)$') {
       if ($curC) { $clusters += $curC }
       $curC = @{ name = $matches[1].Trim(); expires = ''; occ = 0; inOcc = $false }
@@ -1357,7 +1384,7 @@ $priorFp = @{}
 $priorEmitAt = ''
 if (Test-Path -LiteralPath $stateFile) {
   try {
-    $priorRaw = Get-Content -LiteralPath $stateFile -Raw
+    $priorRaw = Get-Content -Encoding UTF8 -LiteralPath $stateFile -Raw
     $prior = $priorRaw | ConvertFrom-Json
     if (-not ($prior -and $prior.agents)) {
       # Legacy pre-#1811 single-partition shape ({sections,last_emit_at} at
@@ -1444,7 +1471,7 @@ try {
   $agents = @{}
   if (Test-Path -LiteralPath $stateFile) {
     try {
-      $existingRaw = Get-Content -LiteralPath $stateFile -Raw
+      $existingRaw = Get-Content -Encoding UTF8 -LiteralPath $stateFile -Raw
       $existing = $existingRaw | ConvertFrom-Json
       if ($existing -and $existing.agents) {
         foreach ($prop in $existing.agents.PSObject.Properties) { $agents[$prop.Name] = $prop.Value }
@@ -1478,6 +1505,6 @@ if ($failSafeFull) {
   Emit '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
 }
 
-if ($gitTreeTmp) { Remove-Item -LiteralPath $gitTreeTmp -Recurse -Force -ErrorAction SilentlyContinue }
+if ($gitTreeTmp) { Remove-TaggedTree $gitTreeTmp }
 Flush-Json
 exit 0

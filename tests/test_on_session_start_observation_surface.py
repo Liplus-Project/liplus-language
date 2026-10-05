@@ -273,6 +273,10 @@ def promotion_surface(section_body: str | None) -> PromotionSurface:
             entry_match = _ENTRY_RE.search(entry)
             tokens = _TOKENS_RE.search(source)
             source_path = source.split("(tokens:")[0].strip()
+            # Compare the rule's relative identity across the two fixture layouts;
+            # test_codex_installed_rules_hook.py checks the emitted installed path.
+            if source_path.startswith(".codex/rules/"):
+                source_path = source_path[len(".codex/"):]
             if entry_match and source_path:
                 overlap_listed.add(
                     (

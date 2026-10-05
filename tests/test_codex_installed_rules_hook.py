@@ -1,7 +1,7 @@
 """Process fixtures for Li+update.md 4x.1r installed rules reads."""
 
 import unittest
-from test_on_session_start_observation_surface import Workspace, emitted_sections
+from test_on_session_start_observation_surface import Workspace, emitted_sections, promotion_section
 
 
 class InstalledRulesHookTest(unittest.TestCase):
@@ -41,6 +41,17 @@ class InstalledRulesHookTest(unittest.TestCase):
                 self.assertIn("LI_PLUS_UPDATE_STATUS=needed reason=installed-rules-missing", output)
                 self.assertNotIn("stale-clone-token", output)
                 self.assertNotIn("stale-clone-rule", output)
+
+    def test_keyword_scan_uses_installed_body_and_emits_its_real_path(self):
+        for adapter in ("codex_sh", "codex_ps1"):
+            with self.subTest(adapter=adapter):
+                ws = self.fixture()
+                ws.write(ws.shared_memory, "feedback_widgets.md", "---\nname: widget calibration harness\n---\nbody\n")
+                ws.write(ws.installed_rules / "model", "probe.md", "widget calibration harness notes\n")
+                overlap = promotion_section(ws.run(adapter))
+                self.assertIsNotNone(overlap)
+                self.assertIn(".codex/rules/model/probe.md", overlap)
+                self.assertNotIn("character_Instance.md", overlap)
 
 
 if __name__ == "__main__":

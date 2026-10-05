@@ -156,7 +156,8 @@ def main() -> int:
         if args.mode == "hook":
             result = {"continue": False, "stopReason": "Li+ output style: " + reason}
         print(serialize(result))
-        return 1
+        # Native SessionStart parses control JSON only on a successful command exit.
+        return 0 if args.mode == "hook" else 1
     print(serialize(result))
     return 0
 

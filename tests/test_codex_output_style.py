@@ -74,6 +74,11 @@ class StyleFixture(BaseStyleFixture):
         self.styles.mkdir()
         with self.assertRaises(StyleBlocked):
             load(self.root, self.root, environment=False)
+        failed_hook = self.cli("hook", event={"cwd": str(self.root), "source": "startup", "hook_event_name": "SessionStart"})
+        self.assertEqual(failed_hook.returncode, 0)
+        self.assertFalse(json.loads(failed_hook.stdout)["continue"])
+        self.assertNotIn("hookSpecificOutput", json.loads(failed_hook.stdout))
+        self.assertEqual(self.cli("resolve", "--cwd", str(self.root)).returncode, 1)
         for value in ('""', "true", "42", '[]', '{}', '"../secret"', '"C:drive"', '"a/b"', '"a\\\\b"'):
             with self.subTest(value=value):
                 self.select(value)
@@ -158,10 +163,14 @@ class StyleFixture(BaseStyleFixture):
         self.assertNotIn("NAME=Example", result.stdout.decode())
         self.config.write_bytes(b'private_secret = "secret fixture"\n[liplus]\noutput_style = 42\n')
         result = self.cli("hook", event={"cwd": str(self.root), "source": "startup", "hook_event_name": "SessionStart"})
-        self.assertEqual(result.returncode, 1)
-        self.assertFalse(json.loads(result.stdout)["continue"])
+        self.assertEqual(result.returncode, 0)
+        parsed_control = json.loads(result.stdout) if result.returncode == 0 else {}
+        self.assertFalse(parsed_control["continue"])
         self.assertNotIn(b"secret fixture", result.stdout + result.stderr)
         self.assertNotIn(b"NAME=Example", result.stdout + result.stderr)
+        resolved = self.cli("resolve", "--cwd", str(self.root))
+        self.assertEqual(resolved.returncode, 1)
+        self.assertEqual(json.loads(resolved.stdout)["status"], "blocked")
 
     def test_full_large_body_delivery_and_legacy_disabled_empty_context(self):
         for mode in ("legacy", "disabled"):

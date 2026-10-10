@@ -1,6 +1,6 @@
 ---
 name: evolution-observation-entry
-description: Invoke when a self-evolution PR has just merged and its post-merge obligations are running / a PR changing L1 Model Layer source has just merged / a self-evolution observation entry has been surfaced due or overdue at cold-start / a Post-L1-Merge Runtime Observation has returned a miss verdict / a short-window observation is being deferred, or its deferred result appended. Provides the self-evolution observation entry format, its creation criterion, its verdict lifecycle and the post-L1-merge runtime observation.
+description: Invoke when a self-evolution PR has just merged and its post-merge obligations are running / a PR changing L1 Model Layer source has just merged / a self-evolution observation entry has been surfaced due or overdue at cold-start / a Post-L1-Merge Runtime Observation has returned a miss verdict / a short-window observation is being deferred, or its deferred result appended / an application moment of a surface under a pending observation entry has just occurred. Provides the self-evolution observation entry format, its creation criterion, the application-moment log, its verdict lifecycle and the post-L1-merge runtime observation.
 layer: L2-evolution
 ---
 
@@ -19,9 +19,10 @@ first_observation: 2026-05-24
 expires: 2026-06-07
 next_check: 2026-05-31
 verdict_state: pending
+check: <one line: what the application moment shows when the change took effect, and when it did not>
 notes:
   - 2026-05-24 baseline captured pre-merge
-  - 2026-05-26 no regression on memory-write gate
+  - 2026-05-26 #1234 memory-write gate fired; check showed the write routed to docs
 ```
 
 Auto-entry trigger:
@@ -29,15 +30,20 @@ Auto-entry trigger:
 - Short-window miss escalation: when Post-L1-Merge Runtime Observation below surfaces a `miss` verdict, the parent AI writes the entry immediately rather than waiting for the default cycle, whether or not the change meets the creation criterion.
 - Deferred short-window observation: when Post-L1-Merge Runtime Observation below cannot start at the post-merge moment (`rules/operations/main-agent-procedures.md` Merge Execution) because the changed rule is not carried in runtime context yet, the agent holding that moment writes the deferral into this entry's `notes` as one line, and the session that later takes the observation appends its result there as a second line. Add no field for it, and enter no verdict for the deferral itself. Where the PR has no entry, both lines are comments on the merged PR instead.
 
-Creation criterion — a changed surface meets it when both hold:
+Creation criterion — a changed surface meets it when all three hold:
 1. an application moment of that surface can be expected to arrive, observably, within an ordinary session before `expires`;
-2. no executed mechanism (test / CI) detects that surface breaking.
+2. no executed mechanism (test / CI) detects that surface breaking;
+3. what to look at in that application moment to tell that the change took effect, or did not, can be written as one line. The entry carries that line as `check`. A surface whose line cannot be written gets no entry.
+
+Application-moment log:
+
+The agent holding a session in which an application moment of a surface under a `pending` entry occurs writes one line into that entry's `notes` at that moment: the date, where the moment occurred (issue / PR / session), and what the `check` showed. Do not leave it to the due surfacing to reconstruct.
 
 Lifecycle:
 
 Actor = the agent holding the session the entry is surfaced due in. Firing moment = that surfacing (`rules/evolution/cold-start-synthesis.md` Self-Evolution Observation Surface). A check whose evidence is thin is left inconclusive rather than forced to a verdict.
 
-At that moment, first test the entry against the creation criterion under Auto-entry trigger. An entry that fails it — except one against whose change a `miss` verdict stands (Short-window miss escalation) — takes no check: comment on the merged PR (the entry's `pr:` field) one line naming the condition that failed, then delete the entry. That deletion is not an outcome and records no verdict.
+At that moment, first test the entry against the creation criterion under Auto-entry trigger. An entry carrying no `check` line meets condition 3 only when the actor writes the line into the entry then. An entry that fails it — except one against whose change a `miss` verdict stands (Short-window miss escalation) — takes no check: comment on the merged PR (the entry's `pr:` field) one line naming the condition that failed, then delete the entry. That deletion is not an outcome and records no verdict.
 
 Otherwise, take one check, write its result into `notes`, and apply exactly one outcome:
 - regression observed -> `revert`: use the GitHub revert path, mark verdict, delete entry

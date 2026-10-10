@@ -147,7 +147,7 @@ class ImplementerAgentContractTest(unittest.TestCase):
         for agent in (f"{name}.md" for name in EFFORT_NAMES):
             with self.subTest(agent=agent):
                 self.assertIn(f"adapter/claude/agents/{agent}", spawn)
-        self.assertIn("The Codex port carries no agent definition file at all (#2176)", spawn)
+        self.assertIn("The Codex port carries no agent definition file at all", spawn)
         self.assertIn("skills/task-subagent-delegation/SKILL.md", spawn)
 
     def test_the_selection_is_the_parents_and_no_role_fixes_it(self) -> None:

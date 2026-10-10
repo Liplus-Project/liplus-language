@@ -1344,9 +1344,10 @@ if ($tallyBody) {
 # is no line; a date later than today is not due. The file is read whole and
 # split at LF only, with one CR before the LF dropped, because awk ends a line
 # at LF only: Get-Content also ends one at a lone CR, which split the ports on
-# identical input (#2181). ReadAllText with the UTF-8 encoding drops a leading
-# BOM, on PowerShell 7 and 5.1 alike (both observed 2026-10-11), which the awk
-# ports strip by hand.
+# identical input (#2181). The bytes are decoded as UTF-8 only, with a leading
+# UTF-8 BOM dropped by hand as the awk ports do. ReadAllText is not used: it
+# re-detects the encoding from any BOM and decodes a UTF-16 index the awk ports
+# read as bytes (observed on PowerShell 7.6 and 5.1, 2026-10-11, #2181).
 $consolidateDays = 14
 $consolidateBody = ''
 if ($memoryDir -and (Test-Path -LiteralPath $memoryDir -PathType Container)) {
@@ -1355,7 +1356,12 @@ if ($memoryDir -and (Test-Path -LiteralPath $memoryDir -PathType Container)) {
   if (Test-Path -LiteralPath $consolidateIndex -PathType Leaf) {
     $consolidateText = ''
     try {
-      $consolidateText = [System.IO.File]::ReadAllText($consolidateIndex, [System.Text.Encoding]::UTF8)
+      $consolidateBytes = [System.IO.File]::ReadAllBytes($consolidateIndex)
+      $consolidateOffset = 0
+      if ($consolidateBytes.Length -ge 3 -and $consolidateBytes[0] -eq 0xEF -and
+          $consolidateBytes[1] -eq 0xBB -and $consolidateBytes[2] -eq 0xBF) { $consolidateOffset = 3 }
+      $consolidateText = (New-Object System.Text.UTF8Encoding($false)).GetString(
+        $consolidateBytes, $consolidateOffset, $consolidateBytes.Length - $consolidateOffset)
     } catch { $consolidateText = '' }
     foreach ($l in ($consolidateText -csplit "`n")) {
       $l = $l -creplace "`r$", ''

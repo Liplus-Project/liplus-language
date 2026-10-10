@@ -1208,8 +1208,10 @@ fi
 # not parse as a calendar date counts as no line: when the last run cannot be
 # read, staying silent is the failure this surface exists to remove. A date
 # later than today is not due. Lines end at LF only, and one CR before the LF
-# is dropped; a lone CR is part of the line. A UTF-8 BOM ahead of the first
-# line is dropped. The PowerShell port reads the file the same way. Blank and
+# is dropped; a lone CR is part of the line. The bytes are read as UTF-8 only:
+# a UTF-8 BOM ahead of the first line is dropped, and no other BOM is
+# interpreted, so a UTF-16 index reads as no line. The PowerShell port reads
+# the file the same way. Blank and
 # the gaps around the label are space and tab only, never [[:space:]]: that
 # class follows the host locale, and the PowerShell \s admits every Unicode
 # space, so either one splits the ports on identical input. Observed with GNU

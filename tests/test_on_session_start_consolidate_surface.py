@@ -16,7 +16,7 @@ back, today and in the future; for an index whose head is not a record line
 (no record line, a record line only below the head, a date that is not a
 calendar date, a differently cased label, non-ASCII space where a blank or a
 gap is read); for an absent index; for an index
-with a BOM and CRLF line ends, and one with a lone CR ahead of the record; and whether memory files change across a run.
+with a BOM and CRLF line ends, one with a lone CR ahead of the record, and a UTF-16LE one; and whether memory files change across a run.
 The `DUE` label word is matched because `docs/6.-Adapter.md` specifies it. The banner text, the bullet prefix and the
 wording around the date are adapter choices (`docs/2.-Evolution.md` Cold-start
 Synthesis, hook output contract) and are read through the judgment only: which
@@ -229,6 +229,15 @@ class EncodingTest(ConsolidateSurfaceTestCase):
             newline="\r\n",
         )
         self.assert_every_adapter(Judgment(last_run=iso(-15), days=15))
+
+    def test_utf16_index_reads_as_no_line(self) -> None:
+        """A BOM-prefixed UTF-16LE index holding a recent record: DUE on every port."""
+        self.resolve_memory()
+        content = f"{RECORD} {iso(-1)}\n- x\n"
+        (self.ws.shared_memory / "MEMORY.md").write_bytes(
+            b"\xff\xfe" + content.encode("utf-16-le")
+        )
+        self.assert_every_adapter(NO_LINE)
 
     def test_lone_cr_is_part_of_the_line(self) -> None:
         """A lone CR ahead of a recent record leaves no record at the head."""

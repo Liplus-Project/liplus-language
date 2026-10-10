@@ -43,8 +43,8 @@ file, and the reference pattern does not match it. A `github.com/<owner>/<repo>/
 link carries its slug without a `.md` suffix: the slug form is fixed by
 `skills/operations-on-wiki-sync/SKILL.md` Sidebar integrity (slug = filename without
 `.md`), and the suffixed form is the one issue #1557 repaired. Scanned files include the
-`.toml` agent definitions under `adapter/`, which is where the wiki links on these three
-surfaces sit as of #1574.
+`.toml` files under `adapter/`; the Codex agent definitions that carried these wiki links
+at #1574 were deleted at #2176.
 """
 
 from __future__ import annotations
@@ -229,11 +229,17 @@ class SkillReferenceResolutionTest(unittest.TestCase):
         self.assertGreater(references, 0)
 
     def test_no_wiki_link_slug_carries_an_md_suffix(self) -> None:
-        links = 0
+        # The live set holds no wiki link since #2176 deleted the Codex agent
+        # definitions that carried them, so the pattern is checked against a
+        # fixture instead of against a non-zero live count.
+        fixture = WIKI_LINK.search(
+            "https://github.com/Liplus-Project/liplus-language/wiki/h.-release-flip-drift-patterns"
+        )
+        self.assertIsNotNone(fixture)
+        self.assertEqual(fixture.group(1), "h.-release-flip-drift-patterns")
         for path in scanned_files():
             text = path.read_text(encoding="utf-8")
             for match in WIKI_LINK.finditer(text):
-                links += 1
                 slug = match.group(1).rstrip(".")
                 line = text.count("\n", 0, match.start()) + 1
                 with self.subTest(source=str(path.relative_to(ROOT)), slug=slug, line=line):
@@ -242,8 +248,6 @@ class SkillReferenceResolutionTest(unittest.TestCase):
                         f"{path.relative_to(ROOT)}:{line} links wiki slug {slug!r}; "
                         "a wiki slug carries no .md suffix",
                     )
-        # A pattern that silently matched nothing would pass the loop above.
-        self.assertGreater(links, 0)
 
 
 if __name__ == "__main__":

@@ -321,7 +321,7 @@ Note: Claude Code's skill discovery does NOT recurse into subdirectories under `
 - If LI_PLUS_REPO/adapter/claude/agents/ does not exist: skip this sub-phase entirely (adapter has no subagent definitions to mirror; non-claude adapters such as codex are unaffected).
 - If {workspace_root}/.claude/agents/ does not exist: create directory.
 - Replace {LI_PLUS_TAG} in all generated content with the resolved target tag from Phase 3.
-- Ownership boundary: an agent file carries two kinds of content at once — body Li+ owns as its judgment criteria (an evaluator's criteria and the scope of its task), and the user's runtime instance around it (the frontmatter `name` / `description` / `tools` / `model` fields, plus anything the user appends). File-level ownership has to pick one and gets the other wrong in whichever direction it picks: Create-only freezes a merged criteria change out of every existing workspace, and whole-file overwrite destroys the instance. The `Li+ BEGIN` / `Li+ END` region moves the boundary inside the file so both hold. The region covers the prompt body only; the frontmatter stays outside it, because the frontmatter is where per-workspace runtime customization lives and because a Markdown frontmatter block cannot be preceded by a sentinel line. Accepted consequence on the Claude port: everything after the frontmatter becomes the subagent's system prompt, and Markdown has no comment form the host strips, so both sentinel lines sit inside that prompt. The Codex port pays nothing here — its sentinels are TOML comments outside the `developer_instructions` string, which the parser drops. Two inert markup lines in the prompt is the price of propagation on the Markdown port, and the only alternative that avoids them is having no region there at all.
+- Ownership boundary: an agent file carries two kinds of content at once — body Li+ owns as its judgment criteria (an evaluator's criteria and the scope of its task), and the user's runtime instance around it (the frontmatter `name` / `description` / `tools` / `model` fields, plus anything the user appends). File-level ownership has to pick one and gets the other wrong in whichever direction it picks: Create-only freezes a merged criteria change out of every existing workspace, and whole-file overwrite destroys the instance. The `Li+ BEGIN` / `Li+ END` region moves the boundary inside the file so both hold. The region covers the prompt body only; the frontmatter stays outside it, because the frontmatter is where per-workspace runtime customization lives and because a Markdown frontmatter block cannot be preceded by a sentinel line. Accepted consequence on the Claude port: everything after the frontmatter becomes the subagent's system prompt, and Markdown has no comment form the host strips, so both sentinel lines sit inside that prompt. Two inert markup lines in the prompt is the price of propagation on the Markdown port, and the only alternative that avoids them is having no region there at all.
 - Which sources carry a region is decided by criterion, not by enumeration. Two questions, asked in order:
   1. **Does this file carry body that Li+ owns as its judgment criteria rather than as the user's instance?** No -> Create-only. A file the criterion cannot place on either side of this question also defaults to Create-only.
   2. **Can one contiguous region cover that body without enclosing user-owned content?** Yes -> the file carries the region. No — the two kinds interleave — -> Create-only, and the propagation gap stays open on that file. A region drawn wide enough to span the interleaving would swallow the user's content, which is the failure the region exists to prevent; question 1 alone does not settle a mixed file, and reading it as though it did returns the wrong answer.
@@ -345,8 +345,8 @@ Note: bootstrap takes effect from the NEXT session. Current session continues wi
 
 ### Phase 4 codex: Codex Integration
 
-Adapter, skills, hooks, and agents generation. This branch mirrors the Phase 4
-claude branch surface-for-surface (#1502 real-device-verified Codex placements):
+Adapter, skills and hooks generation. This branch mirrors the Phase 4
+claude branch surface-for-surface, agents excepted (#1502 real-device-verified Codex placements):
 - skills land at `.agents/skills/<name>/SKILL.md` (Codex native auto-invocation,
   NO trust gate — verified).
 - always-on rules have no Codex folder equivalent; they are injected by the
@@ -355,7 +355,11 @@ claude branch surface-for-surface (#1502 real-device-verified Codex placements):
   bootstrap" step — the hook is the always-on substrate.
 - hooks land at `.codex/hooks/` (`*.ps1` Windows-native primary + `*.sh` POSIX
   fallback), registered via `.codex/hooks.json`.
-- subagents (Codex "agents") land at `.codex/agents/*.toml`.
+- no subagent definitions: a Codex subagent spawns as the built-in agent, its role
+  in the spawn prompt and its `model` / `reasoning_effort` at the spawn call, so
+  this branch writes nothing under `.codex/agents/`. It removes nothing there
+  either: files an earlier build installed stay, inert once no spawn names them,
+  and removing them is the user's.
 
 Codex hook trust precondition (surface to the user, do not silently assume):
 Codex hooks require a one-time GUI trust (Codex App -> Settings -> Hooks -> this
@@ -649,60 +653,6 @@ is expressed via the skill-name prefix convention (e.g. `evolution-judgment-lear
 
 - This step is idempotent: existing directory and existing `.gitignore` are
   left alone.
-
-4x.5. Generate .codex/agents/ files (sentinel-owned region mirror):
-- Mirrors 4c.6 — same ownership boundary, same carrier criterion, same three-branch
-  region judgment — but Codex agents are TOML files at `.codex/agents/*.toml` and the
-  sentinel is written in TOML comment syntax (`# --- Li+ BEGIN (<tag>) ---` /
-  `# --- Li+ END ---`) rather than as an HTML comment. On this surface the region
-  covers the `developer_instructions` assignment; the instance fields (`name` /
-  `description` / `sandbox_mode`, plus any locally retained
-  `model_reasoning_effort`) stay outside it,
-  matching the Claude port's frontmatter placement.
-- If LI_PLUS_REPO/adapter/codex/agents/ does not exist: skip this sub-phase entirely.
-- If {workspace_root}/.codex/agents/ does not exist: create directory.
-- For each `*.toml` directly under LI_PLUS_REPO/adapter/codex/agents/ (FLAT):
-  - Target = `{workspace_root}/.codex/agents/<filename>.toml`.
-  - Before the tag-match skip below, run the one-time per-launch effort migration.
-    It reaches only these filename / byte-exact legacy-default pairs:
-    - `implementer.toml`: `model_reasoning_effort = "high"`
-    - `dialogue-evaluator.toml`: `model_reasoning_effort = "high"`
-    - `brake-evaluator.toml`: `model_reasoning_effort = "medium"`
-    Run only when the rendered Source contains no top-level
-    `model_reasoning_effort` assignment. Read Target's top-level assignment lines
-    as bytes. If Target contains exactly one such assignment and its complete line
-    is the mapped ASCII literal above, with either its LF or CRLF terminator, delete
-    that complete line including its own terminator. Run this before comparing the sentinel tag so a
-    target whose owned region already matches cannot retain the legacy override.
-    A second run finds no assignment and changes nothing.
-    Preserve Target byte-for-byte instead when the filename is not mapped, the
-    assignment value or spacing differs, or more than one assignment occurs. Those
-    shapes may be user customizations and are not attributable to the distributed
-    default. Preserve every other instance field in all cases. This migration is
-    the sole exception to the outside-region preservation in branch b below; it
-    neither removes an agent file nor widens stale removal.
-  - Replace {LI_PLUS_TAG} in the rendered source with the resolved target tag. In a
-    source that carries a region, the sentinel is the file's only tag carrier; a
-    source without a region keeps its tag in the `# Source: ... ({LI_PLUS_TAG})`
-    header comment. A region-carrying file must not hold a second tag outside the
-    region: only the region is rewritten on a tag bump, so the outside copy would
-    freeze at the install tag and report a version the file no longer runs.
-  - Source WITHOUT a "Li+ BEGIN" sentinel (Create-only): if Target does not exist,
-    write the rendered source; if Target exists, skip (user customizations
-    preserved).
-  - Source WITH a "Li+ BEGIN" sentinel — region judgment:
-    a. If Target does not exist: write the rendered source.
-    b. If Target exists and contains "Li+ BEGIN": extract the sentinel tag; if it
-       matches the current target tag, skip; if it differs or is absent, replace the
-       section between "Li+ BEGIN" and "Li+ END" (inclusive) with the rendered
-       source's section, preserving everything outside it verbatim after the
-       migration above — the header comment, the remaining instance fields, and
-       anything the user appended below.
-    c. If Target exists but does not contain "Li+ BEGIN": ask user -- regenerate
-       this file from the current source, or skip? Every install predating the
-       region enters here; the ask and its consequences are as in 4c.6.
-- No stale removal, on the same terms as 4c.6 — including a target whose Li+ source
-  was removed.
 
 Note: bootstrap takes effect from the NEXT session, AND is gated on the one-time
 Codex GUI hook trust (4x intro). Current session continues with Li+config.md

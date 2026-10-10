@@ -1,8 +1,8 @@
 """Contract tests for the Li+ implementation delegate's agent definition.
 
-Scope = `adapter/claude/agents/high.md`, `adapter/codex/agents/implementer.toml`,
-the role literal that carries the Claude Code role, and the spawn-policy
-literal that routes delegations to both.
+Scope = `adapter/claude/agents/high.md`, the role literal that carries the
+implementation-delegate role on every host, and the spawn-policy literal that
+routes delegations to it.
 
 Reorganized at #1972: `adapter/claude/agents/` was split by role
 (`implementer.md` / `brake-evaluator.md` / `dialogue-evaluator.md`) up to that
@@ -10,9 +10,10 @@ issue; from it on the Claude Code source is three files named by effort
 (`low.md` / `medium.md` / `high.md`), none of which carries a role. The
 implementation delegate spawns under one of those three, with its role literal
 injected into the prompt by `skills/task-subagent-prompt/SKILL.md` instead of
-arriving through a role-named definition file's body. The Codex port is out of
-scope for that split (Master agreement, 2026-09-14): its role definition
-remains, while #1973 moves its effort resolution to the spawn call.
+arriving through a role-named definition file's body. The Codex port was out
+of scope for that split (Master agreement, 2026-09-14); #1973 moved its effort
+resolution to the spawn call, and #2176 deleted its `implementer.toml`, so the
+Codex spawn takes the built-in agent with the same role literal.
 
 Which of the three a given delegation names is no longer fixed by the role:
 #1967 put both axes on the parent, chosen per spawn against the work that
@@ -21,7 +22,7 @@ What each definition file still fixes is the effort its own name states.
 
 Why a test rather than reading attention: Claude pins thinking effort in the
 definition while Codex resolves it per launch. Either losing the Claude field or
-reintroducing the Codex override is silent — the spawn still succeeds at a
+reintroducing a Codex definition file is silent — the spawn still succeeds at a
 different effort. The `model` absence is the same shape in the other direction:
 adding a `model` pin here would silently take over the per-spawn selection that
 `skills/task-subagent-spawn/SKILL.md` keeps at the spawn call. On the Claude
@@ -32,12 +33,11 @@ principle (A) refuses a place for.
 
 The sentinel region's structural invariants are not re-asserted here;
 `tests/test_agent_sentinel_contract.py` already runs them over every source under
-`adapter/*/agents/`, this pair included.
+`adapter/claude/agents/`, this file included.
 """
 
 from __future__ import annotations
 
-import re
 import unittest
 from pathlib import Path
 
@@ -73,34 +73,28 @@ def body(text: str) -> str:
 class ImplementerAgentContractTest(unittest.TestCase):
     def setUp(self) -> None:
         self.claude = CLAUDE_AGENT.read_text(encoding="utf-8")
-        self.codex = CODEX_AGENT.read_text(encoding="utf-8")
 
     def test_claude_agent_is_named_by_effort_not_role(self) -> None:
         # Deliberately not "implementer" any more: #1972 dropped per-role
-        # Claude Code definitions. The Codex port keeps its own role name.
+        # Claude Code definitions; #2176 deleted the Codex role file.
         self.assertEqual(frontmatter(self.claude)["name"], "high")
-        self.assertIn('name = "implementer"', self.codex)
+        self.assertFalse(CODEX_AGENT.exists())
 
     def test_thinking_effort_uses_each_hosts_supported_surface(self) -> None:
-        # Claude has no per-call effort argument; Codex does, and an agent-file
-        # value would override the resolved per-launch value.
+        # Claude has no per-call effort argument; Codex does.
         self.assertEqual(frontmatter(self.claude)["effort"], "high")
-        self.assertIsNone(
-            re.search(r"^\s*model_reasoning_effort\s*=", self.codex, re.MULTILINE)
-        )
         spawn = SPAWN_SKILL.read_text(encoding="utf-8")
         self.assertIn(
             "**Every Codex spawn explicitly sets `reasoning_effort`; omission is prohibited.**",
             spawn,
         )
 
-    def test_neither_port_pins_a_model(self) -> None:
+    def test_claude_definition_pins_no_model(self) -> None:
         # The model selection stays at the spawn call
         # (`skills/task-subagent-spawn/SKILL.md` Selection criteria), and
         # omitting it there inherits the parent. A pin here takes the selection
         # over silently and rots the moment the parent tier changes.
         self.assertNotIn("model", frontmatter(self.claude))
-        self.assertIsNone(re.search(r"^\s*model\s*=", self.codex, re.MULTILINE))
 
     def test_every_effort_named_file_pins_only_its_own_effort(self) -> None:
         # Observed on the three sources under `adapter/claude/agents/` named by
@@ -118,11 +112,6 @@ class ImplementerAgentContractTest(unittest.TestCase):
                 self.assertNotIn("tools", fields)
                 self.assertIn(f"spawned at `{name}` effort", body(text))
                 self.assertIn("no role, no procedure", body(text))
-
-    def test_codex_port_can_write_to_the_repository(self) -> None:
-        # This role commits and pushes; the evaluator's read-only sandbox would
-        # fail it at the first write with no other detector.
-        self.assertIn('sandbox_mode = "workspace-write"', self.codex)
 
     def test_claude_definition_carries_no_role_fragment(self) -> None:
         # high.md is shared by every high-effort Claude Code spawn, not just
@@ -145,6 +134,12 @@ class ImplementerAgentContractTest(unittest.TestCase):
         self.assertIn("Do not create, move, or remove worktrees or per-session clones.", prompt)
         self.assertIn("`subagent_type: low` / `medium` / `high`", prompt)
         self.assertIn("`adapter/claude/agents/{low,medium,high}.md`", prompt)
+        self.assertIn("This is the implementation-delegate role's only home on every host", prompt)
+        self.assertIn(
+            "On Codex the spawn takes the built-in agent with no definition file, "
+            "and the prompt carries the literal above verbatim",
+            prompt,
+        )
 
     def test_spawn_policy_names_the_agents_a_delegation_selects_among(self) -> None:
         spawn = SPAWN_SKILL.read_text(encoding="utf-8")
@@ -152,7 +147,7 @@ class ImplementerAgentContractTest(unittest.TestCase):
         for agent in (f"{name}.md" for name in EFFORT_NAMES):
             with self.subTest(agent=agent):
                 self.assertIn(f"adapter/claude/agents/{agent}", spawn)
-        self.assertIn("adapter/codex/agents/implementer.toml", spawn)
+        self.assertIn("The Codex port carries no agent definition file at all", spawn)
         self.assertIn("skills/task-subagent-delegation/SKILL.md", spawn)
 
     def test_the_selection_is_the_parents_and_no_role_fixes_it(self) -> None:
@@ -213,6 +208,7 @@ class ImplementerAgentContractTest(unittest.TestCase):
         spawn = SPAWN_SKILL.read_text(encoding="utf-8")
         self.assertIn("no stale removal", spawn)
         self.assertIn("implementer.md", spawn)
+        self.assertIn("implementer.toml", spawn)
 
 
 if __name__ == "__main__":

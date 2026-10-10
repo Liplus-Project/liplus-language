@@ -216,7 +216,7 @@ api モードが clone モードと違うのはソースの取得元だけであ
 - `LI_PLUS_REPO/adapter/claude/agents/` が存在しない場合は本サブフェーズ全体をスキップ（adapter に subagent 定義がない／codex 等の非 claude adapter は影響を受けない）
 - `{workspace_root}/.claude/agents/` が存在しなければ作成する
 - 生成内容中の `{LI_PLUS_TAG}` は Phase 3 で解決したターゲットタグへ置換する
-- **所有の境界:** agent ファイルは 2 種類の内容を同時に運ぶ。Li+ が判定基準として所有する本文（評価者の判定基準とその任務の射程）と、その周囲にあるユーザーのランタイムインスタンス（frontmatter の `name` / `description` / `tools` / `model`、およびユーザーが足した記述）である。ファイル単位の所有はどちらか一方しか選べず、どちらを選んでも他方を取り違える — Create-only はマージ済みの基準変更を既存ワークスペースから締め出し、ファイル全体の上書きはインスタンスを破壊する。`Li+ BEGIN` / `Li+ END` 区画は境界をファイルの内側へ移し、両方を成立させる。区画が覆うのは prompt 本文のみで、frontmatter は区画外に置く（frontmatter はワークスペースごとのランタイムカスタマイズが載る面であり、加えて Markdown の frontmatter ブロックの前に sentinel 行を置けないため）。**Claude 側で受容した代償:** frontmatter 以降がそのまま subagent の system prompt になり、Markdown には host が除去するコメント形式が無いため、sentinel 2 行は prompt の内側に入る。Codex 側にこの代償は無い（sentinel は `developer_instructions` 文字列の外の TOML コメントであり、パーサが落とす）。prompt に入る inert な 2 行は Markdown 側で伝播を得るための対価であり、これを避ける唯一の代替は当該ポートに区画を持たないことである
+- **所有の境界:** agent ファイルは 2 種類の内容を同時に運ぶ。Li+ が判定基準として所有する本文（評価者の判定基準とその任務の射程）と、その周囲にあるユーザーのランタイムインスタンス（frontmatter の `name` / `description` / `tools` / `model`、およびユーザーが足した記述）である。ファイル単位の所有はどちらか一方しか選べず、どちらを選んでも他方を取り違える — Create-only はマージ済みの基準変更を既存ワークスペースから締め出し、ファイル全体の上書きはインスタンスを破壊する。`Li+ BEGIN` / `Li+ END` 区画は境界をファイルの内側へ移し、両方を成立させる。区画が覆うのは prompt 本文のみで、frontmatter は区画外に置く（frontmatter はワークスペースごとのランタイムカスタマイズが載る面であり、加えて Markdown の frontmatter ブロックの前に sentinel 行を置けないため）。**Claude 側で受容した代償:** frontmatter 以降がそのまま subagent の system prompt になり、Markdown には host が除去するコメント形式が無いため、sentinel 2 行は prompt の内側に入る。prompt に入る inert な 2 行は Markdown 側で伝播を得るための対価であり、これを避ける唯一の代替は当該ポートに区画を持たないことである
 - **どのソースが区画を持つかは列挙ではなく基準で決める。** 順に 2 つ問う:
   1. **そのファイルは、ユーザーの instance ではなく Li+ の判定基準として所有する本文を運んでいるか。** No → Create-only。基準がこの問いのどちら側にも置けないファイルも Create-only を既定とする
   2. **その本文を、ユーザー所有の内容を巻き込まずに 1 つの連続区画で覆えるか。** Yes → 区画を持つ。No（2 種類が交互に並ぶ）→ Create-only とし、そのファイルの伝播欠落は開いたまま残す。交互配置をまたぐ幅の区画はユーザーの内容を飲み込み、それは区画が防ぐために存在する失敗そのものである。問い 1 だけでは混在ファイルは決まらず、決まると読むと逆の答えが出る
@@ -237,12 +237,12 @@ api モードが clone モードと違うのはソースの取得元だけであ
 
 ### Phase 4 codex: Codex 統合
 
-Codex ホストでは Phase 4 claude branch と同型に adapter / rules / skills / hooks / agents を生成する（#1502 実機検証済みの Codex 配置）。
+Codex ホストでは Phase 4 claude branch と同型に adapter / rules / skills / hooks を生成する（#1502 実機検証済みの Codex 配置）。agents だけは生成しない。
 
 - skill は `.agents/skills/<name>/SKILL.md` に配置（Codex ネイティブの `description` 自動発火、**trust 不要**）
 - 常時 rules には Codex 側のフォルダ相当が無いため、SessionStart hook が導入済み `.codex/rules/**/*.md` を読み `additionalContext` で注入する（`.codex/hooks/on-session-start`）。旧 branch の「bootstrap で rules を直接読む」ステップは廃止
 - hook は `.codex/hooks/`（`*.ps1` が Windows ネイティブ主経路 + `*.sh` POSIX フォールバック）に配置し、`.codex/hooks.json` で登録
-- subagent（Codex "agents"）は `.codex/agents/*.toml` に配置
+- subagent の定義ファイルは置かない。Codex の子は組み込みエージェントとして spawn し、役割の説明は spawn プロンプトが、`model` と `reasoning_effort` は spawn 呼び出しが運ぶ（#2176）。本 branch は `.codex/agents/` に何も書かず、何も消さない。以前の build が置いた `implementer.toml` / `brake-evaluator.toml` / `dialogue-evaluator.toml` は既存ワークスペースに残るが、どの spawn も名指さないため不活性である。片付けはそのワークスペースを運用する人の手に残る
 
 **Codex hook trust 前提条件（ユーザーへ明示）:** Codex の hook は実行前に一度だけ GUI trust が必要（Codex App → 設定 → フック → 当該プロジェクト → 信頼する）。build が hook 本体を変えるたびに再 trust が必要（trust は内容ハッシュ単位）。trust 前は SessionStart の rules 注入と毎ターンの gate 再注入が無音で何もしない。bootstrap は hook ファイルを書くが trust は付与できないため、Phase 6 完了報告で GUI trust を案内する。詳細は [D. Installation](D.-Installation) を参照。
 
@@ -316,23 +316,6 @@ Codex ホストでは Phase 4 claude branch と同型に adapter / rules / skill
   ```
 
 - このステップは冪等
-
-**4x.5. `.codex/agents/` ファイル生成（sentinel 区画ミラー）**
-
-- 4c.6 と同型（所有の境界、区画を持つかの基準、3 分岐の区画判定はすべて同じ）だが、Codex agents は `.codex/agents/*.toml`（TOML）であり、sentinel は HTML コメントではなく TOML コメント記法（`# --- Li+ BEGIN (<tag>) ---` / `# --- Li+ END ---`）で書く。本面では区画が覆うのは `developer_instructions` の代入であり、インスタンス側フィールド（`name` / `description` / `sandbox_mode` と、ローカルに保持された場合の `model_reasoning_effort`）は Claude 側の frontmatter と同じく区画外に置く
-- `LI_PLUS_REPO/adapter/codex/agents/` が存在しなければ本サブフェーズ全体をスキップ
-- `{workspace_root}/.codex/agents/` が存在しなければ作成
-- `LI_PLUS_REPO/adapter/codex/agents/` 直下の `*.toml` 各ファイルについて（FLAT）:
-  - target = `{workspace_root}/.codex/agents/<filename>.toml`
-  - 下のタグ一致判定より先に、per-launch effort への one-time migration を実行する。対象は既知のファイル名と旧既定値の組だけである：`implementer.toml` の `model_reasoning_effort = "high"`、`dialogue-evaluator.toml` の `model_reasoning_effort = "high"`、`brake-evaluator.toml` の `model_reasoning_effort = "medium"`。render 済み source に top-level `model_reasoning_effort` assignment が無い場合だけ migration を走らせる。target の top-level assignment line を byte で読み、assignment がちょうど1件で、その完全な行が対応する ASCII literal と一致する場合だけ、その行自身の LF または CRLF terminator ごと削除する。owned region のタグが既に一致していても旧 override を残さないため、migration はタグ判定より先に置く。2回目は assignment が無く何も変更しない
-  - ファイル名が対象外、値または spacing が異なる、assignment が複数ある場合は target を byte-for-byte で保存する。これらはユーザーの custom 値である可能性があり、配布済み旧既定値とは帰属できない。他の instance fields は常に保存する。この migration だけが branch b の区画外逐語保存の例外であり、agent file の削除も stale-removal の拡張も行わない
-  - 生成内容中の `{LI_PLUS_TAG}` を解決済みターゲットタグへ置換する。区画を持つソースでは sentinel がそのファイル唯一のタグ担持者であり、区画を持たないソースは `# Source: ... ({LI_PLUS_TAG})` 行にタグを持つ。区画を持つファイルが区画外にもう 1 つタグを持ってはならない — タグ更新で書き換わるのは区画だけであり、区画外のタグはインストール時点で凍結して実体と食い違うバージョンを表示する
-  - **sentinel を持たないソース（Create-only）:** target が存在しなければ生成内容を書き、存在すればスキップ（ユーザーカスタマイズを保持）
-  - **sentinel を持つソース — 区画判定:**
-    - a. target が存在しない → 生成内容を書く
-    - b. target が存在し `Li+ BEGIN` を含む → sentinel のタグを抽出。現ターゲットタグと一致すればスキップ、異なる／欠落していれば `Li+ BEGIN`〜`Li+ END`（両端含む）をソース側の区画で置換し、上の migration 後に残る区画外（ヘッダコメント、他のインスタンス側フィールド、下にユーザーが足した記述）はそのまま保持する
-    - c. target が存在するが `Li+ BEGIN` を含まない → ユーザーへ確認：再生成かスキップか。区画導入以前のインストールはすべてこの状態から入る。確認の内容と帰結は 4c.6 と同じ
-- stale 削除はしない。4c.6 と同じ条件であり、Li+ ソース側が削除された target も含む
 
 注意: bootstrap は次回セッションから有効、かつ一度きりの Codex GUI hook trust が前提（4x 冒頭）。現セッションは Li+config.md の実行で継続。trust 付与までは rules 注入と毎ターンの gate は走らない
 

@@ -142,7 +142,7 @@ AIが自動的に：
 | 環境 | 生成されるファイル |
 |------|------------------|
 | Claude Code | `{workspace_root}/.claude/CLAUDE.md` + `{workspace_root}/.claude/settings.json` + `{workspace_root}/.claude/hooks/*.sh` + `{workspace_root}/.claude/skills/**` + `{workspace_root}/.claude/rules/**` + `{workspace_root}/.claude/agents/*.md`（adapter/claude/ 配下から生成。agent ファイルは `.claude/CLAUDE.md` と同じく `Li+ BEGIN` / `Li+ END` 区画のみが差し替わり、frontmatter とあなたが足した記述は保持されます） |
-| CODEX | `{workspace_root}/AGENTS.md` + `{workspace_root}/.codex/rules/**` + `{workspace_root}/.agents/skills/**`（ネイティブ skill 自動発火）+ `{workspace_root}/.codex/hooks/*.ps1`・`*.sh` + `{workspace_root}/.codex/hooks.json` + `{workspace_root}/.codex/agents/*.toml`（adapter/codex/ 配下から生成）。**生成後に一度だけ GUI で hook を trust する必要があります**（下記「CODEX: hook の GUI trust」参照） |
+| CODEX | `{workspace_root}/AGENTS.md` + `{workspace_root}/.codex/rules/**` + `{workspace_root}/.agents/skills/**`（ネイティブ skill 自動発火）+ `{workspace_root}/.codex/hooks/*.ps1`・`*.sh` + `{workspace_root}/.codex/hooks.json`（adapter/codex/ 配下から生成。subagent の定義ファイルは生成しません）。**生成後に一度だけ GUI で hook を trust する必要があります**（下記「CODEX: hook の GUI trust」参照） |
 
 ### 5. 次回以降のセッション
 
@@ -188,7 +188,7 @@ CODEX ホストでは bootstrap が以下を生成します（Claude の `.claud
 | `.agents/skills/<name>/SKILL.md` | skill 本体。**trust 不要**で `description` マッチにより自動発火（実機検証済み #1502） |
 | `.codex/hooks/*.ps1`・`*.sh` | hook 本体。`.ps1` が Windows ネイティブの主経路、`.sh` が POSIX フォールバック |
 | `.codex/hooks.json` | hook 登録ファイル。絶対パスで `.codex/hooks/*` を指す（Codex には `$CLAUDE_PROJECT_DIR` 相当が無いため） |
-| `.codex/agents/*.toml` | subagent（Codex "agents"）定義。Li+ が判定基準として所有する本文は `# --- Li+ BEGIN (<tag>) ---` / `# --- Li+ END ---` の区画に入っており、build 更新のたびにこの区画だけが差し替わります（区画外のあなたの記述は保持されます） |
+| `.codex/agents/*.toml` | Li+ は生成しません（#2176）。Codex の subagent は組み込みエージェントとして spawn し、役割の説明・`model`・`reasoning_effort` は呼ぶたびに渡します。以前の build が置いた `implementer.toml` / `brake-evaluator.toml` / `dialogue-evaluator.toml` は更新しても消えずに残りますが、どこからも呼ばれないため働きません。不要なら手で削除してください |
 | `.codex/state/` | cold-start diff-only 出力の state。gitignore 同梱 |
 
 キャラ設定の配置例・profile の版差・公式資料は [`adapter/codex/character-config.md`](../adapter/codex/character-config.md) にあります。共通指示と無関係な設定を保持し、既存 config への追記は差分の確認・承認後に行います。有効設定にキャラがあれば再生成しません。不在なら再更新でも提案し、明示 opt-out は保持します。旧 AGENTS の literal 不在だけで拒否とは判断しません。ネイティブ設定の読込には project trust が必要で、次 session で届くことを確認します。下の hook trust は別の条件です。

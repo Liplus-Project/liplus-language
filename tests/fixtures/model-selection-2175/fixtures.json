@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "source": "synthetic; no real room tasks",
+  "oracle_method": "literal answers fixed by fixture author before future model requests",
+  "cases": [
+    {
+      "id": "E1",
+      "category": "extraction",
+      "language": "en",
+      "task": "Extract ticket.id from the JSON.",
+      "input": "{\"id\":\"outer\",\"ticket\":{\"id\":\"T-044\",\"note\":\"id=T-000\"}}",
+      "answer": "T-044"
+    },
+    {
+      "id": "E2",
+      "category": "extraction",
+      "language": "ja",
+      "task": "owner が「担当」の行の code を返す。該当がなければ NONE。",
+      "input": "[{\"owner\":\"元担当\",\"code\":\"C0\"},{\"owner\":\"担当\",\"code\":\"C7\"},{\"owner\":\"候補\",\"code\":\"C9\"}]",
+      "answer": "C7"
+    },
+    {
+      "id": "E3",
+      "category": "extraction",
+      "language": "en",
+      "task": "Return the code in the record whose state is exactly CLOSED, not CLOSING.",
+      "input": "code=A01 state=CLOSING\ncode=B02 state=OPEN\ncode=D04 state=CLOSED",
+      "answer": "D04"
+    },
+    {
+      "id": "E4",
+      "category": "extraction",
+      "language": "ja",
+      "task": "種別が完了、かつ削除が false のレコードの番号を返す。",
+      "input": "[{\"番号\":\"01\",\"種別\":\"完了\",\"削除\":true},{\"番号\":\"02\",\"種別\":\"完了\",\"削除\":false},{\"番号\":\"03\",\"種別\":\"予定\",\"削除\":false}]",
+      "answer": "02"
+    },
+    {
+      "id": "L1",
+      "category": "log-classification",
+      "language": "en",
+      "task": "Return ERROR if any un-commented line starts with ERROR; otherwise WARN if any starts with WARN; otherwise OK. Lines beginning # are comments.",
+      "input": "INFO begin\n# ERROR old example\nWARN retry\nINFO finish",
+      "answer": "WARN"
+    },
+    {
+      "id": "L2",
+      "category": "log-classification",
+      "language": "ja",
+      "task": "level フィールドだけで判定する。ERROR があれば FAIL、なければ WARN があれば RETRY、それ以外は OK。message の語は判定に使わない。",
+      "input": "{\"level\":\"INFO\",\"message\":\"ERROR was corrected\"}\n{\"level\":\"INFO\",\"message\":\"done\"}",
+      "answer": "OK"
+    },
+    {
+      "id": "L3",
+      "category": "log-classification",
+      "language": "en",
+      "task": "Use the final event for job J2. Return PASS for success, FAIL for error, or WAIT for start. Ignore other jobs.",
+      "input": "J2 start\nJ1 error\nJ2 error\nJ2 success\nJ1 start",
+      "answer": "PASS"
+    },
+    {
+      "id": "L4",
+      "category": "log-classification",
+      "language": "ja",
+      "task": "attempt=2 の行だけを見る。status が timeout なら RETRY、done なら OK、error なら FAIL。",
+      "input": "attempt=1 status=error\nattempt=2 status=done\nattempt=3 status=timeout",
+      "answer": "OK"
+    },
+    {
+      "id": "R1",
+      "category": "known-text-retrieval",
+      "language": "en",
+      "task": "Return the value of section B key retention, not section A.",
+      "input": "[A]\nretention=90d\n[B]\nretention=14d\nowner=ops",
+      "answer": "14d"
+    },
+    {
+      "id": "R2",
+      "category": "known-text-retrieval",
+      "language": "ja",
+      "task": "最新版の「返却先」の値を返す。本文にある予定版は対象外。",
+      "input": "旧版: 返却先=赤棚\n最新版: 返却先=青棚\n予定版: 返却先=白棚",
+      "answer": "青棚"
+    },
+    {
+      "id": "R3",
+      "category": "known-text-retrieval",
+      "language": "en",
+      "task": "Look up exact key K7. Return NONE when absent; do not use prefixes or related keys.",
+      "input": "K70=red\nK17=green\nK07=blue",
+      "answer": "NONE"
+    },
+    {
+      "id": "R4",
+      "category": "known-text-retrieval",
+      "language": "ja",
+      "task": "有効=true の「保管」規定の期間を返す。一般規定と無効規定は対象外。",
+      "input": "一般: 期間=30日 有効=true\n保管: 期間=7日 有効=false\n保管: 期間=21日 有効=true",
+      "answer": "21日"
+    }
+  ]
+}

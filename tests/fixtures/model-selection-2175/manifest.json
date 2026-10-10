@@ -1,0 +1,65 @@
+{
+  "fixture_sha256": "eba50083ae2d217d7c4a417fb17dda391eb182c6ba4f4d770bcc03b8609b29cf",
+  "batches": [
+    {
+      "batch": 1,
+      "ids": [
+        "E1",
+        "L1",
+        "R1"
+      ],
+      "oracle": {
+        "E1": "T-044",
+        "L1": "WARN",
+        "R1": "14d"
+      },
+      "prompt_sha256": "41524255ebfd23ffb57b6bd7d3270374bf00fe48bdf589baab7269917056f560"
+    },
+    {
+      "batch": 2,
+      "ids": [
+        "E2",
+        "L2",
+        "R2"
+      ],
+      "oracle": {
+        "E2": "C7",
+        "L2": "OK",
+        "R2": "青棚"
+      },
+      "prompt_sha256": "5f762cd6ae92defdd1c55049bc13a43533b1ce28be19b6ee0966690628409585"
+    },
+    {
+      "batch": 3,
+      "ids": [
+        "E3",
+        "E4",
+        "L3",
+        "L4",
+        "R3",
+        "R4"
+      ],
+      "oracle": {
+        "E3": "D04",
+        "E4": "02",
+        "L3": "PASS",
+        "L4": "OK",
+        "R3": "NONE",
+        "R4": "21日"
+      },
+      "prompt_sha256": "b675d2d96202c8fe71994c03e8f56c3ee50fcd8b3ea69a49f158077fedaed1b8"
+    }
+  ],
+  "models_requested": [
+    "haiku",
+    "opus"
+  ],
+  "effort": "low",
+  "remaining_call_budget": 6,
+  "status": "NOT RUN: initial probe reported monthly spend limit",
+  "comparison": "same prompt bytes for both models; 3 batches each; 12 independent cases total",
+  "scoring": "parse JSON object, require exact keys, compare each string exactly; report per-category and overall accuracy; no semantic forgiveness",
+  "retry_policy": "six calls are maximum inclusive of retries/corrections; no retries on auth/limit/unavailable; incomplete comparisons remain incomplete",
+  "cost_policy": "sum reported total_cost_usd for every attempt including failures/corrections; report token categories independently; never equate reported cost with subscription charge or quota savings",
+  "limitation": "small synthetic samples do not establish success on real tasks; raw tool metadata required to verify true model ids; CLI help lacks max-output-tokens option"
+}

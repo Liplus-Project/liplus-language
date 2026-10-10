@@ -83,13 +83,17 @@ Subagent_Delegation:
   Delegation semantics are defined in `skills/task-subagent-delegation/SKILL.md`.
 
   Codex spawn arguments (per-call):
+  - Li+ ships no Codex agent definition file. Every subagent spawns as the built-in agent: its role
+    arrives in the spawn prompt, and its `model` and `reasoning_effort` at the spawn call.
   - Every subagent spawn must set `reasoning_effort` and `fork_turns` explicitly. Omitting either is prohibited.
   - Normal non-brake spawn: select `model` for the work that spawn carries, or omit it to inherit the
     parent model, and set `fork_turns="none"`.
   - Brake evaluator spawn: set `model` explicitly under the existing evaluator policy, set
     `reasoning_effort="low"` independently of that model floor, set `fork_turns="none"`,
-    use no agent definition file, and pass all evaluation material in a self-contained prompt.
-  - Implementation-delegate and dialogue-evaluator spawns select `reasoning_effort` for the work they
+    and pass all evaluation material in a self-contained prompt.
+  - Implementation-delegate spawn: the prompt carries `skills/task-subagent-prompt/SKILL.md`
+    Role literal: implementation delegate verbatim, as on every host.
+  - Implementation-delegate spawns select `reasoning_effort` for the work they
     carry. No role fixes the value (`skills/task-subagent-spawn/SKILL.md` Selection criteria).
   - A bounded read-only investigation selects `reasoning_effort="low"`, `"medium"`, or `"high"`
     for its purpose. It does not omit the argument to inherit the parent value.
@@ -98,8 +102,8 @@ Subagent_Delegation:
   - The only positive form allowed is a decimal string such as `fork_turns="3"`, and only when the
     bounded dialogue segment itself is required as evaluation material.
   - Full-history inheritance via `fork_turns="all"` is normally prohibited.
-  - Keep these bindings at the spawn call. Do not set `model_reasoning_effort` in
-    `adapter/codex/agents/*.toml`: an agent-file value overrides the resolved per-launch value.
+  - Keep these bindings at the spawn call. Do not add an agent definition file that sets
+    `model_reasoning_effort`: an agent-file value overrides the resolved per-launch value.
 
   This host-specific binding does not change the L3 context-isolation semantics, the independent `model`
   policy, or the evaluator model floor / N / M / P / self-contained-prompt contracts.

@@ -9,6 +9,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 CONTRACT_PATTERNS = {
     "adapter": {
+        "built_in_agent_no_definition_file": (
+            r"Li\+ ships no Codex agent definition file\. Every subagent spawns as the built-in agent: "
+            r"its role\s+arrives in the spawn prompt, and its `model` and `reasoning_effort` at the spawn call\."
+        ),
+        "implementation_role_literal_verbatim": (
+            r"Implementation-delegate spawn: the prompt carries `skills/task-subagent-prompt/SKILL\.md`\s+"
+            r"Role literal: implementation delegate verbatim, as on every host\."
+        ),
         "explicit_effort_context_and_no_omission": (
             r"Every subagent spawn must set `reasoning_effort` and `fork_turns` "
             r"explicitly\. Omitting either is prohibited\."
@@ -20,11 +28,10 @@ CONTRACT_PATTERNS = {
         "brake_model_context_and_prompt": (
             r"Brake evaluator spawn: set `model` explicitly under the existing "
             r'evaluator policy, set\s+`reasoning_effort="low"` independently of that model floor, '
-            r'set `fork_turns="none"`,\s+use no agent definition file, and pass all evaluation material '
-            r"in a self-contained prompt\."
+            r'set `fork_turns="none"`,\s+and pass all evaluation material in a self-contained prompt\.'
         ),
-        "implementation_and_dialogue_selected": (
-            r"Implementation-delegate and dialogue-evaluator spawns select `reasoning_effort` "
+        "implementation_selected": (
+            r"Implementation-delegate spawns select `reasoning_effort` "
             r"for the work they\s+carry\. No role fixes the value "
             r"\(`skills/task-subagent-spawn/SKILL\.md` Selection criteria\)\."
         ),
@@ -46,8 +53,8 @@ CONTRACT_PATTERNS = {
             r'Full-history inheritance via `fork_turns="all"` is normally prohibited\.'
         ),
         "per_spawn_not_toml": (
-            r"Keep these bindings at the spawn call\. Do not set `model_reasoning_effort` in\s+"
-            r"`adapter/codex/agents/\*\.toml`: an agent-file value overrides the resolved per-launch value\."
+            r"Keep these bindings at the spawn call\. Do not add an agent definition file that sets\s+"
+            r"`model_reasoning_effort`: an agent-file value overrides the resolved per-launch value\."
         ),
         "preserved_contracts": (
             r"This host-specific binding does not change the L3 context-isolation semantics, "
@@ -56,6 +63,14 @@ CONTRACT_PATTERNS = {
         ),
     },
     "docs": {
+        "built_in_agent_no_definition_file": (
+            r"Codex には agent 定義ファイルが無く、every subagent spawn は組み込みエージェントとして、"
+            r"役を spawn プロンプトで、`model` と `reasoning_effort` を spawn call で受け取る。"
+        ),
+        "implementation_role_literal_verbatim": (
+            r"implementation delegate の spawn は、`skills/task-subagent-prompt/SKILL\.md` "
+            r"Role literal: implementation delegate をそのままプロンプトに入れる。"
+        ),
         "explicit_effort_context_and_no_omission": (
             r"every subagent spawn の per-call 引数に `reasoning_effort` と `fork_turns` を必ず明示し、"
             r"どちらも省略して既定値に依存することを禁止する。"
@@ -67,11 +82,10 @@ CONTRACT_PATTERNS = {
         "brake_model_context_and_prompt": (
             r"brake evaluator spawn は既存 evaluator policy に従って "
             r'`model` を明示し、その床と独立して `reasoning_effort="low"`、'
-            r'`fork_turns="none"` を指定する。定義ファイルは選ばず、'
-            r"評価材料を self-contained prompt で渡す。"
+            r'`fork_turns="none"` を指定する。評価材料は self-contained prompt で渡す。'
         ),
-        "implementation_and_dialogue_selected": (
-            r"implementation delegate と dialogue evaluator は、その spawn が担う作業に合わせて "
+        "implementation_selected": (
+            r"implementation delegate は、その spawn が担う作業に合わせて "
             r"`reasoning_effort` を選ぶ。役割が値を固定することはない"
             r"（`skills/task-subagent-spawn/SKILL\.md` Selection criteria）。"
         ),
@@ -92,7 +106,7 @@ CONTRACT_PATTERNS = {
         ),
         "per_spawn_not_toml": (
             r"これらの拘束は spawn call ごとに行う。"
-            r"`adapter/codex/agents/\*\.toml` に `model_reasoning_effort` を固定しない"
+            r"`model_reasoning_effort` を持つ agent 定義ファイルを足さない"
         ),
         "preserved_contracts": (
             r"これは L3 の context-isolation semantic を Codex の host-specific 引数へ"
@@ -121,25 +135,8 @@ class CodexSubagentContextContractTest(unittest.TestCase):
             with self.subTest(surface=surface):
                 self.assertEqual(contract_violations(text, surface), [])
 
-    def test_agent_toml_files_do_not_fix_fork_turns(self) -> None:
-        agents = sorted((ROOT / "adapter" / "codex" / "agents").glob("*.toml"))
-        self.assertNotEqual(agents, [])
-        for agent in agents:
-            with self.subTest(agent=agent.name):
-                self.assertNotIn("fork_turns", agent.read_text(encoding="utf-8"))
-
-    def test_agent_toml_files_do_not_override_per_launch_effort(self) -> None:
-        agents = sorted((ROOT / "adapter" / "codex" / "agents").glob("*.toml"))
-        self.assertNotEqual(agents, [])
-        for agent in agents:
-            with self.subTest(agent=agent.name):
-                self.assertIsNone(
-                    re.search(
-                        r"^\s*model_reasoning_effort\s*=",
-                        agent.read_text(encoding="utf-8"),
-                        re.MULTILINE,
-                    )
-                )
+    def test_no_codex_agent_definition_source_exists(self) -> None:
+        self.assertFalse((ROOT / "adapter" / "codex" / "agents").exists())
 
     def test_reversed_adapter_semantics_are_rejected(self) -> None:
         mutations = {
@@ -176,9 +173,17 @@ class CodexSubagentContextContractTest(unittest.TestCase):
                 'a decimal string such as `fork_turns="3"`',
                 "a numeric value such as `fork_turns=3`",
             ),
-            "binding_moved_to_toml": (
-                "Do not set `model_reasoning_effort` in\n    `adapter/codex/agents/*.toml`",
-                "Set `model_reasoning_effort` in\n    `adapter/codex/agents/*.toml`",
+            "binding_moved_to_definition_file": (
+                "Do not add an agent definition file that sets",
+                "Add an agent definition file that sets",
+            ),
+            "role_moved_to_definition_file": (
+                "Li+ ships no Codex agent definition file. Every subagent spawns as the built-in agent",
+                "Li+ ships a Codex agent definition file per role. Every subagent spawns as that agent",
+            ),
+            "implementation_role_literal_rewritten": (
+                "Role literal: implementation delegate verbatim, as on every host.",
+                "a Codex-specific rewrite of the implementation delegate role.",
             ),
             "context_isolation_changed": (
                 "does not change the L3 context-isolation semantics",

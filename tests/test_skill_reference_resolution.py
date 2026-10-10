@@ -43,8 +43,8 @@ file, and the reference pattern does not match it. A `github.com/<owner>/<repo>/
 link carries its slug without a `.md` suffix: the slug form is fixed by
 `skills/operations-on-wiki-sync/SKILL.md` Sidebar integrity (slug = filename without
 `.md`), and the suffixed form is the one issue #1557 repaired. Scanned files include the
-`.toml` agent definitions under `adapter/`, which is where the wiki links on these three
-surfaces sit as of #1574.
+`.toml` files under `adapter/`; the Codex agent definitions that carried these wiki links
+at #1574 were deleted at #2176.
 """
 
 from __future__ import annotations

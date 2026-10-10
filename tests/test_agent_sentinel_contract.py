@@ -1,8 +1,10 @@
 """Contract tests for the sentinel-owned region in adapter agent sources.
 
-Scope = the source files under `adapter/*/agents/` and the literal of
+Scope = the source files under `adapter/claude/agents/` and the literal of
 `Li+update.md`. These assert the region's structural invariants and the
-presence of the clauses 4c.6 / 4x.5 promise.
+presence of the clauses 4c.6 promises. The Codex port carries no agent source
+since #2176; what remains asserted for it is that Phase 4 codex neither
+generates nor removes anything under `.codex/agents/`.
 
 Which sources carry a region is decided by the criterion in 4c.6, so the
 carrier set is whatever that criterion currently admits — possibly empty. The
@@ -23,7 +25,6 @@ not mean a bootstrap run behaved as specified.
 from __future__ import annotations
 
 import re
-import tomllib
 import unittest
 from pathlib import Path
 
@@ -42,19 +43,9 @@ BEGIN_TAG_RE = re.compile(r"Li\+ BEGIN \(([^)]*)\)")
 # content, the failure the region exists to prevent.
 CHARACTER_INSTANCE_KEYS = ("LIN_CONTEXT", "LAY_CONTEXT", "HUMOR_STYLE")
 
-# Stable instance-surface keys the Codex region must leave outside itself.
-CODEX_INSTANCE_KEYS = ("name = ", "description = ", "sandbox_mode = ")
-
-LEGACY_CODEX_EFFORT_DEFAULTS = {
-    "implementer.toml": b'model_reasoning_effort = "high"',
-    "dialogue-evaluator.toml": b'model_reasoning_effort = "high"',
-    "brake-evaluator.toml": b'model_reasoning_effort = "medium"',
-}
-
-
-# One synthetic carrier per port, shaped as 4c.6 / 4x.5 require. These exist so
+# One synthetic carrier, shaped as 4c.6 requires. It exists so
 # the branch (b) replacement semantic is exercised whether or not the live
-# carrier set is empty; they are not a claim about which real source carries a
+# carrier set is empty; it is not a claim about which real source carries a
 # region, which only the 4c.6 criterion decides.
 SYNTHETIC_CARRIERS = {
     "synthetic.md": (
@@ -70,69 +61,15 @@ SYNTHETIC_CARRIERS = {
         "\n"
         "<!-- --- Li+ END --- -->\n"
     ),
-    "synthetic.toml": (
-        "# Source: adapter/codex/agents/synthetic.toml\n"
-        "\n"
-        'name = "synthetic"\n'
-        'description = "synthetic carrier fixture"\n'
-        'model_reasoning_effort = "high"\n'
-        'sandbox_mode = "read-only"\n'
-        "\n"
-        "# --- Li+ BEGIN ({LI_PLUS_TAG}) ---\n"
-        'developer_instructions = """\n'
-        "Owned criteria body.\n"
-        '"""\n'
-        "# --- Li+ END ---\n"
-    ),
 }
 
 
 def agent_sources() -> list[Path]:
-    sources: list[Path] = []
-    for adapter, pattern in (("claude", "*.md"), ("codex", "*.toml")):
-        sources.extend(sorted((ROOT / "adapter" / adapter / "agents").glob(pattern)))
-    return sources
+    return sorted((ROOT / "adapter" / "claude" / "agents").glob("*.md"))
 
 
 def rel(path: Path) -> str:
     return path.relative_to(ROOT).as_posix()
-
-
-def migrate_legacy_codex_effort(
-    name: str, payload: bytes, source_payload: bytes = b""
-) -> bytes:
-    """Proxy for the byte-exact 4x.5 legacy-default migration."""
-    expected = LEGACY_CODEX_EFFORT_DEFAULTS.get(name)
-    if expected is None:
-        return payload
-
-    def parse_toml(content: bytes) -> dict[str, object] | None:
-        try:
-            return tomllib.loads(content.decode("utf-8"))
-        except (UnicodeDecodeError, tomllib.TOMLDecodeError):
-            return None
-
-    source = parse_toml(source_payload)
-    if source is None or "model_reasoning_effort" in source:
-        return payload
-    target = parse_toml(payload)
-    expected_value = expected.split(b'"')[1].decode("ascii")
-    if target is None or target.get("model_reasoning_effort") != expected_value:
-        return payload
-
-    expected_without_effort = dict(target)
-    del expected_without_effort["model_reasoning_effort"]
-    candidates: list[bytes] = []
-    offset = 0
-    for line in payload.splitlines(keepends=True):
-        if line in (expected + b"\n", expected + b"\r\n"):
-            migrated = payload[:offset] + payload[offset + len(line) :]
-            if parse_toml(migrated) == expected_without_effort:
-                candidates.append(migrated)
-        offset += len(line)
-    if len(candidates) != 1:
-        return payload
-    return candidates[0]
 
 
 def split_region(text: str) -> tuple[str, str, str]:
@@ -148,7 +85,7 @@ def render(text: str, tag: str) -> str:
 
 
 def apply_region_update(installed: str, rendered_source: str) -> str:
-    """The 4c.6 / 4x.5 branch (b) replacement: region in, everything else kept."""
+    """The 4c.6 branch (b) replacement: region in, everything else kept."""
     before, _, after = split_region(installed)
     _, section, _ = split_region(rendered_source)
     return before + section + after
@@ -186,30 +123,6 @@ class AgentSentinelContractTest(unittest.TestCase):
             for key in CHARACTER_INSTANCE_KEYS:
                 with self.subTest(source=name, key=key):
                     self.assertNotIn(key, text)
-
-    def test_non_carrier_toml_keeps_its_tag_in_the_source_header(self) -> None:
-        for name, text in self.sources.items():
-            if not name.endswith(".toml") or BEGIN_LITERAL in text:
-                continue
-            with self.subTest(source=name):
-                header = text.splitlines()[0]
-                self.assertTrue(header.startswith("# Source: "))
-                self.assertIn(TAG_TOKEN, header)
-
-    def test_codex_region_wraps_developer_instructions_only(self) -> None:
-        for name, text in self.carriers().items():
-            if not name.endswith(".toml"):
-                continue
-            with self.subTest(source=name):
-                before, section, _ = split_region(text)
-                # The criteria body is the region; the instance surface is not.
-                self.assertIn('developer_instructions = """', section)
-                self.assertNotIn('developer_instructions = """', before)
-                self.assertTrue(section.rstrip().endswith("---"))
-                self.assertIn('"""', section[section.index('developer_instructions = """') + 30 :])
-                for key in CODEX_INSTANCE_KEYS:
-                    self.assertIn(key, before)
-                    self.assertNotIn(key, section)
 
     def test_each_region_is_a_single_well_formed_span(self) -> None:
         for name, text in self.carriers().items():
@@ -267,25 +180,16 @@ class AgentSentinelContractTest(unittest.TestCase):
 
     def test_update_procedure_states_the_three_branch_region_judgment(self) -> None:
         update = (ROOT / "Li+update.md").read_text(encoding="utf-8")
-        sections = {
-            "4c.6": update_section(
-                update,
-                "4c.6. Generate .claude/agents/ files (sentinel-owned region mirror):",
-                "### Phase 4 codex",
-            ),
-            "4x.5": update_section(
-                update,
-                "4x.5. Generate .codex/agents/ files (sentinel-owned region mirror):",
-                "## Phase 5",
-            ),
-        }
-        for step, section in sections.items():
-            with self.subTest(step=step):
-                self.assertIn('Source WITHOUT a "Li+ BEGIN" sentinel (Create-only)', section)
-                self.assertIn('Source WITH a "Li+ BEGIN" sentinel', section)
-                self.assertIn("If Target does not exist", section)
-                self.assertRegex(section, r"matches (the )?current target tag[:,] skip")
-                self.assertIn("ask user -- regenerate", section)
+        section = update_section(
+            update,
+            "4c.6. Generate .claude/agents/ files (sentinel-owned region mirror):",
+            "### Phase 4 codex",
+        )
+        self.assertIn('Source WITHOUT a "Li+ BEGIN" sentinel (Create-only)', section)
+        self.assertIn('Source WITH a "Li+ BEGIN" sentinel', section)
+        self.assertIn("If Target does not exist", section)
+        self.assertRegex(section, r"matches (the )?current target tag[:,] skip")
+        self.assertIn("ask user -- regenerate", section)
 
     def test_update_procedure_keeps_the_promises_the_region_rests_on(self) -> None:
         update = (ROOT / "Li+update.md").read_text(encoding="utf-8")
@@ -307,102 +211,17 @@ class AgentSentinelContractTest(unittest.TestCase):
         # Branch (c)'s "skip" must name what re-raises the ask.
         self.assertIn("Re-ask cadence", claude)
 
-    def test_codex_legacy_effort_defaults_migrate_byte_exactly_once(self) -> None:
-        for name, legacy_line in LEGACY_CODEX_EFFORT_DEFAULTS.items():
-            source = (ROOT / "adapter" / "codex" / "agents" / name).read_bytes()
-            for newline in (b"\n", b"\r\n"):
-                with self.subTest(name=name, newline=newline):
-                    before = (
-                        b'name = "fixture"'
-                        + newline
-                        + legacy_line
-                        + newline
-                        + b'sandbox_mode = "workspace-write"'
-                        + newline
-                    )
-                    migrated = migrate_legacy_codex_effort(name, before, source)
-                    self.assertNotIn(legacy_line, migrated)
-                    self.assertIn(b'name = "fixture"' + newline, migrated)
-                    self.assertIn(b'sandbox_mode = "workspace-write"' + newline, migrated)
-                    self.assertEqual(
-                        migrate_legacy_codex_effort(name, migrated, source), migrated
-                    )
-
-    def test_codex_effort_migration_preserves_custom_and_unknown_shapes(self) -> None:
-        fixtures = {
-            "custom-value": (
-                "implementer.toml",
-                b'model_reasoning_effort = "medium"\n',
-            ),
-            "custom-spacing": (
-                "implementer.toml",
-                b'model_reasoning_effort="high"\n',
-            ),
-            "unknown-agent": (
-                "custom.toml",
-                b'model_reasoning_effort = "high"\n',
-            ),
-            "multiple-assignments": (
-                "implementer.toml",
-                b'model_reasoning_effort = "high"\nmodel_reasoning_effort = "medium"\n',
-            ),
-            "multiline-description": (
-                "implementer.toml",
-                b'description = """\nmodel_reasoning_effort = "high"\n"""\n',
-            ),
-            "table-value": (
-                "implementer.toml",
-                b'[custom]\nmodel_reasoning_effort = "high"\n',
-            ),
-            "no-terminator": (
-                "implementer.toml",
-                b'model_reasoning_effort = "high"',
-            ),
-        }
-        for label, (name, payload) in fixtures.items():
-            with self.subTest(label=label):
-                self.assertEqual(migrate_legacy_codex_effort(name, payload), payload)
-        legacy = b'model_reasoning_effort = "high"\n'
-        self.assertEqual(
-            migrate_legacy_codex_effort("implementer.toml", legacy, legacy), legacy
-        )
-        source_description = (
-            b'description = """\nmodel_reasoning_effort = "high"\n"""\n'
-        )
-        self.assertEqual(
-            migrate_legacy_codex_effort(
-                "implementer.toml", legacy, source_description
-            ),
-            b"",
-        )
-
-    def test_codex_effort_migration_preserves_nested_instance_fields(self) -> None:
-        before = (
-            b'model_reasoning_effort = "high"\n'
-            b'[custom]\nmodel_reasoning_effort = "medium"\n'
-        )
-        self.assertEqual(
-            migrate_legacy_codex_effort("implementer.toml", before),
-            b'[custom]\nmodel_reasoning_effort = "medium"\n',
-        )
-
-    def test_update_literal_names_the_codex_effort_migration_boundary(self) -> None:
+    def test_codex_port_ships_no_agent_source_and_bootstrap_touches_none(self) -> None:
+        # #2176. Observed: no `adapter/codex/agents/` directory, and the
+        # Phase 4 codex literal of `Li+update.md` states it writes and removes
+        # nothing under `.codex/agents/`. Claim held at
+        # `skills/task-subagent-spawn/SKILL.md` Subagent Model Policy.
+        self.assertFalse((ROOT / "adapter" / "codex" / "agents").exists())
         update = (ROOT / "Li+update.md").read_text(encoding="utf-8")
-        codex = update.split("4x.5. Generate .codex/agents/ files", 1)[1]
-        for name, value in (
-            ("implementer.toml", "high"),
-            ("dialogue-evaluator.toml", "high"),
-            ("brake-evaluator.toml", "medium"),
-        ):
-            with self.subTest(name=name):
-                self.assertIn(
-                    f'`{name}`: `model_reasoning_effort = "{value}"`', codex
-                )
-        self.assertIn("Before the tag-match skip", codex)
-        self.assertIn("rendered Source contains no top-level", codex)
-        self.assertIn("A second run finds no assignment and changes nothing", codex)
-        self.assertIn("Preserve Target byte-for-byte", codex)
-        self.assertIn("neither removes an agent file nor widens stale removal", codex)
+        codex = update_section(update, "### Phase 4 codex", "## Phase 5")
+        self.assertNotIn("Generate .codex/agents/ files", codex)
+        self.assertIn("this branch writes nothing under `.codex/agents/`", codex)
+        self.assertIn("It removes nothing there either", codex)
 
 
 if __name__ == "__main__":

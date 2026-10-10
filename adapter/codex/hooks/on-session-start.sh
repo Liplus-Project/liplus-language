@@ -1202,7 +1202,9 @@ fi
 # Resolution is MEMORY_DIR, the directory the other memory readers above use.
 # Unresolved MEMORY_DIR = silent skip: no memory directory, nothing to
 # consolidate. MEMORY.md absent inside a resolved MEMORY_DIR has no line, so it
-# is due. The first line of the record shape is the one read. A date that does
+# is due. Only the head of the index is read -- its first non-blank line, the
+# place Consolidate Trigger records the run at: a record line anywhere below it
+# is not the record, and the index reads as having no line. A date that does
 # not parse as a calendar date counts as no line: when the last run cannot be
 # read, staying silent is the failure this surface exists to remove. A date
 # later than today is not due. A UTF-8 BOM ahead of the first line is dropped,
@@ -1229,12 +1231,14 @@ if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
         if (m <= 2) { y -= 1; m += 12 }
         return 365 * y + int(y / 4) - int(y / 100) + int(y / 400) + int((153 * (m - 3) + 2) / 5) + d
       }
-      BEGIN { found = 0; last = "" }
-      found { next }
+      BEGIN { found = 0; head = 0; last = "" }
+      head { next }
       {
         line = $0
         sub(/\r$/, "", line)
         if (NR == 1 && index(line, bom) == 1) line = substr(line, length(bom) + 1)
+        if (line ~ /^[[:space:]]*$/) next
+        head = 1
         if (line ~ /^[[:space:]]*\*\*Last consolidate run:\*\*[[:space:]]*[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]([^0-9]|$)/) {
           v = line
           sub(/^[[:space:]]*\*\*Last consolidate run:\*\*[[:space:]]*/, "", v)

@@ -92,9 +92,9 @@ Surfacing is observation, not auto-action. Which issue to start stays the judgme
 
 The memory consolidate pass is surfaced at cold-start when its firing condition holds -> surface as "consolidate due". The firing condition, and the record line it is read from, are `rules/evolution/memory-entry-format.md` Consolidate Trigger; nothing here restates them.
 
-A record line whose date cannot be read counts as no line. The surface is re-surfaced every session until the pass writes a record line that no longer meets the condition.
+The surface is re-surfaced every session until the pass writes a record line that no longer meets the condition.
 
-Surfacing is observation, not auto-action. The pass itself — its steps, their order and its record line — follows `rules/evolution/memory-entry-format.md` Consolidate Trigger. Actor = the agent holding the session the surface fires in; firing moment = that surfacing.
+Surfacing is observation, not auto-action. The pass itself follows `rules/evolution/memory-entry-format.md` Consolidate Trigger. Actor = the agent holding the session the surface fires in; firing moment = that surfacing.
 
 </consolidate-due-surface>
 

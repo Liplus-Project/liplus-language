@@ -3,19 +3,20 @@
 Target = the three `adapter/*/hooks/on-session-start.*` implementations
 (claude bash / codex bash / codex PowerShell). Issue #2165.
 
-The surface exists because `rules/evolution/memory-entry-format.md` Consolidate
-Trigger fixes a firing condition (2 weeks since the last consolidate, read off
-the `**Last consolidate run:**` line at the head of `MEMORY.md`, no line = fires)
-that nothing announced at session start. The contract that repairs that is
-`rules/evolution/cold-start-synthesis.md` Consolidate Due Surface, and this file
-asserts the three ports implement it identically.
+The firing condition is fixed at `rules/evolution/memory-entry-format.md`
+Consolidate Trigger, the surface at `rules/evolution/cold-start-synthesis.md`
+Consolidate Due Surface, and the hook-side reading of the index at
+`docs/6.-Adapter.md` (memory consolidate due surface). This file observes the
+three ports on identical fixtures and asserts they reach the same judgment.
 
-What is pinned and what is not
-------------------------------
-The firing condition is pinned through its boundary (14 days due, 13 days
-silent) and its no-line arm (index without the line, index absent, date that is
-not a calendar date). The `DUE` label word is matched because
-`docs/6.-Adapter.md` specifies it. The banner text, the bullet prefix and the
+What is observed and what is not
+--------------------------------
+Observed: the judgment each port emits for a record dated 13, 14 and 40 days
+back, today and in the future; for an index whose head is not a record line
+(no record line, a record line only below the head, a date that is not a
+calendar date, a differently cased label); for an absent index; for an index
+with a BOM and CRLF line ends; and whether memory files change across a run.
+The `DUE` label word is matched because `docs/6.-Adapter.md` specifies it. The banner text, the bullet prefix and the
 wording around the date are adapter choices (`docs/2.-Evolution.md` Cold-start
 Synthesis, hook output contract) and are read through the judgment only: which
 state, which last-run date, how many days.
@@ -139,7 +140,7 @@ class ConsolidateSurfaceTestCase(ObservationSurfaceTestCase):
 
 class FiringConditionTest(ConsolidateSurfaceTestCase):
     def test_fourteen_days_is_due(self) -> None:
-        """`2 weeks since the last consolidate` -- the boundary day fires."""
+        """Boundary day of the Consolidate Trigger window: surfaced."""
         self.write_index(self.index_with_last_run(-14))
         self.assert_every_adapter(Judgment(last_run=iso(-14), days=14))
 
@@ -163,16 +164,26 @@ class FiringConditionTest(ConsolidateSurfaceTestCase):
         self.write_index(f"{RECORD} {iso(-20)} (by Lin)\n")
         self.assert_every_adapter(Judgment(last_run=iso(-20), days=20))
 
-    def test_first_record_line_is_the_one_read(self) -> None:
+    def test_only_the_head_line_is_read(self) -> None:
+        """A stale record line below a recent head does not surface."""
         self.write_index(f"{RECORD} {iso(-2)}\n{RECORD} {iso(-30)}\n")
+        self.assert_every_adapter(None)
+
+    def test_blank_lines_ahead_of_the_head_are_skipped(self) -> None:
+        self.write_index(f"\n\n{RECORD} {iso(-2)}\n")
         self.assert_every_adapter(None)
 
 
 class NoLineTest(ConsolidateSurfaceTestCase):
-    """`No line = never consolidated, and the trigger fires.`"""
+    """The no-line arm of Consolidate Trigger, as the hooks read the index head."""
 
     def test_index_without_the_line_is_due(self) -> None:
         self.write_index("- [Some entry](some-entry.md) - hook\n")
+        self.assert_every_adapter(NO_LINE)
+
+    def test_record_line_below_the_head_is_no_line(self) -> None:
+        """A recent record line that is not the index head does not count."""
+        self.write_index(f"# Memory index\n\n{RECORD} {iso(-1)}\n")
         self.assert_every_adapter(NO_LINE)
 
     def test_index_absent_in_a_resolved_memory_directory_is_due(self) -> None:
@@ -189,14 +200,14 @@ class NoLineTest(ConsolidateSurfaceTestCase):
         self.assert_every_adapter(NO_LINE)
 
     def test_record_label_is_case_sensitive(self) -> None:
-        """PowerShell `-match` folds case and awk does not; the port uses `-cmatch`."""
+        """A lower-cased label reads as no line on every port."""
         self.write_index(f"**last consolidate run:** {iso(-1)}\n")
         self.assert_every_adapter(NO_LINE)
 
 
 class EncodingTest(ConsolidateSurfaceTestCase):
     def test_bom_and_crlf_do_not_hide_the_line(self) -> None:
-        """Get-Content drops both; the awk ports strip them by hand."""
+        """A BOM-prefixed CRLF index is read as its LF form is."""
         self.write_index(
             self.index_with_last_run(-15),
             encoding_prefix=b"\xef\xbb\xbf",
@@ -215,15 +226,16 @@ class EncodingTest(ConsolidateSurfaceTestCase):
 
 class ResolutionTest(ConsolidateSurfaceTestCase):
     def test_no_memory_directory_is_silent(self) -> None:
-        """Nothing resolved = nothing to consolidate, not a due pass."""
+        """No memory file anywhere: no section is emitted."""
         self.assert_every_adapter(None)
 
     def test_index_alone_resolves_the_memory_directory(self) -> None:
-        """MEMORY.md is in the populated marker set, since this surface reads it.
+        """A directory holding only MEMORY.md resolves as the memory directory.
 
-        The higher-precedence candidate of each adapter holds the index and
-        nothing else. Left out of the marker set, the directory would not
-        resolve and the surface would be silent on a stale index.
+        The higher-precedence candidate of each adapter holds a stale index and
+        nothing else; the section surfaces from it. The marker set this
+        observes is specified at `docs/6.-Adapter.md` (`MEMORY_DIR`
+        resolution).
         """
         for adapter in ADAPTERS:
             with self.subTest(adapter=adapter):
@@ -265,7 +277,7 @@ class ParityTest(ConsolidateSurfaceTestCase):
 
 class ReadOnlyTest(ConsolidateSurfaceTestCase):
     def test_hook_writes_nothing_into_memory(self) -> None:
-        """Observation only: the pass and its record line stay the agent's."""
+        """Every memory file is byte-identical after each port's run."""
         self.write_index(self.index_with_last_run(-30))
         memory = self.ws.shared_memory
         before = {path.name: path.read_bytes() for path in memory.iterdir()}
@@ -278,7 +290,8 @@ class ReadOnlyTest(ConsolidateSurfaceTestCase):
 
 
 class DiffOnlyTest(ConsolidateSurfaceTestCase):
-    """Outside the diff-only set, and counted as material against the marker."""
+    """Second startup run: the section and the marker, as `docs/6.-Adapter.md`
+    (Diff-only output) specifies them for surfaces outside the diff set."""
 
     def run_twice(self, adapter: str, index: str) -> str:
         if adapter in ("claude_sh", "codex_sh") and not NODE:

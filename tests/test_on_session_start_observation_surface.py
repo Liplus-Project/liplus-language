@@ -432,10 +432,10 @@ class Workspace:
     def write_fresh_memory_index(self) -> Path:
         """`MEMORY.md` in the shared memory directory, consolidated today.
 
-        A resolved memory directory without this record line is a due
-        consolidate (#2165), which counts as material and keeps the
-        no-new-material marker from firing. A fixture that needs the marker
-        reachable writes this alongside its memory files.
+        For fixtures that need the no-new-material marker reachable: without a
+        current record line the consolidate due surface emits, and the marker
+        is withheld (`rules/evolution/cold-start-synthesis.md` Consolidate Due
+        Surface; `docs/6.-Adapter.md` Diff-only output; #2165).
         """
         return self.write(
             self.shared_memory,

@@ -1335,8 +1335,9 @@ if ($tallyBody) {
 # the resolution is there. The firing condition is
 # rules/evolution/memory-entry-format.md Consolidate Trigger.
 #
-# Parity with the awk ports: the first line of the record shape is read
-# (-cmatch, case-sensitive like awk; [0-9] rather than \d, which would admit
+# Parity with the awk ports: only the head of the index -- its first non-blank
+# line -- is read, and a record line below it is no line (-cmatch,
+# case-sensitive like awk; [0-9] rather than \d, which would admit
 # non-ASCII digits); a date TryParseExact rejects counts as no line, as the awk
 # day_number() rejecting it does; MEMORY.md absent inside a resolved $memoryDir
 # is no line; a date later than today is not due. Get-Content drops a UTF-8 BOM
@@ -1348,10 +1349,11 @@ if ($memoryDir -and (Test-Path -LiteralPath $memoryDir -PathType Container)) {
   $consolidateLast = ''
   if (Test-Path -LiteralPath $consolidateIndex -PathType Leaf) {
     foreach ($l in (Get-Content -Encoding UTF8 -LiteralPath $consolidateIndex -ErrorAction SilentlyContinue)) {
+      if ($l -cmatch '^\s*$') { continue }
       if ($l -cmatch '^\s*\*\*Last consolidate run:\*\*\s*([0-9]{4}-[0-9]{2}-[0-9]{2})([^0-9]|$)') {
         $consolidateLast = $matches[1]
-        break
       }
+      break
     }
   }
   $consolidateParsed = [datetime]::MinValue

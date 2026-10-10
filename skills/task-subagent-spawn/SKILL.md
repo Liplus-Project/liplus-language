@@ -31,10 +31,12 @@ What the parent reads to choose, on both axes, at every spawn. Role does not ent
 
 Where the three disagree, the third decides: it is the one that says whether an error survives the spawn. One pass over the three settles the step; this is not a table to fill in before spawning.
 
+For a non-brake spawn, the parent may choose a lighter model than its own only when the work has a bounded scope, a definite correctness check, and a later gate that catches its errors. Use evidence corresponding to that work to judge quality and total cost, including verification, failure, handoff and rework; unit price alone does not suffice. Do not treat unmeasured costs as zero or generalize evidence from extraction or known-passage retrieval to arbitrary investigation, log classification, implementation or semantic judgment. If the evidence is insufficient or errors would survive the later gate, keep the existing starting point. When these conditions are met, the downward choice takes precedence over the parent's-model anchor below; it does not lower brake-evaluator floors.
+
 Landing anchors, the starting point the three move from. Where the third criterion moves the choice up, it outranks the anchor:
 
-- **Effort moves first, model second.** Reach for a different model only when an effort step on the current one does not cover the work.
-- **Implementation delegate: the parent's model (omit `model`), starting at `low`.** After one failure at `low`, respawn at `medium`. Select `high` only when the reason fits in one line written at the spawn. A kind of work that keeps needing the raise takes `medium` as its start from then on, for that kind only.
+- **When moving up, effort moves first, model second.** Reach for a stronger model only when an effort step on the current one does not cover the work.
+- **Implementation delegate: the parent's model (omit `model`), starting at `low`.** The model anchor yields only to the downward conditions above; the effort starting point remains. After one failure at `low`, respawn at `medium`. Select `high` only when the reason fits in one line written at the spawn. A kind of work that keeps needing the raise takes `medium` as its start from then on, for that kind only.
 - **Judge-type brake 1 evaluators: sonnet-class at `low` to `medium`.**
 - **For a spawn whose work lands in a PR, the spawner records one line in that PR**: the model and effort chosen, the reason, and whether `low` sufficed or was raised.
 

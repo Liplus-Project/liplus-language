@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "oracle_method": "literal expected answers fixed before target-model calls; checked against inputs",
+  "cases": [
+    {
+      "id": "SE1",
+      "category": "extraction",
+      "language": "en",
+      "task": "Return exactly order.shipping.postal_code from the JSON. Preserve leading zeroes.",
+      "input": "{\"postal_code\":\"99999\",\"order\":{\"billing\":{\"postal_code\":\"22222\"},\"shipping\":{\"postal_code\":\"00418\"}}}",
+      "answer": "00418"
+    },
+    {
+      "id": "SE2",
+      "category": "extraction",
+      "language": "en",
+      "task": "Return serial for the only record with enabled=true AND region=\"west\".",
+      "input": "[{\"serial\":\"S-71\",\"enabled\":false,\"region\":\"west\"},{\"serial\":\"S-83\",\"enabled\":true,\"region\":\"east\"},{\"serial\":\"S-29\",\"enabled\":true,\"region\":\"west\"}]",
+      "answer": "S-29"
+    },
+    {
+      "id": "SE3",
+      "category": "extraction",
+      "language": "ja",
+      "task": "JSONの「予約」の「到着」の「便名」だけを返す。「出発」や外側の便名は使わない。",
+      "input": "{\"便名\":\"F-99\",\"予約\":{\"出発\":{\"便名\":\"F-12\"},\"到着\":{\"便名\":\"F-38\"}}}",
+      "answer": "F-38"
+    },
+    {
+      "id": "SE4",
+      "category": "extraction",
+      "language": "ja",
+      "task": "「種別」が「確定」で「人数」が数値の2の行だけから「席」を返す。文字列の\"2\"は対象外。",
+      "input": "[{\"種別\":\"確定\",\"人数\":\"2\",\"席\":\"A4\"},{\"種別\":\"仮\",\"人数\":2,\"席\":\"B6\"},{\"種別\":\"確定\",\"人数\":2,\"席\":\"C8\"}]",
+      "answer": "C8"
+    },
+    {
+      "id": "SR1",
+      "category": "known-text-retrieval",
+      "language": "en",
+      "task": "Look up exact key deploy.target in section production. Return its complete value, preserving the hyphen.",
+      "input": "[staging]\ndeploy.target=green-zone\n[production]\ndeploy.target=amber-zone\ndeploy.target.preview=blue-zone",
+      "answer": "amber-zone"
+    },
+    {
+      "id": "SR2",
+      "category": "known-text-retrieval",
+      "language": "en",
+      "task": "Find the current manual entry for key cutoff. Return NONE if the exact key is absent; ignore archived entries.",
+      "input": "ARCHIVED MANUAL\ncutoff=16:00\nCURRENT MANUAL\ncutoff.preview=18:00\ncutoff_legacy=12:00",
+      "answer": "NONE"
+    },
+    {
+      "id": "SR3",
+      "category": "known-text-retrieval",
+      "language": "ja",
+      "task": "資料内の「西館」の「連絡先」の値を返す。他の館や案内先は使わない。",
+      "input": "東館: 連絡先=受付一\n西館: 案内先=受付二\n西館: 連絡先=受付三",
+      "answer": "受付三"
+    },
+    {
+      "id": "SR4",
+      "category": "known-text-retrieval",
+      "language": "ja",
+      "task": "適用=yes の規定から、項目が完全一致で「搬出」の時間を返す。「搬出準備」は別項目。",
+      "input": "項目=搬出 時間=08:10 適用=no\n項目=搬出準備 時間=09:20 適用=yes\n項目=搬出 時間=10:35 適用=yes",
+      "answer": "10:35"
+    }
+  ]
+}

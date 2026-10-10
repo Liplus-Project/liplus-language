@@ -1,0 +1,262 @@
+{
+  "status": "paired_calls_complete; two Haiku errors uncorrected",
+  "date": "2026-10-10",
+  "initial_failed_probe": "probe-result.json (reported cost 0, no true model id)",
+  "actual_attempts": 6,
+  "retries": 0,
+  "correction_calls": 0,
+  "attempts": [
+    {
+      "utc": "20261010T113043723812Z",
+      "requested_model": "haiku",
+      "effort": "low",
+      "batch": 1,
+      "prompt_sha256": "41524255ebfd23ffb57b6bd7d3270374bf00fe48bdf589baab7269917056f560",
+      "reported_total_cost_usd": 0.0006459500000000001,
+      "exit_code": 0,
+      "duration_seconds": 2.546,
+      "stderr_nonempty": false,
+      "is_error": false,
+      "duration_ms": 1056,
+      "duration_api_ms": 1022,
+      "total_cost_usd": 0.0006459500000000001,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 30,
+        "cache_creation_input_tokens": 3127,
+        "cache_read_input_tokens": 535
+      },
+      "model_usage": {
+        "claude-haiku-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 30,
+          "cacheReadInputTokens": 535,
+          "cacheCreationInputTokens": 3127,
+          "costUSD": 0.0006459500000000001
+        }
+      },
+      "answer": "{\"E1\": \"T-044\", \"L1\": \"WARN\", \"R1\": \"14d\"}",
+      "score": {
+        "correct": 3,
+        "total": 3,
+        "pass": true,
+        "matches": {
+          "E1": true,
+          "L1": true,
+          "R1": true
+        }
+      }
+    },
+    {
+      "utc": "20261010T113051499101Z",
+      "requested_model": "opus",
+      "effort": "low",
+      "batch": 1,
+      "prompt_sha256": "41524255ebfd23ffb57b6bd7d3270374bf00fe48bdf589baab7269917056f560",
+      "reported_total_cost_usd": 0.019434999999999997,
+      "exit_code": 0,
+      "duration_seconds": 3.168,
+      "stderr_nonempty": false,
+      "is_error": false,
+      "duration_ms": 1705,
+      "duration_api_ms": 1672,
+      "total_cost_usd": 0.019434999999999997,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 28,
+        "cache_creation_input_tokens": 2345,
+        "cache_read_input_tokens": 535
+      },
+      "model_usage": {
+        "claude-opus-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 28,
+          "cacheReadInputTokens": 535,
+          "cacheCreationInputTokens": 2345,
+          "costUSD": 0.019434999999999997
+        }
+      },
+      "answer": "{\"E1\":\"T-044\",\"L1\":\"WARN\",\"R1\":\"14d\"}",
+      "score": {
+        "correct": 3,
+        "total": 3,
+        "pass": true,
+        "matches": {
+          "E1": true,
+          "L1": true,
+          "R1": true
+        }
+      }
+    },
+    {
+      "utc": "20261010T113104182563Z",
+      "requested_model": "haiku",
+      "effort": "low",
+      "batch": 2,
+      "prompt_sha256": "5f762cd6ae92defdd1c55049bc13a43533b1ce28be19b6ee0966690628409585",
+      "reported_total_cost_usd": 0.00034284,
+      "exit_code": 0,
+      "duration_seconds": 2.31,
+      "stderr_nonempty": false,
+      "is_error": false,
+      "duration_ms": 890,
+      "duration_api_ms": 856,
+      "total_cost_usd": 0.00034284,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 31,
+        "cache_creation_input_tokens": 1524,
+        "cache_read_input_tokens": 2234
+      },
+      "model_usage": {
+        "claude-haiku-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 31,
+          "cacheReadInputTokens": 2234,
+          "cacheCreationInputTokens": 1524,
+          "costUSD": 0.00034284
+        }
+      },
+      "answer": "{\"E2\": \"C7\", \"L2\": \"RETRY\", \"R2\": \"青棚\"}",
+      "score": {
+        "correct": 2,
+        "total": 3,
+        "pass": false,
+        "matches": {
+          "E2": true,
+          "L2": false,
+          "R2": true
+        }
+      }
+    },
+    {
+      "utc": "20261010T113111834371Z",
+      "requested_model": "opus",
+      "effort": "low",
+      "batch": 2,
+      "prompt_sha256": "5f762cd6ae92defdd1c55049bc13a43533b1ce28be19b6ee0966690628409585",
+      "reported_total_cost_usd": 0.0130148,
+      "exit_code": 0,
+      "duration_seconds": 3.162,
+      "stderr_nonempty": false,
+      "is_error": false,
+      "duration_ms": 1698,
+      "duration_api_ms": 1661,
+      "total_cost_usd": 0.0130148,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 27,
+        "cache_creation_input_tokens": 1522,
+        "cache_read_input_tokens": 1454
+      },
+      "model_usage": {
+        "claude-opus-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 27,
+          "cacheReadInputTokens": 1454,
+          "cacheCreationInputTokens": 1522,
+          "costUSD": 0.0130148
+        }
+      },
+      "answer": "{\"E2\":\"C7\",\"L2\":\"OK\",\"R2\":\"青棚\"}",
+      "score": {
+        "correct": 3,
+        "total": 3,
+        "pass": true,
+        "matches": {
+          "E2": true,
+          "L2": true,
+          "R2": true
+        }
+      }
+    },
+    {
+      "utc": "20261010T113119822279Z",
+      "requested_model": "haiku",
+      "effort": "low",
+      "batch": 3,
+      "prompt_sha256": "b675d2d96202c8fe71994c03e8f56c3ee50fcd8b3ea69a49f158077fedaed1b8",
+      "reported_total_cost_usd": 0.00040464,
+      "exit_code": 0,
+      "duration_seconds": 2.451,
+      "stderr_nonempty": false,
+      "is_error": false,
+      "duration_ms": 1054,
+      "duration_api_ms": 1022,
+      "total_cost_usd": 0.00040464,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 49,
+        "cache_creation_input_tokens": 1788,
+        "cache_read_input_tokens": 2234
+      },
+      "model_usage": {
+        "claude-haiku-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 49,
+          "cacheReadInputTokens": 2234,
+          "cacheCreationInputTokens": 1788,
+          "costUSD": 0.00040464
+        }
+      },
+      "answer": "{\"E3\":\"D04\",\"E4\":\"02\",\"L3\":\"FAIL\",\"L4\":\"OK\",\"R3\":\"NONE\",\"R4\":\"21日\"}",
+      "score": {
+        "correct": 5,
+        "total": 6,
+        "pass": false,
+        "matches": {
+          "E3": true,
+          "E4": true,
+          "L3": false,
+          "L4": true,
+          "R3": true,
+          "R4": true
+        }
+      }
+    },
+    {
+      "utc": "20261010T113127409262Z",
+      "requested_model": "opus",
+      "effort": "low",
+      "batch": 3,
+      "prompt_sha256": "b675d2d96202c8fe71994c03e8f56c3ee50fcd8b3ea69a49f158077fedaed1b8",
+      "reported_total_cost_usd": 0.0155468,
+      "exit_code": 0,
+      "duration_seconds": 3.41,
+      "stderr_nonempty": false,
+      "is_error": false,
+      "duration_ms": 2013,
+      "duration_api_ms": 1978,
+      "total_cost_usd": 0.0155468,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 48,
+        "cache_creation_input_tokens": 1786,
+        "cache_read_input_tokens": 1454
+      },
+      "model_usage": {
+        "claude-opus-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 48,
+          "cacheReadInputTokens": 1454,
+          "cacheCreationInputTokens": 1786,
+          "costUSD": 0.0155468
+        }
+      },
+      "answer": "{\"E3\":\"D04\",\"E4\":\"02\",\"L3\":\"PASS\",\"L4\":\"OK\",\"R3\":\"NONE\",\"R4\":\"21日\"}",
+      "score": {
+        "correct": 6,
+        "total": 6,
+        "pass": true,
+        "matches": {
+          "E3": true,
+          "E4": true,
+          "L3": true,
+          "L4": true,
+          "R3": true,
+          "R4": true
+        }
+      }
+    }
+  ]
+}

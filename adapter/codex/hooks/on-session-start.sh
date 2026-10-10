@@ -1208,7 +1208,11 @@ fi
 # not parse as a calendar date counts as no line: when the last run cannot be
 # read, staying silent is the failure this surface exists to remove. A date
 # later than today is not due. A UTF-8 BOM ahead of the first line is dropped,
-# as the PowerShell port's Get-Content does. The day difference is taken on
+# as the PowerShell port's Get-Content does. Blank and the gaps around the
+# label are space and tab only, never [[:space:]]: that class follows the host
+# locale (U+3000 matches under C.UTF-8 and not under the Git Bash default),
+# and the PowerShell \s admits every Unicode space, so either one splits the
+# ports on identical input. The day difference is taken on
 # awk day numbers, the same function the disposition log trim uses, so no
 # GNU-only `date -d` is needed.
 CONSOLIDATE_DAYS=14
@@ -1237,11 +1241,11 @@ if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
         line = $0
         sub(/\r$/, "", line)
         if (NR == 1 && index(line, bom) == 1) line = substr(line, length(bom) + 1)
-        if (line ~ /^[[:space:]]*$/) next
+        if (line ~ /^[ \t]*$/) next
         head = 1
-        if (line ~ /^[[:space:]]*\*\*Last consolidate run:\*\*[[:space:]]*[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]([^0-9]|$)/) {
+        if (line ~ /^[ \t]*\*\*Last consolidate run:\*\*[ \t]*[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]([^0-9]|$)/) {
           v = line
-          sub(/^[[:space:]]*\*\*Last consolidate run:\*\*[[:space:]]*/, "", v)
+          sub(/^[ \t]*\*\*Last consolidate run:\*\*[ \t]*/, "", v)
           last = substr(v, 1, 10)
           found = 1
         }
@@ -1260,8 +1264,8 @@ if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
     if [ -n "$CONSOLIDATE_LINE" ]; then
       CONSOLIDATE_BODY="${CONSOLIDATE_INDEX} - memory consolidate is due:
 ${CONSOLIDATE_LINE}
-Surfacing is observation, not auto-action. The pass and the line that records
-it follow rules/evolution/memory-entry-format.md Consolidate Trigger."
+Surfacing is observation, not auto-action. The pass follows
+rules/evolution/memory-entry-format.md Consolidate Trigger."
     fi
   fi
 fi

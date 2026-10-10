@@ -14,7 +14,8 @@ What is observed and what is not
 Observed: the judgment each port emits for a record dated 13, 14 and 40 days
 back, today and in the future; for an index whose head is not a record line
 (no record line, a record line only below the head, a date that is not a
-calendar date, a differently cased label); for an absent index; for an index
+calendar date, a differently cased label, non-ASCII space where a blank or a
+gap is read); for an absent index; for an index
 with a BOM and CRLF line ends; and whether memory files change across a run.
 The `DUE` label word is matched because `docs/6.-Adapter.md` specifies it. The banner text, the bullet prefix and the
 wording around the date are adapter choices (`docs/2.-Evolution.md` Cold-start
@@ -198,6 +199,20 @@ class NoLineTest(ConsolidateSurfaceTestCase):
     def test_record_without_a_date_counts_as_no_line(self) -> None:
         self.write_index(f"{RECORD} never\n")
         self.assert_every_adapter(NO_LINE)
+
+    def test_ideographic_space_line_is_the_head(self) -> None:
+        """A U+3000-only first line is the head on every port, not a blank."""
+        self.write_index(f"\u3000\n{RECORD} {iso(-1)}\n")
+        self.assert_every_adapter(NO_LINE)
+
+    def test_non_ascii_space_after_the_label_is_no_line(self) -> None:
+        """A U+00A0 between the label and the date reads as no line on every port."""
+        self.write_index(f"{RECORD}\u00a0{iso(-1)}\n")
+        self.assert_every_adapter(NO_LINE)
+
+    def test_tab_after_the_label_is_read(self) -> None:
+        self.write_index(f"\t{RECORD}\t{iso(-1)}\n")
+        self.assert_every_adapter(None)
 
     def test_record_label_is_case_sensitive(self) -> None:
         """A lower-cased label reads as no line on every port."""

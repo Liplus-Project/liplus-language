@@ -1337,7 +1337,8 @@ if ($tallyBody) {
 #
 # Parity with the awk ports: only the head of the index -- its first non-blank
 # line -- is read, and a record line below it is no line (-cmatch,
-# case-sensitive like awk; [0-9] rather than \d, which would admit
+# case-sensitive like awk; [ \t] rather than \s, which admits every Unicode
+# space where the awk ports read space and tab only; [0-9] rather than \d, which would admit
 # non-ASCII digits); a date TryParseExact rejects counts as no line, as the awk
 # day_number() rejecting it does; MEMORY.md absent inside a resolved $memoryDir
 # is no line; a date later than today is not due. Get-Content drops a UTF-8 BOM
@@ -1349,8 +1350,8 @@ if ($memoryDir -and (Test-Path -LiteralPath $memoryDir -PathType Container)) {
   $consolidateLast = ''
   if (Test-Path -LiteralPath $consolidateIndex -PathType Leaf) {
     foreach ($l in (Get-Content -Encoding UTF8 -LiteralPath $consolidateIndex -ErrorAction SilentlyContinue)) {
-      if ($l -cmatch '^\s*$') { continue }
-      if ($l -cmatch '^\s*\*\*Last consolidate run:\*\*\s*([0-9]{4}-[0-9]{2}-[0-9]{2})([^0-9]|$)') {
+      if ($l -cmatch '^[ \t]*$') { continue }
+      if ($l -cmatch '^[ \t]*\*\*Last consolidate run:\*\*[ \t]*([0-9]{4}-[0-9]{2}-[0-9]{2})([^0-9]|$)') {
         $consolidateLast = $matches[1]
       }
       break
@@ -1372,8 +1373,8 @@ if ($memoryDir -and (Test-Path -LiteralPath $memoryDir -PathType Container)) {
   if ($consolidateLine) {
     $consolidateBody = "$consolidateIndex - memory consolidate is due:`n" +
       $consolidateLine +
-      "Surfacing is observation, not auto-action. The pass and the line that records`n" +
-      "it follow rules/evolution/memory-entry-format.md Consolidate Trigger."
+      "Surfacing is observation, not auto-action. The pass follows`n" +
+      "rules/evolution/memory-entry-format.md Consolidate Trigger."
   }
 }
 

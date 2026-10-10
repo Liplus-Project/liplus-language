@@ -629,7 +629,8 @@ $surfaceCap = 10
 # an empty higher-precedence directory would otherwise shadow a populated
 # lower-precedence one and silence every consumer at once.
 # The marker set is the files $memoryDir consumers read: the observation surface,
-# the per-topic entry-file prefixes the promotion detectors scan, plus
+# the index MEMORY.md the consolidate due surface reads (#2165), the per-topic
+# entry-file prefixes the promotion detectors scan, plus
 # self-evaluation_log.md so that both resolution paths agree on what counts as a
 # memory directory. That last member never decides a case in practice: the
 # self-eval lookup above scans the same candidate directories, so whenever that
@@ -652,6 +653,7 @@ function Test-MemoryDirPopulated {
   foreach ($markerFile in @(
       'self-evaluation_log.md',
       'self-evolution-observation.md',
+      'MEMORY.md',
       'promotion_tally.md')) {
     if (Test-Path -LiteralPath (Join-Path $Dir $markerFile) -PathType Leaf) { return $true }
   }
@@ -666,7 +668,7 @@ function Test-MemoryDirPopulated {
 # Memory entry files inside a resolved $memoryDir, under the same one-memory-
 # per-file layout. Excluded are the index, the two transient operational files
 # that have their own dedicated reader, and the tally: MEMORY.md is read by the
-# index emit, self-evaluation_log.md by the self-eval head, and the observation
+# consolidate due surface, self-evaluation_log.md by the self-eval head, and the observation
 # surface below reads self-evolution-observation.md. promotion_tally.md stays in
 # this list on other grounds since #2018: the tally resolves outside memory, so a
 # tally left at the pre-#2018 path has no reader here, and scanning it as an entry
@@ -870,8 +872,9 @@ function Add-AxisMiss {
 }
 
 # Probe the directory directly when self-evaluation_log.md is absent: the other
-# $memoryDir readers (promotion detectors, self-evolution observation surface)
-# must not be silenced by the absence of an unrelated file.
+# $memoryDir readers (promotion detectors, self-evolution observation surface,
+# consolidate due surface) must not be silenced by the absence of an unrelated
+# file.
 $memoryDir = ''
 if ($selfEvalFound) {
   $memoryDir = Split-Path -Parent $selfEvalFound
@@ -1325,6 +1328,62 @@ if ($tallyBody) {
   $tallyEmitted = $true
 }
 
+# --- memory consolidate due surface ---
+# Implements rules/evolution/cold-start-synthesis.md "Consolidate Due Surface"
+# (#2165). Port of the same block in adapter/claude/hooks/on-session-start.sh;
+# the rationale for staying out of the diff set, for the read-only scope and for
+# the resolution is there. The firing condition is
+# rules/evolution/memory-entry-format.md Consolidate Trigger.
+#
+# Parity with the awk ports: the first line of the record shape is read
+# (-cmatch, case-sensitive like awk; [0-9] rather than \d, which would admit
+# non-ASCII digits); a date TryParseExact rejects counts as no line, as the awk
+# day_number() rejecting it does; MEMORY.md absent inside a resolved $memoryDir
+# is no line; a date later than today is not due. Get-Content drops a UTF-8 BOM
+# and the CR of a CRLF line, which the awk ports strip by hand.
+$consolidateDays = 14
+$consolidateBody = ''
+if ($memoryDir -and (Test-Path -LiteralPath $memoryDir -PathType Container)) {
+  $consolidateIndex = Join-Path $memoryDir 'MEMORY.md'
+  $consolidateLast = ''
+  if (Test-Path -LiteralPath $consolidateIndex -PathType Leaf) {
+    foreach ($l in (Get-Content -Encoding UTF8 -LiteralPath $consolidateIndex -ErrorAction SilentlyContinue)) {
+      if ($l -cmatch '^\s*\*\*Last consolidate run:\*\*\s*([0-9]{4}-[0-9]{2}-[0-9]{2})([^0-9]|$)') {
+        $consolidateLast = $matches[1]
+        break
+      }
+    }
+  }
+  $consolidateParsed = [datetime]::MinValue
+  $consolidateReadable = $consolidateLast -and [datetime]::TryParseExact(
+    $consolidateLast, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture,
+    [System.Globalization.DateTimeStyles]::None, [ref]$consolidateParsed)
+  $consolidateLine = ''
+  if (-not $consolidateReadable) {
+    $consolidateLine = "  - DUE (no readable **Last consolidate run:** line)`n"
+  } else {
+    $consolidateAge = ((Get-Date).Date - $consolidateParsed.Date).Days
+    if ($consolidateAge -ge $consolidateDays) {
+      $consolidateLine = "  - DUE (last run $consolidateLast, $consolidateAge days ago)`n"
+    }
+  }
+  if ($consolidateLine) {
+    $consolidateBody = "$consolidateIndex - memory consolidate is due:`n" +
+      $consolidateLine +
+      "Surfacing is observation, not auto-action. The pass and the line that records`n" +
+      "it follow rules/evolution/memory-entry-format.md Consolidate Trigger."
+  }
+}
+
+# Emitted next to the two surfaces above, before the diff sections, for the same
+# reason: an open consolidate window must not be buried under whatever else
+# changed.
+$consolidateEmitted = $false
+if ($consolidateBody) {
+  Emit-Section 'Memory consolidate (due)' $consolidateBody
+  $consolidateEmitted = $true
+}
+
 # --- clone branch fetch surface (outside the diff-only set) ---
 # Implements rules/evolution/cold-start-synthesis.md "Clone Branch Fetch
 # Surface". Port of the same block in
@@ -1436,12 +1495,12 @@ for ($i = 0; $i -lt $sectionKeys.Count; $i++) {
   }
 }
 
-# The three surfaces outside the diff-only set count as material: pairing a
-# just-emitted overdue entry, an expired tally cluster or a clone that cannot
-# fetch branches with "No new orientation material" would be self-contradictory
-# output.
+# The four surfaces outside the diff-only set count as material: pairing a
+# just-emitted overdue entry, an expired tally cluster, a due consolidate or a
+# clone that cannot fetch branches with "No new orientation material" would be
+# self-contradictory output.
 $markerEmitted = $false
-if (-not $emittedAny -and -not $observationEmitted -and -not $tallyEmitted -and -not $cloneRefspecEmitted -and -not $failSafeFull) {
+if (-not $emittedAny -and -not $observationEmitted -and -not $tallyEmitted -and -not $consolidateEmitted -and -not $cloneRefspecEmitted -and -not $failSafeFull) {
   Emit-Section 'Orientation diff' 'No new orientation material since last session. Prior in-context state remains authoritative.'
   $markerEmitted = $true
 }

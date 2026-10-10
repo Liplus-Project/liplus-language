@@ -77,6 +77,7 @@ class AgentPartitionTest(unittest.TestCase):
         self.addCleanup(ws.cleanup)
         ws.seed_coldstart_rule("anchor-token")
         ws.write(ws.shared_memory, "self-evaluation_log.md", "# log\n\n## first entry\n")
+        ws.write_fresh_memory_index()
         return ws
 
     def move_the_diffed_section(self, ws: Workspace) -> None:

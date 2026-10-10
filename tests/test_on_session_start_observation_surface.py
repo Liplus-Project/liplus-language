@@ -429,6 +429,20 @@ class Workspace:
                 manifest.write_text(json.dumps(record), encoding="utf-8")
         return target
 
+    def write_fresh_memory_index(self) -> Path:
+        """`MEMORY.md` in the shared memory directory, consolidated today.
+
+        A resolved memory directory without this record line is a due
+        consolidate (#2165), which counts as material and keeps the
+        no-new-material marker from firing. A fixture that needs the marker
+        reachable writes this alongside its memory files.
+        """
+        return self.write(
+            self.shared_memory,
+            "MEMORY.md",
+            f"**Last consolidate run:** {date.today().isoformat()}\n",
+        )
+
     def seed_coldstart_rule(self, token: str, h2_token: str | None = None) -> Path:
         """Minimal `rules/evolution/cold-start-synthesis.md` in the fixture clone.
 
@@ -1007,6 +1021,7 @@ class NoNewMaterialMarkerTest(ObservationSurfaceTestCase):
         # A stable non-empty section: it gives the second run a fingerprint to
         # compare, so "nothing changed" is a real comparison and not vacuous.
         workspace.write(workspace.shared_memory, "self-evaluation_log.md", "# log\n")
+        workspace.write_fresh_memory_index()
         if observation is not None:
             workspace.write(
                 workspace.shared_memory, "self-evolution-observation.md", observation

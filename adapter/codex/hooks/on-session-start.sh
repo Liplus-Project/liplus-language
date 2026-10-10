@@ -492,7 +492,8 @@ SURFACE_CAP=10
 # an empty higher-precedence directory would otherwise shadow a populated
 # lower-precedence one and silence every consumer at once.
 # The marker set is the files MEMORY_DIR consumers read: the observation surface,
-# the per-topic entry-file prefixes the promotion detectors scan, plus
+# the index MEMORY.md the consolidate due surface reads (#2165), the per-topic
+# entry-file prefixes the promotion detectors scan, plus
 # self-evaluation_log.md so that both resolution paths agree on what counts as a
 # memory directory. That last member never decides a case in practice: the
 # self-eval lookup above scans the same candidate directories, so whenever that
@@ -514,6 +515,7 @@ memory_dir_populated() {
   for markerfile in \
     self-evaluation_log.md \
     self-evolution-observation.md \
+    MEMORY.md \
     promotion_tally.md; do
     [ -f "$1/$markerfile" ] && return 0
   done
@@ -526,7 +528,7 @@ memory_dir_populated() {
 # Memory entry files inside a resolved MEMORY_DIR, under the same one-memory-
 # per-file layout. Excluded are the index, the two transient operational files
 # that have their own dedicated reader, and the tally: MEMORY.md is read by the
-# index emit, self-evaluation_log.md by the self-eval head, and the observation
+# consolidate due surface, self-evaluation_log.md by the self-eval head, and the observation
 # surface below reads self-evolution-observation.md. promotion_tally.md stays in
 # this list on other grounds since #2018: the tally resolves outside memory, so a
 # tally left at the pre-#2018 path has no reader here, and scanning it as an entry
@@ -560,8 +562,9 @@ memory_entry_title() {
 }
 
 # Probe the directory directly when self-evaluation_log.md is absent: the other
-# MEMORY_DIR readers (promotion detectors, self-evolution observation surface)
-# must not be silenced by the absence of an unrelated file.
+# MEMORY_DIR readers (promotion detectors, self-evolution observation surface,
+# consolidate due surface) must not be silenced by the absence of an unrelated
+# file.
 MEMORY_DIR=""
 if [ -n "$SELFEVAL_FOUND" ]; then
   MEMORY_DIR=$(dirname "$SELFEVAL_FOUND")
@@ -1178,6 +1181,87 @@ rules/evolution/promotion-judgment.md Threshold Rules."
   fi
 fi
 
+# --- memory consolidate due surface ---
+# Implements rules/evolution/cold-start-synthesis.md "Consolidate Due Surface"
+# (#2165). Port of the same block in adapter/claude/hooks/on-session-start.sh.
+# The firing condition is rules/evolution/memory-entry-format.md
+# Consolidate Trigger: 2 weeks since the last consolidate, read off the
+# `**Last consolidate run:** <YYYY-MM-DD>` line at the head of the index
+# MEMORY.md, and no line = never consolidated, which fires.
+#
+# Same class as the observation and tally surfaces, for the same reason: NOT
+# registered via register_section (date-driven trigger over a content-driven
+# body -- an unchanged index keeps a byte-identical body while the window stays
+# open, so a fingerprint would surface it once and then suppress it). Empty
+# body = silent skip.
+#
+# Read-only: the hook writes nothing into memory and runs no pass. The pass and
+# the line that records it are the agent's; the emission stops once that line
+# carries a date fewer than CONSOLIDATE_DAYS days back.
+#
+# Resolution is MEMORY_DIR, the directory the other memory readers above use.
+# Unresolved MEMORY_DIR = silent skip: no memory directory, nothing to
+# consolidate. MEMORY.md absent inside a resolved MEMORY_DIR has no line, so it
+# is due. The first line of the record shape is the one read. A date that does
+# not parse as a calendar date counts as no line: when the last run cannot be
+# read, staying silent is the failure this surface exists to remove. A date
+# later than today is not due. A UTF-8 BOM ahead of the first line is dropped,
+# as the PowerShell port's Get-Content does. The day difference is taken on
+# awk day numbers, the same function the disposition log trim uses, so no
+# GNU-only `date -d` is needed.
+CONSOLIDATE_DAYS=14
+CONSOLIDATE_BODY=""
+if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
+  CONSOLIDATE_TODAY=$(date +%Y-%m-%d 2>/dev/null || echo "")
+  CONSOLIDATE_INDEX="$MEMORY_DIR/MEMORY.md"
+  if [ -n "$CONSOLIDATE_TODAY" ]; then
+    CONSOLIDATE_SOURCE="$CONSOLIDATE_INDEX"
+    [ -f "$CONSOLIDATE_SOURCE" ] || CONSOLIDATE_SOURCE=/dev/null
+    CONSOLIDATE_LINE=$(awk -v today="$CONSOLIDATE_TODAY" -v keep="$CONSOLIDATE_DAYS" \
+      -v bom="$(printf '\357\273\277')" '
+      function day_number(s,   y, m, d, dim) {
+        if (s !~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/) return -1
+        y = substr(s, 1, 4) + 0; m = substr(s, 6, 2) + 0; d = substr(s, 9, 2) + 0
+        if (m < 1 || m > 12 || d < 1) return -1
+        dim = substr("312831303130313130313031", 2 * m - 1, 2) + 0
+        if (m == 2 && (y % 4 == 0 && (y % 100 != 0 || y % 400 == 0))) dim = 29
+        if (d > dim) return -1
+        if (m <= 2) { y -= 1; m += 12 }
+        return 365 * y + int(y / 4) - int(y / 100) + int(y / 400) + int((153 * (m - 3) + 2) / 5) + d
+      }
+      BEGIN { found = 0; last = "" }
+      found { next }
+      {
+        line = $0
+        sub(/\r$/, "", line)
+        if (NR == 1 && index(line, bom) == 1) line = substr(line, length(bom) + 1)
+        if (line ~ /^[[:space:]]*\*\*Last consolidate run:\*\*[[:space:]]*[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]([^0-9]|$)/) {
+          v = line
+          sub(/^[[:space:]]*\*\*Last consolidate run:\*\*[[:space:]]*/, "", v)
+          last = substr(v, 1, 10)
+          found = 1
+        }
+      }
+      END {
+        now = day_number(today)
+        if (now < 0) exit
+        n = found ? day_number(last) : -1
+        if (n < 0) {
+          print "  - DUE (no readable **Last consolidate run:** line)"
+        } else if (now - n >= keep) {
+          printf "  - DUE (last run %s, %d days ago)\n", last, now - n
+        }
+      }
+    ' "$CONSOLIDATE_SOURCE")
+    if [ -n "$CONSOLIDATE_LINE" ]; then
+      CONSOLIDATE_BODY="${CONSOLIDATE_INDEX} - memory consolidate is due:
+${CONSOLIDATE_LINE}
+Surfacing is observation, not auto-action. The pass and the line that records
+it follow rules/evolution/memory-entry-format.md Consolidate Trigger."
+    fi
+  fi
+fi
+
 # Emitted before the diff sections so a due/overdue entry is not buried under
 # whatever else changed.
 OBSERVATION_EMITTED=0
@@ -1192,6 +1276,15 @@ TALLY_EMITTED=0
 if [ -n "$TALLY_BODY" ]; then
   emit_section "Tally expiry (due / overdue)" "$TALLY_BODY"
   TALLY_EMITTED=1
+fi
+
+# Emitted next to the two surfaces above, before the diff sections, for the same
+# reason: an open consolidate window must not be buried under whatever else
+# changed.
+CONSOLIDATE_EMITTED=0
+if [ -n "$CONSOLIDATE_BODY" ]; then
+  emit_section "Memory consolidate (due)" "$CONSOLIDATE_BODY"
+  CONSOLIDATE_EMITTED=1
 fi
 
 # --- clone branch fetch surface (outside the diff-only set) ---
@@ -1374,11 +1467,11 @@ while [ "$i" -lt "${#SECTION_KEYS[@]}" ]; do
   fi
 done
 
-# The three surfaces outside the diff-only set count as material: pairing a
-# just-emitted overdue entry, an expired tally cluster or a clone that cannot
-# fetch branches with "No new orientation material" would be self-contradictory
-# output.
-if [ "$EMITTED_ANY" -eq 0 ] && [ "$OBSERVATION_EMITTED" -eq 0 ] && [ "$TALLY_EMITTED" -eq 0 ] && [ "$CLONE_REFSPEC_EMITTED" -eq 0 ] && [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ]; then
+# The four surfaces outside the diff-only set count as material: pairing a
+# just-emitted overdue entry, an expired tally cluster, a due consolidate or a
+# clone that cannot fetch branches with "No new orientation material" would be
+# self-contradictory output.
+if [ "$EMITTED_ANY" -eq 0 ] && [ "$OBSERVATION_EMITTED" -eq 0 ] && [ "$TALLY_EMITTED" -eq 0 ] && [ "$CONSOLIDATE_EMITTED" -eq 0 ] && [ "$CLONE_REFSPEC_EMITTED" -eq 0 ] && [ "$FAIL_SAFE_FULL_EMIT" -eq 0 ]; then
   emit_section "Orientation diff" "No new orientation material since last session. Prior in-context state remains authoritative."
   MARKER_EMITTED=1
 fi

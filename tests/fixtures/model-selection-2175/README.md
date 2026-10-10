@@ -1,5 +1,7 @@
 # #2175 比較準備・未完の実測
 
+以下は準備段階の履歴。20:30〜20:31 JST の再開結果は [RESULTS.md](RESULTS.md) と `paired-results.json` を参照。6要求は完了し、Haiku 10/12、Opus 12/12。誤答訂正後の費用は未測定で、規範変更の判断はまだ行っていない。`manifest.json` の NOT RUN は準備時点の状態を保存したものである。
+
 2026-10-10 の初回最小要求は利用枠エラーで停止した。`probe-result.json` は識別子を除いた結果で、要求モデルは `haiku`、effort は `low`、exit 1、1.922 秒、返却された利用トークンと費用はすべて 0。真のモデル識別子は返らず、Haiku 5.5 が動作したという証拠はない。Opus の要求は行っていない。比較精度・費用差・枠の節約は未測定である。
 
 エラーは monthly spend limit と session limit resets 8:20pm (Asia/Tokyo) の両方を表示した。その文字列を保存しただけで、monthly/5h の制限種別や解除を検証したわけではない。auth、limit、モデル unavailable の場合は追加要求を止める。

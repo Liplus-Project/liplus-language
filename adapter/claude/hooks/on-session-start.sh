@@ -1443,8 +1443,10 @@ fi
 # space, so either one splits the ports on identical input. Observed with GNU
 # Awk 5.3.2 under Git Bash, 2026-10-11 (#2181): U+3000 matched [[:space:]]
 # with LC_ALL=C.UTF-8 and did not with no locale variable set. The day difference is taken on
-# awk day numbers, the same function the disposition log trim uses, so no
-# GNU-only `date -d` is needed.
+# awk day numbers, the function the disposition log trim uses, so no GNU-only
+# `date -d` is needed. This copy also rejects year 0000, which the PowerShell
+# port's DateTime cannot hold (years 1 to 9999), so the two read the same dates
+# as no line (#2181).
 CONSOLIDATE_DAYS=14
 CONSOLIDATE_BODY=""
 if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
@@ -1458,7 +1460,7 @@ if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
       function day_number(s,   y, m, d, dim) {
         if (s !~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/) return -1
         y = substr(s, 1, 4) + 0; m = substr(s, 6, 2) + 0; d = substr(s, 9, 2) + 0
-        if (m < 1 || m > 12 || d < 1) return -1
+        if (y < 1 || m < 1 || m > 12 || d < 1) return -1
         dim = substr("312831303130313130313031", 2 * m - 1, 2) + 0
         if (m == 2 && (y % 4 == 0 && (y % 100 != 0 || y % 400 == 0))) dim = 29
         if (d > dim) return -1

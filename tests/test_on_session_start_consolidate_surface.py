@@ -14,7 +14,7 @@ What is observed and what is not
 Observed: the judgment each port emits for a record dated 13, 14 and 40 days
 back, today and in the future; for an index whose head is not a record line
 (no record line, a record line only below the head, a date that is not a
-calendar date, a differently cased label, non-ASCII space where a blank or a
+calendar date, a date in year 0000, a differently cased label, non-ASCII space where a blank or a
 gap is read); for an absent index; for an index
 with a BOM and CRLF line ends, one with a lone CR ahead of the record, and a UTF-16LE one; and whether memory files change across a run.
 The `DUE` label word is matched because `docs/6.-Adapter.md` specifies it. The banner text, the bullet prefix and the
@@ -195,6 +195,19 @@ class NoLineTest(ConsolidateSurfaceTestCase):
         year = iso(0)[:4]
         self.write_index(f"{RECORD} {year}-02-30\n")
         self.assert_every_adapter(NO_LINE)
+
+    def test_year_zero_counts_as_no_line(self) -> None:
+        for value in ("0000-03-01", "0000-02-29", "0000-01-15"):
+            with self.subTest(value=value):
+                self.write_index(f"{RECORD} {value}\n")
+                self.assert_every_adapter(NO_LINE)
+
+    def test_year_one_is_read(self) -> None:
+        self.write_index(f"{RECORD} 0001-01-01\n")
+        for adapter, found in self.judgments_for_all_adapters().items():
+            with self.subTest(adapter=adapter):
+                self.assertIsNotNone(found)
+                self.assertEqual(found.last_run, "0001-01-01")
 
     def test_record_without_a_date_counts_as_no_line(self) -> None:
         self.write_index(f"{RECORD} never\n")

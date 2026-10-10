@@ -1,0 +1,198 @@
+{
+  "status": "four normal calls complete; no correction trigger",
+  "date": "2026-10-10",
+  "fixed_pre_call_commit": "47cb379f5a11088647f13dae657c7b26648b96df",
+  "normal_calls": 4,
+  "actual_correction_calls": 0,
+  "total_call_cap": 6,
+  "unused_conditional_calls": 2,
+  "records": [
+    {
+      "utc": "20261010T114434875691Z",
+      "requested_model": "haiku",
+      "effort": "low",
+      "batch": 1,
+      "prompt_sha256": "e38f1d9581948002481e5acc34833b6ad69e42df8e59eda11dd86ba3ddbd9551",
+      "base_prompt_sha256": "e38f1d9581948002481e5acc34833b6ad69e42df8e59eda11dd86ba3ddbd9551",
+      "kind": "paired",
+      "reported_total_cost_usd": 0.00038904,
+      "exit_code": 0,
+      "duration_seconds": 2.393,
+      "stderr_nonempty": false,
+      "is_error": false,
+      "duration_ms": 959,
+      "duration_api_ms": 927,
+      "total_cost_usd": 0.00038904,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 39,
+        "cache_creation_input_tokens": 1735,
+        "cache_read_input_tokens": 2234
+      },
+      "model_usage": {
+        "claude-haiku-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 39,
+          "cacheReadInputTokens": 2234,
+          "cacheCreationInputTokens": 1735,
+          "costUSD": 0.00038904
+        }
+      },
+      "answer": "{\"SE1\":\"00418\",\"SE2\":\"S-29\",\"SE3\":\"F-38\",\"SE4\":\"C8\"}",
+      "score": {
+        "correct": 4,
+        "total": 4,
+        "pass": true,
+        "matches": {
+          "SE1": true,
+          "SE2": true,
+          "SE3": true,
+          "SE4": true
+        }
+      },
+      "validator_duration_seconds": 2.4700000722077675e-05
+    },
+    {
+      "utc": "20261010T114442947549Z",
+      "requested_model": "opus",
+      "effort": "low",
+      "batch": 1,
+      "prompt_sha256": "e38f1d9581948002481e5acc34833b6ad69e42df8e59eda11dd86ba3ddbd9551",
+      "base_prompt_sha256": "e38f1d9581948002481e5acc34833b6ad69e42df8e59eda11dd86ba3ddbd9551",
+      "kind": "paired",
+      "reported_total_cost_usd": 0.0149428,
+      "exit_code": 0,
+      "duration_seconds": 3.745,
+      "stderr_nonempty": false,
+      "is_error": false,
+      "duration_ms": 2357,
+      "duration_api_ms": 2308,
+      "total_cost_usd": 0.0149428,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 39,
+        "cache_creation_input_tokens": 1733,
+        "cache_read_input_tokens": 1454
+      },
+      "model_usage": {
+        "claude-opus-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 39,
+          "cacheReadInputTokens": 1454,
+          "cacheCreationInputTokens": 1733,
+          "costUSD": 0.0149428
+        }
+      },
+      "answer": "{\"SE1\":\"00418\",\"SE2\":\"S-29\",\"SE3\":\"F-38\",\"SE4\":\"C8\"}",
+      "score": {
+        "correct": 4,
+        "total": 4,
+        "pass": true,
+        "matches": {
+          "SE1": true,
+          "SE2": true,
+          "SE3": true,
+          "SE4": true
+        }
+      },
+      "validator_duration_seconds": 3.3099999200203456e-05
+    },
+    {
+      "utc": "20261010T114452151660Z",
+      "requested_model": "haiku",
+      "effort": "low",
+      "batch": 2,
+      "prompt_sha256": "ef09ef4a53c1500eb7d3630bd363420f49b3b354c77ce43f6d28c0468a07162f",
+      "base_prompt_sha256": "ef09ef4a53c1500eb7d3630bd363420f49b3b354c77ce43f6d28c0468a07162f",
+      "kind": "paired",
+      "reported_total_cost_usd": 0.00036814000000000004,
+      "exit_code": 0,
+      "duration_seconds": 2.425,
+      "stderr_nonempty": false,
+      "is_error": false,
+      "duration_ms": 1056,
+      "duration_api_ms": 1001,
+      "total_cost_usd": 0.00036814000000000004,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 46,
+        "cache_creation_input_tokens": 1613,
+        "cache_read_input_tokens": 2234
+      },
+      "model_usage": {
+        "claude-haiku-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 46,
+          "cacheReadInputTokens": 2234,
+          "cacheCreationInputTokens": 1613,
+          "costUSD": 0.00036814000000000004
+        }
+      },
+      "answer": "{\"SR1\": \"amber-zone\", \"SR2\": \"NONE\", \"SR3\": \"受付三\", \"SR4\": \"10:35\"}",
+      "score": {
+        "correct": 4,
+        "total": 4,
+        "pass": true,
+        "matches": {
+          "SR1": true,
+          "SR2": true,
+          "SR3": true,
+          "SR4": true
+        }
+      },
+      "validator_duration_seconds": 2.5299999833805487e-05
+    },
+    {
+      "utc": "20261010T114500973879Z",
+      "requested_model": "opus",
+      "effort": "low",
+      "batch": 2,
+      "prompt_sha256": "ef09ef4a53c1500eb7d3630bd363420f49b3b354c77ce43f6d28c0468a07162f",
+      "base_prompt_sha256": "ef09ef4a53c1500eb7d3630bd363420f49b3b354c77ce43f6d28c0468a07162f",
+      "kind": "paired",
+      "reported_total_cost_usd": 0.0140468,
+      "exit_code": 0,
+      "duration_seconds": 3.16,
+      "stderr_nonempty": false,
+      "is_error": false,
+      "duration_ms": 1748,
+      "duration_api_ms": 1712,
+      "total_cost_usd": 0.0140468,
+      "usage": {
+        "input_tokens": 2,
+        "output_tokens": 43,
+        "cache_creation_input_tokens": 1611,
+        "cache_read_input_tokens": 1454
+      },
+      "model_usage": {
+        "claude-opus-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 43,
+          "cacheReadInputTokens": 1454,
+          "cacheCreationInputTokens": 1611,
+          "costUSD": 0.0140468
+        }
+      },
+      "answer": "{\"SR1\":\"amber-zone\",\"SR2\":\"NONE\",\"SR3\":\"受付三\",\"SR4\":\"10:35\"}",
+      "score": {
+        "correct": 4,
+        "total": 4,
+        "pass": true,
+        "matches": {
+          "SR1": true,
+          "SR2": true,
+          "SR3": true,
+          "SR4": true
+        }
+      },
+      "validator_duration_seconds": 2.5100000129896216e-05
+    }
+  ],
+  "measurement_limits": [
+    "category batch has four independent cases, not four separate priced calls",
+    "fixed exact verifier duration measured separately; cash cost not measured",
+    "parent semantic verification cost not measured",
+    "subscription consumption not measured",
+    "real-task generalization not measured"
+  ]
+}

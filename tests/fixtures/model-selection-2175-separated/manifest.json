@@ -1,0 +1,48 @@
+{
+  "fixture_sha256": "bf52be2be93db31ac1e5ade7a2ce32cad071ad54f3d5e83643a725300838cb0f",
+  "batches": [
+    {
+      "batch": 1,
+      "category": "extraction",
+      "ids": [
+        "SE1",
+        "SE2",
+        "SE3",
+        "SE4"
+      ],
+      "oracle": {
+        "SE1": "00418",
+        "SE2": "S-29",
+        "SE3": "F-38",
+        "SE4": "C8"
+      },
+      "prompt_sha256": "e38f1d9581948002481e5acc34833b6ad69e42df8e59eda11dd86ba3ddbd9551"
+    },
+    {
+      "batch": 2,
+      "category": "known-text-retrieval",
+      "ids": [
+        "SR1",
+        "SR2",
+        "SR3",
+        "SR4"
+      ],
+      "oracle": {
+        "SR1": "amber-zone",
+        "SR2": "NONE",
+        "SR3": "受付三",
+        "SR4": "10:35"
+      },
+      "prompt_sha256": "ef09ef4a53c1500eb7d3630bd363420f49b3b354c77ce43f6d28c0468a07162f"
+    }
+  ],
+  "effort": "low",
+  "models": [
+    "haiku",
+    "opus"
+  ],
+  "normal_calls": 4,
+  "total_call_cap": 6,
+  "conditional_corrections": "one actual Opus handoff per category only if Haiku fails exact oracle; same input plus Haiku answer and failed IDs; no oracle values passed",
+  "cost_policy": "per-category one-batch returned LLM cost; exact-validator time separate; unknown token/cost values never treated as zero; parental semantic review, subscription consumption and real-task generalization unmeasured"
+}

@@ -22,7 +22,7 @@ verdict_state: pending
 check: <one line: what the application moment shows when the change took effect, and when it did not>
 notes:
   - 2026-05-24 baseline captured pre-merge
-  - 2026-05-26 #1234 memory-write gate fired; check showed the write routed to docs
+  - 2026-05-26 <issue / PR / session> memory-write gate fired; check showed the write routed to docs
 ```
 
 Auto-entry trigger:
@@ -33,11 +33,11 @@ Auto-entry trigger:
 Creation criterion — a changed surface meets it when all three hold:
 1. an application moment of that surface can be expected to arrive, observably, within an ordinary session before `expires`;
 2. no executed mechanism (test / CI) detects that surface breaking;
-3. what to look at in that application moment to tell that the change took effect, or did not, can be written as one line. The entry carries that line as `check`. A surface whose line cannot be written gets no entry.
+3. what to look at in that application moment to tell that the change took effect, or did not, can be written as one line. The entry carries that line as `check`.
 
 Application-moment log:
 
-The agent holding a session in which an application moment of a surface under a `pending` entry occurs writes one line into that entry's `notes` at that moment: the date, where the moment occurred (issue / PR / session), and what the `check` showed. Do not leave it to the due surfacing to reconstruct.
+The agent holding a session in which an application moment of a surface under a `pending` entry occurs writes one line into that entry's `notes` at that moment: the date, where the moment occurred (issue / PR / session), and what the `check` showed.
 
 Lifecycle:
 

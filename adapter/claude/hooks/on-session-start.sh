@@ -1433,12 +1433,14 @@ fi
 # is not the record, and the index reads as having no line. A date that does
 # not parse as a calendar date counts as no line: when the last run cannot be
 # read, staying silent is the failure this surface exists to remove. A date
-# later than today is not due. A UTF-8 BOM ahead of the first line is dropped,
-# as the PowerShell port's Get-Content does. Blank and the gaps around the
-# label are space and tab only, never [[:space:]]: that class follows the host
-# locale (U+3000 matches under C.UTF-8 and not under the Git Bash default),
-# and the PowerShell \s admits every Unicode space, so either one splits the
-# ports on identical input. The day difference is taken on
+# later than today is not due. Lines end at LF only, and one CR before the LF
+# is dropped; a lone CR is part of the line. A UTF-8 BOM ahead of the first
+# line is dropped. The PowerShell port reads the file the same way. Blank and
+# the gaps around the label are space and tab only, never [[:space:]]: that
+# class follows the host locale, and the PowerShell \s admits every Unicode
+# space, so either one splits the ports on identical input. Observed with GNU
+# Awk 5.3.2 under Git Bash, 2026-10-11 (#2181): U+3000 matched [[:space:]]
+# with LC_ALL=C.UTF-8 and did not with no locale variable set. The day difference is taken on
 # awk day numbers, the same function the disposition log trim uses, so no
 # GNU-only `date -d` is needed.
 CONSOLIDATE_DAYS=14

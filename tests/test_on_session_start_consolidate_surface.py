@@ -15,8 +15,8 @@ Observed: the judgment each port emits for a record dated 13, 14 and 40 days
 back, today and in the future; for an index whose head is not a record line
 (no record line, a record line only below the head, a date that is not a
 calendar date, a differently cased label); for an absent index; for an index
-with a BOM and CRLF line ends; for the bound on the one head read as a date
-(#2182) -- space, tab and non-ASCII characters around the label and the date,
+with a BOM and CRLF line ends; for heads on both sides of the record-line
+bound (#2182) -- space, tab and non-ASCII characters around the label and the date,
 CR other than one at the line end, UTF-16 and UTF-32 encodings, and the years
 0000, 0001 and 9999 -- each checked for the same judgment on every port; and
 whether memory files change across a run.
@@ -225,11 +225,12 @@ class EncodingTest(ConsolidateSurfaceTestCase):
 
 
 class RecordLineBoundTest(ConsolidateSurfaceTestCase):
-    """The one head read as a date (#2182): the ASCII line
-    `**Last consolidate run:** YYYY-MM-DD`, a year from 0001 to 9999, a
-    calendar date, at most one CR at its end. Every other head is the no-line
-    arm on every port. The no-line cases carry a recent date, so a port that
-    read the head would stay silent instead.
+    """Heads on both sides of the record-line bound (#2182).
+
+    The bound is fixed at `docs/6.-Adapter.md` (memory consolidate due
+    surface). Each case writes the heads it lists and observes the judgment
+    of the three ports on each. The no-line cases carry a recent date, so a
+    port that read the head would stay silent instead.
     """
 
     def write_raw_index(self, data: bytes) -> None:

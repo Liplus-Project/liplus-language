@@ -14,9 +14,12 @@ What is observed and what is not
 Observed: the judgment each port emits for a record dated 13, 14 and 40 days
 back, today and in the future; for an index whose head is not a record line
 (no record line, a record line only below the head, a date that is not a
-calendar date, a date in year 0000, a differently cased label, non-ASCII space where a blank or a
-gap is read); for an absent index; for an index
-with a BOM and CRLF line ends, one with a lone CR ahead of the record, and a UTF-16LE one; and whether memory files change across a run.
+calendar date, a differently cased label); for an absent index; for an index
+with a BOM and CRLF line ends; for the bound on the one head read as a date
+(#2182) -- space, tab and non-ASCII characters around the label and the date,
+CR other than one at the line end, UTF-16 and UTF-32 encodings, and the years
+0000, 0001 and 9999 -- each checked for the same judgment on every port; and
+whether memory files change across a run.
 The `DUE` label word is matched because `docs/6.-Adapter.md` specifies it. The banner text, the bullet prefix and the
 wording around the date are adapter choices (`docs/2.-Evolution.md` Cold-start
 Synthesis, hook output contract) and are read through the judgment only: which
@@ -161,10 +164,6 @@ class FiringConditionTest(ConsolidateSurfaceTestCase):
         self.write_index(self.index_with_last_run(+5))
         self.assert_every_adapter(None)
 
-    def test_trailing_text_after_the_date_is_tolerated(self) -> None:
-        self.write_index(f"{RECORD} {iso(-20)} (by Lin)\n")
-        self.assert_every_adapter(Judgment(last_run=iso(-20), days=20))
-
     def test_only_the_head_line_is_read(self) -> None:
         """A stale record line below a recent head does not surface."""
         self.write_index(f"{RECORD} {iso(-2)}\n{RECORD} {iso(-30)}\n")
@@ -196,36 +195,9 @@ class NoLineTest(ConsolidateSurfaceTestCase):
         self.write_index(f"{RECORD} {year}-02-30\n")
         self.assert_every_adapter(NO_LINE)
 
-    def test_year_zero_counts_as_no_line(self) -> None:
-        for value in ("0000-03-01", "0000-02-29", "0000-01-15"):
-            with self.subTest(value=value):
-                self.write_index(f"{RECORD} {value}\n")
-                self.assert_every_adapter(NO_LINE)
-
-    def test_year_one_is_read(self) -> None:
-        self.write_index(f"{RECORD} 0001-01-01\n")
-        for adapter, found in self.judgments_for_all_adapters().items():
-            with self.subTest(adapter=adapter):
-                self.assertIsNotNone(found)
-                self.assertEqual(found.last_run, "0001-01-01")
-
     def test_record_without_a_date_counts_as_no_line(self) -> None:
         self.write_index(f"{RECORD} never\n")
         self.assert_every_adapter(NO_LINE)
-
-    def test_ideographic_space_line_is_the_head(self) -> None:
-        """A U+3000-only first line is the head on every port, not a blank."""
-        self.write_index(f"\u3000\n{RECORD} {iso(-1)}\n")
-        self.assert_every_adapter(NO_LINE)
-
-    def test_non_ascii_space_after_the_label_is_no_line(self) -> None:
-        """A U+00A0 between the label and the date reads as no line on every port."""
-        self.write_index(f"{RECORD}\u00a0{iso(-1)}\n")
-        self.assert_every_adapter(NO_LINE)
-
-    def test_tab_after_the_label_is_read(self) -> None:
-        self.write_index(f"\t{RECORD}\t{iso(-1)}\n")
-        self.assert_every_adapter(None)
 
     def test_record_label_is_case_sensitive(self) -> None:
         """A lower-cased label reads as no line on every port."""
@@ -243,26 +215,125 @@ class EncodingTest(ConsolidateSurfaceTestCase):
         )
         self.assert_every_adapter(Judgment(last_run=iso(-15), days=15))
 
-    def test_utf16_index_reads_as_no_line(self) -> None:
-        """A BOM-prefixed UTF-16LE index holding a recent record: DUE on every port."""
-        self.resolve_memory()
-        content = f"{RECORD} {iso(-1)}\n- x\n"
-        (self.ws.shared_memory / "MEMORY.md").write_bytes(
-            b"\xff\xfe" + content.encode("utf-16-le")
-        )
-        self.assert_every_adapter(NO_LINE)
-
-    def test_lone_cr_is_part_of_the_line(self) -> None:
-        """A lone CR ahead of a recent record leaves no record at the head."""
-        self.write_index(f"\r{RECORD} {iso(-1)}\n")
-        self.assert_every_adapter(NO_LINE)
-
     def test_bom_and_crlf_on_a_recent_line_stay_silent(self) -> None:
         self.write_index(
             self.index_with_last_run(-1),
             encoding_prefix=b"\xef\xbb\xbf",
             newline="\r\n",
         )
+        self.assert_every_adapter(None)
+
+
+class RecordLineBoundTest(ConsolidateSurfaceTestCase):
+    """The one head read as a date (#2182): the ASCII line
+    `**Last consolidate run:** YYYY-MM-DD`, a year from 0001 to 9999, a
+    calendar date, at most one CR at its end. Every other head is the no-line
+    arm on every port. The no-line cases carry a recent date, so a port that
+    read the head would stay silent instead.
+    """
+
+    def write_raw_index(self, data: bytes) -> None:
+        self.resolve_memory()
+        (self.ws.shared_memory / "MEMORY.md").write_bytes(data)
+
+    def assert_no_line_for_heads(self, heads: dict[str, str]) -> None:
+        for name, head in heads.items():
+            with self.subTest(head=name):
+                self.write_index(head + "\n- [Some entry](some-entry.md) - hook\n")
+                self.assert_every_adapter(NO_LINE)
+
+    def test_space_and_tab_around_the_label_and_the_date_are_no_line(self) -> None:
+        recent = iso(-1)
+        self.assert_no_line_for_heads({
+            "leading space": f" {RECORD} {recent}",
+            "leading tab": f"\t{RECORD} {recent}",
+            "no gap": f"{RECORD}{recent}",
+            "two spaces": f"{RECORD}  {recent}",
+            "tab gap": f"{RECORD}\t{recent}",
+            "trailing space": f"{RECORD} {recent} ",
+            "trailing tab": f"{RECORD} {recent}\t",
+            "trailing text": f"{RECORD} {recent} (by Lin)",
+        })
+
+    def test_non_ascii_characters_in_the_head_are_no_line(self) -> None:
+        recent = iso(-1)
+        fullwidth = recent.translate({ord(d): 0xFF10 + int(d) for d in "0123456789"})
+        self.assert_no_line_for_heads({
+            "U+00A0 gap": f"{RECORD}\u00a0{recent}",
+            "U+3000 gap": f"{RECORD}\u3000{recent}",
+            "U+3000 ahead": f"\u3000{RECORD} {recent}",
+            "U+3000 after": f"{RECORD} {recent}\u3000",
+            "U+3000-only line ahead": f"\u3000\n{RECORD} {recent}",
+            "U+FEFF ahead of the second line": f"\n\ufeff{RECORD} {recent}",
+            "fullwidth digits": f"{RECORD} {fullwidth}",
+        })
+
+    def test_space_and_tab_only_lines_ahead_are_blank(self) -> None:
+        self.write_index(f" \n\t\n \t \n{RECORD} {iso(-1)}\n")
+        self.assert_every_adapter(None)
+
+    def test_one_cr_at_the_line_end_is_read(self) -> None:
+        recent = iso(-1)
+        for name, data in {
+            "CRLF": f"{RECORD} {recent}\r\n- x\r\n",
+            "CR at the end of the file": f"{RECORD} {recent}\r",
+            "CR-only line ahead": f"\r\n{RECORD} {recent}\r\n",
+        }.items():
+            with self.subTest(case=name):
+                self.write_raw_index(data.encode("utf-8"))
+                self.assert_every_adapter(None)
+
+    def test_any_other_cr_is_no_line(self) -> None:
+        recent = iso(-1)
+        for name, data in {
+            "two CRs at the end": f"{RECORD} {recent}\r\r\n",
+            "lone CR ahead": f"\r{RECORD} {recent}\n",
+            "lone CR as the gap": f"{RECORD}\r{recent}\n",
+            "lone CR inside the date": f"{RECORD} {recent[:4]}\r{recent[4:]}\n",
+            "CR-CR line ahead": f"\r\r\n{RECORD} {recent}\n",
+        }.items():
+            with self.subTest(case=name):
+                self.write_raw_index(data.encode("utf-8"))
+                self.assert_every_adapter(NO_LINE)
+
+    def test_trailing_nul_is_no_line(self) -> None:
+        self.write_raw_index(f"{RECORD} {iso(-1)}\x00\n".encode("utf-8"))
+        self.assert_every_adapter(NO_LINE)
+
+    def test_utf16_and_utf32_indexes_are_no_line(self) -> None:
+        content = f"{RECORD} {iso(-1)}\n- x\n"
+        for name, data in {
+            "UTF-16LE with BOM": b"\xff\xfe" + content.encode("utf-16-le"),
+            "UTF-16BE with BOM": b"\xfe\xff" + content.encode("utf-16-be"),
+            "UTF-16LE without BOM": content.encode("utf-16-le"),
+            "UTF-32LE with BOM": b"\xff\xfe\x00\x00" + content.encode("utf-32-le"),
+        }.items():
+            with self.subTest(case=name):
+                self.write_raw_index(data)
+                self.assert_every_adapter(NO_LINE)
+
+    def test_year_zero_and_years_outside_four_digits_are_no_line(self) -> None:
+        self.assert_no_line_for_heads({
+            value: f"{RECORD} {value}"
+            for value in ("0000-03-01", "0000-02-29", "0000-01-15", "10000-01-01", "999-01-01")
+        })
+
+    def test_non_calendar_date_in_year_9999_is_no_line(self) -> None:
+        self.assert_no_line_for_heads({"9999-02-29": f"{RECORD} 9999-02-29"})
+
+    def test_year_one_is_read_with_the_same_day_count(self) -> None:
+        self.write_index(f"{RECORD} 0001-01-01\n")
+        found = self.judgments_for_all_adapters()
+        for adapter, judged in found.items():
+            with self.subTest(adapter=adapter):
+                self.assertIsNotNone(judged)
+                self.assertEqual(judged.last_run, "0001-01-01")
+                self.assertIsNotNone(judged.days)
+        self.assertEqual(len(set(found.values())), 1, found)
+
+    def test_year_9999_is_read(self) -> None:
+        """The last day of year 9999 is read, and is later than today: silent."""
+        self.write_index(f"{RECORD} 9999-12-31\n")
         self.assert_every_adapter(None)
 
 

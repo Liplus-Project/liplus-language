@@ -1204,23 +1204,31 @@ fi
 # consolidate. MEMORY.md absent inside a resolved MEMORY_DIR has no line, so it
 # is due. Only the head of the index is read -- its first non-blank line, the
 # place Consolidate Trigger records the run at: a record line anywhere below it
-# is not the record, and the index reads as having no line. A date that does
-# not parse as a calendar date counts as no line: when the last run cannot be
-# read, staying silent is the failure this surface exists to remove. A date
-# later than today is not due. Lines end at LF only, and one CR before the LF
-# is dropped; a lone CR is part of the line. The bytes are read as UTF-8 only:
-# a UTF-8 BOM ahead of the first line is dropped, and no other BOM is
-# interpreted, so a UTF-16 index reads as no line. The PowerShell port reads
-# the file the same way. Blank and
-# the gaps around the label are space and tab only, never [[:space:]]: that
-# class follows the host locale, and the PowerShell \s admits every Unicode
-# space, so either one splits the ports on identical input. Observed with GNU
-# Awk 5.3.2 under Git Bash, 2026-10-11 (#2181): U+3000 matched [[:space:]]
-# with LC_ALL=C.UTF-8 and did not with no locale variable set. The day difference is taken on
-# awk day numbers, the function the disposition log trim uses, so no GNU-only
-# `date -d` is needed. This copy also rejects year 0000, which the PowerShell
-# port's DateTime cannot hold (years 1 to 9999), so the two read the same dates
-# as no line (#2181).
+# is not the record, and the index reads as having no line. A head that is not
+# the record line, or whose date does not parse, counts as no line: when the
+# last run cannot be read, staying silent is the failure this surface exists to
+# remove. A date later than today is not due.
+#
+# The one head read as a date (#2182) is the ASCII line
+# `**Last consolidate run:** YYYY-MM-DD` and nothing else: no space or tab
+# ahead of the label, exactly one space after it, nothing after the date, a
+# year from 0001 to 9999 and a calendar date. Every other head is no line on
+# all three ports, the PowerShell port included, and emits the no-line DUE.
+# Each looser reading -- Unicode spaces, a lone CR, a UTF-16 BOM, year 0000 --
+# split the ports on identical input in #2181. The bytes are read as UTF-8
+# only: a UTF-8 BOM ahead of the first line is dropped and no other BOM is
+# interpreted. Lines end at LF only, and one CR before the LF is dropped; any
+# other CR stays in the line. BINMODE=1 keeps it there: without it the gawk of
+# Git Bash reads input in text mode and drops a CR ahead of each LF before awk
+# sees the line, so a line ending in two CRs read as a record (observed with
+# GNU Awk 5.3.2 under Git Bash, 2026-10-12, #2182); awks that do not know the
+# variable ignore it. A blank line is space and tab only, never
+# [[:space:]]: that class follows the host locale (observed with GNU Awk 5.3.2
+# under Git Bash, 2026-10-11, #2181: U+3000 matched it with LC_ALL=C.UTF-8 and
+# not with no locale variable set). The day difference is taken on awk day
+# numbers, a copy of the function the disposition log trim uses, so no
+# GNU-only `date -d` is needed. The copy rejects year 0000, which the
+# PowerShell port's DateTime cannot hold (years 1 to 9999).
 CONSOLIDATE_DAYS=14
 CONSOLIDATE_BODY=""
 if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
@@ -1230,7 +1238,7 @@ if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
     CONSOLIDATE_SOURCE="$CONSOLIDATE_INDEX"
     [ -f "$CONSOLIDATE_SOURCE" ] || CONSOLIDATE_SOURCE=/dev/null
     CONSOLIDATE_LINE=$(awk -v today="$CONSOLIDATE_TODAY" -v keep="$CONSOLIDATE_DAYS" \
-      -v bom="$(printf '\357\273\277')" '
+      -v BINMODE=1 -v bom="$(printf '\357\273\277')" '
       function day_number(s,   y, m, d, dim) {
         if (s !~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/) return -1
         y = substr(s, 1, 4) + 0; m = substr(s, 6, 2) + 0; d = substr(s, 9, 2) + 0
@@ -1249,10 +1257,8 @@ if [ -n "$MEMORY_DIR" ] && [ -d "$MEMORY_DIR" ]; then
         if (NR == 1 && index(line, bom) == 1) line = substr(line, length(bom) + 1)
         if (line ~ /^[ \t]*$/) next
         head = 1
-        if (line ~ /^[ \t]*\*\*Last consolidate run:\*\*[ \t]*[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]([^0-9]|$)/) {
-          v = line
-          sub(/^[ \t]*\*\*Last consolidate run:\*\*[ \t]*/, "", v)
-          last = substr(v, 1, 10)
+        if (line ~ /^\*\*Last consolidate run:\*\* [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/) {
+          last = substr(line, length(line) - 9)
           found = 1
         }
       }

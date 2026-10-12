@@ -1336,13 +1336,18 @@ if ($tallyBody) {
 # rules/evolution/memory-entry-format.md Consolidate Trigger.
 #
 # Parity with the awk ports: only the head of the index -- its first non-blank
-# line -- is read, and a record line below it is no line (-cmatch,
-# case-sensitive like awk; [ \t] rather than \s, which admits every Unicode
-# space where the awk ports read space and tab only; [0-9] rather than \d, which would admit
-# non-ASCII digits); a date TryParseExact rejects counts as no line, as the awk
-# day_number() rejecting it does; MEMORY.md absent inside a resolved $memoryDir
-# is no line; a date later than today is not due. The file is read whole and
-# split at LF only, with one CR before the LF dropped, because awk ends a line
+# line -- is read, and a record line below it is no line. The one head read as
+# a date is the ASCII line `**Last consolidate run:** YYYY-MM-DD` and nothing
+# else (#2182): no space or tab ahead of the label, exactly one space after it,
+# nothing after the date (\z, not $, which would also stop ahead of a final
+# LF); every other head is no line. -cmatch is case-sensitive like awk; a
+# blank line is [ \t] only, not \s, which admits every Unicode space where the
+# awk ports read space and tab only; [0-9] rather than \d, which would admit
+# non-ASCII digits. A date TryParseExact rejects counts as no line, as the awk
+# day_number() rejecting it does, year 0000 included; MEMORY.md absent inside a
+# resolved $memoryDir is no line; a date later than today is not due. The file
+# is read whole and split at LF only, with one CR before the LF dropped, and any
+# other CR kept in the line, because awk ends a line
 # at LF only: Get-Content also ends one at a lone CR, which split the ports on
 # identical input (#2181). The bytes are decoded as UTF-8 only, with a leading
 # UTF-8 BOM dropped by hand as the awk ports do. ReadAllText is not used: it
@@ -1366,7 +1371,7 @@ if ($memoryDir -and (Test-Path -LiteralPath $memoryDir -PathType Container)) {
     foreach ($l in ($consolidateText -csplit "`n")) {
       $l = $l -creplace "`r$", ''
       if ($l -cmatch '^[ \t]*$') { continue }
-      if ($l -cmatch '^[ \t]*\*\*Last consolidate run:\*\*[ \t]*([0-9]{4}-[0-9]{2}-[0-9]{2})([^0-9]|$)') {
+      if ($l -cmatch '^\*\*Last consolidate run:\*\* ([0-9]{4}-[0-9]{2}-[0-9]{2})\z') {
         $consolidateLast = $matches[1]
       }
       break

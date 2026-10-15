@@ -8,7 +8,6 @@ layer: L5-notifications
 
 # Notifications
 
-Canonical for how events reach the main agent.
 Actor = the main agent on every section below.
 
 <delivery-shapes>
@@ -131,7 +130,7 @@ PUT    /notifications {"read":true}  -> 205  mark all read
 DELETE /notifications/threads/{id}  -> 204  done (removed from Inbox)
 GET    /notifications?all=false      -> 200  check inbox
 
-Foreground handling, the ownership test and the hold exit apply to Inbox threads as they apply to webhook events. Every consumed Inbox thread is marked `read` or `done`.
+Foreground handling applies to Inbox threads as it applies to webhook events. Every consumed Inbox thread is marked `read` or `done`.
 
 </github-notifications>
 

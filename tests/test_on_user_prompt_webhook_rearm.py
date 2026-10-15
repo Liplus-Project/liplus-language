@@ -13,7 +13,7 @@ observed on 2026-08-24 with nine pending events injected at turn 1 and neither
 inspect nor `mark_processed` running until a later step named the procedure.
 
 The handling half cannot be left to its always-on canonical
-(`rules/operations/main-agent-procedures.md` Foreground webhook notification
+(`rules/notifications/notifications.md` Foreground webhook notification
 intake). That section fixes its own firing moment at `each user turn start`, and
 always-on residency is a load guarantee, not a firing one; a per-turn hook is
 the only surface that fires a turn boundary. Same reasoning, same file, as
@@ -23,8 +23,8 @@ What is pinned and what is not
 ------------------------------
 The assertions read the *obligations* out of the emission, not its wording. The
 call half is located by the MCP tool name, which is fixed by the server; the
-handling half by `mark_processed`, which `rules/operations/operations.md`
-Operations Rules states as a mandatory word, and by the foreground filter's
+handling half by `mark_processed`, which `rules/notifications/notifications.md`
+Delivery shapes states as a mandatory word, and by the foreground filter's
 subject. The banner text, the phrasing of each line and their order are adapter
 presentation and are deliberately not matched.
 
@@ -85,23 +85,20 @@ CALLING_STATES = ("poll", None, MISSING_CONFIG)
 CALL_TOKEN = "get_pending_status"
 
 # The two handling obligations. `mark_processed` is stated as mandatory in
-# `rules/operations/operations.md` Operations Rules; `foreground` is the subject
-# of the report filter in `rules/operations/main-agent-procedures.md`.
+# `rules/notifications/notifications.md` Delivery shapes; `foreground` is the
+# subject of the report filter in the same file's intake section.
 CONSUME_TOKEN = "mark_processed"
 FILTER_TOKEN = "foreground"
 
 # Where each asserted obligation resolves. The re-arm points instead of copying,
 # the shape the Trigger Check Gate re-arm in the same file already uses — and a
-# pointer earns that shape only by reaching what the re-arm claims. The two
-# claims have two homes: the intake procedure and the report filter are in
-# `main-agent-procedures.md` Foreground webhook notification intake, whose only
-# `mark_processed` is scoped to own-operation events (`:493`), while the general
-# "every consumed event" mandate is stated in `operations.md` Operations Rules
-# (`:91`). Naming the first alone left the general half unreachable by a reader
-# who followed the pointer — brake 1 finding 1 on PR #1802, 3/3.
+# pointer earns that shape only by reaching what the re-arm claims. Both claims
+# — the intake procedure with its report filter, and the general "every consumed
+# event" mark_processed mandate — live in `rules/notifications/notifications.md`
+# (#2188). The second claim once had a separate home, and naming one home alone
+# left it unreachable — brake 1 finding 1 on PR #1802, 3/3.
 CANONICAL_TOKENS = (
-    "rules/operations/main-agent-procedures.md",
-    "rules/operations/operations.md",
+    "rules/notifications/notifications.md",
 )
 
 # A terse re-arm, not a transplanted procedure. The budget is deliberately loose

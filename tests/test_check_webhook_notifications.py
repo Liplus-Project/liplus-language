@@ -65,7 +65,7 @@ class CheckWebhookNotificationsTest(unittest.TestCase):
     def test_resolve_state_dir_rejects_directory_without_state_dir_shape(self) -> None:
         """The measured state: `b` exists carrying no marker, `c` absent, result is None.
 
-        Shape check fixed at `rules/operations/main-agent-procedures.md`
+        Shape check fixed at `rules/notifications/notifications.md`
         Foreground webhook notification intake, state dir shape check.
         """
         with tempfile.TemporaryDirectory() as tmp:

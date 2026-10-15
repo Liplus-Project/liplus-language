@@ -122,15 +122,15 @@ own-operation arrival confirmation:
 Canonical.
 Read at the foreground check, and whenever the Inbox is acted on directly.
 
-Token = the `GH_CLASSIC_TOKEN` environment variable (classic PAT, scope = notifications). `gh` does not read this variable itself: pass it as a header that references the variable, never as its value in the command string. The reference follows the shell:
+Token = the `GH_CLASSIC_TOKEN` environment variable (classic PAT, scope = notifications). Pass it as a header that references the variable, never as its value in the command string. The reference follows the shell:
   POSIX sh / Git Bash = `gh api -H "Authorization: token $GH_CLASSIC_TOKEN" <endpoint>`
   PowerShell          = `gh api -H "Authorization: token $env:GH_CLASSIC_TOKEN" <endpoint>`
-Write `<endpoint>` without the leading slash (`notifications`, not `/notifications`): Git Bash rewrites a leading-slash argument into a filesystem path. Unset or empty, or a call answered 401 -> this target is unavailable; skip silently.
+Write `<endpoint>` without the leading slash, as in the table below. Unset or empty, or a call answered 401 -> this target is unavailable; skip silently.
 
-PATCH  /notifications/threads/{id}   -> 205  read (stays in Inbox)
-PUT    /notifications {"read":true}  -> 205  mark all read
-DELETE /notifications/threads/{id}  -> 204  done (removed from Inbox)
-GET    /notifications?all=false      -> 200  check inbox
+PATCH  notifications/threads/{id}   -> 205  read (stays in Inbox)
+PUT    notifications {"read":true}  -> 205  mark all read
+DELETE notifications/threads/{id}  -> 204  done (removed from Inbox)
+GET    notifications?all=false      -> 200  check inbox
 
 Foreground handling applies to Inbox threads as it applies to webhook events. Every consumed Inbox thread is marked `read` or `done`.
 

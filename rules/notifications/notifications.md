@@ -8,7 +8,7 @@ layer: L5-notifications
 
 # Notifications
 
-Canonical for how events reach the main agent. Japanese specification: `docs/5.-Notifications.md`.
+Canonical for how events reach the main agent.
 Actor = the main agent on every section below.
 
 <delivery-shapes>
@@ -16,12 +16,12 @@ Actor = the main agent on every section below.
 ## Delivery shapes
 
 Two ways of receiving, chosen by what the environment can run:
-- channel (event-driven) = `LI_PLUS_WEBHOOK_DELIVERY=channel`. Events are pushed; nothing is polled. Use it where the host carries it.
+- channel (event-driven) = `LI_PLUS_WEBHOOK_DELIVERY=channel`. Events are pushed; nothing is polled.
 - polling = the substitute where channel is not available: `poll` and `mcp_hook` for the webhook target, and GitHub Notifications.
 
 Two targets are received:
 - webhook events = Foreground webhook notification intake below.
-- GitHub Notifications = GitHub Notifications below. It needs `GH_CLASSIC_TOKEN` only, no MCP, and is the polling base for an environment that has nothing else.
+- GitHub Notifications = GitHub Notifications below. It needs `GH_CLASSIC_TOKEN` only, no MCP.
 
 Every consumed webhook event is marked with mark_processed, whatever the delivery shape.
 
@@ -39,11 +39,11 @@ Do not search GitHub broadly for "maybe new comment" when a delivered event sour
 
 Use only in hosts that can run a local command before replying.
 
-source priority:
-  1 = mcp__github-webhook-mcp
-  2 = local webhook store via bundled helper
-  3 = GitHub Notifications (below), when `GH_CLASSIC_TOKEN` is present
-  4 = none
+sources (no order among them; use each one this environment can run):
+  - mcp__github-webhook-mcp
+  - local webhook store via bundled helper
+  - GitHub Notifications (below)
+  none available = nothing to inspect
 
 delivery mode interaction (LI_PLUS_WEBHOOK_DELIVERY):
   poll (default) = each user turn, the on-user-prompt UserPromptSubmit hook injects the instruction
@@ -55,7 +55,7 @@ delivery mode interaction (LI_PLUS_WEBHOOK_DELIVERY):
     handling reads the injected status as if it had been polled.
     When github-webhook-mcp is not connected, the mcp_tool resolver returns plain `not connected`
     text per turn — harmless but visible noise.
-  source priority above is unchanged across modes; only the *who initiates the call* axis
+  the sources above are unchanged across modes; only the *who initiates the call* axis
   differs. Relevance judgment and destructive consume rules apply identically.
 
 local webhook store:
@@ -122,7 +122,7 @@ own-operation arrival confirmation:
 ## GitHub Notifications
 
 Canonical.
-Read at the foreground check when source priority above reaches it, and whenever the Inbox is acted on directly.
+Read at the foreground check, and whenever the Inbox is acted on directly.
 
 Token = the `GH_CLASSIC_TOKEN` environment variable (classic PAT, scope = notifications). Pass it to `gh api` by reference to the variable, never as its value in the command string. Absent -> this target is unavailable; skip silently, as the local store does.
 
@@ -131,7 +131,7 @@ PUT    /notifications {"read":true}  -> 205  mark all read
 DELETE /notifications/threads/{id}  -> 204  done (removed from Inbox)
 GET    /notifications?all=false      -> 200  check inbox
 
-Foreground handling, the ownership test and the hold exit apply to Inbox threads as they apply to webhook events; `read` / `done` stand where mark_processed stands.
+Foreground handling, the ownership test and the hold exit apply to Inbox threads as they apply to webhook events. Every consumed Inbox thread is marked `read` or `done`.
 
 </github-notifications>
 

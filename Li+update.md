@@ -215,7 +215,7 @@ Adapter, rules, skills, and hooks generation. Rules/skills generation doubles as
 
 4c.2. Generate .claude/rules/ files (recursive directory mirror):
 - If {workspace_root}/.claude/rules/ does not exist: create directory.
-- For each `*.md` in LI_PLUS_REPO/rules/ (recursive, including files under `model/`, `evolution/`, `task/`, `operations/` subdirectories), EXCLUDING `rules/model/character_Instance.md` (handled separately below as Create-only):
+- For each `*.md` in LI_PLUS_REPO/rules/ (recursive, including files under `model/`, `evolution/`, `task/`, `operations/`, `notifications/` subdirectories), EXCLUDING `rules/model/character_Instance.md` (handled separately below as Create-only):
   - Preserve the relative path from LI_PLUS_REPO/rules/ in the target.
     (e.g., `rules/model/absolute.md` -> `.claude/rules/model/absolute.md`)
   - If target file does not exist or source tag differs from current target tag:

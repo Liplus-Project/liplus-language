@@ -15,14 +15,14 @@ Actor = the main agent on every section below.
 ## Delivery shapes
 
 Two ways of receiving, chosen by what the environment can run:
-- channel (event-driven) = `LI_PLUS_WEBHOOK_DELIVERY=channel`. Events are pushed; nothing is polled.
+- channel (event-driven) = `LI_PLUS_WEBHOOK_DELIVERY=channel`. Webhook events are pushed; the webhook target is not polled.
 - polling = the substitute where channel is not available: `poll` and `mcp_hook` for the webhook target, and GitHub Notifications.
 
 Two targets are received:
 - webhook events = Foreground webhook notification intake below.
 - GitHub Notifications = GitHub Notifications below. It needs `GH_CLASSIC_TOKEN` only, no MCP.
 
-Every consumed webhook event is marked with mark_processed, whatever the delivery shape.
+Every consumed webhook event is marked with mark_processed.
 
 </delivery-shapes>
 

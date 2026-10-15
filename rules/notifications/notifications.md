@@ -31,7 +31,6 @@ Every consumed webhook event is marked with mark_processed.
 ## Foreground webhook notification intake
 
 Canonical. `skills/operations-foreground-webhook-intake/SKILL.md` holds the pointer.
-Webhook target of Delivery shapes above.
 Actor = the main agent only (the firing moment is the start of a user turn).
 
 Do not search GitHub broadly for "maybe new comment" when a delivered event source already exists.
@@ -123,7 +122,7 @@ own-operation arrival confirmation:
 Canonical.
 Read at the foreground check, and whenever the Inbox is acted on directly.
 
-Token = the `GH_CLASSIC_TOKEN` environment variable (classic PAT, scope = notifications). Pass it to `gh api` by reference to the variable, never as its value in the command string. Absent -> this target is unavailable; skip silently, as the local store does.
+Token = the `GH_CLASSIC_TOKEN` environment variable (classic PAT, scope = notifications). `gh` does not read this variable itself: pass it as a header that references the variable, `gh api -H "Authorization: token $GH_CLASSIC_TOKEN" <endpoint>`, never as its value in the command string. Unset or empty, or a call answered 401 -> this target is unavailable; skip silently.
 
 PATCH  /notifications/threads/{id}   -> 205  read (stays in Inbox)
 PUT    /notifications {"read":true}  -> 205  mark all read

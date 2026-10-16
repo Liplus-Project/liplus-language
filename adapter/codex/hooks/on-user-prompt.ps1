@@ -94,7 +94,7 @@ if ($webhookDelivery -cne 'channel' -and $webhookDelivery -cne 'mcp_hook') {
 }
 [void]$sb.AppendLine('Report only foreground-relevant or notable items.')
 [void]$sb.AppendLine('mark_processed every consumed event; own-operation arrivals promptly.')
-[void]$sb.AppendLine('Intake detail: rules/operations/main-agent-procedures.md Foreground webhook notification intake; mark_processed mandate: rules/operations/operations.md Operations Rules (both always-on).')
+[void]$sb.AppendLine('Intake detail: rules/notifications/notifications.md Foreground webhook notification intake; mark_processed mandate: rules/notifications/notifications.md Delivery shapes (always-on).')
 [void]$sb.AppendLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 
 # --- Trigger Check Gate re-arm (every turn) ---

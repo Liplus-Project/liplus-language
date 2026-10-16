@@ -39,7 +39,7 @@ fi
 #                   it there is the double delivery described below.
 #   handling half = the report filter and mark_processed. Nothing replaces it in
 #                   any mode. Its firing moment is `each user turn start`
-#                   (rules/operations/main-agent-procedures.md Foreground webhook
+#                   (rules/notifications/notifications.md Foreground webhook
 #                   notification intake), and a per-turn hook is the only surface
 #                   that can fire a turn boundary - always-on residency is a load
 #                   guarantee, not a firing one. Suppressing it alongside the call
@@ -80,7 +80,7 @@ if [ "$WEBHOOK_DELIVERY" != "channel" ] && [ "$WEBHOOK_DELIVERY" != "mcp_hook" ]
 fi
 echo "Report only foreground-relevant or notable items."
 echo "mark_processed every consumed event; own-operation arrivals promptly."
-echo "Intake detail: rules/operations/main-agent-procedures.md Foreground webhook notification intake; mark_processed mandate: rules/operations/operations.md Operations Rules (both always-on)."
+echo "Intake detail: rules/notifications/notifications.md Foreground webhook notification intake; mark_processed mandate: rules/notifications/notifications.md Delivery shapes (always-on)."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # --- Trigger Check Gate re-arm (every turn) ---

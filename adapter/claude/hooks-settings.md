@@ -192,7 +192,7 @@ source of webhook context.
 It does not suppress the handling half: the delivery mode selects only who calls
 the tool. The report filter and the `mark_processed` re-arm are emitted by the
 hook in every mode; do not leave them to the always-on canonical alone
-(`rules/operations/main-agent-procedures.md` Foreground webhook notification
+(`rules/notifications/notifications.md` Foreground webhook notification
 intake), whose firing moment is `each user turn start`.
 
 If `github-webhook-mcp` is **not connected**: Claude Code's mcp_tool resolver

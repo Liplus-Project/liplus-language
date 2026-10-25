@@ -134,7 +134,7 @@ AIが自動的に：
 5. GH_TOKENで認証
 6. `LI_PLUS_CHANNEL` に対応する対象バージョンを確認
 7. 既存 clone と対象バージョンがずれていれば、人間に更新するか確認
-8. `rules/**/*.md` を常時ロード（L1–L4 の常時ロード分、subdir 含む常に必須。L5 Notifications と L6 Adapter は `rules/<layer>/` を持たない予約スロット。詳細は [判断構造 layer-reorg-rationale](layer-reorg-rationale)）。Claude は `.claude/rules/` フォルダの自動ロード、CODEX は SessionStart hook の `additionalContext` 注入で常時ロードを実現します。`skills/**/SKILL.md` は両ホストとも `description` マッチによる自動発火（手動トリガー表は廃止済み）
+8. `rules/**/*.md` を常時ロード（L1–L5 の常時ロード分、subdir 含む常に必須。L6 Adapter は `rules/<layer>/` を持たない。詳細は [判断構造 layer-reorg-rationale](layer-reorg-rationale)）。Claude は `.claude/rules/` フォルダの自動ロード、CODEX は SessionStart hook の `additionalContext` 注入で常時ロードを実現します。`skills/**/SKILL.md` は両ホストとも `description` マッチによる自動発火（手動トリガー表は廃止済み）
 9. 環境に応じた設定ファイルを自動生成
 
 詳細な更新同期ステップ定義は [C. Update](C.-Update) を参照します。

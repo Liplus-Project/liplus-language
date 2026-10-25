@@ -31,7 +31,7 @@
 
 ### `rules/`, `skills/`, adapter / update 各ファイル
 
-リポジトリ内の `rules/**/*.md`（L1–L4 の常時ロード分、subdir 含む）、`skills/**/SKILL.md`（トリガー起動分）、`adapter/claude/CLAUDE.md`、`adapter/claude/hooks-settings.md`、`adapter/claude/hooks/*.sh`、`adapter/codex/AGENTS.md`、およびルート直下の `Li+config.md`、`Li+update.md` は、
+リポジトリ内の `rules/**/*.md`（L1–L5 の常時ロード分、subdir 含む）、`skills/**/SKILL.md`（トリガー起動分）、`adapter/claude/CLAUDE.md`、`adapter/claude/hooks-settings.md`、`adapter/claude/hooks/*.sh`、`adapter/codex/AGENTS.md`、およびルート直下の `Li+config.md`、`Li+update.md` は、
 **AIやランタイムが直接読む実行用プログラム / 定義ファイル**です。
 
 - `docs/` は人間向けの仕様書・要求仕様・手順書

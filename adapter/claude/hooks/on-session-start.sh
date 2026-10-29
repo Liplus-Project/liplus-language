@@ -367,12 +367,25 @@ fi
 # --- emit update status marker ---
 # Always emit first, before any cold-start material, so AI parses it before
 # deciding whether to read Li+config.md and Li+update.md.
+#
+# Emission time line (#2189): on resume / continue / fork, Claude Code drops a
+# SessionStart additionalContext that is byte-identical to one already in the
+# transcript (anthropics/claude-code#96698). A resume whose state matches an
+# earlier launch then delivers nothing, and an older status line (e.g. a
+# `needed` from a launch in between) stays the newest one in context. The
+# per-turn re-emit (#1987) does not cover this: it goes silent once the status
+# is `unnecessary`. The UTC launch time makes every emission distinct. Remove
+# this line once the upstream issue is fixed. Not in the codex ports: the
+# dedup is Claude Code host behavior, and the codex ports emit this banner at
+# startup only.
+UPDATE_STATUS_EMITTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null)
 if [ "${#UPDATE_REASONS[@]}" -eq 0 ]; then
   UPDATE_STATUS="unnecessary"
   printf '━━━ Li+ update status ━━━\n'
   printf 'LI_PLUS_UPDATE_STATUS=unnecessary tag=%s channel=%s\n' "$TARGET_TAG" "$LI_PLUS_CHANNEL_VAL"
   printf 'Sentinel-skip applies: AI skips Li+update.md re-execution this session. Li+config.md spot read (Read for value lookup, do not execute contents) is permitted.\n'
   printf 'Override: Master input containing "Li+configを実行" / "Li+config を実行" forces the full walkthrough.\n'
+  printf 'Emitted at %s (UTC).\n' "$UPDATE_STATUS_EMITTED_AT"
   printf '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
 else
   REASON_STR=$(printf '%s,' "${UPDATE_REASONS[@]}")
@@ -380,6 +393,7 @@ else
   printf '━━━ Li+ update status ━━━\n'
   printf 'LI_PLUS_UPDATE_STATUS=needed reason=%s\n' "$REASON_STR"
   printf 'AI must read Li+config.md and execute Li+update.md walkthrough this session.\n'
+  printf 'Emitted at %s (UTC).\n' "$UPDATE_STATUS_EMITTED_AT"
   printf '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
 fi
 

@@ -152,6 +152,14 @@ Real files, copied verbatim into `{workspace_root}/.claude/hooks/` on bootstrap
   result removes the file. `on-user-prompt.sh` reads it every turn. The file is
   workspace-level and not partitioned by `LI_PLUS_AGENT_KEY`.
 
+  Emission time line: the update-status banner ends with
+  `Emitted at <UTC time> (UTC).`, so the hook output differs on every launch.
+  On resume / continue / fork Claude Code drops a SessionStart
+  `additionalContext` byte-identical to one already in the transcript
+  (anthropics/claude-code#96698); without the line, a resume whose status
+  matches an earlier launch delivers nothing and an older status line stays
+  the newest in context. Remove the line once that issue is fixed (#2189).
+
   All five documented SessionStart matchers are registered; keep all five. An
   unregistered matcher does not fall through to another entry — the hook does
   not run for that entry point, and that session starts with no

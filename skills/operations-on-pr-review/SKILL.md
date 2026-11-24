@@ -29,7 +29,7 @@ Delegated-subagent stop condition (canonical, split by mode):
     Self-review precedes the human gate in every mode and the subagent is its actor in this mode, so it lands
     before the stop point. Merge fires later via GitHub auto-merge after human approval; the subagent's session
     ends before that.
-  Other surfaces point here. Do not restate the condition; the second copy is what drifts.
+  Other surfaces point here. Do not restate the condition.
 
 The surrounding PR review flow — the self-review mandate, the review basis, the self-review procedure, the
 mode-specific human gate, and the follow-through on deferred items — lives at

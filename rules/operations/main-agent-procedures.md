@@ -93,7 +93,6 @@ Proactive premise verification (forming → ready):
 When spec body reaches forming with unverified technical assumptions in premise section
 (external API specs, runtime constraints, library behavior, platform limits, etc.),
 AI proactively starts verification research before human asks.
-Do not wait for human to point out unverified premises.
 forming → ready transition requires all technical premises in premise section to be verified.
 
 Verification completion criterion:

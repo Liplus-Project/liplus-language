@@ -40,7 +40,7 @@ Canonical convergence for implementation issue:
   purpose
   premise
   constraints
-  target files (recommended at ready stage)
+  target files
 Target files = list of files expected to change, with dependency notes (e.g. source⇔docs).
 Target files are optional during memo/forming. Recommended once issue reaches ready.
 Rewrite issue body whenever accepted understanding changes.
@@ -93,12 +93,10 @@ Proactive premise verification (forming → ready):
 When spec body reaches forming with unverified technical assumptions in premise section
 (external API specs, runtime constraints, library behavior, platform limits, etc.),
 AI proactively starts verification research before human asks.
-Do not wait for human to point out unverified premises.
 forming → ready transition requires all technical premises in premise section to be verified.
 
 Verification completion criterion:
 Applies to external fact cross-check results only.
-Subjective confidence is outside this criterion.
 A premise is verified only when external evidence (docs, spec, source, runtime probe, existing issue/PR record) is cited.
 "feels correct" is not verification.
 
@@ -195,7 +193,7 @@ Canonical. `skills/operations-on-pr-review/SKILL.md` keeps the Delegated-subagen
 Actor = the parent in `auto` / `semi_auto`, the subagent in `trigger`.
 
 AI self-review is mandatory in every mode (trigger / semi_auto / auto).
-Skipping self-review before merge is a spec violation. Self-review runs first; external human check (if any) is layered on top, not in place of it.
+Self-review runs first; external human check (if any) is layered on top, not in place of it.
 
 Review basis:
   repository-state-first:

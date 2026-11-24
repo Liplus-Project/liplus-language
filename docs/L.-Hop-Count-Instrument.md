@@ -48,7 +48,7 @@
 | S1 | self-evolution PR が CI green → 次に何を走らせるか | `rules/evolution/initiator-autonomy.md:60` | 3 | 0 |
 | S2 | subagent 完了 → 親の次の行動 | `adapter/claude/CLAUDE.md:47` | 1 | 0 |
 | S3 | webhook イベント到着 → 処理と `mark_processed` | `adapter/claude/CLAUDE.md:153` | 2 | 0 |
-| S4 | sub-issue が親の本文範囲を超える | `rules/operations/main-agent-procedures.md:121` | 1 | 0 |
+| S4 | sub-issue が親の本文範囲を超える | `rules/operations/main-agent-procedures.md:119` | 1 | 0 |
 | S5 | L1 evaluator の判定基準そのもの | `rules/evolution/initiator-autonomy.md:68` | 1 | 0 |
 | S6 | patch / minor / major の分類 | `rules/operations/release-version-rule.md:25` | 0 | 0 |
 | S7 | Li+update 実行要否の判定 | `adapter/claude/CLAUDE.md:9` | 0 | 0 |

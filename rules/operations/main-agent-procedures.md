@@ -193,7 +193,7 @@ Canonical. `skills/operations-on-pr-review/SKILL.md` keeps the Delegated-subagen
 Actor = the parent in `auto` / `semi_auto`, the subagent in `trigger`.
 
 AI self-review is mandatory in every mode (trigger / semi_auto / auto).
-Skipping self-review before merge is a spec violation. Self-review runs first; external human check (if any) is layered on top, not in place of it.
+Self-review runs first; external human check (if any) is layered on top, not in place of it.
 
 Review basis:
   repository-state-first:

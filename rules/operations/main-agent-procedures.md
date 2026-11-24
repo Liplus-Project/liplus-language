@@ -40,7 +40,7 @@ Canonical convergence for implementation issue:
   purpose
   premise
   constraints
-  target files (recommended at ready stage)
+  target files
 Target files = list of files expected to change, with dependency notes (e.g. source⇔docs).
 Target files are optional during memo/forming. Recommended once issue reaches ready.
 Rewrite issue body whenever accepted understanding changes.

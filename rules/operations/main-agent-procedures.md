@@ -97,7 +97,6 @@ forming → ready transition requires all technical premises in premise section 
 
 Verification completion criterion:
 Applies to external fact cross-check results only.
-Subjective confidence is outside this criterion.
 A premise is verified only when external evidence (docs, spec, source, runtime probe, existing issue/PR record) is cited.
 "feels correct" is not verification.
 

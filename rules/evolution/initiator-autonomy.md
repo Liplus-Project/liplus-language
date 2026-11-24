@@ -52,10 +52,10 @@ Out-of-scope = L1 Model Layer source (`layer: L1-model`, typically `rules/model/
 
 ## Merge brake
 
-Held at the location named below and not restated here; no figure from `skills/evolution-parallel-agent-eval` (the evaluator count or any other) is carried into this rule:
+Each item below is held at the location it names and is not restated here; no figure from `skills/evolution-parallel-agent-eval` (the evaluator count or any other) is carried into this rule:
 - `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition = the stop condition at the firing moment.
 - `adapter/claude/CLAUDE.md` and `adapter/codex/AGENTS.md` Subagent_Delegation = the host mechanism resuming the author.
-- `skills/evolution-parallel-agent-eval/SKILL.md` = Procedure (the baseline's operational form; routing at step 3's reporting destination and steps 4 and 6 to 8; loop exit and recurrence stop at step 8), Report shape, Constraint (the evaluator-count floor; Findings are posted to the PR by the evaluator = the parent's conduct while the exchange passes and its one read of the whole thread at the exit), what one round trip is, and a rejection's standing inside the loop.
+- `skills/evolution-parallel-agent-eval/SKILL.md` = Procedure (the operational form of what the evaluators receive; routing at step 3's reporting destination and steps 4 and 6 to 8; loop exit and recurrence stop at step 8), Report shape, Constraint (the evaluator-count floor; Findings are posted to the PR by the evaluator = the parent's conduct while the exchange passes and its one read of the whole thread at the exit), what one round trip is, and a rejection's standing inside the loop.
 
 **Position (canonical)**: the brake runs after CI green and before the merge gate. It does not run before commit. Firing moment = the delegated subagent's report at its stop condition. The evaluators receive the PR URL, a pushed commit SHA, and a green CI run URL, never a path in the parent's clone. Other surfaces point here; do not restate the position.
 

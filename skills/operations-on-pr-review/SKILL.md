@@ -26,7 +26,9 @@ Delegated-subagent stop condition (canonical, split by mode):
     merges after the last pass.
   if execution_mode == trigger:
     Stop at `PR open + auto-merge enabled + CI green + self-review posted + awaiting human review`.
-    Merge fires later via GitHub auto-merge after human approval; the subagent's session ends before that.
+    Self-review precedes the human gate in every mode and the subagent is its actor in this mode, so it lands
+    before the stop point. Merge fires later via GitHub auto-merge after human approval; the subagent's session
+    ends before that.
   Other surfaces point here. Do not restate the condition.
 
 The surrounding PR review flow — the self-review mandate, the review basis, the self-review procedure, the

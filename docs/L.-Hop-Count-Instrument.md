@@ -45,11 +45,11 @@
 
 | ID | 適用瞬間 | 起点 `file:line` | ツール | 文脈内 |
 |---|---|---|---:|---:|
-| S1 | self-evolution PR が CI green → 次に何を走らせるか | `rules/evolution/initiator-autonomy.md:55` | 3 | 0 |
+| S1 | self-evolution PR が CI green → 次に何を走らせるか | `rules/evolution/initiator-autonomy.md:60` | 3 | 0 |
 | S2 | subagent 完了 → 親の次の行動 | `adapter/claude/CLAUDE.md:47` | 1 | 0 |
 | S3 | webhook イベント到着 → 処理と `mark_processed` | `adapter/claude/CLAUDE.md:153` | 2 | 0 |
 | S4 | sub-issue が親の本文範囲を超える | `rules/operations/main-agent-procedures.md:121` | 1 | 0 |
-| S5 | L1 evaluator の判定基準そのもの | `rules/evolution/initiator-autonomy.md:69` | 1 | 0 |
+| S5 | L1 evaluator の判定基準そのもの | `rules/evolution/initiator-autonomy.md:68` | 1 | 0 |
 | S6 | patch / minor / major の分類 | `rules/operations/release-version-rule.md:25` | 0 | 0 |
 | S7 | Li+update 実行要否の判定 | `adapter/claude/CLAUDE.md:9` | 0 | 0 |
 | S8 | memory 書き込み直前の persistence 判定 | `adapter/claude/CLAUDE.md:118` | 1 | 1 |
@@ -72,6 +72,7 @@ S2 のみ #1564 実測2 の記録（ツール2 / 文脈内2）と一致しない
 - → `skills/task-subagent-delegation/SKILL.md` Rules `[tool]`
 - → `skills/evolution-parallel-agent-eval/SKILL.md` Procedure `[tool]`
 - 追記（#2146）—— 起点の文（`rules/evolution/initiator-autonomy.md` Merge brake の Position）はこの PR で変わらず、表の行番号だけを更新した。条件 2 の除外面と、往復のあいだの親の分担は `skills/evolution-parallel-agent-eval/SKILL.md` へ移った。この鎖が既に到達する同じ skill なので、ツール跳躍は増えない。
+- 追記（#2201）—— Merge brake 節の各段落にあった参照先と非再掲宣言を節の頭の一つのブロックへ集約した。起点の文と、そこから `skills/operations-on-pr-review/SKILL.md` へ向かう明示ポインタはともに同じ節に残る（ポインタは頭のブロックへ移っただけで、同一ファイル内の移動は跳躍に数えない）。ツール跳躍・文脈内跳躍とも変わらず、表の行番号（S1 / S5）だけを更新した。
 
 **S2** — anchor: `Main agent after subagent completion:`
 - → `skills/task-subagent-delegation/SKILL.md`（CHANGES_REQUESTED の再委譲。同一ファイル内 `adapter/claude/CLAUDE.md:126` の明示ポインタ経由であり、節移動は跳躍に数えない）`[tool]`

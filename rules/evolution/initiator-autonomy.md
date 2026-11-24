@@ -52,21 +52,20 @@ Out-of-scope = L1 Model Layer source (`layer: L1-model`, typically `rules/model/
 
 ## Merge brake
 
-**Position (canonical)**: the brake runs after CI green and before the merge gate. It does not run before commit. Firing moment = the delegated subagent's report at its stop condition (`skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition). The evaluators receive the PR URL, a pushed commit SHA, and a green CI run URL, never a path in the parent's clone (`skills/evolution-parallel-agent-eval/SKILL.md` Procedure carries the operational form). Other surfaces point here; do not restate the position.
+Each item below is held at the location it names and is not restated here; no figure from `skills/evolution-parallel-agent-eval` (the evaluator count or any other) is carried into this rule:
+- `skills/operations-on-pr-review/SKILL.md` Delegated-subagent stop condition = the stop condition at the firing moment.
+- `adapter/claude/CLAUDE.md` and `adapter/codex/AGENTS.md` Subagent_Delegation = the host mechanism resuming the author.
+- `skills/evolution-parallel-agent-eval/SKILL.md` = Procedure (the operational form of what the evaluators receive; routing at step 3's reporting destination and steps 4 and 6 to 8; loop exit and recurrence stop at step 8), Report shape, Constraint (the evaluator-count floor; Findings are posted to the PR by the evaluator = the parent's conduct while the exchange passes and its one read of the whole thread at the exit), what one round trip is, and a rejection's standing inside the loop.
+
+**Position (canonical)**: the brake runs after CI green and before the merge gate. It does not run before commit. Firing moment = the delegated subagent's report at its stop condition. The evaluators receive the PR URL, a pushed commit SHA, and a green CI run URL, never a path in the parent's clone. Other surfaces point here; do not restate the position.
 
 The rule effect measurement between that CI green and this brake (`skills/evolution-rule-effect-measurement/SKILL.md` Application point, Position on the self-evolution PR pipeline) is not a brake: nothing about it gates the merge, and the eval runs whether or not a run was taken.
 
-**Adjudication actor (canonical)**: findings are adjudicated by the implementation subagent, resumed with its context intact (`adapter/claude/CLAUDE.md` and `adapter/codex/AGENTS.md` Subagent_Delegation carry the host mechanism). The parent does not adjudicate. The parent's remaining share is spawning the evaluators, resuming the author, self-review, and the merge decision.
+**Adjudication actor (canonical)**: findings are adjudicated by the implementation subagent, resumed with its context intact. The parent does not adjudicate. The parent's remaining share is spawning the evaluators, resuming the author, self-review, and the merge decision. Spawn depth stays 1. The evaluators are spawned by the parent, not by the author, and neither the resumed author nor an evaluator spawns anything.
 
-**Channel (canonical)**: the exchange between evaluator and author runs on the PR's own comment thread, and the parent is not in the path. What the parent does and does not do while the exchange passes, and its one read of the whole thread at the exit, are `skills/evolution-parallel-agent-eval/SKILL.md` Constraint: Findings are posted to the PR by the evaluator. The routing — where an evaluator posts its findings, how the author is woken onto them, what the author writes back, and where a round ends — is that skill's Procedure (the reporting destination at step 3, then steps 4 and 6 to 8) and its Report shape. Do not restate either here.
+**Channel (canonical)**: the exchange between evaluator and author runs on the PR's own comment thread, and the parent is not in the path. The round trips carry no cap.
 
-The round trips carry no cap. What ends the loop (the skill's Procedure step 8), what one round trip is, and what standing a rejection has inside the loop are the skill's; none of them is restated here.
-
-Spawn depth stays 1. The evaluators are spawned by the parent, not by the author, and neither the resumed author nor an evaluator spawns anything.
-
-**brake 1 (always)**: every self-evolution PR runs `skills/evolution-parallel-agent-eval`, and nothing exempts one. This rule owns that gate declaration only. What the eval is made of — the evaluator-count floor (its Constraint), the loop's exit and recurrence stop (its Procedure step 8) — is the skill's; none is restated here and no figure from it is carried.
-
-`brake 1` is a name, not an ordinal: it is the only brake at the merge gate and stays uniform across it — an L1 Model Layer change adds no brake of its own, and semi_auto patch-auto-merge does not bypass it. Human = final judge stands unchanged on its own axis (`rules/model/role-separation.md`).
+**brake 1 (always)**: every self-evolution PR runs `skills/evolution-parallel-agent-eval`, and nothing exempts one. This rule owns that gate declaration only; what the eval is made of is the skill's. `brake 1` is a name, not an ordinal: it is the only brake at the merge gate and stays uniform across it — an L1 Model Layer change adds no brake of its own, and semi_auto patch-auto-merge does not bypass it. Human = final judge stands unchanged on its own axis (`rules/model/role-separation.md`).
 
 </merge-brake>
 

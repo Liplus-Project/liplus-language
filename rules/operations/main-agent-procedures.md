@@ -125,7 +125,7 @@ Before firing, read the threshold, the synchronized-set carve-out and the confir
 
 ## Branch and label flow
 
-Canonical. `skills/operations-on-branch/SKILL.md` keeps the repo-first execution surface and points here.
+Canonical. `skills/operations-on-branch/SKILL.md` keeps the repo-first execution surface.
 Actor = the main agent on every half of this flow, with one split: branch creation is the main agent's when a worktree is used (`adapter/claude/CLAUDE.md` / `adapter/codex/AGENTS.md` Responsibilities, Worktree lifecycle), and the delegated subagent's when the delegation uses no worktree, a per-session clone included.
 
 Trigger = human intent to act now detected via dialogue.
@@ -300,7 +300,7 @@ At the post-merge moment of any PR touching L1 Model Layer source (any file with
 
 ## Human confirmation required
 
-Canonical. `skills/operations-on-release/SKILL.md` keeps the release execution procedure and points here.
+Canonical. `skills/operations-on-release/SKILL.md` keeps the release execution procedure.
 Actor = the main agent. The judgment-authority gate list = `rules/operations/execution-mode.md` human judgment gate.
 
 Stop immediately when:
@@ -318,7 +318,7 @@ Mode-dependent confirm (trigger mode only): issue selection, issue execution sta
 
 ## Release completion report discipline
 
-Canonical. `skills/operations-on-release/SKILL.md` keeps the release execution procedure and points here.
+Canonical. `skills/operations-on-release/SKILL.md` keeps the release execution procedure.
 Actor = the main agent.
 
 Release create completion report contains release URL + post-release task completion only. The report does NOT mention any of the following:

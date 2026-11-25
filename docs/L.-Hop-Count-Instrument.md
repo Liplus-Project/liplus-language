@@ -92,6 +92,7 @@ S2 のみ #1564 実測2 の記録（ツール2 / 文脈内2）と一致しない
 - 追記（#1764）—— baseline 以降、この鎖の到達先は `rules/operations/main-agent-procedures.md` の `## Sub-issue rules` へ移り、skill 側はポインタになった。上の跳躍数は baseline タグ時点の実測なので書き換えない。
 - 差し替え（#2136）—— 旧アンカー `Sub-issue work exceeding parent body literal ... requires dialogue confirm`（`rules/task/task.md`）は、同じ行いを常時ロードで持つ `rules/operations/main-agent-procedures.md` Sub-issue rules の写しとして #2136 で外れた。新アンカーは到達先そのもの `Issue body literal is the scope boundary. ... fire a dialogue confirm`（表の `file:line`）。上の跳躍数は baseline タグ時点の実測なので書き換えない。
 - 追記（#2138）—— アンカー文は `rules/operations/main-agent-procedures.md` Sub-issue rules に文面のまま残る（アンカーの差し替えではない）。閾値、同期集合の carve-out、confirm の形、literal に当たらない発火の禁止、PR レビュー時の発火の却下は `skills/task-sub-issue/SKILL.md` Scope-exceed dialogue confirm へ移り、アンカーの直後の 1 行がそこを名指す。#2136 以降の到達先は常時ロード面の内側（ツール跳躍 0）だったので、confirm を実際に出すまでの経路はツール跳躍が 1 増える（baseline の値 1 と同じ数に戻る）。表の数値は baseline タグ時点の実測なので書き換えない。増分の理由: 発火条件（どの literal を越えたら、どの時点で）は常時ロードに残るので、発火は skill の自動起動の想起に依存しない。skill を開くのは発火すると決めた後、confirm の形と carve-out を読むときだけで、その 1 行が名指す。これらの詳細が要るのは発火の場面だけで、それ以外のすべてのセッションで約 1.5 KB を文脈に載せていた。跳躍先は `task-*` skill なのでメインが開ける。
+- 追記（#2209）—— #1764 で skill 側に残ったポインタ節（`skills/operations-on-sub-issue/SKILL.md` Sub-issue Rules）は #2209 で削除した。経路はアンカーの直後の 1 行が `skills/task-sub-issue/SKILL.md` を名指す形のままで、跳躍数は変わらない。表の数値は baseline タグ時点の実測なので書き換えない。
 
 **S5** — anchor: `brake 2 (L1 only)`
 - → `adapter/claude/agents/l1-gate-eval.md` `[tool]`

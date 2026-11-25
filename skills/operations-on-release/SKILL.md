@@ -4,16 +4,6 @@ description: Invoke when a release is being executed after its human confirmatio
 layer: L4-operations
 ---
 
-<human-confirmation-required>
-
-# Human Confirmation Required
-
-Pointer. Canonical = `rules/operations/main-agent-procedures.md` Human confirmation required: the stop word, the confirm-before list, and the trigger-mode items all live there.
-
-The confirmation precedes this procedure; nothing below runs before it has cleared.
-
-</human-confirmation-required>
-
 <canonical-release-creation-command-ai>
 
 # Canonical Release Creation Command (AI)
@@ -89,13 +79,5 @@ Version type proposal and confirmation follow `rules/operations/release-version-
 Run `skills/operations-on-wiki-sync/SKILL.md`. The gate literal is canonical in `rules/operations/operations.md` Operations Rules (always-on); do not restate it here.
 
 </post-release-wiki-sync>
-
-<release-completion-report-discipline>
-
-## Release Completion Report Discipline
-
-Pointer. Canonical = `rules/operations/main-agent-procedures.md` Release completion report discipline: what the report contains, what it must not mention, the real-device verification structure, the scope bound, and the detection signs all live there.
-
-</release-completion-report-discipline>
 
 </release-execution-procedure>

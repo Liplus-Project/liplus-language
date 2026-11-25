@@ -100,10 +100,8 @@ if ($webhookDelivery -cne 'channel' -and $webhookDelivery -cne 'mcp_hook') {
 # --- Trigger Check Gate re-arm (every turn) ---
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('━━━ Trigger Check Gate ━━━')
-[void]$sb.AppendLine('Before any non-trivial speech or action, run the 5-axis check (one No -> pause, retrieve, verify):')
-[void]$sb.AppendLine('  Rule / Literal / Source / Frame / Character')
-[void]$sb.AppendLine('Situational routing: external content read -> Frame + Source. Asserting from internal memory -> Source. Applying a Li+ rule -> Rule + Literal.')
-[void]$sb.AppendLine('Axis detail: rules/model/trigger-check-gate.md (always-on).')
+[void]$sb.AppendLine('Character (when Character_Instance is configured): character tone on every human-facing reply, no system voice; name prefix unless the surface transport already carries the speaker (rules/model/absolute.md).')
+[void]$sb.AppendLine('Full gate (5 axes): rules/model/trigger-check-gate.md (always-on).')
 [void]$sb.AppendLine('━━━━━━━━━━━━━━━━━━━━━━━━━━')
 
 $context = $sb.ToString()

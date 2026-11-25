@@ -230,7 +230,7 @@ Li+ が守るのは **「装着された role の internal stability」**、「�
 
 - **装具の位置**: AI の context に統合済み (`.claude/` 配下、毎 turn 読み込み)。ハーネス段階は通過した。
 - **装具の修正者**: AI 側に渡っている。Li+ source の編集は AI が起票・実装・self-review・merge までを担い、人間は方針提示と go-sign を出す側に回っている。
-- **ループ起動者**: AI 側に渡った (#1344 で起動者軸完成)。自己進化 issue の起票・実装・merge は AI 単独自走、`Evolution_Initiator_Autonomy` (`adapter/claude/CLAUDE.md`) として宣言されている。マージゲートの brake (brake 1 = `skills/evolution-parallel-agent-eval` 必須。L1 に触れる PR も同じ 1 本であり、L1 専用の brake は持たない) で安全側を維持する。L1 変更が担うものはマージゲートではなく別軸にあり、issue 形成時の観測閾値 (`skills/evolution-l1-update-gating/SKILL.md`)、execution-mode の minor / major 人間ゲート、merge 後のランタイム観測がそれである。Human = final judge の地位 (`rules/model/role-separation.md`) と release / 不可逆外部作用の human gate は別軸で不変。
+- **ループ起動者**: AI 側に渡った (#1344 で起動者軸完成)。自己進化 issue の起票・実装・merge は AI 単独自走、`Evolution_Initiator_Autonomy` (`adapter/claude/CLAUDE.md`) として宣言されている。マージゲートの brake (brake 1 = `skills/evolution-parallel-agent-eval` 必須。L1 に触れる PR も同じ 1 本であり、L1 専用の brake は持たない) で安全側を維持する。L1 変更が担うものはマージゲートではなく別軸にあり、変える前の実測と merge 後の長い観測 (`skills/evolution-l1-update-gating/SKILL.md`)、execution-mode の minor / major 人間ゲート、merge 後の短窓ランタイム観測がそれである。Human = final judge の地位 (`rules/model/role-separation.md`) と release / 不可逆外部作用の human gate は別軸で不変。
 
 Li+ はアジリティとシープドッグの**半身段階** ── 修正者軸が AI、起動者軸が人間 ── を通過し、起動者軸も AI 側へ渡った。半身段階の履歴は、シープドッグ段階完成への過渡形態として記録される (本節旧版および parent issue #1344 に literal が残る)。
 

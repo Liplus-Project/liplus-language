@@ -79,7 +79,7 @@ Detection signs that the stop condition is being misapplied:
 
 ## Post-L1-Merge Runtime Observation
 
-For L1 substrate changes (any file with `layer: L1-model` frontmatter, typically `rules/model/*`), apply a short-window observation of AI judgment behavior at the rule-application moment, once the changed rule is carried in runtime context. Its start point, observation set and deferral = `skills/evolution-observation-entry/SKILL.md` Post-L1-Merge Runtime Observation; open it at the post-merge moment of such a PR.
+For L1 substrate changes (any file with `layer: L1-model` frontmatter, typically `rules/model/*`), apply a short-window observation of AI judgment behavior at the rule-application moment, once the changed rule is carried in runtime context. Its start point, observation set and deferral = `skills/evolution-observation-entry/SKILL.md` Post-L1-Merge Runtime Observation; open it at the post-merge moment of such a PR. The long observation of the same change opens at that moment too (`skills/evolution-observation-entry/SKILL.md` Auto-entry trigger, L1 change).
 
 Invocation anchor: this procedure is named at the merge moment by `rules/operations/main-agent-procedures.md` Merge Execution, whose Post-merge moment fixes that moment for each mode. Do not move the anchor into an `operations-*` skill.
 

@@ -26,7 +26,7 @@ The actor criterion and the relocation rule, applied by the agent editing Li+ so
 
 ## Issue format
 
-Canonical. `skills/operations-on-issue-format/SKILL.md` holds the pointer.
+Canonical.
 Actor = the parent, unconditionally. The subagent applies this format too, when it updates the issue body mid-implementation or writes the failure-report comment.
 
 Issue title language:
@@ -344,7 +344,7 @@ On detection: drop all Latest-related mentions; end the report at "release URL +
 
 ## Handoff continuity
 
-Canonical. `skills/operations-handoff-continuity/SKILL.md` holds the pointer.
+Canonical.
 Actor = both: the subagent for the commits to push, the main agent for its own state across a boundary (the resume target of an implementation subagent, and `chat memory` below).
 
 If token/session/model boundary may interrupt work = push useful intermediate state to the linked personal branch.

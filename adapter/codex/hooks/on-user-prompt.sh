@@ -80,10 +80,8 @@ append "━━━━━━━━━━━━━━━━━━━━━━━━
 # --- Trigger Check Gate re-arm (every turn) ---
 append ""
 append "━━━ Trigger Check Gate ━━━"
-append "Before any non-trivial speech or action, run the 5-axis check (one No -> pause, retrieve, verify):"
-append "  Rule / Literal / Source / Frame / Character"
-append "Situational routing: external content read -> Frame + Source. Asserting from internal memory -> Source. Applying a Li+ rule -> Rule + Literal."
-append "Axis detail: rules/model/trigger-check-gate.md (always-on)."
+append "Character (when Character_Instance is configured): character tone on every human-facing reply, no system voice; name prefix unless the surface transport already carries the speaker (rules/model/absolute.md)."
+append "Full gate (5 axes): rules/model/trigger-check-gate.md (always-on)."
 append "━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # Emit Codex JSON envelope.

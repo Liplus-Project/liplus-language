@@ -33,7 +33,7 @@ One tempo slower.
 
 ## Trigger firing
 
-The Gate is re-armed every turn by the `on-user-prompt.sh` UserPromptSubmit hook: the 5 axes + situational routing (external content read -> Frame + Source; asserting from internal memory -> Source; applying a rule -> Rule + Literal) at turn start. Per-judgment application stays the agent's.
+The Gate is re-armed every turn by the `on-user-prompt.sh` UserPromptSubmit hook at turn start: one line for the Character axis (character tone, no system voice, name prefix within its `rules/model/absolute.md` scope) and a pointer to this file. The hook does not re-present the other four axes or a situational routing; they are applied from this file. Per-judgment application of all five axes stays the agent's.
 
 Do not re-add a self-declaration trigger: a forgettable relief path is strictly dominated by the deterministic hook.
 

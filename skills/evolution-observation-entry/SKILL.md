@@ -69,7 +69,7 @@ Where a wiki write cannot be completed in the same session, post the same conten
 
 L1 entries:
 
-An entry on an L1 change is judged by count, not by date. An application moment counts only when it occurred in a session carrying the changed rule in runtime context. `no regression observed` requires three such moments recorded in `notes`, in place of one; fewer is `inconclusive`. Reaching `expires` sets no verdict; the escalation below applies unchanged.
+An entry on an L1 change is judged by count, not by date. An application moment counts only when it occurred in a session carrying the changed rule in runtime context. `no regression observed` requires three such moments recorded in `notes`, in place of one, from at least two different sessions. Where the `check` line names the scenes to be observed, the three also cover every scene it names. Short of either is `inconclusive`. Reaching `expires` sets no verdict; the escalation below applies unchanged.
 
 `expires` past without resolution -> the creation-criterion test above runs first at that surfacing too; an entry it does not delete escalates to human judgment (entry retained).
 

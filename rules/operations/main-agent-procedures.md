@@ -189,7 +189,7 @@ If not linked = retry or escalate.
 
 ## PR review
 
-Canonical. `skills/operations-on-pr-review/SKILL.md` keeps the Delegated-subagent stop condition and points here.
+Canonical. `skills/operations-on-pr-review/SKILL.md` keeps the Delegated-subagent stop condition.
 Actor = the parent in `auto` / `semi_auto`, the subagent in `trigger`.
 
 AI self-review is mandatory in every mode (trigger / semi_auto / auto).

@@ -27,7 +27,7 @@ Both are read per requirement, not per file: one skill can hold a firing clause 
 
 ## Maintenance rule
 
-Applied when an `operations-*` skill gains a requirement whose actor can be the main agent: move the canonical to a main-readable surface and leave a pointer in the skill. Two wrong repairs:
+Applied when an `operations-*` skill gains a requirement whose actor can be the main agent: move the canonical to a main-readable surface. Leave a pointer in the skill only where its reader would not reach the canonical without one: `rules/**` loads without invocation, so a canonical there, or one a `rules/**` line names, takes none. Two wrong repairs:
 
 - copy the text to a main-readable surface and keep it in the skill as well.
 - narrow the bar so the main agent may read the skill "when it is the actor".

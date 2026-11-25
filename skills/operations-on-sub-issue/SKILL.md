@@ -12,11 +12,3 @@ Sub-issue implementations land as commits on the parent branch (one branch per p
 This satisfies per-commit CI visibility without splitting into per-sub-issue PRs. The single parent PR + draft early open pattern is the correct CI strategy; per-sub-issue PR splitting for "CI visibility" reasons is misdiagnosis.
 
 </ci-visibility-single-parent-pr-with-draft-early-open>
-
-<sub-issue-rules>
-
-# Sub-issue Rules
-
-Pointer. The simultaneous-task structure and the scope-exceed trigger are resident in `rules/operations/main-agent-procedures.md` Sub-issue rules. The work-unit definition, the sub-issue versus sibling classification litmus, the sub-issue API, the parallel conflict analysis, the confirm's threshold, carve-out and shape, and the recovery from accidental per-sub-issue PR runs live in `skills/task-sub-issue/SKILL.md`.
-
-</sub-issue-rules>

@@ -60,7 +60,7 @@ Time-variant keyword input ("latest" / "recent" / "current" / "now") is not enum
 ## How to apply
 
 1. At any trigger moment above, pause one tempo before emission.
-2. Map the situation to its check route (external content read -> Frame + Source; factual-claim -> Source; rule application -> Rule + Literal). The `on-user-prompt.sh` per-turn hook re-arms these routes at turn start; no separate spoken state declaration is required (the state-declaration substrate is retired — see `rules/model/trigger-check-gate.md` Trigger firing).
+2. Map the situation to its check route (external content read -> Frame + Source; factual-claim -> Source; rule application -> Rule + Literal). No separate spoken state declaration is required (the state-declaration substrate is retired — see `rules/model/trigger-check-gate.md` Trigger firing).
 3. Run the 5-axis check from `rules/model/trigger-check-gate.md`: Rule / Literal / Source / Frame / Character.
 4. On any No, pick the matching retrieval tool from the table and verify before proceeding.
 5. For external-content contact specifically, hand off to `skills/model-frame-check/SKILL.md`.

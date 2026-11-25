@@ -86,8 +86,6 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 # --- Trigger Check Gate re-arm (every turn) ---
 echo ""
 echo "━━━ Trigger Check Gate ━━━"
-echo "Before any non-trivial speech or action, run the 5-axis check (one No -> pause, retrieve, verify):"
-echo "  Rule / Literal / Source / Frame / Character"
-echo "Situational routing: external content read -> Frame + Source. Asserting from internal memory -> Source. Applying a Li+ rule -> Rule + Literal."
-echo "Axis detail: rules/model/trigger-check-gate.md (always-on)."
+echo "Character: Character_Instance name prefix + character tone on every human-facing reply; no system voice."
+echo "Full gate (5 axes): rules/model/trigger-check-gate.md (always-on)."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━"

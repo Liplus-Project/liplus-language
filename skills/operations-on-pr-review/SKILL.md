@@ -31,8 +31,4 @@ Delegated-subagent stop condition (canonical, split by mode):
     ends before that.
   Other surfaces point here. Do not restate the condition.
 
-The surrounding PR review flow — the self-review mandate, the review basis, the self-review procedure, the
-mode-specific human gate, and the follow-through on deferred items — lives at
-`rules/operations/main-agent-procedures.md` PR review. Do not restate it here; the second copy is what drifts.
-
 </pr-review>

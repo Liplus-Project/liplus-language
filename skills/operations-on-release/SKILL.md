@@ -1,6 +1,6 @@
 ---
 name: operations-on-release
-description: Invoke when a release is being executed after its human confirmation / a pre-create CD check is about to run / a release tag or title must be resolved against project convention / subagent capability is unavailable and the parent is executing operations directly. Provides the release create procedure.
+description: Invoke when a pre-create CD check is about to run / a release is about to be created after its human confirmation / a release tag or title must be resolved against project convention / subagent capability is unavailable and the parent is executing operations directly. Provides the release create procedure.
 layer: L4-operations
 ---
 

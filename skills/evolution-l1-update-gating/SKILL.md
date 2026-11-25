@@ -1,6 +1,6 @@
 ---
 name: evolution-l1-update-gating
-description: Invoke when an L1 Model layer source change is being proposed or considered. Enforces the long-horizon observation requirement.
+description: Invoke when an L1 Model layer source change is being proposed or considered. Provides the measured-difference requirement before the change and the long observation after its merge.
 layer: L2-evolution
 ---
 
@@ -10,56 +10,46 @@ layer: L2-evolution
 
 L1 Model Layer change is the highest-gate update in Li+.
 Default update target = L3 Task Layer and later.
-L1 update requires: long-horizon observation backing.
-Do not edit L1 on a single session's impression.
-Do not propose L1 change without observable pattern evidence.
 L1 update proposals are written as issues, not as direct edits.
+Do not move L1 on an impression. What moves it is a measurement taken before the change; what keeps it is the observation taken after the merge.
 
-Rationale binding: the seed must be hardest to move.
-Placement in attachment chain = update-difficulty proxy.
-L1 = seed, L6 Adapter = most mutable end.
+<before-the-change>
+
+## Before the change
+
+An AI-initiated L1 change is not committed until its issue body records the measurement it rests on. The implementing AI reads it off the issue and does not commit without it.
+
+- Change meant to alter conduct = a before/after difference on the draft, measured per `skills/evolution-rule-effect-measurement/SKILL.md` whatever that skill's firing condition says, with its probe, judge and band constraints unchanged. A difference outside the band is the grounds. No difference detected, or no run taken, is not.
+- Refactor-driven change = the issue body records a measurement of the artifact itself (length, duplication, untraceable reference) as the origin. That measurement is the grounds; the before/after difference is not a precondition.
+
+The issue body names where the measurement was seen (`rules/operations/main-agent-procedures.md` Issue format, Assertion grounds).
+
+A human-directed L1 change (human-initiated, AI-implemented) takes neither as a precondition: the human's own direction discharges this section. Read the carve-out on the initiation axis only; no downstream gate is a co-condition of it.
+
+</before-the-change>
+
+<after-the-merge>
+
+## After the merge
+
+Every L1 change — AI-initiated or human-directed, conduct-changing or refactor-driven — takes the long observation after its merge: a `memory/self-evolution-observation.md` entry, with its format, creation criterion and verdict lifecycle (`skills/evolution-observation-entry/SKILL.md`), counted by application moments rather than days (same skill, L1 entries). A regression observed there is reverted.
+
+The short-window observation at the merge (`rules/operations/operations.md` Post-L1-Merge Runtime Observation) runs as well; the two do not replace each other.
+
+</after-the-merge>
 
 <boundary-clarification>
 
 ## Boundary clarification
 
 Modifier axis = AI (per CLAUDE.md Sheepdog Engineering).
-This gate (long-horizon observation requirement) is observational, not approval-based.
-"highest-gate" = highest observation threshold (most accumulated evidence required), not human sign-off requirement.
-"Do not edit L1" / "Do not propose L1 change" = the AI MUST NOT skip the observation threshold; the subject is AI, not human.
+"highest-gate" = the gate whose grounds must be measured and whose result must be observed after merge, not a human sign-off requirement. "Do not move L1" binds the AI, not the human.
 
-Relation to the merge brake:
-This gate is not the merge brake and does not run at the merge gate. A self-evolution PR touching L1 runs brake 1 (`skills/evolution-parallel-agent-eval`) exactly as any other self-evolution PR does — L1 adds no brake of its own (`rules/evolution/initiator-autonomy.md` Merge brake). The two are orthogonal axes and fire at different moments:
-- this skill = observation-threshold gate, at issue formation (was the long-horizon pattern observed? AI subject)
+This skill is not the merge brake. A self-evolution PR touching L1 runs brake 1 (`skills/evolution-parallel-agent-eval`) exactly as any other self-evolution PR does — L1 adds no brake of its own (`rules/evolution/initiator-autonomy.md` Merge brake). The axes fire at different moments:
+- Before the change = before commit, read off the issue
 - brake 1 = empirical verification of the converged draft, at the merge gate
+- After the merge = the observation entry and the short-window observation
 Human = final judge stands unchanged on a separate axis (`rules/model/role-separation.md`).
-
-### Initiation-axis scope of the observation threshold
-
-The long-horizon observation threshold is the safety device for **AI-alone initiation** of an L1 change. Its job is to substitute for absent human judgment with accumulated-evidence weight: when no human is at the wheel, the AI MUST NOT move the seed on a single session's impression, so the threshold stands in for the missing human gate.
-
-When a human directs the L1 change (human-initiated, AI-implemented), human judgment is present at initiation. That is what fills the role the threshold plays under AI-alone initiation, and it fills it alone: the threshold's substitute-for-absent-human-judgment purpose is already satisfied the moment the human is the one directing. The observation threshold is therefore not an independent precondition for a human-directed L1 change.
-
-Read the carve-out on the initiation axis and nowhere else. What discharges it is the human's own direction, so no downstream gate is load-bearing for it and none may be read as a co-condition — a downstream gate judges the change, and the axis here is who initiated it.
-
-This is not a relaxation of the gate. AI-alone initiation of an observation-driven L1 change keeps the observation threshold as a hard requirement, unchanged, and the carve-out is scoped to the initiation axis only. The observation gate's subject stays the implementing AI in both cases.
-
-### Change-origin scope of the observation threshold
-
-The long-horizon observation threshold applies to observation-driven L1 changes only. A refactor-driven L1 change does not take it as a precondition. The scope covers every threshold line at the head of this skill, the single-session-impression line included.
-
-- Observation-driven = the grounds for the change are a pattern of accumulated same-kind misses.
-- Refactor-driven = the grounds for the change are a measurement of the artifact itself (length, duplication, untraceable reference).
-
-The origin is fixed at issue creation. The implementing AI reads it off the issue and does not re-judge it:
-
-- The issue carries the `promotion` marker label (`rules/evolution/promotion-judgment.md` Issue Creation Metadata) -> observation-driven.
-- The issue carries no `promotion` label and its body records a measurement of the artifact itself as the origin -> refactor-driven.
-- Neither row settles it -> observation-driven.
-
-The two scopes are read independently, and the threshold applies only where both place it: AI-alone initiation (Initiation-axis scope above) and an observation-driven origin (this section).
-
-A refactor-driven L1 change still runs brake 1 (`skills/evolution-parallel-agent-eval`) and the post-merge observation (`rules/operations/operations.md` Post-L1-Merge Runtime Observation, `skills/evolution-observation-entry/SKILL.md`) unchanged.
 
 </boundary-clarification>
 

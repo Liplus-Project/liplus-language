@@ -48,9 +48,10 @@ Per-PR exception (content-based axis):
   applied as patch-equivalent").
   If uncertain, default to the parent's release type.
   An L1 Model Layer source change that qualifies as patch is waived like any
-  other. The L1 observation threshold (`skills/evolution-l1-update-gating/SKILL.md`)
-  and the post-merge runtime observation (`rules/operations/operations.md`
-  Post-L1-Merge Runtime Observation) are not merge gates.
+  other. The waiver covers the human check only: the measurement before the
+  change and the observation after the merge
+  (`skills/evolution-l1-update-gating/SKILL.md`) are not merge gates, and the
+  waiver discharges neither.
 
 human judgment gate (judgment ↔ execution axis split):
 

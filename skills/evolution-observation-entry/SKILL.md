@@ -27,6 +27,7 @@ notes:
 
 Auto-entry trigger:
 - At the post-merge moment of a self-evolution PR (`Evolution_Initiator_Autonomy` initiator path; the moment and its actor are `rules/operations/main-agent-procedures.md` Merge Execution, Post-merge moment), the agent holding that moment writes an entry when at least one surface the PR changes meets the creation criterion below. expiration window is chosen per PR risk (default 2 weeks). A PR that meets it on no surface gets no entry; instead, comment on the merged PR one line naming the condition that failed.
+- L1 change: at the post-merge moment of a PR changing L1 Model Layer source (any file with `layer: L1-model` frontmatter), the same agent writes the entry under the same creation criterion whether or not the PR came by the initiator path (`skills/evolution-l1-update-gating/SKILL.md` After the merge). It counts as described under L1 entries below.
 - Short-window miss escalation: when Post-L1-Merge Runtime Observation below surfaces a `miss` verdict, the parent AI writes the entry immediately rather than waiting for the default cycle, whether or not the change meets the creation criterion.
 - Deferred short-window observation: when Post-L1-Merge Runtime Observation below cannot start at the post-merge moment (`rules/operations/main-agent-procedures.md` Merge Execution) because the changed rule is not carried in runtime context yet, the agent holding that moment writes the deferral into this entry's `notes` as one line, and the session that later takes the observation appends its result there as a second line. Add no field for it, and enter no verdict for the deferral itself. Where the PR has no entry, both lines are comments on the merged PR instead.
 
@@ -66,6 +67,10 @@ Choose the destination by whether a future reader would retrieve the record as g
 
 Where a wiki write cannot be completed in the same session, post the same content as a comment on the merged PR instead. Either way the entry is deleted: holding it at `pending` because the write surface was unreachable is not one of the outcomes above.
 
+L1 entries:
+
+An entry on an L1 change is judged by count, not by date. An application moment counts only when it occurred in a session carrying the changed rule in runtime context. `no regression observed` requires three such moments recorded in `notes`, in place of one; fewer is `inconclusive`. Reaching `expires` decides nothing on its own: the escalation below applies unchanged.
+
 `expires` past without resolution -> the creation-criterion test above runs first at that surfacing too; an entry it does not delete escalates to human judgment (entry retained).
 
 </self-evolution-observation-format>
@@ -89,6 +94,6 @@ Optional (best-effort):
 
 - 5-axis gate spot-check: run 1-2 judgment formations through the gate axis the change touched. Skip when the change does not touch a specific axis.
 
-Separation from existing observation axes: this observation neither replaces nor is replaced by `skills/evolution-l1-update-gating/SKILL.md`, brake 1 (`skills/evolution-parallel-agent-eval`), or the 2-week cycle of `memory/self-evolution-observation.md`. Deferral notes ride in that entry and do not change its `expires` / verdict lifecycle.
+Separation from existing observation axes: this observation neither replaces nor is replaced by the measurement of `skills/evolution-l1-update-gating/SKILL.md` Before the change, brake 1 (`skills/evolution-parallel-agent-eval`), or the 2-week cycle of `memory/self-evolution-observation.md`. Deferral notes ride in that entry and do not change its `expires` / verdict lifecycle.
 
 </post-l1-merge-runtime-observation>

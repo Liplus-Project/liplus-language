@@ -83,7 +83,7 @@ Out-of-scope for the autonomous loop = changes whose effect cannot be undone by 
 
 ## Existing maintenance rules still apply
 
-- `skills/evolution-l1-update-gating` long-horizon observation requirement is unchanged.
+- `skills/evolution-l1-update-gating` Before the change and After the merge are unchanged.
 - `rules/operations/execution-mode.md` mode matrix applies on top (semi_auto patch-auto-merge ↔ minor/major human review).
 - `rules/evolution/promotion-judgment.md` noise-floor gate is unchanged.
 

@@ -120,7 +120,7 @@ Fixed metadata at creation:
 
 ## Relation to L1 Update Gating
 
-An issue created here does not authorize an L1 Model Layer update: that update still requires the long-horizon observation of `skills/evolution-l1-update-gating/SKILL.md`.
+An issue created here does not authorize an L1 Model Layer update: that update still requires the measurement of `skills/evolution-l1-update-gating/SKILL.md` Before the change.
 
 </relation-to-l1-update-gating>
 

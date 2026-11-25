@@ -100,7 +100,7 @@ if ($webhookDelivery -cne 'channel' -and $webhookDelivery -cne 'mcp_hook') {
 # --- Trigger Check Gate re-arm (every turn) ---
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('━━━ Trigger Check Gate ━━━')
-[void]$sb.AppendLine('Character: character tone on every human-facing reply, no system voice; Character_Instance name prefix unless the surface transport already carries the speaker (rules/model/absolute.md).')
+[void]$sb.AppendLine('Character (when Character_Instance is configured): character tone on every human-facing reply, no system voice; name prefix unless the surface transport already carries the speaker (rules/model/absolute.md).')
 [void]$sb.AppendLine('Full gate (5 axes): rules/model/trigger-check-gate.md (always-on).')
 [void]$sb.AppendLine('━━━━━━━━━━━━━━━━━━━━━━━━━━')
 

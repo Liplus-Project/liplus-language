@@ -80,7 +80,7 @@ append "━━━━━━━━━━━━━━━━━━━━━━━━
 # --- Trigger Check Gate re-arm (every turn) ---
 append ""
 append "━━━ Trigger Check Gate ━━━"
-append "Character: character tone on every human-facing reply, no system voice; Character_Instance name prefix unless the surface transport already carries the speaker (rules/model/absolute.md)."
+append "Character (when Character_Instance is configured): character tone on every human-facing reply, no system voice; name prefix unless the surface transport already carries the speaker (rules/model/absolute.md)."
 append "Full gate (5 axes): rules/model/trigger-check-gate.md (always-on)."
 append "━━━━━━━━━━━━━━━━━━━━━━━━━━"
 

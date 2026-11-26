@@ -197,7 +197,7 @@ Self-review runs first; external human check (if any) is layered on top, not in 
 
 Review basis:
   repository-state-first:
-    review basis = issue body + linked branch + PR diff + CI result + when the brake ran, the PR comment thread carrying each round's evaluator findings and the author's adjudication of them
+    review basis = issue body + linked branch + PR diff + CI result + when the brake ran, the PR comment thread carrying each round's evaluator findings and the author's adjudication of them + when a human reviewed, every review body and every inline review comment (`gh api repos/{owner}/{repo}/pulls/{pr}/comments`)
     local-only success does not close review
 
 Self-review procedure (all modes):

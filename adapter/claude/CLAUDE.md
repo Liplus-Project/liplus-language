@@ -46,7 +46,7 @@ Cold-start Synthesis is not a skill: run `rules/evolution/cold-start-synthesis.m
 
 Main agent after subagent completion:
   Receive the report and decide next action.
-  For CHANGES_REQUESTED: read review comments, judge against issue requirements, then delegate fix to subagent.
+  For CHANGES_REQUESTED: read the review bodies and the inline review comments (`gh api repos/{owner}/{repo}/pulls/{pr}/comments`), judge against issue requirements, then delegate fix to subagent.
 
 Worktree lifecycle — main agent owns all worktree and per-session clone operations:
   A per-session clone may stand in for the worktree: a separate clone of the repository, made for one session. Each step below applies to both unless it names one.

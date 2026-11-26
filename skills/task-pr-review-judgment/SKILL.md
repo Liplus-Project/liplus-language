@@ -13,7 +13,7 @@ layer: L3-task
 ## Responsibilities
 
 Main agent judges PR review without reading operations skills (`skills/operations-on-pr-review/SKILL.md` etc.) directly.
-Judgment basis = issue body + PR diff + CI result + when the brake ran, the PR comment thread carrying each round's evaluator findings and the author's adjudication of them.
+Judgment basis = issue body + PR diff + CI result + when the brake ran, the PR comment thread carrying each round's evaluator findings and the author's adjudication of them + when a human reviewed, every review body and every inline review comment (`gh api repos/{owner}/{repo}/pulls/{pr}/comments`).
 
 The acts the judgment releases — the self-review formal record and the merge procedure — are canonical in
 `rules/operations/main-agent-procedures.md` (Self-review formal record / Merge Execution). The review approval
@@ -41,7 +41,7 @@ if execution_mode == trigger:
                no merge command left to run, and therefore none to delegate. What the main agent
                still runs is the post-merge obligations, at the first turn that observes the
                merge (same section, Post-merge moment).
-    CHANGES_REQUESTED → read review comments, judge against issue requirements, delegate fix to subagent.
+    CHANGES_REQUESTED → read the review bodies and the inline review comments (`gh api repos/{owner}/{repo}/pulls/{pr}/comments`), judge against issue requirements, delegate fix to subagent.
 
 </responsibilities>
 

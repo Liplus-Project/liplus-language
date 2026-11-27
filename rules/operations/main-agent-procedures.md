@@ -133,11 +133,11 @@ Judgment = read atmosphere, not checklist.
 If unclear = ask with feeling, not mechanically.
 
 Timing tiers:
-NOW     -> label=in-progress + branch create
-SOON    -> label=backlog     + no branch
-SOMEDAY -> label=deferred    + no branch
+NOW     -> status=In progress + branch create
+SOON    -> label=backlog      + no branch
+SOMEDAY -> label=deferred     + no branch
 
-The `in-progress` transition itself (the label alone) = `skills/task-subagent-state-labels/SKILL.md` State-machine label discipline (subagent side, mandate), Work start.
+The `In progress` transition itself (the status write alone) = `skills/task-subagent-state-labels/SKILL.md` Work-state discipline (subagent side, mandate), Work start.
 
 Axis separation:
 Lifecycle labels = when to act.
@@ -146,7 +146,7 @@ Do not use lifecycle labels as substitute for memo/forming/ready.
 
 Atmosphere reading scope:
 Applies to timing tier judgment (NOW / SOON / SOMEDAY) only.
-Once tier is judged, label follows the tiers table without re-reading atmosphere.
+Once tier is judged, status or label follows the tiers table without re-reading atmosphere.
 
 Assignee read (before taking an issue — ahead of branch creation and of delegation):
 read:   gh issue view {issue_number} -R {owner}/{repo} --json author,assignees,body,comments
@@ -154,7 +154,7 @@ Author login `github-actions[bot]` or `app/github-actions` (the Discussions bot)
   = do not start without the human's explicit go-sign.
 An account other than the authenticated `gh` actor in Assignees, and no handoff record (issue body naming the current owner / takeover comment) passing the issue on from it
   = taken. Do not start. To proceed, confirm with that actor or the human first.
-  `in-progress` absent does not change this: assigned without `in-progress` reads as taken.
+  A status other than `In progress` does not change this: assigned without `In progress` reads as taken.
 Your own account in Assignees = no evidence that you are the current owner; one account can serve several sessions.
   Read the current owner from the handoff record and from the surface sessions coordinate on, then decide.
 

@@ -35,8 +35,6 @@ Fire the Gate at these signals.
 - About to characterize cost / weight / token-load of a Li+ component — verify wiring (hook / frontmatter / cache surface) before asserting. `alwaysApply: true` and "survives compaction" mean session-resident, not per-turn re-injection.
 - About to compose a subagent delegation prompt — verify every factual claim in the prompt (release versions, file paths, prior-self quotes, tool / config state) against current state via Read / gh / RAG before sending. Gist memory of recent state is the recurring failure mode at delegation moment; the cost of pre-send verify is far below the cost of a subagent stop-and-clarify round trip.
 
-Time-variant keyword input ("latest" / "recent" / "current" / "now") is not enumerated here — `skills/model-agentic-search/SKILL.md` owns that firing moment on its own description, and the Retrieval tools row below carries the pointer.
-
 </trigger-moments>
 
 <retrieval-tools>
@@ -50,8 +48,13 @@ Time-variant keyword input ("latest" / "recent" / "current" / "now") is not enum
 | Author / timeline / attribution | `git log` / `git blame` / `git shortlog` |
 | Docs semantic search | `mcp__github-rag-mcp__search` with `type: "doc"` / `"wiki_doc"` (add `include_content: true` to inline the body) |
 | Memory body check | memory grep (feedback / project / self-eval) |
-| Time-variant external fact | `WebSearch` / `WebFetch` (search gate + Web-side consumption discipline both in `skills/model-agentic-search/SKILL.md`) |
-| Broad search axis (Web / RAG / gh / Read / memory) under low-calibration or time-variant keyword input | `skills/model-agentic-search/SKILL.md` |
+| Time-variant external fact | `WebSearch` / `WebFetch` |
+
+When the result comes from the Web:
+- cite the source URL alongside the claim
+- prefer official guides / spec docs over secondary articles
+- disagreement between Web sources = treat the claim as suspect; do not use it until an independent source settles it
+- agreement with internal knowledge is a cross-check signal, not grounds to skip citation
 
 </retrieval-tools>
 

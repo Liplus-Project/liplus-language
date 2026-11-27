@@ -8,8 +8,10 @@ UserPromptSubmit `hooks` array with the `on-user-prompt.sh` command entry only,
 and differs from the unrendered literal in that one entry and nothing else.
 The literal itself, rendered for every other value, carries the entry.
 
-The line count is read off the literal, so an edit to the `mcp_tool` object
-that the stated removal no longer matches fails here.
+The stated six-line count is held as a constant here, and the span it names in
+the literal is checked to open with `{` and close with `}` at one indentation,
+so an edit to the `mcp_tool` object that the stated removal no longer matches
+fails here.
 
 Where the rendering is fixed: `adapter/claude/hooks-settings.md`
 Delivery-mode rendering, and `Li+update.md` 4c.4 for the bootstrap step that

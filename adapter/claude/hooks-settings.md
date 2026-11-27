@@ -28,7 +28,7 @@ the compare-and-overwrite step below drops them from `settings.json`.
 ## Bootstrap behavior
 
 - If `{workspace_root}/.claude/settings.json` does **not exist**: create it from
-  the literal JSON below.
+  the rendered template (Delivery-mode rendering below).
 - Write the rendered template with LF line endings and a trailing newline, on the
   create branch above and the overwrite branch below alike. Fix the newline at write
   time; do not leave it to the writer's default text mode (Windows text mode converts
@@ -180,8 +180,9 @@ the tag-tracking anchor. Bootstrap's tag-mismatch check reads this line.
 
 The rendered template is the literal JSON block in the settings.json section above,
 with one variation keyed on `LI_PLUS_WEBHOOK_DELIVERY` in
-`{workspace_root}/Li+config.md`. Read the value as the hooks read it: the text after
-`=` on the `LI_PLUS_WEBHOOK_DELIVERY=` line, CR removed, compared case-sensitively.
+`{workspace_root}/Li+config.md`. Extract the value exactly as
+`adapter/claude/hooks/on-user-prompt.sh` extracts it (its `WEBHOOK_DELIVERY=`
+assignment), and compare it case-sensitively.
 
 - Value `channel`: remove the `type: "mcp_tool"` object from the UserPromptSubmit
   `hooks` array. Delete the six lines from the `{` that opens that object through the
@@ -190,14 +191,11 @@ with one variation keyed on `LI_PLUS_WEBHOOK_DELIVERY` in
 - Any other value (unset, `poll`, `mcp_hook`, or a value outside the known set):
   render the literal unchanged.
 
-The compare-and-overwrite branches in Bootstrap behavior compare against this
-rendered template. A `channel` workspace whose `settings.json` still carries the
-entry is overwritten without it; a workspace switched away from `channel` gets it
-back.
+The create, skip and overwrite branches in Bootstrap behavior all use this rendered
+template.
 
 The value is read at bootstrap, not per turn. A switch to or from `channel` reaches
-`settings.json` on the next bootstrap run; the bash hook's call half reads the value
-every turn and follows the switch at once.
+`settings.json` on the next bootstrap run.
 
 ## mcp_tool entry behavior
 

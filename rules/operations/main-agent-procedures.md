@@ -133,11 +133,11 @@ Judgment = read atmosphere, not checklist.
 If unclear = ask with feeling, not mechanically.
 
 Timing tiers:
-NOW     -> status=In progress + branch create
-SOON    -> label=backlog      + no branch
-SOMEDAY -> label=deferred     + no branch
+NOW     -> branch create
+SOON    -> label=backlog  + no branch
+SOMEDAY -> label=deferred + no branch
 
-The `In progress` transition itself (the status write alone) = `skills/task-subagent-state-labels/SKILL.md` Work-state discipline (subagent side, mandate), Work start.
+The tier writes no status. A NOW issue gets `Todo` from the parent at the delegation moment (`skills/task-subagent-delegation/SKILL.md` Rules) and `In progress` from the subagent at `skills/task-subagent-state-labels/SKILL.md` Work-state discipline (subagent side, mandate), Work start.
 
 Axis separation:
 Lifecycle labels = when to act.
@@ -146,7 +146,7 @@ Do not use lifecycle labels as substitute for memo/forming/ready.
 
 Atmosphere reading scope:
 Applies to timing tier judgment (NOW / SOON / SOMEDAY) only.
-Once tier is judged, status or label follows the tiers table without re-reading atmosphere.
+Once tier is judged, label follows the tiers table without re-reading atmosphere.
 
 Assignee read (before taking an issue — ahead of branch creation and of delegation):
 read:   gh issue view {issue_number} -R {owner}/{repo} --json author,assignees,body,comments

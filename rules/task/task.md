@@ -56,7 +56,7 @@ Status (GitHub issue status field):
 Todo        = delegated and assigned, work not started. parent: write at the delegation moment, in the same act as the assignee.
 In progress = work started, implementation ongoing. subagent: write at work start.
 In review   = implementation phase finished, awaiting orchestration (brake eval / review / merge / close). subagent: mandate at every exit (just before parent report). main: best-effort at PR open + CI green + self-review pass.
-Done        = set by GitHub on merge / close. No agent writes it.
+Done / Not planned = set by GitHub when the issue closes (merge or manual close). No agent writes either.
 
 Write = `gh api -X PATCH repos/{owner}/{repo}/issues/{issue_number} -f status="<name>"`.
 Read = `gh api repos/{owner}/{repo}/issues/{issue_number} --jq .status.name`.

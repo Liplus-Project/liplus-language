@@ -181,7 +181,7 @@ class ProbeVocabularyTest(unittest.TestCase):
 
     def test_a_skill_name_is_refused(self) -> None:
         with self.assertRaises(module.PlanError):
-            module.load_plan(self._plan_with_probe("model-agentic-search について教えて"))
+            module.load_plan(self._plan_with_probe("model-source-check について教えて"))
 
     def test_an_ordinary_probe_passes(self) -> None:
         plan = module.load_plan(

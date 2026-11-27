@@ -217,11 +217,9 @@ clocks: the *bash hook's* call half (poll / channel / mcp_hook), read every turn
 whether the rendered template carries the `mcp_tool` entry at all, read at bootstrap
 (Delivery-mode rendering above).
 
-- `channel`: the entry is not rendered.
-- `poll` / `mcp_hook` / any other value: the entry is rendered and fires on every
-  turn. Setting `LI_PLUS_WEBHOOK_DELIVERY=mcp_hook` suppresses the bash hook's "call
-  the tool yourself" line, so the wrap delivery is the single source of webhook
-  context.
+Where the entry is rendered, it fires on every turn. Setting
+`LI_PLUS_WEBHOOK_DELIVERY=mcp_hook` suppresses the bash hook's "call the tool
+yourself" line, so the wrap delivery is the single source of webhook context.
 
 It does not suppress the handling half: the delivery mode selects only who calls
 the tool. The report filter and the `mark_processed` re-arm are emitted by the

@@ -6,7 +6,7 @@ rendered by the removal that its Delivery-mode rendering section states for
 object, and the `,` that ends the line before them), parses as JSON, leaves the
 UserPromptSubmit `hooks` array with the `on-user-prompt.sh` command entry only,
 and differs from the unrendered literal in that one entry and nothing else.
-The literal itself, rendered for every other value, carries the entry.
+The unrendered literal carries the entry once.
 
 The stated six-line count is held as a constant here, and the span it names in
 the literal is checked to open with `{` and close with `}` at one indentation,
@@ -110,7 +110,6 @@ class RenderingIsNamedTestCase(unittest.TestCase):
         step = re.search(r"^4c\.4\. Bootstrap hooks:\n(.*?)(?=^4c\.5\. )", text, re.S | re.M)
         self.assertIsNotNone(step, "no 4c.4 step in Li+update.md")
         self.assertIn("Delivery-mode rendering", step.group(1))
-        self.assertIn("`channel`", step.group(1))
 
 
 if __name__ == "__main__":

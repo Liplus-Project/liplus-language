@@ -45,8 +45,10 @@ Dependencies: Phase 1 (runtime detected).
 
 2.4. Resolve webhook delivery mode (optional):
 - LI_PLUS_WEBHOOK_DELIVERY setting (`poll` / `channel` / `mcp_hook`) is read by the adapter at runtime.
-- Default if unset: poll. No bootstrap action needed.
-- `mcp_hook` is an opt-in path that requires a manual `settings.json` edit; see B. Configuration for details.
+- Default if unset: poll. No action in this phase.
+- Bootstrap reads the value once more at 4c.4, to render settings.json: `channel` omits the
+  `type: "mcp_tool"` UserPromptSubmit entry, every other value keeps it. No manual `settings.json`
+  edit is needed for any value; see B. Configuration for details.
 
 2.5. Resolve repository schema and migrate legacy schema if present:
 
@@ -254,7 +256,12 @@ Note: Claude Code's skill discovery does NOT recurse into subdirectories under `
   - adapter/claude/hooks/*.sh — hook script bodies as real files (copied verbatim, with
     `{LI_PLUS_TAG}` placeholder replaced by the resolved target tag).
 - {workspace_root}/.claude/settings.json is Li+ owned (compare-and-overwrite):
-  - If it does not exist: create it from the JSON code block in adapter/claude/hooks-settings.md.
+  - Rendered template = the JSON code block in adapter/claude/hooks-settings.md, rendered per its
+    Delivery-mode rendering section: when LI_PLUS_WEBHOOK_DELIVERY in Li+config.md is `channel`
+    (case-sensitive), the `type: "mcp_tool"` UserPromptSubmit entry is removed; any other value,
+    unset included, renders the block unchanged. Every branch below creates from, compares
+    against and overwrites with this rendered template.
+  - If it does not exist: create it from the rendered template.
     Also create {workspace_root}/.claude/hooks/ and copy all adapter/claude/hooks/*.sh there.
   - Write the rendered template with LF line endings and a trailing newline, on both the
     create branch above and the overwrite branch below. Fix the newline at write time; do not

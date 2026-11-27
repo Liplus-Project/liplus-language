@@ -302,8 +302,9 @@ tag-tracking anchor. Bootstrap's tag-mismatch check reads this line.
 ## mcp_tool webhook entry
 
 The Claude template adds a sibling `type: "mcp_tool"` UserPromptSubmit entry that
-calls `get_pending_status` on `github-webhook-mcp`. The Codex hooks schema documents
-only `type: "command"` handlers. Therefore the Codex webhook intake stays on the
+calls `get_pending_status` on `github-webhook-mcp`, under every delivery value but
+`channel` (`adapter/claude/hooks-settings.md` Delivery-mode rendering). The Codex
+hooks schema documents only `type: "command"` handlers. Therefore the Codex webhook intake stays on the
 **poll** path: the `on-user-prompt` hook emits the call line and the AI calls the
 MCP tool itself. `LI_PLUS_WEBHOOK_DELIVERY=channel` / `mcp_hook` suppress that call
 half only — the handling half (report filter + `mark_processed`) is emitted in every

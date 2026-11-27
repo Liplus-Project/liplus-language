@@ -11,7 +11,7 @@ verbatim into `{workspace_root}/.claude/hooks/` at bootstrap time.
 ## File ownership boundary
 
 `{workspace_root}/.claude/settings.json` = **Li+ owned**. Bootstrap renders it
-from the literal template below.
+from the literal template below, per Delivery-mode rendering below.
 
 `{workspace_root}/.claude/settings.local.json` = **user owned**. Li+ never touches
 this file. Anything the workspace owner wants persisted alongside Li+'s wiring —
@@ -176,6 +176,29 @@ Real files, copied verbatim into `{workspace_root}/.claude/hooks/` on bootstrap
 Each script carries a `# Source: ... ({LI_PLUS_TAG})` comment line near the top as
 the tag-tracking anchor. Bootstrap's tag-mismatch check reads this line.
 
+## Delivery-mode rendering
+
+The rendered template is the literal JSON block in the settings.json section above,
+with one variation keyed on `LI_PLUS_WEBHOOK_DELIVERY` in
+`{workspace_root}/Li+config.md`. Read the value as the hooks read it: the text after
+`=` on the `LI_PLUS_WEBHOOK_DELIVERY=` line, CR removed, compared case-sensitively.
+
+- Value `channel`: remove the `type: "mcp_tool"` object from the UserPromptSubmit
+  `hooks` array. Delete the six lines from the `{` that opens that object through the
+  `}` that closes it, and the `,` that ends the line before them. Every other byte of
+  the literal is kept, indentation included.
+- Any other value (unset, `poll`, `mcp_hook`, or a value outside the known set):
+  render the literal unchanged.
+
+The compare-and-overwrite branches in Bootstrap behavior compare against this
+rendered template. A `channel` workspace whose `settings.json` still carries the
+entry is overwritten without it; a workspace switched away from `channel` gets it
+back.
+
+The value is read at bootstrap, not per turn. A switch to or from `channel` reaches
+`settings.json` on the next bootstrap run; the bash hook's call half reads the value
+every turn and follows the switch at once.
+
 ## mcp_tool entry behavior
 
 The default template includes a `type: "mcp_tool"` UserPromptSubmit hook entry
@@ -191,11 +214,16 @@ Preconditions for the entry to actually deliver webhook context to the AI:
    UserPromptSubmit decision shape. Output from earlier versions is discarded by
    Claude Code.
 
-`Li+config.md`'s `LI_PLUS_WEBHOOK_DELIVERY` setting controls the *bash hook's*
-call half (poll / channel / mcp_hook) independently. The `mcp_tool` entry itself
-fires unconditionally; setting `LI_PLUS_WEBHOOK_DELIVERY=mcp_hook` suppresses the
-bash hook's "call the tool yourself" line, so the wrap delivery is the single
-source of webhook context.
+`Li+config.md`'s `LI_PLUS_WEBHOOK_DELIVERY` setting controls two things on two
+clocks: the *bash hook's* call half (poll / channel / mcp_hook), read every turn, and
+whether the rendered template carries the `mcp_tool` entry at all, read at bootstrap
+(Delivery-mode rendering above).
+
+- `channel`: the entry is not rendered.
+- `poll` / `mcp_hook` / any other value: the entry is rendered and fires on every
+  turn. Setting `LI_PLUS_WEBHOOK_DELIVERY=mcp_hook` suppresses the bash hook's "call
+  the tool yourself" line, so the wrap delivery is the single source of webhook
+  context.
 
 It does not suppress the handling half: the delivery mode selects only who calls
 the tool. The report filter and the `mark_processed` re-arm are emitted by the
@@ -207,5 +235,5 @@ If `github-webhook-mcp` is **not connected**: Claude Code's mcp_tool resolver
 returns a `not connected` error per turn. The error is surfaced as plain text
 to the AI but carries no actionable webhook payload. Workspaces that do not use
 the webhook intake flow at all can leave the entry inert (the error is harmless
-beyond the per-turn noise) or remove it knowing the next bootstrap will
-restore it from the template.
+beyond the per-turn noise). Removing it by hand does not hold: the next bootstrap
+restores it from the rendered template, which omits it under `channel` only.

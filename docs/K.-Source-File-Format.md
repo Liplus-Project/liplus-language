@@ -99,7 +99,7 @@ description: Invoke when <条件1> / <条件2> / <条件3>. <何を提供する�
 
 ### 適用状況
 
-`skills/*/SKILL.md` 全件がこの形。唯一の例外だった探索の L1 skill は #1641 で house 形へ整合させ、例外は解消した（その skill は #2221 で廃止）。
+`skills/*/SKILL.md` 40 件のうち、`skills/operations-foreground-webhook-intake/SKILL.md` を除く 39 件がこの形（2026-11-27、#2221 で全件の `description` 先頭を確認）。除いた 1 件は呼ばないことを宣言する redirect stub で、`Do not invoke.` で始まる。以前の例外だった探索の L1 skill は #1641 で house 形へ整合させた（その skill は #2221 で廃止）。
 
 ## scope と除外
 

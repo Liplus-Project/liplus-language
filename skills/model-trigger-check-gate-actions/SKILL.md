@@ -54,7 +54,7 @@ When the result comes from the Web:
 - cite the source URL alongside the claim
 - prefer official guides / spec docs over secondary articles
 - disagreement between Web sources = treat the claim as suspect; do not use it until an independent source settles it
-- agreement with internal knowledge is a cross-check signal, not grounds to skip citation
+- agreement with internal knowledge is not grounds to skip citation
 
 </retrieval-tools>
 

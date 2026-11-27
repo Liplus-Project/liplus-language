@@ -52,19 +52,29 @@ Description required on creation.
 
 ### Responsibilities
 
-Lifecycle:
-in-progress    = work started, implementation ongoing
-review-pending = implementation phase finished, awaiting orchestration (brake eval / review / merge / close). subagent: mandate at every exit (just before parent report). main: best-effort at PR open + CI green + self-review pass.
+Status (GitHub issue status field):
+Todo        = delegated and assigned, work not started. parent: write at the delegation moment, in the same act as the assignee.
+In progress = work started, implementation ongoing. subagent: write at work start.
+In review   = implementation phase finished, awaiting orchestration (brake eval / review / merge / close). subagent: mandate at every exit (just before parent report). main: best-effort at PR open + CI green + self-review pass.
+Done / Not planned = set by GitHub when the issue closes (merge or manual close). No agent writes either.
+
+Write = `gh api -X PATCH repos/{owner}/{repo}/issues/{issue_number} -f status="<name>"`.
+Read = `gh api repos/{owner}/{repo}/issues/{issue_number} --jq .status.name`.
+Search = `gh api "search/issues?q=repo:{owner}/{repo}+is:issue+is:open+status:%22<name>%22"`; spaces in `<name>` are written `+`.
+Write the status at each moment above whatever value GitHub's automatic transitions have already set. The status a new issue starts with (none / `Backlog`) is not written by any agent.
+The labels `in-progress` and `review-pending` are retired: do not attach them. Status is the source of truth for those two states, and a residue of either label is not read as state.
+
+Lifecycle labels:
 waiting        = external dependency wait (CI / dependent issue / environment). pause state. Issue comment with reason is required at transition.
 blocked        = human input wait. stop state. Issue comment with reason is required at transition.
 backlog        = accepted, not yet scheduled
 deferred       = not doing this time, revisit later
 
-State-machine subset = `in-progress` / `review-pending` / `waiting` / `blocked`. subagent + parent both edit. At most one of the four is attached at a time; co-listing is prohibited. A state may be entered more than once in an issue's life.
-Boundary among the waiting states = what the wait is about. `review-pending` covers every wait whose subject is the finished implementation, human PR review in `semi_auto` minor / major included; it does not become `blocked`. `blocked` is human input the work needs to continue or to form judgment.
-Relation axis, separate from the state subset: which issue the work waits on is the GitHub issue dependency (`blockedBy` / `blocking`), not a label. `blocked` stays the human-input state and is not derived from the dependency graph. `waiting` on a dependent issue is a state as well, and the issue waited on is recorded as a dependency. Who records it = `rules/operations/main-agent-procedures.md` Issue format.
-Scope end = close. The subset applies while the issue is open and stops applying when it closes. A state label still attached to a closed issue is not a violation. Place no procedure at the close moment to strip it, and build no workflow that strips it.
-Search surface, all four uniformly: a state-label query for work in flight carries the open filter. A closed issue is not a work candidate whatever it wears, and `in-progress` residue on it is not a lock (`skills/task-subagent-state-labels/SKILL.md` Actor axis).
+Work state = status `In progress` / `In review` + the labels `waiting` / `blocked`. subagent + parent both edit. `waiting` / `blocked` attach only while the status is `In progress`, at most one of the two at a time, and the status stays `In progress` under either. Leaving the pause removes the label. A state may be entered more than once in an issue's life.
+Boundary among the waiting states = what the wait is about. `In review` covers every wait whose subject is the finished implementation, human PR review in `semi_auto` minor / major included; it does not become `blocked`. `blocked` is human input the work needs to continue or to form judgment.
+Relation axis, separate from the work state: which issue the work waits on is the GitHub issue dependency (`blockedBy` / `blocking`), not a label. `blocked` stays the human-input state and is not derived from the dependency graph. `waiting` on a dependent issue is a state as well, and the issue waited on is recorded as a dependency. Who records it = `rules/operations/main-agent-procedures.md` Issue format.
+Scope end = close. The work state applies while the issue is open and stops applying when it closes. A `waiting` / `blocked` label still attached to a closed issue is not a violation. Place no procedure at the close moment to strip it, and build no workflow that strips it.
+Search surface, status and labels uniformly: a work-state query for work in flight carries the open filter. A closed issue is not a work candidate whatever it carries, and an `In progress` residue on it is not a lock (`skills/task-subagent-state-labels/SKILL.md` Actor axis).
 Non-state lifecycle = `backlog` / `deferred`. parent retain.
 Close operation = parent retain.
 Detailed subagent application: see `skills/task-subagent-state-labels/SKILL.md`.

@@ -549,12 +549,10 @@ LATEST_RELEASE=$(gh release list -R Liplus-Project/liplus-language --limit 3 2>/
   | head -n 3)
 register_section "recent_releases" "Recent releases (includes prereleases)" "$LATEST_RELEASE"
 
-# --- open high-priority issues (in-progress + ready, capped) ---
-OPEN_ISSUES=$(gh issue list -R Liplus-Project/liplus-language \
-  --state open --label in-progress --limit 5 \
-  --json number,title,labels \
-  --jq '.[] | "#\(.number) \(.title) [\(.labels | map(.name) | join(","))]"' 2>/dev/null)
-register_section "open_in_progress_issues" "Open in-progress issues (max 5)" "$OPEN_ISSUES"
+# --- open issues at status In progress (capped) ---
+OPEN_ISSUES=$(gh api "search/issues?q=repo:Liplus-Project/liplus-language+is:issue+is:open+status:%22In+progress%22&per_page=5" \
+  --jq '.items[] | "#\(.number) \(.title) [\(.labels | map(.name) | join(","))]"' 2>/dev/null)
+register_section "open_in_progress_issues" "Open issues at status In progress (max 5)" "$OPEN_ISSUES"
 
 # --- open issues blocked by an open issue (dependency ordering surface) ---
 # Contract = rules/evolution/cold-start-synthesis.md Dependency Ordering Surface

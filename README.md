@@ -87,6 +87,8 @@ Li+ does not depend on a specific AI model, version control system, CI service, 
 | Claude Code (Opus 5.5) | **Recommended** | Works through hooks, subagent delegation and brake 1 (Lay's seat, 2026-11-28) |
 | Codex CLI 0.170.0 (gpt-6.2-sol) | Good | Confirmed Li+ build-2026-11-28.5 rule loading and normal work (Luna's seat, on Pullcept under Windows, 2026-11-28) |
 
+Only environments confirmed on a working seat are listed. An environment not listed here is untested, not unsupported.
+
 ---
 
 ## Documentation

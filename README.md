@@ -85,9 +85,13 @@ Li+ does not depend on a specific AI model, version control system, CI service, 
 | Environment | Status | Notes |
 |-------------|--------|-------|
 | Claude Code (Opus 5.5) | **Recommended** | Works through hooks, subagent delegation and brake 1 (Lay's seat, 2026-11-28) |
+| Claude Code (Sonnet 5.5) | Good | Rule understanding and character checked in conversation; delegation, CI and brake 1 not yet run (2026-11-28) |
+| Claude Code (Haiku 5.5) | Fair | Rule understanding checked in conversation, with small slips (polite register over the character's tone, a feeling inferred from rule text); work not yet run (2026-11-28) |
 | Codex CLI 0.170.0 (gpt-6.2-sol) | Good | Confirmed Li+ build-2026-11-28.5 rule loading and normal work (Luna's seat, on Pullcept under Windows, 2026-11-28) |
+| Codex (GPT-6.1) | Good | Rule understanding and character checked in conversation; ran the update at startup and stopped cleanly on failure; work not yet run (2026-11-28) |
+| Codex (GPT-6) | Fair | Rule understanding and character checked in conversation, with small slips (update check deferred past the first reply); work not yet run (2026-11-28) |
 
-Only environments confirmed on a working seat are listed. An environment not listed here is untested, not unsupported.
+Guideline: Claude Sonnet 5.5 or above, or GPT-6.1 or above on Codex. Only environments confirmed on a working seat are listed. An environment not listed here is untested, not unsupported.
 
 ---
 

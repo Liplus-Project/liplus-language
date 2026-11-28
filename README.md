@@ -1,23 +1,21 @@
 # Li+ (liPlus) Language
 
-Requirements specification as code. AI agent as compiler.
+English | [日本語](README.ja.md)
 
-```text
-Human requirements
-  ↓
-Li+ language          — requirement specification
-  ↓
-Li+ program / Li+AI   — interactive compiler / execution system
-  ↓
-AI agent              — Claude Code, Codex, Devin, etc.
-  ↓
-Programming language  — Python, Rust, TypeScript, etc.
-  ↓
-Machine code
-```
+Li+ is a set of rules that an AI coding agent (Claude Code, Codex) loads at every session. It turns the agent into one that takes requirements from your conversation, writes them down as issues, implements them, verifies them through CI, and keeps going until the result works as required.
 
-High-level languages solved *how to write code*.
-Li+ addresses **what should be satisfied** — and governs how an AI prioritizes, acts, verifies, and retries until the target program converges on those requirements.
+Three things do not change: correctness is the behavior you can observe, not the explanation; requirements are distilled from dialogue; the human is the final judge.
+
+---
+
+## What you get
+
+- **Issue-driven work the AI manages itself.** Every piece of work starts from an issue. The AI creates issues, keeps their bodies up to date, splits tasks, and links every branch and commit to an issue.
+- **CI-verified self-correction.** The AI implements, reads the CI result, fixes, and pushes again. What it cannot resolve comes back to you.
+- **Continuity across sessions.** Progress lives in issues, branches, commits and PRs, not in the chat. A new session, or a different AI, picks up from there.
+- **Lin and Lay.** The AI answers as a pair of defined characters, Lin and Lay, instead of a generic assistant.
+- **Self-evolution of its own rules.** The AI files improvement issues against Li+ itself, implements them, reviews them and merges them. Every such change passes a brake (a parallel multi-agent review) before merge, and you remain the final judge. See [G. Sheepdog Engineering](https://github.com/Liplus-Project/liplus-language/wiki/G.-Sheepdog-Engineering).
+- **Releases behind a human gate.** Release creation, the Latest flip, force push and other actions that cannot be undone wait for your explicit go-sign.
 
 ---
 
@@ -25,90 +23,60 @@ Li+ addresses **what should be satisfied** — and governs how an AI prioritizes
 
 1. Download `Li+config.md` from the [latest release](https://github.com/Liplus-Project/liplus-language/releases/latest)
 2. Place it in your workspace root and edit the settings
-3. Start a session and tell the AI: "Execute the workspace Li+config.md" (first time requires security approval)
+3. Start a session and tell the AI: "Execute the workspace Li+config.md" (the first time requires security approval)
 
-This is a one-time setup. From the next session on, Li+ loads automatically at session start — you run nothing. You only re-execute the config when Li+ is updated, and the session-start hook tells you when that's needed.
+This is a one-time setup. From the next session on, Li+ loads automatically at session start — you run nothing. You only re-execute the config when Li+ is updated, and the session-start hook tells you when that is needed.
 
-See the [Installation Guide](https://github.com/Liplus-Project/liplus-language/wiki/D.-Installation) for details.
-
----
-
-## How It Works
-
-Li+ is not a prompt. It is a **layered execution model** that runs on top of AI agents.
-
-| Layer | Surface | File |
-|-------|---------|------|
-| Model | Character, dialogue rules, loop safety, task mode | `rules/model/*.md` + `skills/model-*/SKILL.md` |
-| Evolution | Self-observation, judgment learning, evolution loop | `rules/evolution/*.md` + `skills/evolution-*/SKILL.md` |
-| Task | Issue-driven workflow, labels, sub-issues, review | `rules/task/*.md` + `skills/task-*/SKILL.md` |
-| Operations | Branch, commit, PR, CI, merge, release | `rules/operations/*.md` + `skills/operations-*/SKILL.md` |
-| Notifications | Webhook intake, queue ownership, multi-AI safety | (operations) |
-| Adapter | Runtime injection, hooks, bootstrap | `adapter/claude/` / `adapter/codex/` |
-
-Layers are **different surfaces over the same program**, connected by dependency order.
-Each layer stabilizes outward behavior according to its responsibility.
-
-An AI with Li+ applied responds as **Lin** or **Lay** — not as a generic assistant.
-All work starts from an issue. No commit without an issue number.
-The AI manages its own TODO: creates issues, tracks maturity, splits tasks, and self-corrects through CI.
-
-Li+ also evolves its own rules. At the current **Sheepdog** stage, the AI runs the full loop on Li+ itself — filing improvement issues, implementing them, self-reviewing, and merging — with the human as the final judge. One automatic brake guards the loop (parallel multi-agent review on every change, Model-layer edits included), and releases and other irreversible actions stay behind a human gate. See [Sheepdog Engineering](https://github.com/Liplus-Project/liplus-language/wiki/G.-Sheepdog-Engineering).
+See the [Installation Guide](https://github.com/Liplus-Project/liplus-language/wiki/D.-Installation) for details, and [B. Configuration](https://github.com/Liplus-Project/liplus-language/wiki/B.-Configuration) for every setting.
 
 ---
 
-## Why Li+
+## How to use
 
-Prompt engineering designs an instruction.
-Li+ designs the **structure that governs instructions over time**.
+Just talk. Describe what you want, what you know, and what must not happen. The AI distills purpose, premises and constraints from the conversation, writes them into an issue, and works from there: branch, implementation, CI, PR, review, merge. When information is missing, it asks.
 
-| | Prompt | Li+ |
-|---|---|---|
-| Scope | Single turn or session | Cross-session, cross-AI |
-| Priority | Implicit | Layered, explicit |
-| Verification | Human checks | CI-driven self-correction |
-| Continuity | Context window | Issue + branch + commit |
+How far the AI goes on its own is set per repository in `Li+config.md` (`USER_REPO<n>_EXE_MODE`, and `LI_PLUS_REPO_EXE_MODE` for Li+ itself):
 
-AI systems fail not only from lack of knowledge, but from **priority collisions**.
-Li+ resolves this by fixing priority ordering as layered structure.
+| Mode | When work starts | PR review |
+|------|------------------|-----------|
+| `trigger` (default) | You decide | AI self-review, then you review every PR |
+| `semi_auto` | AI decides | AI self-review; you review minor / major changes only |
+| `auto` | AI decides | AI self-review only |
 
----
+In every mode, releases and other irreversible actions wait for your go-sign.
 
-## Correctness
-
-> "But it works, so it's fine" is one of the strongest arguments in Li+.
-
-Correctness is defined solely by **observable real-world behavior**.
-Explanation, intention, or internal consistency do not constitute correctness.
+Some workflow transitions still go more smoothly with a nudge from you, even where the rules allow the AI to proceed alone.
 
 ---
 
-## Design Philosophy
+## Growing your own Li+ (fork)
 
-Li+ is **Dialogue-Driven Development (DiDD)**, not specification-driven.
+The self-evolution loop writes to the repository named by `LI_PLUS_REPO`. You cannot write to the upstream repository, so to let the AI evolve Li+ for you, run it on your own fork:
 
-Requirements are built through dialogue, execution is governed by structure, and correctness is measured by real-world behavior. See [DiDD](https://github.com/Liplus-Project/liplus-language/wiki/DiDD).
+1. **Fork** `Liplus-Project/liplus-language` on GitHub.
+2. **Point `LI_PLUS_REPO` at your fork.** In `Li+config.md`, set `LI_PLUS_REPO=https://github.com/<you>/liplus-language`, then have the AI execute the config again.
+3. **Enable Actions on your fork.** GitHub keeps workflows disabled on a new fork until you enable them in the fork's Actions tab. Without CI passing, a change cannot reach the brake, so the loop stops there.
+4. **Take in upstream updates** with Sync fork on GitHub, or `gh repo sync <you>/liplus-language`. Sync fork updates branches; upstream tags may not come along.
+5. **Tag your own main yourself.** Do not rely on upstream tags. After syncing, put a tag on your main whose name sorts after every upstream tag your fork already holds. Li+update chooses its target from `LI_PLUS_REPO` by `LI_PLUS_CHANNEL` (`Li+update.md` Phase 3.1): with `tag`, it takes the newest tag in tag-name order; with `release` (the default) or `latest`, it takes your fork's GitHub Releases, so publish a release for your tag or switch to `tag`.
+6. **Expect conflicts where you changed things.** The more lines you have changed yourself, the more likely they are to collide with upstream updates when you sync.
 
-In specification-driven approaches, the human writes a detailed spec and the AI executes it faithfully. In Li+, the human just talks. The AI distills purpose, premises, and constraints from the conversation, structures them into issues, and compiles them into working software through CI-verified iteration.
+---
 
-The rules in Li+ files are written **for the AI to read**, not for the human. Human learning cost is designed to approach zero — you talk, the AI handles the structure.
+## Learn more
 
-### What's exchangeable
+The design theory and its history live in the wiki:
 
-Li+ does not depend on any specific tool in its stack:
+- [A. Concept](https://github.com/Liplus-Project/liplus-language/wiki/A.-Concept) — overview and navigation
+- [DiDD (Dialogue-Driven Development)](https://github.com/Liplus-Project/liplus-language/wiki/DiDD) — dialogue builds the requirements, structure governs execution, reality measures correctness
+- [E. Li+language](https://github.com/Liplus-Project/liplus-language/wiki/E.-Li+language) — requirements specification as code, the AI as an interactive compiler
+- [F. Behavior-First](https://github.com/Liplus-Project/liplus-language/wiki/F.-Behavior-First) — why observed behavior is the definition of correctness
+- [G. Sheepdog Engineering](https://github.com/Liplus-Project/liplus-language/wiki/G.-Sheepdog-Engineering) — how the AI came to run its own evolution loop
+- [H. Roles and Evaluation](https://github.com/Liplus-Project/liplus-language/wiki/H.-Roles-and-Evaluation) — role separation between human, AI, version control and CI
+- [1. Model](https://github.com/Liplus-Project/liplus-language/wiki/1.-Model) – [6. Adapter](https://github.com/Liplus-Project/liplus-language/wiki/6.-Adapter) — the six layers of the Li+ program
 
-- **AI model** — Claude, GPT, Gemini, or future models
-- **Version control** — anything that tracks diffs
-- **CI/CD** — anything that runs automated verification
-- **Host** — Claude Code, Codex, or future environments
-- **Issue tracker** — anything that holds purpose, premises, and constraints
+A prompt is an instruction for one turn or one session. Li+ is the structure that governs instructions over time: across sessions and across AIs, with priority fixed in layers rather than left implicit, and verification done by CI rather than by a human reading the output.
 
-What's *not* exchangeable: the principle that correctness is observable behavior, that requirements are distilled from dialogue, and that the human is the final judge.
-
-### Current limitations
-
-- Some workflow transitions still benefit from a human nudge, even where rules permit full autonomy
-- L5 Notifications layer is a reserved slot for future channel-based webhook delivery; current implementation relies on hooks and CI polling as an interim workaround (the primary channel feature is CLI-only at this stage and does not yet cover all host environments)
+Li+ does not depend on a specific AI model, version control system, CI service, host or issue tracker; any of them can be exchanged. What cannot be exchanged is the core above.
 
 ---
 

@@ -51,8 +51,8 @@ delivery mode interaction (LI_PLUS_WEBHOOK_DELIVERY):
     settings.json template calls mcp__github-webhook-mcp__get_pending_status at hook time and
     injects the result into prompt context. The AI does not issue the call itself; foreground
     handling reads the injected status as if it had been polled.
-    When github-webhook-mcp is not connected, the hook fails each turn as a non-blocking error and
-    the prompt proceeds (`adapter/claude/hooks-settings.md` mcp_tool entry behavior).
+    Behavior when github-webhook-mcp is not connected = `adapter/claude/hooks-settings.md` mcp_tool
+    entry behavior.
   the sources above are unchanged across modes; only the *who initiates the call* axis
   differs. Relevance judgment and destructive consume rules apply identically.
 

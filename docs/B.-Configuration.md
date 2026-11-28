@@ -133,7 +133,7 @@ webhook 通知がセッションへ届く方法を指定します。`mcp__github
 - 配信が実際に AI 文脈へ届く前提条件:
   - `mcp__github-webhook-mcp` が MCP サーバーとして接続済みであること（CLI なら `~/.claude.json` / `.mcp.json` / `claude mcp add`、Desktop なら `claude_desktop_config.json`）
   - `github-webhook-mcp >= v0.11.3` であること（`get_pending_status` の戻り値を Claude Code UserPromptSubmit hook decision JSON shape にラップする bridge 側の対応が必要。それ以前のバージョンでは hook 戻り値が AI 文脈に注入されない）
-- entry が描画されている（`channel` 以外の）状態で、hook の呼び出し時に MCP サーバーが未接続の場合、その hook は毎ターン non-blocking error として失敗し、prompt はそのまま AI へ届きます（Claude Code hooks docs の "MCP failure" / "Non-blocking error"、https://code.claude.com/docs/en/hooks、2026-11-28 時点。テンプレートは `onFailure` を指定していません）。webhook の内容は運ばれません。エラー文が AI の context に入るかどうかは docs に書かれていません。webhook 通知を使わないユーザーには設定ノイズとして見えます
+- entry が描画されている（`channel` 以外の）状態で、hook の呼び出し時に MCP サーバーが未接続の場合、その hook は毎ターン non-blocking error として失敗し、prompt はそのまま AI へ届きます（Claude Code hooks docs の "MCP failure" / "Non-blocking error"、https://code.claude.com/docs/en/hooks、2026-11-28 時点。テンプレートは `onFailure` を指定していません）。webhook の内容は運ばれません。エラー文が AI の context に入るかどうかは docs に書かれていません
 
 ### settings.json と settings.local.json の所有境界 (build-2026-04-25 以降)
 

@@ -100,7 +100,10 @@ Applies to external fact cross-check results only.
 A premise is verified only when external evidence (docs, spec, source, runtime probe, existing issue/PR record) is cited.
 "feels correct" is not verification.
 
-Memo maturity is a valid resting state. Promotion to forming/ready is judged here, when the issue itself is the focus — not at the creation moment (Issue format above).
+Similar-issue search before ready:
+Just before promoting an issue from memo/forming to ready, and just before creating an issue directly at ready, search for similar issues and past judgments (retrieval path = `skills/evolution-judgment-learning/SKILL.md`). Similar issue found -> append to or fold into the existing issue instead of keeping both. Past judgment found -> carry it into this issue's premise. Creating a memo issue runs no search.
+
+Memo maturity is a valid resting state. A memo issue's promotion to forming/ready is judged here, when the issue itself is the focus — not at the moment the memo was created (Issue format above).
 
 </issue-maturity>
 

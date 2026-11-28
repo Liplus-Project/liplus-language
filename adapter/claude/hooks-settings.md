@@ -227,9 +227,9 @@ hook in every mode; do not leave them to the always-on canonical alone
 (`rules/notifications/notifications.md` Foreground webhook notification
 intake), whose firing moment is `each user turn start`.
 
-If `github-webhook-mcp` is **not connected**: Claude Code's mcp_tool resolver
-returns a `not connected` error per turn. The error is surfaced as plain text
-to the AI but carries no actionable webhook payload. Workspaces that do not use
-the webhook intake flow at all can leave the entry inert (the error is harmless
-beyond the per-turn noise). Removing it by hand does not hold: the next bootstrap
-restores it from the rendered template, which omits it under `channel` only.
+If the entry is rendered and `github-webhook-mcp` is **not connected**: Claude
+Code's mcp_tool resolver returns a `not connected` error per turn. The error is
+surfaced as plain text to the AI but carries no actionable webhook payload.
+Workspaces that do not use the webhook intake flow at all can leave the entry inert
+(the error is harmless beyond the per-turn noise). Removing it by hand does not
+hold: the next bootstrap restores it from the rendered template.

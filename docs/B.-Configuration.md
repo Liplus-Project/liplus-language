@@ -119,7 +119,7 @@ webhook 通知がセッションへ届く方法を指定します。`mcp__github
 | 値 | 動作 |
 |----|------|
 | 未設定 / `poll` | 毎ターン開始時に on-user-prompt hook が呼び出し指示を出力し、AI 自身に MCP ツールを呼ばせる（既定、後方互換） |
-| `channel` | MCP channel がリアルタイムにイベントを配信するため、hook の呼び出し指示をスキップする |
+| `channel` | MCP channel がリアルタイムにイベントを配信するため、hook の呼び出し指示をスキップする。bootstrap は `.claude/settings.json` に `type: "mcp_tool"` の hook entry を描画しない |
 | `mcp_hook` | UserPromptSubmit の `type: "mcp_tool"` hook が `mcp__github-webhook-mcp__get_pending_status` を直接呼び出し、結果を prompt context に注入する。hook の呼び出し指示はスキップされる（`github-webhook-mcp >= v0.11.3` が前提） |
 
 注意:
@@ -127,12 +127,13 @@ webhook 通知がセッションへ届く方法を指定します。`mcp__github
 - 値は**大小文字を区別**します。`Mcp_Hook` は `mcp_hook` として扱われず、既定の `poll` へ倒れます。既知の 3 値以外が書かれている場合、hook は毎ターンの先頭でキー名と実際の値を含む 1 行を出します（挙動そのものは既定へ倒れたまま変わりません）
 - 値を切り替えても webhook 通知の前景判定ルールは変わりません。transport（呼び出し主体）が変わるだけです
 - したがってスキップされるのは**呼び出し指示だけ**です。取り扱い指示（前景報告フィルタと `mark_processed` の re-arm）は全モードで毎ターン出力されます。これを代替するものはどのモードにも無く、発火時刻がターン境界である以上、hook 以外に担える面が無いためです（#1798）
-- この設定は on-user-prompt hook が実行時に Li+config.md から読み取ります。bootstrap での追加アクションは不要です
+- この設定は on-user-prompt hook が実行時に Li+config.md から読み取ります。加えて bootstrap も `.claude/settings.json` を描画する時点で 1 回読みます（下記）
 - `mcp_tool` の hook entry は `adapter/claude/hooks-settings.md` の default テンプレートに含まれており、bootstrap によって `.claude/settings.json` に自動配置されます。**手動追加は不要**になりました（旧仕様では opt-in に手動編集が必要でした）
+- ただし `channel` のときだけ、bootstrap はこの entry を除いてテンプレートを描画します（`adapter/claude/hooks-settings.md` の Delivery-mode rendering）。channel はイベントを push で受け取り、webhook 側をポーリングしないためです。値を `channel` へ、または `channel` から切り替えた結果が `settings.json` に反映されるのは次の bootstrap 実行時です。手で entry を外しても、`channel` 以外では次の bootstrap で戻ります
 - 配信が実際に AI 文脈へ届く前提条件:
   - `mcp__github-webhook-mcp` が MCP サーバーとして接続済みであること（CLI なら `~/.claude.json` / `.mcp.json` / `claude mcp add`、Desktop なら `claude_desktop_config.json`）
   - `github-webhook-mcp >= v0.11.3` であること（`get_pending_status` の戻り値を Claude Code UserPromptSubmit hook decision JSON shape にラップする bridge 側の対応が必要。それ以前のバージョンでは hook 戻り値が AI 文脈に注入されない）
-- MCP サーバー未接続の場合、Claude Code の `mcp_tool` resolver が毎ターン `not connected` テキストを context に出します。挙動上の害はありませんが、webhook 通知を使わないユーザーは設定ノイズとして見えます
+- entry が描画されている（`channel` 以外の）状態で、hook の呼び出し時に MCP サーバーが未接続の場合、その hook は毎ターン non-blocking error として失敗し、prompt はそのまま AI へ届きます（Claude Code hooks docs の "MCP failure" / "Non-blocking error"、https://code.claude.com/docs/en/hooks、2026-11-28 時点。テンプレートは `onFailure` を指定していません）。webhook の内容は運ばれません。エラー文が AI の context に入るかどうかは docs に書かれていません
 
 ### settings.json と settings.local.json の所有境界 (build-2026-04-25 以降)
 

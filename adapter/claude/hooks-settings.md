@@ -212,9 +212,9 @@ Preconditions for the entry to actually deliver webhook context to the AI:
    UserPromptSubmit decision shape. Output from earlier versions is discarded by
    Claude Code.
 
-`Li+config.md`'s `LI_PLUS_WEBHOOK_DELIVERY` setting controls two things on two
-clocks: the *bash hook's* call half (poll / channel / mcp_hook), read every turn, and
-whether the rendered template carries the `mcp_tool` entry at all, read at bootstrap
+`Li+config.md`'s `LI_PLUS_WEBHOOK_DELIVERY` setting controls two things: the
+*bash hook's* call half (poll / channel / mcp_hook), read every turn, and whether the
+rendered template carries the `mcp_tool` entry at all, read at bootstrap
 (Delivery-mode rendering above).
 
 Where the entry is rendered, it fires on every turn. Setting
@@ -227,9 +227,11 @@ hook in every mode; do not leave them to the always-on canonical alone
 (`rules/notifications/notifications.md` Foreground webhook notification
 intake), whose firing moment is `each user turn start`.
 
-If the entry is rendered and `github-webhook-mcp` is **not connected**: Claude
-Code's mcp_tool resolver returns a `not connected` error per turn. The error is
-surfaced as plain text to the AI but carries no actionable webhook payload.
-Workspaces that do not use the webhook intake flow at all can leave the entry inert
-(the error is harmless beyond the per-turn noise). Removing it by hand does not
-hold: the next bootstrap restores it from the rendered template.
+If the entry is rendered and `github-webhook-mcp` is **not connected** when the hook
+calls it, the hook fails on every turn as a non-blocking error and the prompt still
+reaches the AI (Claude Code hooks docs, "MCP failure" and "Non-blocking error", at
+https://code.claude.com/docs/en/hooks, read 2026-11-28; the template sets no
+`onFailure`). It carries no webhook payload. The docs do not state that the error
+text reaches the AI's context. Workspaces that do not use the webhook intake flow at
+all can leave the entry inert. Removing it by hand does not hold: the next bootstrap
+restores it from the rendered template.

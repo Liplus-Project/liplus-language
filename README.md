@@ -84,15 +84,8 @@ Li+ does not depend on a specific AI model, version control system, CI service, 
 
 | Environment | Status | Notes |
 |-------------|--------|-------|
-| Claude Code (Opus 4.8, 1M context) | **Recommended** | Full capability with hooks and subagent delegation |
-| Claude Code (Opus 4.7) | Good | Previous recommended tier |
-| Claude Code (Sonnet 4.6) | Good | Strong for development work |
-| Claude Sonnet 4.6 (claude.ai) | Fair | Strong for documents, not ideal for continuous work |
-| Codex (GPT 5.4) | Good | Practical, tends to over-weight structure |
-| ChatGPT 5.2 | Fair | Strong reasoning, platform limits on long workflows |
-| Claude Haiku 4.5 | Not supported | Cannot reliably apply L1 Model layer rules |
-
-Minimum: roughly Claude Sonnet 4.6 equivalent or above.
+| Claude Code (Opus 5.5) | **Recommended** | Works through hooks, subagent delegation and brake 1 (Lay's seat, 2026-11-28) |
+| Codex CLI 0.170.0 (gpt-6.2-sol) | Good | Confirmed Li+ build-2026-11-28.5 rule loading and normal work (Luna's seat, on Pullcept under Windows, 2026-11-28) |
 
 ---
 

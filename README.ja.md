@@ -84,15 +84,8 @@ Li+ は特定の AI モデル、バージョン管理、CI、ホスト、issue �
 
 | 環境 | 評価 | 備考 |
 |------|------|------|
-| Claude Code (Opus 4.8, 1M context) | **推奨** | hooks と subagent への委任をすべて使える |
-| Claude Code (Opus 4.7) | 良 | ひとつ前の推奨 |
-| Claude Code (Sonnet 4.6) | 良 | 開発作業に強い |
-| Claude Sonnet 4.6 (claude.ai) | 可 | 文書作業には強いが、続けて作業するのには向かない |
-| Codex (GPT 5.4) | 良 | 実用的。構造に重みを置きすぎる傾向がある |
-| ChatGPT 5.2 | 可 | 推論は強いが、長いワークフローはプラットフォームの制限を受ける |
-| Claude Haiku 4.5 | 非対応 | L1 Model layer のルールを安定して適用できない |
-
-最低限: おおむね Claude Sonnet 4.6 相当以上。
+| Claude Code (Opus 5.5) | **推奨** | hooks・subagent への委任・brake 1 まで動作（Lay の席、2026-11-28） |
+| Codex CLI 0.170.0 (gpt-6.2-sol) | 良 | Li+ build-2026-11-28.5 のルール読み込みと通常作業を確認（Luna の席、Windows の Pullcept 上、2026-11-28） |
 
 ---
 
